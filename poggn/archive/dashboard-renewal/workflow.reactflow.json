@@ -1,0 +1,351 @@
+{
+  "topic": "dashboard-renewal",
+  "nodes": [
+    {
+      "id": "proposal",
+      "type": "document",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "label": "proposal.md",
+        "path": "poggn/active/dashboard-renewal/proposal.md",
+        "stage": "proposal"
+      }
+    },
+    {
+      "id": "proposal-review",
+      "type": "review",
+      "position": {
+        "x": 0,
+        "y": 140
+      },
+      "data": {
+        "label": "reviews/proposal.review.md",
+        "path": "poggn/active/dashboard-renewal/reviews/proposal.review.md",
+        "stage": "review"
+      }
+    },
+    {
+      "id": "plan",
+      "type": "document",
+      "position": {
+        "x": 0,
+        "y": 280
+      },
+      "data": {
+        "label": "plan.md",
+        "path": "poggn/active/dashboard-renewal/plan.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "spec-project-list-board",
+      "type": "document",
+      "position": {
+        "x": 280,
+        "y": 280
+      },
+      "data": {
+        "label": "spec/ui/project-list-board.md",
+        "path": "poggn/active/dashboard-renewal/spec/ui/project-list-board.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "spec-project-detail-workspace",
+      "type": "document",
+      "position": {
+        "x": 280,
+        "y": 420
+      },
+      "data": {
+        "label": "spec/ui/project-detail-workspace.md",
+        "path": "poggn/active/dashboard-renewal/spec/ui/project-detail-workspace.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "spec-topic-lifecycle-board",
+      "type": "document",
+      "position": {
+        "x": 280,
+        "y": 560
+      },
+      "data": {
+        "label": "spec/ui/topic-lifecycle-board.md",
+        "path": "poggn/active/dashboard-renewal/spec/ui/topic-lifecycle-board.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "spec-artifact-inspector",
+      "type": "document",
+      "position": {
+        "x": 280,
+        "y": 700
+      },
+      "data": {
+        "label": "spec/ui/artifact-inspector.md",
+        "path": "poggn/active/dashboard-renewal/spec/ui/artifact-inspector.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "spec-dashboard-topic-artifact-snapshot",
+      "type": "document",
+      "position": {
+        "x": 560,
+        "y": 420
+      },
+      "data": {
+        "label": "spec/infra/dashboard-topic-artifact-snapshot.md",
+        "path": "poggn/active/dashboard-renewal/spec/infra/dashboard-topic-artifact-snapshot.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "spec-dashboard-feature-architecture",
+      "type": "document",
+      "position": {
+        "x": 560,
+        "y": 560
+      },
+      "data": {
+        "label": "spec/infra/dashboard-feature-architecture.md",
+        "path": "poggn/active/dashboard-renewal/spec/infra/dashboard-feature-architecture.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "task",
+      "type": "task",
+      "position": {
+        "x": 0,
+        "y": 840
+      },
+      "data": {
+        "label": "task.md",
+        "path": "poggn/active/dashboard-renewal/task.md",
+        "stage": "task"
+      }
+    },
+    {
+      "id": "implementation-index",
+      "type": "document",
+      "position": {
+        "x": 0,
+        "y": 1120
+      },
+      "data": {
+        "label": "implementation/index.md",
+        "path": "poggn/active/dashboard-renewal/implementation/index.md",
+        "stage": "implementation"
+      }
+    },
+    {
+      "id": "plan-review",
+      "type": "review",
+      "position": {
+        "x": 0,
+        "y": 980
+      },
+      "data": {
+        "label": "reviews/plan.review.md",
+        "path": "poggn/active/dashboard-renewal/reviews/plan.review.md",
+        "stage": "review"
+      }
+    },
+    {
+      "id": "code-review",
+      "type": "review",
+      "position": {
+        "x": 0,
+        "y": 1260
+      },
+      "data": {
+        "label": "reviews/code.review.md",
+        "path": "poggn/active/dashboard-renewal/reviews/code.review.md",
+        "stage": "review"
+      }
+    },
+    {
+      "id": "refactor-review",
+      "type": "review",
+      "position": {
+        "x": 280,
+        "y": 1260
+      },
+      "data": {
+        "label": "reviews/refactor.review.md",
+        "path": "poggn/active/dashboard-renewal/reviews/refactor.review.md",
+        "stage": "refactor"
+      }
+    },
+    {
+      "id": "qa-report",
+      "type": "review",
+      "position": {
+        "x": 0,
+        "y": 1400
+      },
+      "data": {
+        "label": "qa/report.md",
+        "path": "poggn/active/dashboard-renewal/qa/report.md",
+        "stage": "qa"
+      }
+    },
+    {
+      "id": "qa-review-doc",
+      "type": "review",
+      "position": {
+        "x": 280,
+        "y": 1400
+      },
+      "data": {
+        "label": "qa/review.md",
+        "path": "poggn/active/dashboard-renewal/qa/review.md",
+        "stage": "qa"
+      }
+    },
+    {
+      "id": "qa-review",
+      "type": "review",
+      "position": {
+        "x": 560,
+        "y": 1400
+      },
+      "data": {
+        "label": "reviews/qa.review.md",
+        "path": "poggn/active/dashboard-renewal/reviews/qa.review.md",
+        "stage": "review"
+      }
+    },
+    {
+      "id": "task-review",
+      "type": "review",
+      "position": {
+        "x": 280,
+        "y": 980
+      },
+      "data": {
+        "label": "reviews/task.review.md",
+        "path": "poggn/active/dashboard-renewal/reviews/task.review.md",
+        "stage": "review"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "proposal-to-review",
+      "source": "proposal",
+      "target": "proposal-review"
+    },
+    {
+      "id": "proposal-review-to-plan",
+      "source": "proposal-review",
+      "target": "plan"
+    },
+    {
+      "id": "plan-to-spec-project-list-board",
+      "source": "plan",
+      "target": "spec-project-list-board"
+    },
+    {
+      "id": "plan-to-spec-project-detail-workspace",
+      "source": "plan",
+      "target": "spec-project-detail-workspace"
+    },
+    {
+      "id": "plan-to-spec-topic-lifecycle-board",
+      "source": "plan",
+      "target": "spec-topic-lifecycle-board"
+    },
+    {
+      "id": "plan-to-spec-artifact-inspector",
+      "source": "plan",
+      "target": "spec-artifact-inspector"
+    },
+    {
+      "id": "plan-to-spec-dashboard-topic-artifact-snapshot",
+      "source": "plan",
+      "target": "spec-dashboard-topic-artifact-snapshot"
+    },
+    {
+      "id": "plan-to-spec-dashboard-feature-architecture",
+      "source": "plan",
+      "target": "spec-dashboard-feature-architecture"
+    },
+    {
+      "id": "spec-project-list-board-to-task",
+      "source": "spec-project-list-board",
+      "target": "task"
+    },
+    {
+      "id": "spec-project-detail-workspace-to-task",
+      "source": "spec-project-detail-workspace",
+      "target": "task"
+    },
+    {
+      "id": "spec-topic-lifecycle-board-to-task",
+      "source": "spec-topic-lifecycle-board",
+      "target": "task"
+    },
+    {
+      "id": "spec-artifact-inspector-to-task",
+      "source": "spec-artifact-inspector",
+      "target": "task"
+    },
+    {
+      "id": "spec-dashboard-topic-artifact-snapshot-to-task",
+      "source": "spec-dashboard-topic-artifact-snapshot",
+      "target": "task"
+    },
+    {
+      "id": "spec-dashboard-feature-architecture-to-task",
+      "source": "spec-dashboard-feature-architecture",
+      "target": "task"
+    },
+    {
+      "id": "task-to-plan-review",
+      "source": "task",
+      "target": "plan-review"
+    },
+    {
+      "id": "task-to-implementation-index",
+      "source": "task",
+      "target": "implementation-index"
+    },
+    {
+      "id": "implementation-index-to-code-review",
+      "source": "implementation-index",
+      "target": "code-review"
+    },
+    {
+      "id": "implementation-index-to-refactor-review",
+      "source": "implementation-index",
+      "target": "refactor-review"
+    },
+    {
+      "id": "refactor-review-to-qa-report",
+      "source": "refactor-review",
+      "target": "qa-report"
+    },
+    {
+      "id": "qa-report-to-qa-review-doc",
+      "source": "qa-report",
+      "target": "qa-review-doc"
+    },
+    {
+      "id": "qa-report-to-qa-review",
+      "source": "qa-report",
+      "target": "qa-review"
+    },
+    {
+      "id": "task-to-task-review",
+      "source": "task",
+      "target": "task-review"
+    }
+  ]
+}

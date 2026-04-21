@@ -1,0 +1,17 @@
+diff --git a/apps/dashboard/src/shared/store/dashboardStore.ts b/apps/dashboard/src/shared/store/dashboardStore.ts
+new file mode 100644
+index 0000000..ea30eb2
+--- /dev/null
++++ b/apps/dashboard/src/shared/store/dashboardStore.ts
+@@ -0,0 +1,11 @@
++import { create } from "zustand";
++import type { DashboardStore } from "../model/dashboard";
++
++export const useDashboardStore = create<DashboardStore>((set) => ({
++  selectedProjectId: null,
++  selectedTopicKey: null,
++  topicFilter: "",
++  setSelectedProjectId: (value) => set({ selectedProjectId: value }),
++  setSelectedTopicKey: (value) => set({ selectedTopicKey: value }),
++  setTopicFilter: (value) => set({ topicFilter: value })
++}));

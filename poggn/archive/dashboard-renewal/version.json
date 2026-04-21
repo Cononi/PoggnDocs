@@ -1,0 +1,9 @@
+{
+  "topic": "dashboard-renewal",
+  "changeType": "feat",
+  "version": "0.4.0",
+  "previousVersion": "0.3.0",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-21T16:15:07Z",
+  "history": "poggn/version-history.ndjson"
+}

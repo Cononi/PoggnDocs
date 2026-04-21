@@ -5,7 +5,7 @@ import { CssBaseline, ThemeProvider } from "@mui/material";
 import App from "./App";
 import "./styles.css";
 import "@xyflow/react/dist/style.css";
-import { dashboardTheme } from "./theme";
+import { dashboardTheme } from "./shared/theme/dashboardTheme";
 
 const client = new QueryClient();
 

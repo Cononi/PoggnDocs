@@ -1,0 +1,11 @@
+{"ts":"2026-04-21T15:52:33Z","stage":"proposal","event":"topic-created"}
+{"ts":"2026-04-21T15:52:51Z","stage":"proposal","event":"proposal-reviewed","score":95}
+{"ts":"2026-04-21T15:55:16Z","stage":"plan","event":"plan-reviewed","score":95}
+{"ts":"2026-04-21T15:55:16Z","stage":"task","event":"task-reviewed","score":95}
+{"ts":"2026-04-21T16:09:30Z","stage":"implementation","event":"code-reviewed","score":95}
+{"ts":"2026-04-21T16:09:30Z","stage":"refactor","event":"refactor-reviewed","score":94}
+{"ts":"2026-04-21T16:09:30Z","stage":"qa","event":"qa-reviewed","score":95}
+{"ts":"2026-04-21T16:15:07Z","stage":"archive","event":"version-recorded","version":"0.4.0","changeType":"feat"}
+{"ts":"2026-04-21T16:15:07Z","stage":"archive","event":"archived"}
+{"ts":"2026-04-21T16:15:08Z","stage":"archive","event":"git-publish-pending","resultType":"pending","pushStatus":"pending","reason":"Automatic publish is in progress.","remote":"origin","branch":"main","notesRef":"refs/notes/pgg-publish"}
+{"ts":"2026-04-21T16:16:05Z","stage":"archive","event":"git-publish-pending","resultType":"pending","pushStatus":"pending","reason":"Automatic publish is in progress.","remote":"origin","branch":"main","notesRef":"refs/notes/pgg-publish"}

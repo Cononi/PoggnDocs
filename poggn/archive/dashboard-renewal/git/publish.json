@@ -1,0 +1,20 @@
+{
+  "topic": "dashboard-renewal",
+  "version": "0.4.0",
+  "changeType": "feat",
+  "commitTitle": "feat. 0.4.0 Jira 스타일 프로젝트 목록, MUI CRUD 스타일 프로젝트 상세, active/archive 스크럼 보드형 운영 뷰 구현 결과를 검증하고 archive 가능 여부를 판정한다.",
+  "commitSha": null,
+  "pushStatus": "pending",
+  "remote": "origin",
+  "branch": "main",
+  "resultType": "pending",
+  "reason": "Automatic publish is in progress. Final publish status is stored in git notes.",
+  "publishedAt": null,
+  "retryable": true,
+  "rollbackEligible": false,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/dashboard-renewal",
+    "versionFile": "poggn/archive/dashboard-renewal/version.json"
+  }
+}

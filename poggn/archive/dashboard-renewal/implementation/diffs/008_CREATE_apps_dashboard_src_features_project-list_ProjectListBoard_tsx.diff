@@ -1,0 +1,288 @@
+diff --git a/apps/dashboard/src/features/project-list/ProjectListBoard.tsx b/apps/dashboard/src/features/project-list/ProjectListBoard.tsx
+new file mode 100644
+index 0000000..bdd6388
+--- /dev/null
++++ b/apps/dashboard/src/features/project-list/ProjectListBoard.tsx
+@@ -0,0 +1,282 @@
++import { alpha } from "@mui/material/styles";
++import { Box, Button, Card, CardActionArea, CardContent, Chip, Paper, Stack, Typography } from "@mui/material";
++import type { CategoryColumn, DashboardLocale, ProjectSnapshot } from "../../shared/model/dashboard";
++import { formatDate } from "../../shared/utils/dashboard";
++
++type ProjectListBoardProps = {
++  categories: CategoryColumn[];
++  currentProjectId: string | null;
++  selectedProject: ProjectSnapshot | null;
++  generatedAt: string;
++  dictionary: DashboardLocale;
++  isLiveMode: boolean;
++  onCreateCategory: () => void;
++  onEditCategory: (categoryId: string, currentName: string) => void;
++  onSetDefaultCategory: (categoryId: string) => void;
++  onDeleteCategory: (categoryId: string) => void;
++  onSelectProject: (projectId: string) => void;
++  onDragStart: (projectId: string) => void;
++  onDragEnd: () => void;
++  onDropProject: (categoryId: string, targetIndex?: number) => void;
++};
++
++export function ProjectListBoard(props: ProjectListBoardProps) {
++  const language = props.selectedProject?.language ?? "en";
++
++  return (
++    <Stack spacing={3}>
++      <Paper sx={{ p: { xs: 2.5, md: 3 }, borderRadius: 7, overflow: "hidden", position: "relative" }}>
++        <Box
++          sx={{
++            position: "absolute",
++            inset: 0,
++            background:
++              "radial-gradient(circle at top left, rgba(209, 100, 58, 0.18), transparent 30%), radial-gradient(circle at bottom right, rgba(57, 90, 115, 0.14), transparent 26%)"
++          }}
++        />
++        <Stack
++          direction={{ xs: "column", lg: "row" }}
++          spacing={2}
++          sx={{ position: "relative", justifyContent: "space-between" }}
++        >
++          <Box>
++            <Typography variant="overline" color="primary.main">
++              {props.dictionary.eyebrow}
++            </Typography>
++            <Typography variant="h1" sx={{ fontSize: { xs: "2.6rem", md: "4.4rem" }, lineHeight: 0.95, mb: 1 }}>
++              {props.dictionary.title}
++            </Typography>
++            <Typography variant="body1" color="text.secondary" sx={{ maxWidth: 780 }}>
++              {props.dictionary.subtitle}
++            </Typography>
++          </Box>
++
++          <Stack spacing={1.5} sx={{ alignItems: { xs: "flex-start", lg: "flex-end" } }}>
++            <Chip
++              label={props.isLiveMode ? props.dictionary.liveMode : props.dictionary.staticMode}
++              color={props.isLiveMode ? "success" : "default"}
++              variant={props.isLiveMode ? "filled" : "outlined"}
++            />
++            <Paper
++              sx={{
++                p: 1.5,
++                borderRadius: 4,
++                minWidth: 220,
++                backgroundColor: "rgba(255,255,255,0.64)"
++              }}
++            >
++              <Typography variant="caption" color="text.secondary">
++                {props.dictionary.generatedAt}
++              </Typography>
++              <Typography variant="subtitle2" sx={{ mt: 0.5 }}>
++                {formatDate(props.generatedAt, language)}
++              </Typography>
++            </Paper>
++            <Button variant="contained" disabled={!props.isLiveMode} onClick={props.onCreateCategory}>
++              {props.dictionary.createCategory}
++            </Button>
++          </Stack>
++        </Stack>
++      </Paper>
++
++      <Paper sx={{ p: 2.5, borderRadius: 6 }}>
++        <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ mb: 2, justifyContent: "space-between" }}>
++          <Box>
++            <Typography variant="h6">{props.dictionary.projectBoard}</Typography>
++            <Typography variant="body2" color="text.secondary">
++              {props.dictionary.projectBoardHint}
++            </Typography>
++          </Box>
++          {props.selectedProject ? (
++            <Chip
++              color="primary"
++              variant="outlined"
++              label={`${props.dictionary.currentProject}: ${props.selectedProject.name}`}
++            />
++          ) : null}
++        </Stack>
++
++        <Box
++          sx={{
++            display: "grid",
++            gridAutoFlow: "column",
++            gridAutoColumns: "minmax(300px, 340px)",
++            gap: 2,
++            overflowX: "auto",
++            pb: 1
++          }}
++        >
++          {props.categories.map((category) => (
++            <Paper
++              key={category.id}
++              variant="outlined"
++              sx={{
++                p: 1.5,
++                borderRadius: 5,
++                minHeight: 320,
++                backgroundColor: "rgba(255,255,255,0.72)"
++              }}
++            >
++              <Stack direction="row" spacing={1} sx={{ mb: 1.5, justifyContent: "space-between" }}>
++                <Box>
++                  <Stack direction="row" spacing={1} useFlexGap sx={{ alignItems: "center", flexWrap: "wrap" }}>
++                    <Typography variant="subtitle1">{category.name}</Typography>
++                    {category.isDefault ? (
++                      <Chip size="small" color="primary" label={props.dictionary.defaultBadge} />
++                    ) : null}
++                  </Stack>
++                  <Typography variant="caption" color="text.secondary">
++                    {category.projects.length} {props.dictionary.projects}
++                  </Typography>
++                </Box>
++                <Stack spacing={0.75} sx={{ alignItems: "flex-end" }}>
++                  <Button
++                    size="small"
++                    disabled={!props.isLiveMode}
++                    onClick={() => props.onEditCategory(category.id, category.name)}
++                  >
++                    {props.dictionary.rename}
++                  </Button>
++                  <Button
++                    size="small"
++                    disabled={!props.isLiveMode || category.isDefault}
++                    onClick={() => props.onSetDefaultCategory(category.id)}
++                  >
++                    {props.dictionary.makeDefault}
++                  </Button>
++                  <Button
++                    size="small"
++                    color="error"
++                    disabled={!props.isLiveMode || props.categories.length <= 1}
++                    onClick={() => props.onDeleteCategory(category.id)}
++                  >
++                    {props.dictionary.remove}
++                  </Button>
++                </Stack>
++              </Stack>
++
++              <Stack spacing={1.25}>
++                {category.projects.length === 0 ? (
++                  <Paper
++                    variant="outlined"
++                    onDragOver={(event) => event.preventDefault()}
++                    onDrop={(event) => {
++                      event.preventDefault();
++                      props.onDropProject(category.id, 0);
++                    }}
++                    sx={{
++                      p: 2,
++                      borderRadius: 4,
++                      borderStyle: "dashed",
++                      textAlign: "center",
++                      color: "text.secondary"
++                    }}
++                  >
++                    {props.dictionary.noProjectsInCategory}
++                  </Paper>
++                ) : null}
++
++                {category.projects.map((project, index) => (
++                  <ProjectCard
++                    key={project.id}
++                    project={project}
++                    currentProjectId={props.currentProjectId}
++                    isSelected={props.selectedProject?.id === project.id}
++                    dictionary={props.dictionary}
++                    isLiveMode={props.isLiveMode}
++                    onSelect={() => props.onSelectProject(project.id)}
++                    onDragStart={() => props.onDragStart(project.id)}
++                    onDragEnd={props.onDragEnd}
++                    onDrop={() => props.onDropProject(category.id, index)}
++                  />
++                ))}
++
++                <Paper
++                  variant="outlined"
++                  onDragOver={(event) => event.preventDefault()}
++                  onDrop={(event) => {
++                    event.preventDefault();
++                    props.onDropProject(category.id, category.projects.length);
++                  }}
++                  sx={{
++                    p: 1.5,
++                    borderRadius: 4,
++                    borderStyle: "dashed",
++                    color: "text.secondary",
++                    textAlign: "center"
++                  }}
++                >
++                  {props.dictionary.dropHint}
++                </Paper>
++              </Stack>
++            </Paper>
++          ))}
++        </Box>
++      </Paper>
++    </Stack>
++  );
++}
++
++function ProjectCard(props: {
++  project: ProjectSnapshot;
++  currentProjectId: string | null;
++  isSelected: boolean;
++  dictionary: DashboardLocale;
++  isLiveMode: boolean;
++  onSelect: () => void;
++  onDragStart: () => void;
++  onDragEnd: () => void;
++  onDrop: () => void;
++}) {
++  return (
++    <Card
++      draggable={props.isLiveMode}
++      onDragStart={(event) => {
++        props.onDragStart();
++        event.dataTransfer.effectAllowed = "move";
++      }}
++      onDragEnd={props.onDragEnd}
++      onDragOver={(event) => event.preventDefault()}
++      onDrop={(event) => {
++        event.preventDefault();
++        props.onDrop();
++      }}
++      sx={{
++        borderRadius: 4,
++        borderColor: props.isSelected ? alpha("#d1643a", 0.38) : alpha("#000000", 0.08),
++        borderStyle: "solid",
++        borderWidth: 1
++      }}
++    >
++      <CardActionArea onClick={props.onSelect}>
++        <CardContent>
++          <Stack spacing={1}>
++            <Typography variant="subtitle1">{props.project.name}</Typography>
++            <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
++              {props.project.id === props.currentProjectId ? (
++                <Chip size="small" color="primary" label={props.dictionary.current} />
++              ) : null}
++              {props.project.registered ? (
++                <Chip size="small" label={props.dictionary.registered} />
++              ) : null}
++              <Chip
++                size="small"
++                color={props.project.missingRoot ? "warning" : "success"}
++                label={props.project.missingRoot ? props.dictionary.missing : props.dictionary.ok}
++              />
++            </Stack>
++            <Typography variant="body2" color="text.secondary">
++              {props.project.rootDir}
++            </Typography>
++            <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
++              <Chip size="small" variant="outlined" label={props.project.provider} />
++              <Chip size="small" variant="outlined" label={props.project.language} />
++              <Chip size="small" variant="outlined" label={`${props.dictionary.active}: ${props.project.activeTopics.length}`} />
++              <Chip size="small" variant="outlined" label={`${props.dictionary.archive}: ${props.project.archivedTopics.length}`} />
++            </Stack>
++          </Stack>
++        </CardContent>
++      </CardActionArea>
++    </Card>
++  );
++}

@@ -1,0 +1,13 @@
+diff --git a/apps/dashboard/src/main.tsx b/apps/dashboard/src/main.tsx
+index 799f6b2..b841ffa 100644
+--- a/apps/dashboard/src/main.tsx
++++ b/apps/dashboard/src/main.tsx
+@@ -5,7 +5,7 @@ import { CssBaseline, ThemeProvider } from "@mui/material";
+ import App from "./App";
+ import "./styles.css";
+ import "@xyflow/react/dist/style.css";
+-import { dashboardTheme } from "./theme";
++import { dashboardTheme } from "./shared/theme/dashboardTheme";
+ 
+ const client = new QueryClient();
+ 

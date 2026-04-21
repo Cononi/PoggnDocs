@@ -1,0 +1,204 @@
+diff --git a/packages/core/src/index.ts b/packages/core/src/index.ts
+index fb05507..83c0f3e 100644
+--- a/packages/core/src/index.ts
++++ b/packages/core/src/index.ts
+@@ -135,10 +135,31 @@ export interface TopicSummary {
+   status: string | null;
+   version: string | null;
+   changeType: string | null;
++  archiveType: string | null;
++  archivedAt: string | null;
+   workflow: WorkflowDocument | null;
++  artifactSummary: TopicArtifactSummary;
++  artifactCompleteness: "complete" | "partial";
+   health: "ok" | "partial";
+ }
+ 
++export interface TopicArtifactGroupSummary {
++  count: number;
++  missingRequired: boolean;
++  latestUpdatedAt: string | null;
++  primaryRef: string | null;
++}
++
++export interface TopicArtifactSummary {
++  lifecycleDocs: TopicArtifactGroupSummary;
++  reviewDocs: TopicArtifactGroupSummary;
++  specDocs: TopicArtifactGroupSummary;
++  implementationDocs: TopicArtifactGroupSummary;
++  qaDocs: TopicArtifactGroupSummary;
++  releaseDocs: TopicArtifactGroupSummary;
++  workflowDocs: TopicArtifactGroupSummary;
++}
++
+ export type TopicProgressStatus = "ready" | "in_progress" | "blocked" | "archive_ready";
+ 
+ export type TopicNextWorkflow =
+@@ -1298,25 +1319,28 @@ function resolveAuditRecommendation(
+ 
+ async function readTopicVersion(
+   topicDir: string
+-): Promise<{ version: string | null; changeType: string | null }> {
++): Promise<{ version: string | null; changeType: string | null; archivedAt: string | null }> {
+   const raw = await readTextIfExists(path.join(topicDir, "version.json"));
+   if (!raw) {
+     return {
+       version: null,
+-      changeType: null
++      changeType: null,
++      archivedAt: null
+     };
+   }
+ 
+   try {
+-    const parsed = JSON.parse(raw) as { version?: string; changeType?: string };
++    const parsed = JSON.parse(raw) as { version?: string; changeType?: string; archivedAt?: string };
+     return {
+       version: parsed.version ?? null,
+-      changeType: parsed.changeType ?? null
++      changeType: parsed.changeType ?? null,
++      archivedAt: parsed.archivedAt ?? null
+     };
+   } catch {
+     return {
+       version: null,
+-      changeType: null
++      changeType: null,
++      archivedAt: null
+     };
+   }
+ }
+@@ -1422,6 +1446,108 @@ async function readWorkflow(
+   }
+ }
+ 
++async function collectMatchingFiles(
++  rootDir: string,
++  predicate: (entryPath: string, absolutePath: string) => boolean
++): Promise<string[]> {
++  const directory = await readdir(rootDir, { withFileTypes: true }).catch(() => []);
++  const files: string[] = [];
++
++  for (const entry of directory) {
++    const absolutePath = path.join(rootDir, entry.name);
++    if (entry.isDirectory()) {
++      files.push(...(await collectMatchingFiles(absolutePath, predicate)));
++      continue;
++    }
++
++    const relativePath = toRelativePath(path.dirname(rootDir), absolutePath);
++    if (predicate(relativePath, absolutePath)) {
++      files.push(absolutePath);
++    }
++  }
++
++  return files;
++}
++
++async function summarizeArtifactGroup(
++  topicDir: string,
++  relativePaths: string[],
++  options?: { required?: boolean }
++): Promise<TopicArtifactGroupSummary> {
++  const existing: Array<{ relativePath: string; updatedAt: string | null }> = [];
++
++  for (const relativePath of relativePaths) {
++    const absolutePath = path.join(topicDir, relativePath);
++    if (!existsSync(absolutePath)) {
++      continue;
++    }
++
++    const fileStat = await stat(absolutePath).catch(() => null);
++    existing.push({
++      relativePath,
++      updatedAt: fileStat?.mtime.toISOString() ?? null
++    });
++  }
++
++  return {
++    count: existing.length,
++    missingRequired: Boolean(options?.required) && existing.length === 0,
++    latestUpdatedAt:
++      existing
++        .map((entry) => entry.updatedAt)
++        .filter((value): value is string => Boolean(value))
++        .sort((left, right) => right.localeCompare(left))[0] ?? null,
++    primaryRef: existing[0]?.relativePath ?? relativePaths[0] ?? null
++  };
++}
++
++async function readTopicArtifactSummary(topicDir: string): Promise<TopicArtifactSummary> {
++  const specFiles = (await collectMatchingFiles(path.join(topicDir, "spec"), (entryPath) =>
++    entryPath.endsWith(".md")
++  )).map((absolutePath) => toRelativePath(topicDir, absolutePath));
++  const implementationDiffs = (await collectMatchingFiles(
++    path.join(topicDir, "implementation", "diffs"),
++    (entryPath) => entryPath.endsWith(".diff")
++  )).map((absolutePath) => toRelativePath(topicDir, absolutePath));
++
++  return {
++    lifecycleDocs: await summarizeArtifactGroup(
++      topicDir,
++      ["proposal.md", "plan.md", "task.md", "state/current.md"],
++      { required: true }
++    ),
++    reviewDocs: await summarizeArtifactGroup(
++      topicDir,
++      [
++        "reviews/proposal.review.md",
++        "reviews/plan.review.md",
++        "reviews/task.review.md",
++        "reviews/code.review.md",
++        "reviews/refactor.review.md",
++        "reviews/qa.review.md"
++      ],
++      { required: true }
++    ),
++    specDocs: await summarizeArtifactGroup(topicDir, specFiles),
++    implementationDocs: await summarizeArtifactGroup(topicDir, [
++      "implementation/index.md",
++      ...implementationDiffs
++    ]),
++    qaDocs: await summarizeArtifactGroup(topicDir, [
++      "qa/report.md",
++      "qa/test-plan.md",
++      "qa/test-result.md",
++      "qa/review.md"
++    ]),
++    releaseDocs: await summarizeArtifactGroup(topicDir, [
++      "version.json",
++      "state/history.ndjson",
++      "git/publish.json"
++    ]),
++    workflowDocs: await summarizeArtifactGroup(topicDir, ["workflow.reactflow.json"], { required: true })
++  };
++}
++
+ async function listTopicSummaries(rootDir: string, bucket: "active" | "archive"): Promise<TopicSummary[]> {
+   const bucketDir = path.join(rootDir, "poggn", bucket);
+   const entries = await readdir(bucketDir, { withFileTypes: true }).catch(() => []);
+@@ -1436,6 +1562,7 @@ async function listTopicSummaries(rootDir: string, bucket: "active" | "archive")
+     const proposalMarkdown = await readTextIfExists(proposalPath);
+     const workflow = await readWorkflow(path.join(topicDir, "workflow.reactflow.json"), rootDir, topicDir);
+     const release = await readTopicVersion(topicDir);
++    const artifactSummary = await readTopicArtifactSummary(topicDir);
+     const stage = stateMarkdown ? parseMarkdownSection(stateMarkdown, "Current Stage") : parseKeyValue(proposalMarkdown ?? "", "stage");
+     const goal = stateMarkdown ? parseMarkdownSection(stateMarkdown, "Goal") : null;
+     const nextAction = stateMarkdown ? parseMarkdownSection(stateMarkdown, "Next Action") : null;
+@@ -1454,7 +1581,16 @@ async function listTopicSummaries(rootDir: string, bucket: "active" | "archive")
+       status,
+       version: release.version,
+       changeType: release.changeType,
++      archiveType: release.changeType,
++      archivedAt: release.archivedAt,
+       workflow,
++      artifactSummary,
++      artifactCompleteness:
++        artifactSummary.lifecycleDocs.missingRequired ||
++        artifactSummary.reviewDocs.missingRequired ||
++        artifactSummary.workflowDocs.missingRequired
++          ? "partial"
++          : "complete",
+       health: stateMarkdown && workflow ? "ok" : "partial"
+     });
+   }
