@@ -13,6 +13,8 @@ pnpm install
 pnpm build
 pnpm link --global
 pgg --help
+pgg git --cwd /tmp/pgg-sample --value on
+pgg status --cwd /tmp/pgg-sample
 ```
 
 ## Direct Package Link
@@ -24,6 +26,8 @@ cd packages/cli
 pnpm build
 pnpm link --global
 pgg --help
+pgg git --cwd /tmp/pgg-sample --value on
+pgg status --cwd /tmp/pgg-sample
 ```
 
 ## Local Run Without Linking
@@ -32,6 +36,8 @@ global link 없이 현재 저장소에서 직접 실행하려면 root README와 
 
 ```bash
 node packages/cli/dist/index.js init --cwd /tmp/pgg-sample --provider codex --lang ko --auto on
+node packages/cli/dist/index.js git --cwd /tmp/pgg-sample --value on
+node packages/cli/dist/index.js status --cwd /tmp/pgg-sample
 ```
 
 ## Notes

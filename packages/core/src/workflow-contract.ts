@@ -12,6 +12,14 @@ export const WORKFLOW_SKILLS = [...CORE_WORKFLOW_SKILLS, ...OPTIONAL_AUDIT_SKILL
 
 export type WorkflowSkillName = (typeof WORKFLOW_SKILLS)[number];
 
+export const STANDALONE_SKILLS = ["pgg-status"] as const;
+
+export type StandaloneSkillName = (typeof STANDALONE_SKILLS)[number];
+
+export const GENERATED_SKILLS = [...WORKFLOW_SKILLS, ...STANDALONE_SKILLS] as const;
+
+export type GeneratedSkillName = WorkflowSkillName | StandaloneSkillName;
+
 export const WORKFLOW_FRONTMATTER_STAGES =
   "proposal | plan | task | implementation | refactor | token | performance | qa";
 

@@ -9,8 +9,10 @@ import { initializeProject, updateProject } from "../dist/index.js";
 
 test("pgg update preserves the version history ledger and archive append stays incremental", async () => {
   const rootDir = await mkdtemp(path.join(os.tmpdir(), "pgg-version-history-"));
+  const previousPggHome = process.env.PGG_HOME;
 
   try {
+    process.env.PGG_HOME = rootDir;
     await initializeProject(rootDir, {
       provider: "codex",
       language: "en",
@@ -65,6 +67,11 @@ test("pgg update preserves the version history ledger and archive append stays i
     assert.equal(lastEntry.version, "0.1.2");
     assert.equal(versionFile.version, "0.1.2");
   } finally {
+    if (previousPggHome === undefined) {
+      delete process.env.PGG_HOME;
+    } else {
+      process.env.PGG_HOME = previousPggHome;
+    }
     await rm(rootDir, { recursive: true, force: true });
   }
 });

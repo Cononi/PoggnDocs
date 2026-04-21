@@ -4,24 +4,27 @@ import { spawn } from "node:child_process";
 import { stdin as input, stdout as output } from "node:process";
 import path from "node:path";
 import {
+  analyzeProjectStatus,
   buildDashboardSnapshot,
   findWorkspaceRoot,
   initializeProject,
   loadProjectManifest,
   MANIFEST_RELATIVE_PATH,
   type PggAutoMode,
+  type PggGitMode,
   type PggLanguage,
   type PggTeamsMode,
   summarizeSyncResult,
   updateProject,
   updateProjectAutoMode,
   updateProjectDashboardPort,
+  updateProjectGitMode,
   updateProjectLanguage,
   updateProjectTeamsMode,
   writeDashboardSnapshotFile
 } from "@pgg/core";
 
-type CommandName = "init" | "update" | "lang" | "auto" | "teams" | "dashboard";
+type CommandName = "init" | "update" | "lang" | "auto" | "teams" | "git" | "status" | "dashboard";
 
 interface ParsedArgs {
   command: CommandName | null;
@@ -36,7 +39,7 @@ class InteractiveCancelError extends Error {
 
 function parseArgs(argv: string[]): ParsedArgs {
   const [commandToken, ...rest] = argv;
-  const command = (["init", "update", "lang", "auto", "teams", "dashboard"].includes(commandToken ?? "")
+  const command = (["init", "update", "lang", "auto", "teams", "git", "status", "dashboard"].includes(commandToken ?? "")
     ? commandToken
     : null) as CommandName | null;
   const options: Record<string, string | boolean> = {};
@@ -170,11 +173,13 @@ function printHelp(): void {
       "Usage: pgg <command> [options]",
       "",
       "Commands:",
-      "  pgg init [--cwd <dir>] [--provider codex] [--lang ko|en] [--auto on|off] [--teams on|off]",
+      "  pgg init [--cwd <dir>] [--provider codex] [--lang ko|en] [--auto on|off] [--teams on|off] [--git on|off]",
       "  pgg update [--cwd <dir>]",
       "  pgg lang [--cwd <dir>] [--value ko|en]",
       "  pgg auto [--cwd <dir>] [--value on|off]",
       "  pgg teams [--cwd <dir>] [--value on|off]",
+      "  pgg git [--cwd <dir>] [--value on|off]",
+      "  pgg status [--cwd <dir>]",
       "  pgg dashboard [--cwd <dir>] [--host 127.0.0.1] [--port 4173] [--save-port] [--snapshot-only]",
       ""
     ].join("\n")
@@ -223,6 +228,7 @@ async function run(): Promise<void> {
     const language = (typeof options.lang === "string" ? options.lang : "ko") as PggLanguage;
     const autoMode = (typeof options.auto === "string" ? options.auto : "on") as PggAutoMode;
     const teamsMode = (typeof options.teams === "string" ? options.teams : "off") as PggTeamsMode;
+    const gitMode = (typeof options.git === "string" ? options.git : "off") as PggGitMode;
     const existing = await loadProjectManifest(rootDir);
     if (existing) {
       output.write(
@@ -242,7 +248,8 @@ async function run(): Promise<void> {
       provider,
       language,
       autoMode,
-      teamsMode
+      teamsMode,
+      gitMode
     });
     output.write(`${formatSyncResult(result)}\n`);
     return;
@@ -293,6 +300,26 @@ async function run(): Promise<void> {
 
     const result = await updateProjectTeamsMode(rootDir, teamsMode);
     output.write(`${formatSyncResult(result)}\n`);
+    return;
+  }
+
+  if (command === "git") {
+    const gitMode =
+      (typeof options.value === "string"
+        ? options.value
+        : await choose("Choose git mode", [
+            { value: "off", label: "off" },
+            { value: "on", label: "on" }
+          ])) as PggGitMode;
+
+    const result = await updateProjectGitMode(rootDir, gitMode);
+    output.write(`${formatSyncResult(result)}\n`);
+    return;
+  }
+
+  if (command === "status") {
+    const result = await analyzeProjectStatus(rootDir);
+    output.write(`${JSON.stringify(result, null, 2)}\n`);
     return;
   }
 

@@ -34,6 +34,12 @@ export type PggLanguage = TemplateLanguage;
 export type PggAutoMode = TemplateAutoMode;
 export type PggProvider = TemplateProvider;
 export type PggTeamsMode = TemplateTeamsMode;
+export type PggGitMode = "on" | "off";
+
+export interface ProjectGitConfig {
+  mode: PggGitMode;
+  defaultRemote: string;
+}
 
 export interface ManagedFileRecord {
   path: string;
@@ -49,6 +55,7 @@ export interface ProjectManifest {
   language: PggLanguage;
   autoMode: PggAutoMode;
   teamsMode: PggTeamsMode;
+  git: ProjectGitConfig;
   installedVersion: string;
   updatedAt: string;
   dashboard: {
@@ -66,6 +73,7 @@ export interface RegistryProjectEntry {
   language: PggLanguage;
   autoMode: PggAutoMode;
   teamsMode: PggTeamsMode;
+  gitMode: PggGitMode;
   lastOpenedAt: string;
 }
 
@@ -131,6 +139,29 @@ export interface TopicSummary {
   health: "ok" | "partial";
 }
 
+export type TopicProgressStatus = "ready" | "in_progress" | "blocked" | "archive_ready";
+
+export type TopicNextWorkflow =
+  | "pgg-add"
+  | "pgg-plan"
+  | "pgg-code"
+  | "pgg-refactor"
+  | "pgg-token"
+  | "pgg-performance"
+  | "pgg-qa"
+  | "none";
+
+export interface TopicStatusSummary {
+  name: string;
+  currentStage: string;
+  progressStatus: TopicProgressStatus;
+  nextWorkflow: TopicNextWorkflow;
+  reason: string;
+  health: "ok" | "partial";
+  nextAction: string | null;
+  blockingIssues: string | null;
+}
+
 export interface WorkflowNodeData {
   label?: string;
   path?: string;
@@ -181,6 +212,7 @@ export interface ProjectSnapshot {
   language: PggLanguage;
   autoMode: PggAutoMode;
   teamsMode: PggTeamsMode;
+  gitMode: PggGitMode;
   installedVersion: string | null;
   dashboardDefaultPort: number;
   verificationMode: import("./verification.js").ProjectVerificationMode;
@@ -203,12 +235,65 @@ export interface DashboardSnapshot {
   projects: ProjectSnapshot[];
 }
 
+export interface ProjectStatusSnapshot {
+  rootDir: string;
+  autoMode: PggAutoMode;
+  teamsMode: PggTeamsMode;
+  generatedAt: string;
+  summary: {
+    activeTopicCount: number;
+    readyCount: number;
+    inProgressCount: number;
+    blockedCount: number;
+    archiveReadyCount: number;
+  };
+  topics: TopicStatusSummary[];
+}
+
 export interface InitOptions {
   provider?: PggProvider;
   language?: PggLanguage;
   autoMode?: PggAutoMode;
   teamsMode?: PggTeamsMode;
+  gitMode?: PggGitMode;
 }
+
+type TopicStageName = "proposal" | "plan" | "task" | "implementation" | "refactor" | "token" | "performance" | "qa";
+type TopicAuditName = "pgg-token" | "pgg-performance";
+
+interface TopicArtifactState {
+  hasProposal: boolean;
+  hasProposalReview: boolean;
+  hasPlan: boolean;
+  hasTask: boolean;
+  hasSpec: boolean;
+  hasPlanReview: boolean;
+  hasTaskReview: boolean;
+  hasImplementationIndex: boolean;
+  hasCodeReview: boolean;
+  hasRefactorReview: boolean;
+  hasTokenReport: boolean;
+  hasPerformanceReport: boolean;
+  hasQaReport: boolean;
+  hasQaReview: boolean;
+  hasQaReviewSummary: boolean;
+}
+
+interface AuditApplicabilityEntry {
+  status: "required" | "not_required";
+  reason: string;
+}
+
+const STAGE_TO_WORKFLOW: Record<TopicStageName, Exclude<TopicNextWorkflow, "none">> = {
+  proposal: "pgg-add",
+  plan: "pgg-plan",
+  task: "pgg-plan",
+  implementation: "pgg-code",
+  refactor: "pgg-refactor",
+  token: "pgg-token",
+  performance: "pgg-performance",
+  qa: "pgg-qa"
+};
 
 function checksum(value: string): string {
   return createHash("sha256").update(value).digest("hex");
@@ -330,10 +415,14 @@ function normalizeRegistryData(registry: GlobalRegistry): { registry: GlobalRegi
     if (!entry.teamsMode) {
       changed = true;
     }
+    if (!entry.gitMode) {
+      changed = true;
+    }
 
     return {
       ...entry,
-      teamsMode: entry.teamsMode ?? "off"
+      teamsMode: entry.teamsMode ?? "off",
+      gitMode: entry.gitMode ?? "off"
     };
   });
   const projectIds = projects.map((entry) => entry.id);
@@ -378,7 +467,7 @@ function manifestPath(rootDir: string): string {
 }
 
 function registryPath(): string {
-  return path.join(os.homedir(), REGISTRY_RELATIVE_PATH);
+  return path.join(process.env.PGG_HOME ?? process.env.HOME ?? os.homedir(), REGISTRY_RELATIVE_PATH);
 }
 
 function buildTemplateInput(manifest: ProjectManifest): TemplateInput {
@@ -391,11 +480,19 @@ function buildTemplateInput(manifest: ProjectManifest): TemplateInput {
   };
 }
 
+function normalizeProjectGitConfig(git: ProjectManifest["git"] | undefined): ProjectGitConfig {
+  return {
+    mode: git?.mode ?? "off",
+    defaultRemote: git?.defaultRemote?.trim() || "origin"
+  };
+}
+
 function normalizeProjectManifest(manifest: ProjectManifest): ProjectManifest {
   return {
     ...manifest,
-    schemaVersion: Math.max(manifest.schemaVersion ?? 1, 3),
+    schemaVersion: Math.max(manifest.schemaVersion ?? 1, 4),
     teamsMode: manifest.teamsMode ?? "off",
+    git: normalizeProjectGitConfig(manifest.git),
     verification: normalizeProjectVerification(manifest.verification)
   };
 }
@@ -453,13 +550,21 @@ async function retireManagedFile(
 
 export function createProjectManifest(rootDir: string, options: InitOptions = {}): ProjectManifest {
   return {
-    schemaVersion: 3,
+    schemaVersion: 4,
     projectName: path.basename(rootDir),
     rootDir,
     provider: options.provider ?? "codex",
     language: options.language ?? "ko",
     autoMode: options.autoMode ?? "on",
     teamsMode: options.teamsMode ?? "off",
+    git: normalizeProjectGitConfig(
+      options.gitMode
+        ? {
+            mode: options.gitMode,
+            defaultRemote: "origin"
+          }
+        : undefined
+    ),
     installedVersion: PGG_VERSION,
     updatedAt: nowIso(),
     dashboard: {
@@ -661,6 +766,7 @@ export async function registerProject(manifest: ProjectManifest): Promise<Global
     language: manifest.language,
     autoMode: manifest.autoMode,
     teamsMode: manifest.teamsMode,
+    gitMode: manifest.git.mode,
     lastOpenedAt: nowIso()
   };
 
@@ -678,9 +784,7 @@ export async function registerProject(manifest: ProjectManifest): Promise<Global
 
 export async function initializeProject(rootDir: string, options: InitOptions = {}): Promise<SyncResult> {
   const manifest = createProjectManifest(rootDir, options);
-  const syncResult = await syncProject(rootDir, manifest);
-  await registerProject(syncResult.manifest);
-  return syncResult;
+  return syncRegisteredProject(rootDir, manifest);
 }
 
 async function requireManifest(rootDir: string): Promise<ProjectManifest> {
@@ -692,45 +796,54 @@ async function requireManifest(rootDir: string): Promise<ProjectManifest> {
   return manifest;
 }
 
-export async function updateProject(rootDir: string): Promise<SyncResult> {
-  const manifest = await requireManifest(rootDir);
+async function syncRegisteredProject(rootDir: string, manifest: ProjectManifest): Promise<SyncResult> {
   const syncResult = await syncProject(rootDir, manifest);
   await registerProject(syncResult.manifest);
   return syncResult;
 }
 
-export async function updateProjectLanguage(rootDir: string, language: PggLanguage): Promise<SyncResult> {
+async function updateRegisteredProject(
+  rootDir: string,
+  updateManifest: (manifest: ProjectManifest) => ProjectManifest
+): Promise<SyncResult> {
   const manifest = await requireManifest(rootDir);
-  const syncResult = await syncProject(rootDir, { ...manifest, language });
-  await registerProject(syncResult.manifest);
-  return syncResult;
+  return syncRegisteredProject(rootDir, updateManifest(manifest));
+}
+
+export async function updateProject(rootDir: string): Promise<SyncResult> {
+  return updateRegisteredProject(rootDir, (manifest) => manifest);
+}
+
+export async function updateProjectLanguage(rootDir: string, language: PggLanguage): Promise<SyncResult> {
+  return updateRegisteredProject(rootDir, (manifest) => ({ ...manifest, language }));
 }
 
 export async function updateProjectAutoMode(rootDir: string, autoMode: PggAutoMode): Promise<SyncResult> {
-  const manifest = await requireManifest(rootDir);
-  const syncResult = await syncProject(rootDir, { ...manifest, autoMode });
-  await registerProject(syncResult.manifest);
-  return syncResult;
+  return updateRegisteredProject(rootDir, (manifest) => ({ ...manifest, autoMode }));
 }
 
 export async function updateProjectTeamsMode(rootDir: string, teamsMode: PggTeamsMode): Promise<SyncResult> {
-  const manifest = await requireManifest(rootDir);
-  const syncResult = await syncProject(rootDir, { ...manifest, teamsMode });
-  await registerProject(syncResult.manifest);
-  return syncResult;
+  return updateRegisteredProject(rootDir, (manifest) => ({ ...manifest, teamsMode }));
+}
+
+export async function updateProjectGitMode(rootDir: string, gitMode: PggGitMode): Promise<SyncResult> {
+  return updateRegisteredProject(rootDir, (manifest) => ({
+    ...manifest,
+    git: {
+      ...normalizeProjectGitConfig(manifest.git),
+      mode: gitMode
+    }
+  }));
 }
 
 export async function updateProjectDashboardPort(rootDir: string, defaultPort: number): Promise<SyncResult> {
-  const manifest = await requireManifest(rootDir);
-  const syncResult = await syncProject(rootDir, {
+  return updateRegisteredProject(rootDir, (manifest) => ({
     ...manifest,
     dashboard: {
       ...manifest.dashboard,
       defaultPort
     }
-  });
-  await registerProject(syncResult.manifest);
-  return syncResult;
+  }));
 }
 
 function requireCategory(registry: GlobalRegistry, categoryId: string): ProjectCategory {
@@ -906,6 +1019,283 @@ function parseBlockingIssues(markdown: string): string | null {
   return match?.[1]?.trim() ?? null;
 }
 
+function parseOpenItemStatus(markdown: string | null): string | null {
+  if (!markdown) {
+    return null;
+  }
+
+  const section = parseMarkdownSection(markdown, "Open Items");
+  if (!section) {
+    return null;
+  }
+
+  const match = section.match(/status:\s*(.+)/i);
+  return match?.[1]?.trim() ?? null;
+}
+
+function parseAuditApplicability(markdown: string | null): Record<TopicAuditName, AuditApplicabilityEntry> {
+  const defaults: Record<TopicAuditName, AuditApplicabilityEntry> = {
+    "pgg-token": {
+      status: "not_required",
+      reason: "Audit Applicability not declared"
+    },
+    "pgg-performance": {
+      status: "not_required",
+      reason: "Audit Applicability not declared"
+    }
+  };
+
+  if (!markdown) {
+    return defaults;
+  }
+
+  const section = parseMarkdownSection(markdown, "Audit Applicability");
+  if (!section) {
+    return defaults;
+  }
+
+  for (const line of section.split("\n").map((value) => value.trim())) {
+    const match = line.match(/^- `([^`]+)`: `([^`]+)` \| (.+)$/);
+    if (!match) {
+      continue;
+    }
+
+    const [, rawName, rawStatus, rawReason = ""] = match;
+    const name = rawName as TopicAuditName;
+    if (!(name in defaults)) {
+      continue;
+    }
+
+    defaults[name] = {
+      status: rawStatus === "required" ? "required" : "not_required",
+      reason: rawReason.trim()
+    };
+  }
+
+  return defaults;
+}
+
+function normalizeStageName(value: string | null): TopicStageName | null {
+  const normalized = value?.trim().toLowerCase();
+  switch (normalized) {
+    case "proposal":
+    case "plan":
+    case "task":
+    case "implementation":
+    case "refactor":
+    case "token":
+    case "performance":
+    case "qa":
+      return normalized;
+    default:
+      return null;
+  }
+}
+
+function isNonBlockingMarker(value: string | null): boolean {
+  if (!value) {
+    return true;
+  }
+
+  const normalized = value.trim().toLowerCase();
+  return normalized === "없음" || normalized === "none" || normalized === "n/a" || normalized === "na";
+}
+
+function isArchiveReady(nextAction: string | null, openItemStatus: string | null): boolean {
+  if (openItemStatus?.trim().toLowerCase() === "pass") {
+    return true;
+  }
+
+  return (nextAction ?? "").toLowerCase().includes("archive");
+}
+
+async function hasMarkdownFiles(dirPath: string): Promise<boolean> {
+  const entries = await readdir(dirPath, { withFileTypes: true }).catch(() => []);
+  for (const entry of entries) {
+    const target = path.join(dirPath, entry.name);
+    if (entry.isFile() && entry.name.endsWith(".md")) {
+      return true;
+    }
+    if (entry.isDirectory() && (await hasMarkdownFiles(target))) {
+      return true;
+    }
+  }
+
+  return false;
+}
+
+function inferStageFromArtifacts(artifacts: TopicArtifactState): TopicStageName | null {
+  if (artifacts.hasQaReport || artifacts.hasQaReview || artifacts.hasQaReviewSummary) {
+    return "qa";
+  }
+  if (artifacts.hasPerformanceReport) {
+    return "performance";
+  }
+  if (artifacts.hasTokenReport) {
+    return "token";
+  }
+  if (artifacts.hasRefactorReview) {
+    return "refactor";
+  }
+  if (artifacts.hasImplementationIndex || artifacts.hasCodeReview) {
+    return "implementation";
+  }
+  if (artifacts.hasTask) {
+    return "task";
+  }
+  if (artifacts.hasPlan || artifacts.hasSpec || artifacts.hasPlanReview || artifacts.hasTaskReview) {
+    return "plan";
+  }
+  if (artifacts.hasProposal) {
+    return "proposal";
+  }
+
+  return null;
+}
+
+function listMissingArtifacts(candidates: Array<[present: boolean, label: string]>): string[] {
+  return candidates.filter(([present]) => !present).map(([, label]) => label);
+}
+
+function createTopicStatusRecommendation(
+  topic: TopicSummary,
+  currentStage: TopicStageName | null,
+  nextWorkflow: TopicNextWorkflow,
+  reason: string,
+  progressStatus: TopicProgressStatus
+): TopicStatusSummary {
+  return buildTopicStatusSummary(topic, currentStage, nextWorkflow, reason, progressStatus);
+}
+
+function createBlockedTopicStatus(
+  topic: TopicSummary,
+  currentStage: TopicStageName | null,
+  nextWorkflow: TopicNextWorkflow,
+  reason: string
+): TopicStatusSummary {
+  return createTopicStatusRecommendation(topic, currentStage, nextWorkflow, reason, "blocked");
+}
+
+function createWorkflowRecommendation(
+  topic: TopicSummary,
+  currentStage: TopicStageName,
+  currentWorkflow: Exclude<TopicNextWorkflow, "none">,
+  nextWorkflow: Exclude<TopicNextWorkflow, "none">,
+  reason: string
+): TopicStatusSummary {
+  return createTopicStatusRecommendation(
+    topic,
+    currentStage,
+    nextWorkflow,
+    reason,
+    currentWorkflow === nextWorkflow ? "in_progress" : "ready"
+  );
+}
+
+function resolveTopicStage(
+  topic: TopicSummary,
+  proposalMarkdown: string | null,
+  artifacts: TopicArtifactState
+): TopicStageName | null {
+  const proposalStage = normalizeStageName(proposalMarkdown ? parseKeyValue(proposalMarkdown, "stage") : null);
+  return normalizeStageName(topic.stage) ?? proposalStage ?? inferStageFromArtifacts(artifacts);
+}
+
+function resolveMissingArtifactRecommendation(
+  topic: TopicSummary,
+  currentStage: TopicStageName,
+  currentWorkflow: Exclude<TopicNextWorkflow, "none">,
+  proposalStatus: string | null,
+  artifacts: TopicArtifactState
+): TopicStatusSummary | null {
+  if (proposalStatus !== "reviewed" || !artifacts.hasProposalReview) {
+    const missingProposalArtifacts = listMissingArtifacts([
+      [proposalStatus === "reviewed", "proposal frontmatter status=reviewed"],
+      [artifacts.hasProposalReview, "reviews/proposal.review.md"]
+    ]);
+    return createWorkflowRecommendation(
+      topic,
+      currentStage,
+      currentWorkflow,
+      "pgg-add",
+      `Proposal approval artifacts are incomplete: ${missingProposalArtifacts.join(", ")}.`
+    );
+  }
+
+  const missingPlanArtifacts = listMissingArtifacts([
+    [artifacts.hasPlan, "plan.md"],
+    [artifacts.hasTask, "task.md"],
+    [artifacts.hasSpec, "spec/*/*.md"],
+    [artifacts.hasPlanReview, "reviews/plan.review.md"],
+    [artifacts.hasTaskReview, "reviews/task.review.md"]
+  ]);
+  if (missingPlanArtifacts.length > 0) {
+    return createWorkflowRecommendation(
+      topic,
+      currentStage,
+      currentWorkflow,
+      "pgg-plan",
+      `Plan artifacts are incomplete: ${missingPlanArtifacts.join(", ")}.`
+    );
+  }
+
+  const missingImplementationArtifacts = listMissingArtifacts([
+    [artifacts.hasImplementationIndex, "implementation/index.md"],
+    [artifacts.hasCodeReview, "reviews/code.review.md"]
+  ]);
+  if (missingImplementationArtifacts.length > 0) {
+    return createWorkflowRecommendation(
+      topic,
+      currentStage,
+      currentWorkflow,
+      "pgg-code",
+      `Implementation artifacts are incomplete: ${missingImplementationArtifacts.join(", ")}.`
+    );
+  }
+
+  if (!artifacts.hasRefactorReview) {
+    return createWorkflowRecommendation(
+      topic,
+      currentStage,
+      currentWorkflow,
+      "pgg-refactor",
+      "reviews/refactor.review.md is missing, so the refactor stage is not complete."
+    );
+  }
+
+  return null;
+}
+
+function resolveAuditRecommendation(
+  topic: TopicSummary,
+  currentStage: TopicStageName,
+  currentWorkflow: Exclude<TopicNextWorkflow, "none">,
+  artifacts: TopicArtifactState,
+  audits: Record<TopicAuditName, AuditApplicabilityEntry>
+): TopicStatusSummary | null {
+  if (audits["pgg-token"].status === "required" && !artifacts.hasTokenReport) {
+    return createWorkflowRecommendation(
+      topic,
+      currentStage,
+      currentWorkflow,
+      "pgg-token",
+      `Token audit is required before QA: ${audits["pgg-token"].reason}.`
+    );
+  }
+
+  if (audits["pgg-performance"].status === "required" && !artifacts.hasPerformanceReport) {
+    return createWorkflowRecommendation(
+      topic,
+      currentStage,
+      currentWorkflow,
+      "pgg-performance",
+      `Performance audit is required before QA: ${audits["pgg-performance"].reason}.`
+    );
+  }
+
+  return null;
+}
+
 async function readTopicVersion(
   topicDir: string
 ): Promise<{ version: string | null; changeType: string | null }> {
@@ -1072,6 +1462,139 @@ async function listTopicSummaries(rootDir: string, bucket: "active" | "archive")
   return result;
 }
 
+async function readTopicArtifacts(rootDir: string, topic: TopicSummary): Promise<{
+  stateMarkdown: string | null;
+  proposalMarkdown: string | null;
+  artifacts: TopicArtifactState;
+}> {
+  const topicDir = path.join(rootDir, "poggn", topic.bucket, topic.name);
+  const stateMarkdown = await readTextIfExists(path.join(topicDir, "state", "current.md"));
+  const proposalMarkdown = await readTextIfExists(path.join(topicDir, "proposal.md"));
+
+  return {
+    stateMarkdown,
+    proposalMarkdown,
+    artifacts: {
+      hasProposal: proposalMarkdown !== null,
+      hasProposalReview: existsSync(path.join(topicDir, "reviews", "proposal.review.md")),
+      hasPlan: existsSync(path.join(topicDir, "plan.md")),
+      hasTask: existsSync(path.join(topicDir, "task.md")),
+      hasSpec: await hasMarkdownFiles(path.join(topicDir, "spec")),
+      hasPlanReview: existsSync(path.join(topicDir, "reviews", "plan.review.md")),
+      hasTaskReview: existsSync(path.join(topicDir, "reviews", "task.review.md")),
+      hasImplementationIndex: existsSync(path.join(topicDir, "implementation", "index.md")),
+      hasCodeReview: existsSync(path.join(topicDir, "reviews", "code.review.md")),
+      hasRefactorReview: existsSync(path.join(topicDir, "reviews", "refactor.review.md")),
+      hasTokenReport: existsSync(path.join(topicDir, "token", "report.md")),
+      hasPerformanceReport: existsSync(path.join(topicDir, "performance", "report.md")),
+      hasQaReport: existsSync(path.join(topicDir, "qa", "report.md")),
+      hasQaReview: existsSync(path.join(topicDir, "qa", "review.md")),
+      hasQaReviewSummary: existsSync(path.join(topicDir, "reviews", "qa.review.md"))
+    }
+  };
+}
+
+function buildTopicStatusSummary(
+  topic: TopicSummary,
+  currentStage: TopicStageName | null,
+  nextWorkflow: TopicNextWorkflow,
+  reason: string,
+  progressStatus: TopicProgressStatus
+): TopicStatusSummary {
+  return {
+    name: topic.name,
+    currentStage: currentStage ?? "unknown",
+    progressStatus,
+    nextWorkflow,
+    reason,
+    health: topic.health,
+    nextAction: topic.nextAction,
+    blockingIssues: topic.blockingIssues
+  };
+}
+
+async function evaluateTopicStatus(rootDir: string, topic: TopicSummary): Promise<TopicStatusSummary> {
+  const { stateMarkdown, proposalMarkdown, artifacts } = await readTopicArtifacts(rootDir, topic);
+  const currentStage = resolveTopicStage(topic, proposalMarkdown, artifacts);
+
+  if (!artifacts.hasProposal) {
+    return createBlockedTopicStatus(
+      topic,
+      currentStage,
+      "none",
+      "proposal.md is missing, so workflow progression cannot be evaluated."
+    );
+  }
+
+  if (!currentStage) {
+    return createBlockedTopicStatus(
+      topic,
+      null,
+      "none",
+      "Current stage could not be resolved from state/current.md, proposal.md, or topic artifacts."
+    );
+  }
+
+  const currentWorkflow = STAGE_TO_WORKFLOW[currentStage];
+  const proposalStatus = proposalMarkdown ? parseKeyValue(proposalMarkdown, "status") : topic.status;
+  const openItemStatus = parseOpenItemStatus(stateMarkdown);
+  const audits = parseAuditApplicability(stateMarkdown);
+  const qaArtifactsPresent = artifacts.hasQaReport || artifacts.hasQaReview || artifacts.hasQaReviewSummary;
+
+  if (!isNonBlockingMarker(topic.blockingIssues)) {
+    return createBlockedTopicStatus(
+      topic,
+      currentStage,
+      currentWorkflow,
+      `Blocking issues remain: ${topic.blockingIssues}.`
+    );
+  }
+
+  if (isArchiveReady(topic.nextAction, openItemStatus)) {
+    return createTopicStatusRecommendation(
+      topic,
+      currentStage,
+      "none",
+      "QA pass signal is present, so the topic is ready for archive handling.",
+      "archive_ready"
+    );
+  }
+
+  const artifactRecommendation = resolveMissingArtifactRecommendation(
+    topic,
+    currentStage,
+    currentWorkflow,
+    proposalStatus,
+    artifacts
+  );
+  if (artifactRecommendation) {
+    return artifactRecommendation;
+  }
+
+  const auditRecommendation = resolveAuditRecommendation(topic, currentStage, currentWorkflow, artifacts, audits);
+  if (auditRecommendation) {
+    return auditRecommendation;
+  }
+
+  if (!qaArtifactsPresent) {
+    return createWorkflowRecommendation(
+      topic,
+      currentStage,
+      currentWorkflow,
+      "pgg-qa",
+      "QA artifacts are missing, so validation and archive readiness have not been recorded yet."
+    );
+  }
+
+  return createWorkflowRecommendation(
+    topic,
+    currentStage,
+    currentWorkflow,
+    "pgg-qa",
+    "QA artifacts exist, but the topic is not yet marked pass or archive-ready."
+  );
+}
+
 export async function analyzeProject(rootDir: string, registered = false): Promise<ProjectSnapshot> {
   const missingRoot = !(await stat(rootDir).then(() => true).catch(() => false));
   if (missingRoot) {
@@ -1086,6 +1609,7 @@ export async function analyzeProject(rootDir: string, registered = false): Promi
       language: "ko",
       autoMode: "on",
       teamsMode: "off",
+      gitMode: "off",
       installedVersion: null,
       dashboardDefaultPort: 4173,
       verificationMode: verification.mode,
@@ -1117,6 +1641,7 @@ export async function analyzeProject(rootDir: string, registered = false): Promi
     language: manifest?.language ?? "ko",
     autoMode: manifest?.autoMode ?? "on",
     teamsMode: manifest?.teamsMode ?? "off",
+    gitMode: manifest?.git.mode ?? "off",
     installedVersion: manifest?.installedVersion ?? null,
     dashboardDefaultPort: manifest?.dashboard.defaultPort ?? 4173,
     verificationMode: verification.mode,
@@ -1130,6 +1655,27 @@ export async function analyzeProject(rootDir: string, registered = false): Promi
     categoryIds: [],
     activeTopics,
     archivedTopics
+  };
+}
+
+export async function analyzeProjectStatus(rootDir: string): Promise<ProjectStatusSnapshot> {
+  const manifest = await requireManifest(rootDir);
+  const topics = await listTopicSummaries(rootDir, "active");
+  const evaluatedTopics = await Promise.all(topics.map((topic) => evaluateTopicStatus(rootDir, topic)));
+
+  return {
+    rootDir,
+    autoMode: manifest.autoMode,
+    teamsMode: manifest.teamsMode,
+    generatedAt: nowIso(),
+    summary: {
+      activeTopicCount: evaluatedTopics.length,
+      readyCount: evaluatedTopics.filter((topic) => topic.progressStatus === "ready").length,
+      inProgressCount: evaluatedTopics.filter((topic) => topic.progressStatus === "in_progress").length,
+      blockedCount: evaluatedTopics.filter((topic) => topic.progressStatus === "blocked").length,
+      archiveReadyCount: evaluatedTopics.filter((topic) => topic.progressStatus === "archive_ready").length
+    },
+    topics: evaluatedTopics.sort((left, right) => left.name.localeCompare(right.name))
   };
 }
 

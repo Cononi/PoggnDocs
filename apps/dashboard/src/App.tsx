@@ -102,6 +102,7 @@ type ProjectSnapshot = {
   provider: "codex";
   language: "ko" | "en";
   autoMode: "on" | "off";
+  gitMode: "on" | "off";
   installedVersion: string | null;
   dashboardDefaultPort: number;
   hasAgents: boolean;
@@ -452,6 +453,7 @@ function App() {
                     <Chip size="small" label={`${dictionary.provider}: ${selectedProject.provider}`} />
                     <Chip size="small" label={`${dictionary.language}: ${selectedProject.language}`} />
                     <Chip size="small" label={`${dictionary.autoMode}: ${selectedProject.autoMode}`} />
+                    <Chip size="small" label={`${dictionary.gitMode}: ${selectedProject.gitMode}`} />
                     <Chip
                       size="small"
                       color={selectedProject.missingRoot ? "warning" : "success"}
