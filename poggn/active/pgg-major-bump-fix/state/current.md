@@ -53,7 +53,7 @@ implementation
 ## Active Tasks
 
 - `T1`: completed
-- `T2`: pending
+- `T2`: completed
 - `T3`: pending
 - `T4`: pending
 - `T5`: pending
@@ -104,4 +104,4 @@ implementation
 
 ## Next Action
 
-`T2`
+`T3`

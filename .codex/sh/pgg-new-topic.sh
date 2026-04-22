@@ -40,6 +40,58 @@ validate_short_name() {
   [[ "$short_name" =~ ^[a-z0-9]+(-[a-z0-9]+){0,2}$ ]]
 }
 
+compute_next_version() {
+  local previous_version="$1"
+  local version_bump="$2"
+  node -e "const current=(process.argv[1]||'0.0.0').split('.').map(Number); const bump=process.argv[2]; let [major,minor,patch]=[current[0]||0,current[1]||0,current[2]||0]; if (bump==='major') { major += 1; minor = 0; patch = 0; } else if (bump==='minor') { minor += 1; patch = 0; } else { patch += 1; } process.stdout.write([major,minor,patch].join('.'));" "$previous_version" "$version_bump"
+}
+
+sync_semver_metadata() {
+  local file_path="$1"
+  FILE_PATH="$file_path" \
+  VERSION_BUMP_VALUE="$VERSION_BUMP" \
+  TARGET_VERSION_VALUE="$TARGET_VERSION" \
+  SHORT_NAME_VALUE="$SHORT_NAME" \
+  WORKING_BRANCH_VALUE="$WORKING_BRANCH" \
+  RELEASE_BRANCH_VALUE="$RELEASE_BRANCH" \
+  node - <<'NODE'
+const fs = require("fs");
+
+const filePath = process.env.FILE_PATH;
+const yamlFields = {
+  version_bump: process.env.VERSION_BUMP_VALUE ?? "",
+  target_version: process.env.TARGET_VERSION_VALUE ?? "",
+  short_name: process.env.SHORT_NAME_VALUE ?? "",
+  working_branch: process.env.WORKING_BRANCH_VALUE ?? "",
+  release_branch: process.env.RELEASE_BRANCH_VALUE ?? ""
+};
+const bulletFields = {
+  version_bump: yamlFields.version_bump,
+  target_version: yamlFields.target_version,
+  short_name: yamlFields.short_name,
+  working_branch: yamlFields.working_branch,
+  release_branch: yamlFields.release_branch,
+  "version bump": yamlFields.version_bump,
+  "target version": yamlFields.target_version,
+  "short name": yamlFields.short_name,
+  "working branch": yamlFields.working_branch,
+  "release branch": yamlFields.release_branch
+};
+const escapeRegex = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+let content = fs.readFileSync(filePath, "utf8");
+for (const [key, value] of Object.entries(yamlFields)) {
+  const pattern = new RegExp(`^(\\s*)${escapeRegex(key)}:\\s*".*"$`, "m");
+  content = content.replace(pattern, (_match, indent) => `${indent}${key}: "${value}"`);
+}
+for (const [label, value] of Object.entries(bulletFields)) {
+  const pattern = new RegExp(`^(- ${escapeRegex(label)}:\\s*)\`.*\`$`, "m");
+  content = content.replace(pattern, (_match, prefix) => `${prefix}\`${value}\``);
+}
+fs.writeFileSync(filePath, content);
+NODE
+}
+
 validate_short_name "$SHORT_NAME" || {
   echo "{\"error\":\"short_name must be a concise alias with 1 to 3 lowercase lexical tokens\"}" >&2
   exit 1
@@ -141,41 +193,13 @@ EOF
 if [[ -f "$ROOT_DIR/.pgg/project.json" && "$ARCHIVE_TYPE" != "pending" && "$VERSION_BUMP" != "pending" ]]; then
   MANIFEST_GIT_MODE="$(node -e 'const fs=require("fs"); const manifest=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); process.stdout.write(String(manifest.git?.mode ?? "off"));' "$ROOT_DIR/.pgg/project.json")"
   load_git_branch_prefixes "$ROOT_DIR"
+  PREVIOUS_VERSION="$(node -e "const fs=require('fs'); const file=process.argv[1]; if (!fs.existsSync(file)) { process.stdout.write('0.0.0'); process.exit(0); } const raw=fs.readFileSync(file,'utf8'); const lines=raw.split(/\n+/).map((line)=>line.trim()).filter(Boolean).reverse(); let version='0.0.0'; for (const line of lines) { try { const data=JSON.parse(line); version=data.version || '0.0.0'; break; } catch {} } process.stdout.write(version);" "$ROOT_DIR/poggn/version-history.ndjson")"
+  TARGET_VERSION="$(compute_next_version "$PREVIOUS_VERSION" "$VERSION_BUMP")"
+  WORKING_BRANCH="$WORKING_BRANCH_PREFIX/$ARCHIVE_TYPE/$TARGET_VERSION-$SHORT_NAME"
+  RELEASE_BRANCH="$RELEASE_BRANCH_PREFIX/$TARGET_VERSION-$SHORT_NAME"
+  sync_semver_metadata "$TOPIC_DIR/proposal.md"
+  sync_semver_metadata "$TOPIC_DIR/state/current.md"
   if [[ "$MANIFEST_GIT_MODE" == "on" ]] && git -C "$ROOT_DIR" rev-parse --show-toplevel >/dev/null 2>&1; then
-    PREVIOUS_VERSION="$(node -e "const fs=require('fs'); const file=process.argv[1]; if (!fs.existsSync(file)) { process.stdout.write('0.0.0'); process.exit(0); } const raw=fs.readFileSync(file,'utf8'); const lines=raw.split(/\n+/).map((line)=>line.trim()).filter(Boolean).reverse(); let version='0.0.0'; for (const line of lines) { try { const data=JSON.parse(line); version=data.version || '0.0.0'; break; } catch {} } process.stdout.write(version);" "$ROOT_DIR/poggn/version-history.ndjson")"
-    TARGET_VERSION="$(node -e "const current=(process.argv[1]||'0.0.0').split('.').map(Number); const bump=process.argv[2]; let [major,minor,patch]=[current[0]||0,current[1]||0,current[2]||0]; if (bump==='major') { major += 1; minor = 0; patch = 0; } else if (bump==='minor') { minor += 1; patch = 0; } else { patch += 1; } process.stdout.write([major,minor,patch].join('.'));" "$PREVIOUS_VERSION" "$VERSION_BUMP")"
-    WORKING_BRANCH="$WORKING_BRANCH_PREFIX/$ARCHIVE_TYPE/$TARGET_VERSION-$SHORT_NAME"
-    RELEASE_BRANCH="$RELEASE_BRANCH_PREFIX/$TARGET_VERSION-$SHORT_NAME"
-    node - <<'NODE' "$TOPIC_DIR/proposal.md" "$TOPIC_DIR/state/current.md" "$VERSION_BUMP" "$TARGET_VERSION" "$SHORT_NAME" "$WORKING_BRANCH" "$RELEASE_BRANCH"
-const fs = require("fs");
-const [proposalPath, statePath, versionBump, targetVersion, shortName, workingBranch, releaseBranch] = process.argv.slice(2);
-const replacements = [
-  [`version_bump: \"${versionBump}\"`, /^\s*version_bump:\s*\".*\"$/m],
-  [`target_version: \"${targetVersion}\"`, /^\s*target_version:\s*\".*\"$/m],
-  [`short_name: \"${shortName}\"`, /^\s*short_name:\s*\".*\"$/m],
-  [`working_branch: \"${workingBranch}\"`, /^\s*working_branch:\s*\".*\"$/m],
-  [`release_branch: \"${releaseBranch}\"`, /^\s*release_branch:\s*\".*\"$/m]
-];
-const bulletReplacements = [
-  [`- version_bump: \`${versionBump}\``, /^- version_bump:\s*`.*`$/m],
-  [`- target_version: \`${targetVersion}\``, /^- target_version:\s*`.*`$/m],
-  [`- short_name: \`${shortName}\``, /^- short_name:\s*`.*`$/m],
-  [`- working_branch: \`${workingBranch}\``, /^- working_branch:\s*`.*`$/m],
-  [`- release_branch: \`${releaseBranch}\``, /^- release_branch:\s*`.*`$/m],
-  [`- version bump: \`${versionBump}\``, /^- version bump:\s*`.*`$/m],
-  [`- target version: \`${targetVersion}\``, /^- target version:\s*`.*`$/m],
-  [`- short name: \`${shortName}\``, /^- short name:\s*`.*`$/m],
-  [`- working branch: \`${workingBranch}\``, /^- working branch:\s*`.*`$/m],
-  [`- release branch: \`${releaseBranch}\``, /^- release branch:\s*`.*`$/m]
-];
-for (const filePath of [proposalPath, statePath]) {
-  let content = fs.readFileSync(filePath, "utf8");
-  for (const [value, pattern] of [...replacements, ...bulletReplacements]) {
-    content = content.replace(pattern, value);
-  }
-  fs.writeFileSync(filePath, content);
-}
-NODE
     CURRENT_BRANCH="$(git -C "$ROOT_DIR" branch --show-current)"
     if [[ "$CURRENT_BRANCH" != "$WORKING_BRANCH" ]]; then
       git -C "$ROOT_DIR" checkout -B "$WORKING_BRANCH" >/dev/null 2>&1 || true
