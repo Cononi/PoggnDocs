@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 98
-  updated_at: "2026-04-22T12:54:26Z"
+  updated_at: "2026-04-22T13:09:38Z"
 ---
 
 # Implementation Index
@@ -26,9 +26,19 @@ pgg:
 | 012 | UPDATE | `packages/core/dist/readme.js.map` | `implementation/diffs/012_UPDATE_packages_core_dist_readme_js_map.diff` | `T5` | dist source map을 새 README generator build output과 맞췄다. |
 | 013 | UPDATE | `packages/core/dist/templates.js` | `implementation/diffs/013_UPDATE_packages_core_dist_templates_js.diff` | `T5` | build 결과가 helper/template source 변경을 현재 dist asset에 반영했다. |
 | 014 | UPDATE | `packages/core/dist/templates.js.map` | `implementation/diffs/014_UPDATE_packages_core_dist_templates_js_map.diff` | `T5` | dist source map을 새 template/helper build output과 맞췄다. |
+| 015 | UPDATE | `.codex/sh/pgg-new-topic.sh` | `implementation/diffs/015_UPDATE__codex_sh_pgg-new-topic_sh.refactor.diff` | `T2`,`T5` | latest ledger read, metadata refresh, apply 단계를 helper로 분리해 semver metadata 적용 경로를 단일 책임 구조로 좁혔다. |
+| 016 | UPDATE | `packages/core/src/templates.ts` | `implementation/diffs/016_UPDATE_packages_core_src_templates_ts.refactor.diff` | `T1`,`T2`,`T3`,`T4` | managed helper template도 같은 helper 경계를 따르도록 맞춰 source와 generated shell 구조를 다시 일치시켰다. |
+| 017 | UPDATE | `packages/core/dist/templates.js` | `implementation/diffs/017_UPDATE_packages_core_dist_templates_js.refactor.diff` | `T5` | build 결과가 refactor된 template helper 구조를 dist asset에 반영했다. |
+| 018 | UPDATE | `packages/core/dist/templates.js.map` | `implementation/diffs/018_UPDATE_packages_core_dist_templates_js_map.refactor.diff` | `T5` | dist source map을 refactor 후 template build output과 다시 동기화했다. |
+| 019 | UPDATE | `.pgg/project.json` | `implementation/diffs/019_UPDATE__pgg_project_json.refactor.diff` | `T5` | managed asset sync 이후 checksum과 updated timestamp가 refactor된 helper/dist 결과를 가리키도록 갱신됐다. |
 
 ## Verification
 
 - `pnpm build`
 - `pnpm test`
 - `node packages/cli/dist/index.js update --cwd /config/workspace/poggn-ai`
+
+## Refactor Notes
+
+- `pgg-new-topic.sh`의 semver resolution inline 블록을 `read_latest_version`, `refresh_topic_semver_metadata`, `apply_topic_semver_metadata`로 분리해 동작은 유지하고 구조만 단순화했다.
+- `packages/core/src/templates.ts`와 generated dist asset이 같은 helper 경계를 유지하도록 다시 synced 했다.

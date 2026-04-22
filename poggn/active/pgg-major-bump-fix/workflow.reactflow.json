@@ -130,6 +130,16 @@
         "path": "poggn/active/pgg-major-bump-fix/reviews/code.review.md",
         "stage": "implementation"
       }
+    },
+    {
+      "id": "refactor-review",
+      "type": "review",
+      "position": { "x": 660, "y": 480 },
+      "data": {
+        "label": "reviews/refactor.review.md",
+        "path": "poggn/active/pgg-major-bump-fix/reviews/refactor.review.md",
+        "stage": "refactor"
+      }
     }
   ],
   "edges": [
@@ -145,6 +155,7 @@
     { "id": "e-plan-spec-docs", "source": "plan", "target": "spec-docs-semver-guidance" },
     { "id": "e-plan-spec-qa", "source": "plan", "target": "spec-qa-major-bump-proof" },
     { "id": "e-task-implementation", "source": "task", "target": "implementation-index" },
-    { "id": "e-implementation-review", "source": "implementation-index", "target": "code-review" }
+    { "id": "e-implementation-review", "source": "implementation-index", "target": "code-review" },
+    { "id": "e-code-refactor-review", "source": "code-review", "target": "refactor-review" }
   ]
 }

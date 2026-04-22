@@ -1,0 +1,22 @@
+diff --git a/.pgg/project.json b/.pgg/project.json
+index f2456d1..9f2db99 100644
+--- a/.pgg/project.json
++++ b/.pgg/project.json
+@@ -6,7 +6,7 @@
+   "language": "ko",
+   "autoMode": "on",
+   "installedVersion": "0.1.0",
+-  "updatedAt": "2026-04-22T12:53:26.598Z",
++  "updatedAt": "2026-04-22T13:07:03.429Z",
+   "dashboard": {
+     "title": "poggn dashboard",
+     "defaultPort": 4173,
+@@ -95,7 +95,7 @@
+     },
+     {
+       "path": ".codex/sh/pgg-new-topic.sh",
+-      "checksum": "b6833dfc5dac70866072fa6a1e89777c01004c5c1e7f35d10fb2bd89f5591437",
++      "checksum": "de6742d54551936fc990216ba420828117a73b285313218f96989d0a9aa6f799",
+       "executable": true
+     },
+     {

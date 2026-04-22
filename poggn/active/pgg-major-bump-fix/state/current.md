@@ -6,11 +6,11 @@ pgg-major-bump-fix
 
 ## Current Stage
 
-implementation
+refactor
 
 ## Goal
 
-`pgg-add` semver decision, frontmatter integrity, minimal handoff, docs alignment, regression proof를 구현하고 기록한다.
+`pgg-add` semver helper의 구조를 단순화하고 refactor evidence를 기록한다.
 
 ## Confirmed Scope
 
@@ -18,6 +18,7 @@ implementation
 - `pgg-new-topic.sh`의 proposal frontmatter metadata 손상과 `pgg-state-pack.sh`의 semver metadata 누락을 같은 fix 범위에서 다룬다.
 - generated README, workflow 문서, skill/template이 같은 semver 선택 기준과 proposal responsibility를 설명하도록 맞춘다.
 - `major` 선택 시 latest ledger 기준으로 실제 `1.0.0`이 계산되는 end-to-end regression proof를 추가 대상으로 잡는다.
+- refactor 단계에서는 `pgg-new-topic.sh`의 semver resolution inline 블록을 작은 helper들로 나누되 제품 범위는 넓히지 않는다.
 
 ## Constraints
 
@@ -84,6 +85,7 @@ implementation
 | UPDATE | `packages/core/dist/templates.js.map` | `implementation/diffs/014_UPDATE_packages_core_dist_templates_js_map.diff` |
 | CREATE | `poggn/active/pgg-major-bump-fix/implementation/index.md` | 없음 |
 | CREATE | `poggn/active/pgg-major-bump-fix/reviews/code.review.md` | 없음 |
+| CREATE | `poggn/active/pgg-major-bump-fix/reviews/refactor.review.md` | 없음 |
 | UPDATE | `poggn/active/pgg-major-bump-fix/proposal.md` | 없음 |
 | CREATE | `poggn/active/pgg-major-bump-fix/plan.md` | 없음 |
 | CREATE | `poggn/active/pgg-major-bump-fix/task.md` | 없음 |
@@ -95,16 +97,26 @@ implementation
 | CREATE | `poggn/active/pgg-major-bump-fix/reviews/plan.review.md` | 없음 |
 | CREATE | `poggn/active/pgg-major-bump-fix/reviews/task.review.md` | 없음 |
 | UPDATE | `poggn/active/pgg-major-bump-fix/reviews/proposal.review.md` | 없음 |
+| CREATE | `poggn/active/pgg-major-bump-fix/implementation/diffs/015_UPDATE__codex_sh_pgg-new-topic_sh.refactor.diff` | 없음 |
+| CREATE | `poggn/active/pgg-major-bump-fix/implementation/diffs/016_UPDATE_packages_core_src_templates_ts.refactor.diff` | 없음 |
+| CREATE | `poggn/active/pgg-major-bump-fix/implementation/diffs/017_UPDATE_packages_core_dist_templates_js.refactor.diff` | 없음 |
+| CREATE | `poggn/active/pgg-major-bump-fix/implementation/diffs/018_UPDATE_packages_core_dist_templates_js_map.refactor.diff` | 없음 |
+| CREATE | `poggn/active/pgg-major-bump-fix/implementation/diffs/019_UPDATE__pgg_project_json.refactor.diff` | 없음 |
+| UPDATE | `.codex/sh/pgg-new-topic.sh` | `implementation/diffs/015_UPDATE__codex_sh_pgg-new-topic_sh.refactor.diff` |
+| UPDATE | `packages/core/src/templates.ts` | `implementation/diffs/016_UPDATE_packages_core_src_templates_ts.refactor.diff` |
+| UPDATE | `packages/core/dist/templates.js` | `implementation/diffs/017_UPDATE_packages_core_dist_templates_js.refactor.diff` |
+| UPDATE | `packages/core/dist/templates.js.map` | `implementation/diffs/018_UPDATE_packages_core_dist_templates_js_map.refactor.diff` |
+| UPDATE | `.pgg/project.json` | `implementation/diffs/019_UPDATE__pgg_project_json.refactor.diff` |
 | UPDATE | `poggn/active/pgg-major-bump-fix/state/current.md` | 없음 |
 | UPDATE | `poggn/active/pgg-major-bump-fix/state/history.ndjson` | 없음 |
 | UPDATE | `poggn/active/pgg-major-bump-fix/workflow.reactflow.json` | 없음 |
 
 ## Last Expert Score
 
-- phase: code
-- score: 98
+- phase: refactor
+- score: 97
 - blocking issues: 없음
 
 ## Next Action
 
-`pgg-refactor`
+`pgg-qa`
