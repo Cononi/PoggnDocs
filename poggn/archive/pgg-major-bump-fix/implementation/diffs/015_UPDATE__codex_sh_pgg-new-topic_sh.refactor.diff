@@ -1,0 +1,52 @@
+diff --git a/.codex/sh/pgg-new-topic.sh b/.codex/sh/pgg-new-topic.sh
+index 4fa78a7..16bbb9b 100755
+--- a/.codex/sh/pgg-new-topic.sh
++++ b/.codex/sh/pgg-new-topic.sh
+@@ -46,6 +46,11 @@ compute_next_version() {
+   node -e "const current=(process.argv[1]||'0.0.0').split('.').map(Number); const bump=process.argv[2]; let [major,minor,patch]=[current[0]||0,current[1]||0,current[2]||0]; if (bump==='major') { major += 1; minor = 0; patch = 0; } else if (bump==='minor') { minor += 1; patch = 0; } else { patch += 1; } process.stdout.write([major,minor,patch].join('.'));" "$previous_version" "$version_bump"
+ }
+ 
++read_latest_version() {
++  local ledger_path="$1"
++  node -e "const fs=require('fs'); const file=process.argv[1]; if (!fs.existsSync(file)) { process.stdout.write('0.0.0'); process.exit(0); } const raw=fs.readFileSync(file,'utf8'); const lines=raw.split(/\n+/).map((line)=>line.trim()).filter(Boolean).reverse(); let version='0.0.0'; for (const line of lines) { try { const data=JSON.parse(line); version=data.version || '0.0.0'; break; } catch {} } process.stdout.write(version);" "$ledger_path"
++}
++
+ sync_semver_metadata() {
+   local file_path="$1"
+   FILE_PATH="$file_path" \
+@@ -92,6 +97,21 @@ fs.writeFileSync(filePath, content);
+ NODE
+ }
+ 
++refresh_topic_semver_metadata() {
++  sync_semver_metadata "$TOPIC_DIR/proposal.md"
++  sync_semver_metadata "$TOPIC_DIR/state/current.md"
++}
++
++apply_topic_semver_metadata() {
++  local ledger_path="$1"
++  local previous_version=""
++  previous_version="$(read_latest_version "$ledger_path")"
++  TARGET_VERSION="$(compute_next_version "$previous_version" "$VERSION_BUMP")"
++  WORKING_BRANCH="$WORKING_BRANCH_PREFIX/$ARCHIVE_TYPE/$TARGET_VERSION-$SHORT_NAME"
++  RELEASE_BRANCH="$RELEASE_BRANCH_PREFIX/$TARGET_VERSION-$SHORT_NAME"
++  refresh_topic_semver_metadata
++}
++
+ validate_short_name "$SHORT_NAME" || {
+   echo "{\"error\":\"short_name must be a concise alias with 1 to 3 lowercase lexical tokens\"}" >&2
+   exit 1
+@@ -193,12 +213,7 @@ EOF
+ if [[ -f "$ROOT_DIR/.pgg/project.json" && "$ARCHIVE_TYPE" != "pending" && "$VERSION_BUMP" != "pending" ]]; then
+   MANIFEST_GIT_MODE="$(node -e 'const fs=require("fs"); const manifest=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); process.stdout.write(String(manifest.git?.mode ?? "off"));' "$ROOT_DIR/.pgg/project.json")"
+   load_git_branch_prefixes "$ROOT_DIR"
+-  PREVIOUS_VERSION="$(node -e "const fs=require('fs'); const file=process.argv[1]; if (!fs.existsSync(file)) { process.stdout.write('0.0.0'); process.exit(0); } const raw=fs.readFileSync(file,'utf8'); const lines=raw.split(/\n+/).map((line)=>line.trim()).filter(Boolean).reverse(); let version='0.0.0'; for (const line of lines) { try { const data=JSON.parse(line); version=data.version || '0.0.0'; break; } catch {} } process.stdout.write(version);" "$ROOT_DIR/poggn/version-history.ndjson")"
+-  TARGET_VERSION="$(compute_next_version "$PREVIOUS_VERSION" "$VERSION_BUMP")"
+-  WORKING_BRANCH="$WORKING_BRANCH_PREFIX/$ARCHIVE_TYPE/$TARGET_VERSION-$SHORT_NAME"
+-  RELEASE_BRANCH="$RELEASE_BRANCH_PREFIX/$TARGET_VERSION-$SHORT_NAME"
+-  sync_semver_metadata "$TOPIC_DIR/proposal.md"
+-  sync_semver_metadata "$TOPIC_DIR/state/current.md"
++  apply_topic_semver_metadata "$ROOT_DIR/poggn/version-history.ndjson"
+   if [[ "$MANIFEST_GIT_MODE" == "on" ]] && git -C "$ROOT_DIR" rev-parse --show-toplevel >/dev/null 2>&1; then
+     CURRENT_BRANCH="$(git -C "$ROOT_DIR" branch --show-current)"
+     if [[ "$CURRENT_BRANCH" != "$WORKING_BRANCH" ]]; then
