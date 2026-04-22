@@ -1,0 +1,163 @@
+diff --git a/apps/dashboard/src/shared/theme/dashboardTheme.ts b/apps/dashboard/src/shared/theme/dashboardTheme.ts
+index 0cc1e00..28f98b7 100644
+--- a/apps/dashboard/src/shared/theme/dashboardTheme.ts
++++ b/apps/dashboard/src/shared/theme/dashboardTheme.ts
+@@ -3,29 +3,39 @@ import type { DashboardThemeMode } from "../model/dashboard";
+ 
+ export function createDashboardTheme(mode: DashboardThemeMode) {
+   const isDark = mode === "dark";
+-  const primary = "#d1643a";
+-  const secondary = isDark ? "#94a3b8" : "#56657f";
+-  const backgroundDefault = isDark ? "#101417" : "#f3eee8";
+-  const backgroundPaper = isDark ? "#151c22" : "#fffdf9";
+-  const surfaceBorder = isDark ? alpha("#f8fafc", 0.1) : alpha("#111827", 0.12);
++  const primary = isDark ? "#579dff" : "#2467d6";
++  const secondary = isDark ? "#9fadbc" : "#5e6c84";
++  const backgroundDefault = isDark ? "#1d2125" : "#eef2f8";
++  const backgroundPaper = isDark ? "#22272b" : "#ffffff";
++  const navSurface = isDark ? "#1a1f24" : "#f7f9fc";
++  const surfaceBorder = isDark ? alpha("#f8fafc", 0.08) : alpha("#091e42", 0.12);
+ 
+   return createTheme({
+     palette: {
+       mode,
+       primary: {
+-        main: primary
++        main: primary,
++        light: isDark ? "#8fbaff" : "#3f7ce8",
++        dark: isDark ? "#2555b3" : "#1b4fa8",
++        contrastText: isDark ? "#091e42" : "#ffffff"
+       },
+       secondary: {
+         main: secondary
+       },
++      error: {
++        main: isDark ? "#f87168" : "#d92d20",
++        contrastText: "#ffffff"
++      },
+       success: {
+-        main: isDark ? "#34d399" : "#15803d"
++        main: isDark ? "#6ccb8f" : "#2c7a4b",
++        contrastText: isDark ? "#0f2419" : "#ffffff"
+       },
+       warning: {
+-        main: isDark ? "#fbbf24" : "#b45309"
++        main: isDark ? "#d9b45d" : "#b26b00",
++        contrastText: isDark ? "#23190a" : "#ffffff"
+       },
+       info: {
+-        main: isDark ? "#38bdf8" : "#0284c7"
++        main: isDark ? "#6ea8fe" : "#2467d6"
+       },
+       background: {
+         default: backgroundDefault,
+@@ -40,7 +50,7 @@ export function createDashboardTheme(mode: DashboardThemeMode) {
+     shape: {
+       borderRadius: 1
+     },
+-    typography: {
++      typography: {
+       fontFamily: '"IBM Plex Sans", "Sora", "Avenir Next", sans-serif',
+       h1: {
+         fontWeight: 700,
+@@ -58,6 +68,13 @@ export function createDashboardTheme(mode: DashboardThemeMode) {
+         fontWeight: 700,
+         letterSpacing: "0.18em"
+       },
++      h6: {
++        fontWeight: 600,
++        letterSpacing: "-0.01em"
++      },
++      body1: {
++        lineHeight: 1.4
++      },
+       button: {
+         textTransform: "none",
+         fontWeight: 600
+@@ -82,13 +99,16 @@ export function createDashboardTheme(mode: DashboardThemeMode) {
+           body: {
+             minWidth: 320,
+             minHeight: "100vh",
+-            background: isDark
+-              ? "radial-gradient(circle at top left, rgba(209, 100, 58, 0.14), transparent 24%), radial-gradient(circle at top right, rgba(56, 189, 248, 0.12), transparent 20%), linear-gradient(180deg, #0f1317 0%, #121920 100%)"
+-              : "radial-gradient(circle at top left, rgba(209, 100, 58, 0.14), transparent 24%), radial-gradient(circle at top right, rgba(56, 189, 248, 0.10), transparent 18%), linear-gradient(180deg, #f7f1ea 0%, #ece7df 100%)"
++            background: backgroundDefault
+           },
+           "#root": {
+             minHeight: "100vh"
+           },
++          "select, option": {
++            font: "inherit",
++            color: isDark ? "#f8fafc" : "#171717",
++            backgroundColor: backgroundPaper
++          },
+           ".react-flow__attribution": {
+             display: "none"
+           },
+@@ -114,21 +134,39 @@ export function createDashboardTheme(mode: DashboardThemeMode) {
+         styleOverrides: {
+           root: {
+             backgroundImage: "none",
+-            border: `1px solid ${surfaceBorder}`
++            border: `1px solid ${surfaceBorder}`,
++            backgroundColor: backgroundPaper
++          }
++        }
++      },
++      MuiTableCell: {
++        styleOverrides: {
++          root: {
++            borderBottom: `1px solid ${surfaceBorder}`
++          },
++          head: {
++            color: isDark ? "#9fadbc" : "#4f5b72",
++            fontWeight: 700,
++            backgroundColor: alpha(navSurface, isDark ? 0.72 : 0.45)
+           }
+         }
+       },
+       MuiButton: {
+         styleOverrides: {
+           root: {
+-            borderRadius: 1
++            borderRadius: 1,
++            paddingInline: 14
++          },
++          contained: {
++            boxShadow: "none"
+           }
+         }
+       },
+       MuiChip: {
+         styleOverrides: {
+           root: {
+-            borderRadius: 1
++            borderRadius: 0.75,
++            height: 28
+           }
+         }
+       },
+@@ -142,7 +180,8 @@ export function createDashboardTheme(mode: DashboardThemeMode) {
+       MuiOutlinedInput: {
+         styleOverrides: {
+           root: {
+-            borderRadius: 1
++            borderRadius: 1,
++            backgroundColor: alpha(navSurface, isDark ? 0.72 : 0.55)
+           }
+         }
+       },
+@@ -152,6 +191,13 @@ export function createDashboardTheme(mode: DashboardThemeMode) {
+             borderRadius: 1
+           }
+         }
++      },
++      MuiDrawer: {
++        styleOverrides: {
++          paper: {
++            borderColor: surfaceBorder
++          }
++        }
+       }
+     }
+   });

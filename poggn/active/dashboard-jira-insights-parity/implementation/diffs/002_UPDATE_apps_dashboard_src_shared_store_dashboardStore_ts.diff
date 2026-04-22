@@ -1,0 +1,218 @@
+diff --git a/apps/dashboard/src/shared/store/dashboardStore.ts b/apps/dashboard/src/shared/store/dashboardStore.ts
+index 7fdbd33..c0d0a95 100644
+--- a/apps/dashboard/src/shared/store/dashboardStore.ts
++++ b/apps/dashboard/src/shared/store/dashboardStore.ts
+@@ -1,15 +1,55 @@
+ import { create } from "zustand";
+-import type { DashboardStore, DashboardThemeMode } from "../model/dashboard";
++import type {
++  DashboardSettingsView,
++  DashboardSidebarItem,
++  DashboardStore,
++  DashboardThemeMode,
++  DashboardWorkspaceFilterState,
++  DashboardWorkspaceMode
++} from "../model/dashboard";
+ 
+ const DASHBOARD_THEME_MODE_STORAGE_KEY = "pgg.dashboard.theme-mode";
++const DASHBOARD_UI_STATE_STORAGE_KEY = "pgg.dashboard.ui-state";
++
++type DashboardUiState = Pick<
++  DashboardStore,
++  | "activeTopMenu"
++  | "activeSidebarItem"
++  | "activeSettingsView"
++  | "workspaceMode"
++  | "selectedProjectId"
++  | "selectedTopicKey"
++  | "shellSearchQuery"
++  | "topicFilter"
++  | "workspaceFilterState"
++  | "insightsRailOpen"
++>;
++
++const defaultWorkspaceFilterState: DashboardWorkspaceFilterState = {
++  bucket: "all",
++  stage: "all"
++};
++
++const defaultUiState: DashboardUiState = {
++  activeTopMenu: "projects",
++  activeSidebarItem: "backlog",
++  activeSettingsView: "main",
++  workspaceMode: "backlog",
++  selectedProjectId: null,
++  selectedTopicKey: null,
++  shellSearchQuery: "",
++  topicFilter: "",
++  workspaceFilterState: defaultWorkspaceFilterState,
++  insightsRailOpen: true
++};
+ 
+ function readInitialThemeMode(): DashboardThemeMode {
+   if (typeof window === "undefined") {
+-    return "light";
++    return "dark";
+   }
+ 
+   const storedValue = window.localStorage.getItem(DASHBOARD_THEME_MODE_STORAGE_KEY);
+-  return storedValue === "dark" ? "dark" : "light";
++  return storedValue === "light" ? "light" : "dark";
+ }
+ 
+ function persistThemeMode(value: DashboardThemeMode): void {
+@@ -20,24 +60,133 @@ function persistThemeMode(value: DashboardThemeMode): void {
+   window.localStorage.setItem(DASHBOARD_THEME_MODE_STORAGE_KEY, value);
+ }
+ 
+-export const useDashboardStore = create<DashboardStore>((set) => ({
+-  activeTopMenu: "projects",
+-  activeProjectsView: "board",
+-  activeSettingsView: "main",
+-  projectSurface: "board",
+-  themeMode: readInitialThemeMode(),
+-  selectedProjectId: null,
+-  selectedTopicKey: null,
+-  topicFilter: "",
+-  setActiveTopMenu: (value) => set({ activeTopMenu: value }),
+-  setActiveProjectsView: (value) => set({ activeProjectsView: value }),
+-  setActiveSettingsView: (value) => set({ activeSettingsView: value }),
+-  setProjectSurface: (value) => set({ projectSurface: value }),
+-  setThemeMode: (value) => {
+-    persistThemeMode(value);
+-    set({ themeMode: value });
+-  },
+-  setSelectedProjectId: (value) => set({ selectedProjectId: value }),
+-  setSelectedTopicKey: (value) => set({ selectedTopicKey: value }),
+-  setTopicFilter: (value) => set({ topicFilter: value })
+-}));
++function readInitialUiState(): DashboardUiState {
++  if (typeof window === "undefined") {
++    return defaultUiState;
++  }
++
++  try {
++    const raw = window.localStorage.getItem(DASHBOARD_UI_STATE_STORAGE_KEY);
++    if (!raw) {
++      return defaultUiState;
++    }
++
++    const parsed = JSON.parse(raw) as Partial<DashboardUiState>;
++    return {
++      ...defaultUiState,
++      ...parsed,
++      workspaceFilterState: {
++        ...defaultWorkspaceFilterState,
++        ...(parsed.workspaceFilterState ?? {})
++      }
++    };
++  } catch {
++    return defaultUiState;
++  }
++}
++
++function persistUiState(state: DashboardUiState): void {
++  if (typeof window === "undefined") {
++    return;
++  }
++
++  window.localStorage.setItem(DASHBOARD_UI_STATE_STORAGE_KEY, JSON.stringify(state));
++}
++
++function toUiState(store: DashboardStore): DashboardUiState {
++  return {
++    activeTopMenu: store.activeTopMenu,
++    activeSidebarItem: store.activeSidebarItem,
++    activeSettingsView: store.activeSettingsView,
++    workspaceMode: store.workspaceMode,
++    selectedProjectId: store.selectedProjectId,
++    selectedTopicKey: store.selectedTopicKey,
++    shellSearchQuery: store.shellSearchQuery,
++    topicFilter: store.topicFilter,
++    workspaceFilterState: store.workspaceFilterState,
++    insightsRailOpen: store.insightsRailOpen
++  };
++}
++
++export const useDashboardStore = create<DashboardStore>((set, get) => {
++  const initialUiState = readInitialUiState();
++
++  const setAndPersist = (partial: Partial<DashboardUiState>) => {
++    set(partial as Partial<DashboardStore>);
++    persistUiState({ ...toUiState(get()), ...partial });
++  };
++
++  const openProjectWorkspace = (
++    sidebarItem: DashboardSidebarItem,
++    workspaceMode: DashboardWorkspaceMode
++  ) => {
++    setAndPersist({
++      activeTopMenu: "projects",
++      activeSidebarItem: sidebarItem,
++      workspaceMode
++    });
++  };
++
++  return {
++    ...initialUiState,
++    themeMode: readInitialThemeMode(),
++    setActiveTopMenu: (value) => {
++      if (value === "settings") {
++        setAndPersist({
++          activeTopMenu: "settings",
++          workspaceMode: "settings"
++        });
++        return;
++      }
++
++      const currentSidebarItem = get().activeSidebarItem;
++      const nextSidebarItem =
++        currentSidebarItem === "project-settings" ? "backlog" : currentSidebarItem;
++      const nextWorkspaceMode: DashboardWorkspaceMode =
++        nextSidebarItem === "reports"
++          ? "reports"
++          : nextSidebarItem === "board"
++            ? "board"
++            : "backlog";
++
++      setAndPersist({
++        activeTopMenu: "projects",
++        activeSidebarItem: nextSidebarItem,
++        workspaceMode: nextWorkspaceMode
++      });
++    },
++    setActiveSidebarItem: (value) => {
++      if (value === "project-settings") {
++        setAndPersist({
++          activeTopMenu: "settings",
++          activeSidebarItem: value,
++          activeSettingsView: "main",
++          workspaceMode: "settings"
++        });
++        return;
++      }
++
++      const nextWorkspaceMode: DashboardWorkspaceMode =
++        value === "reports" ? "reports" : value === "board" ? "board" : "backlog";
++      openProjectWorkspace(value, nextWorkspaceMode);
++    },
++    setActiveSettingsView: (value: DashboardSettingsView) =>
++      setAndPersist({
++        activeTopMenu: "settings",
++        activeSidebarItem: "project-settings",
++        activeSettingsView: value,
++        workspaceMode: "settings"
++      }),
++    setWorkspaceMode: (value) => setAndPersist({ workspaceMode: value }),
++    setThemeMode: (value) => {
++      persistThemeMode(value);
++      set({ themeMode: value });
++    },
++    setSelectedProjectId: (value) => setAndPersist({ selectedProjectId: value }),
++    setSelectedTopicKey: (value) => setAndPersist({ selectedTopicKey: value }),
++    setShellSearchQuery: (value) => setAndPersist({ shellSearchQuery: value }),
++    setTopicFilter: (value) => setAndPersist({ topicFilter: value }),
++    setWorkspaceFilterState: (value) => setAndPersist({ workspaceFilterState: value }),
++    setInsightsRailOpen: (value) => setAndPersist({ insightsRailOpen: value })
++  };
++});

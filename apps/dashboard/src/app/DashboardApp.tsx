@@ -1,15 +1,19 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { alpha } from "@mui/material/styles";
+import { alpha, useTheme } from "@mui/material/styles";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import {
   Alert,
+  Avatar,
   Box,
   Button,
+  ButtonBase,
   Chip,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
-  Divider,
+  Drawer,
+  InputBase,
   Paper,
   Stack,
   TextField,
@@ -17,9 +21,8 @@ import {
 } from "@mui/material";
 import { startTransition, useDeferredValue, useEffect, useMemo, useState } from "react";
 import { ArtifactDetailDialog } from "../features/artifact-inspector/ArtifactDetailDialog";
-import { ProjectDetailWorkspace } from "../features/project-detail/ProjectDetailWorkspace";
-import { BoardSettingsPanel } from "../features/project-list/BoardSettingsPanel";
-import { CategoryManagementPanel } from "../features/project-list/CategoryManagementPanel";
+import { BacklogWorkspace } from "../features/backlog/BacklogWorkspace";
+import { InsightsRail } from "../features/backlog/InsightsRail";
 import { ProjectListBoard } from "../features/project-list/ProjectListBoard";
 import { RecentActivityTable } from "../features/reports/RecentActivityTable";
 import { SettingsWorkspace } from "../features/settings/SettingsWorkspace";
@@ -28,62 +31,65 @@ import { dashboardLocale } from "../shared/locale/dashboardLocale";
 import type {
   ArtifactSelection,
   DashboardLocale,
+  DashboardPrimaryMenu,
+  DashboardSettingsView,
+  DashboardSidebarItem,
+  DashboardWorkspaceFilterState,
   ProjectSnapshot
 } from "../shared/model/dashboard";
 import { useDashboardStore } from "../shared/store/dashboardStore";
 import {
   buildTopicArtifactEntries,
-  buildTopicKey,
-  buildTopicLanes,
-  createArtifactSelection,
-  getDefaultArtifactSelection,
-  splitVisibleTopics
+  getDefaultArtifactSelection
 } from "../shared/utils/dashboard";
 import {
+  buildBacklogSections,
+  buildInsightsSummary,
   createMutationPayload,
   markDashboardInteraction,
   resolveCurrentProject,
   resolveInitialSelectedProjectId,
-  resolveLatestActiveProject,
-  resolveNextDetailSelection,
-  resolveSnapshotRefreshInterval,
   resolveSelectedProject,
+  resolveSelectedProjectFromSearch,
   resolveSelectedTopic,
-  resolveVisibleTopicState,
+  resolveSnapshotRefreshInterval,
+  resolveVisibleTopicSelection,
   type DashboardMutationPayload
 } from "./dashboardShell";
 
-type CategoryDialogMode = "create" | "edit" | null;
-
 export default function DashboardApp() {
   const queryClient = useQueryClient();
+  const theme = useTheme();
+  const isCompactShell = useMediaQuery(theme.breakpoints.down("lg"));
   const activeTopMenu = useDashboardStore((state) => state.activeTopMenu);
-  const activeProjectsView = useDashboardStore((state) => state.activeProjectsView);
+  const activeSidebarItem = useDashboardStore((state) => state.activeSidebarItem);
   const activeSettingsView = useDashboardStore((state) => state.activeSettingsView);
-  const projectSurface = useDashboardStore((state) => state.projectSurface);
-  const themeMode = useDashboardStore((state) => state.themeMode);
+  const workspaceMode = useDashboardStore((state) => state.workspaceMode);
   const selectedProjectId = useDashboardStore((state) => state.selectedProjectId);
   const selectedTopicKey = useDashboardStore((state) => state.selectedTopicKey);
+  const shellSearchQuery = useDashboardStore((state) => state.shellSearchQuery);
   const topicFilter = useDashboardStore((state) => state.topicFilter);
+  const workspaceFilterState = useDashboardStore((state) => state.workspaceFilterState);
+  const insightsRailOpen = useDashboardStore((state) => state.insightsRailOpen);
   const setActiveTopMenu = useDashboardStore((state) => state.setActiveTopMenu);
-  const setActiveProjectsView = useDashboardStore((state) => state.setActiveProjectsView);
+  const setActiveSidebarItem = useDashboardStore((state) => state.setActiveSidebarItem);
   const setActiveSettingsView = useDashboardStore((state) => state.setActiveSettingsView);
-  const setProjectSurface = useDashboardStore((state) => state.setProjectSurface);
-  const setThemeMode = useDashboardStore((state) => state.setThemeMode);
   const setSelectedProjectId = useDashboardStore((state) => state.setSelectedProjectId);
   const setSelectedTopicKey = useDashboardStore((state) => state.setSelectedTopicKey);
+  const setShellSearchQuery = useDashboardStore((state) => state.setShellSearchQuery);
   const setTopicFilter = useDashboardStore((state) => state.setTopicFilter);
-  const deferredFilter = useDeferredValue(topicFilter);
+  const setWorkspaceFilterState = useDashboardStore((state) => state.setWorkspaceFilterState);
+  const setInsightsRailOpen = useDashboardStore((state) => state.setInsightsRailOpen);
+  const deferredShellSearchQuery = useDeferredValue(shellSearchQuery);
+  const deferredTopicFilter = useDeferredValue(topicFilter);
 
   const [feedback, setFeedback] = useState<string | null>(null);
-  const [categoryDialogMode, setCategoryDialogMode] = useState<CategoryDialogMode>(null);
-  const [categoryDraft, setCategoryDraft] = useState("");
-  const [editingCategoryId, setEditingCategoryId] = useState<string | null>(null);
   const [projectDialogOpen, setProjectDialogOpen] = useState(false);
   const [projectRootDirDraft, setProjectRootDirDraft] = useState("");
   const [projectCategoryDraft, setProjectCategoryDraft] = useState("");
   const [detailSelection, setDetailSelection] = useState<ArtifactSelection | null>(null);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+  const [sidebarDrawerOpen, setSidebarDrawerOpen] = useState(false);
 
   const snapshotQuery = useQuery({
     queryKey: ["dashboard-snapshot"],
@@ -95,35 +101,13 @@ export default function DashboardApp() {
   const snapshotSource = snapshotQuery.data?.source ?? "static";
   const currentProject = resolveCurrentProject(snapshot);
   const selectedProject = resolveSelectedProject(snapshot, selectedProjectId, currentProject);
-  const latestActiveProject = resolveLatestActiveProject(snapshot, currentProject);
+  const searchMatchedProject = resolveSelectedProjectFromSearch(snapshot, deferredShellSearchQuery);
   const dictionary = dashboardLocale[(selectedProject ?? currentProject)?.language ?? "en"];
   const isLiveMode = snapshotSource === "live";
-
   const categories = useMemo(
     () => [...(snapshot?.categories ?? [])].sort((left, right) => left.order - right.order),
     [snapshot?.categories]
   );
-  const visibleBuckets = useMemo(
-    () => splitVisibleTopics(selectedProject, deferredFilter),
-    [deferredFilter, selectedProject]
-  );
-  const visibleTopics = useMemo(
-    () => [...visibleBuckets.activeTopics, ...visibleBuckets.archivedTopics],
-    [visibleBuckets.activeTopics, visibleBuckets.archivedTopics]
-  );
-  const selectedTopic = useMemo(
-    () => resolveSelectedTopic(visibleTopics, selectedTopicKey),
-    [selectedTopicKey, visibleTopics]
-  );
-  const activeLanes = useMemo(
-    () => buildTopicLanes(visibleBuckets.activeTopics, "active", dictionary),
-    [dictionary, visibleBuckets.activeTopics]
-  );
-  const archiveLanes = useMemo(
-    () => buildTopicLanes(visibleBuckets.archivedTopics, "archive", dictionary),
-    [dictionary, visibleBuckets.archivedTopics]
-  );
-  const artifactEntries = useMemo(() => buildTopicArtifactEntries(selectedTopic), [selectedTopic]);
 
   useEffect(() => {
     const nextSelectedProjectId = resolveInitialSelectedProjectId(snapshot, selectedProjectId);
@@ -137,23 +121,49 @@ export default function DashboardApp() {
   }, [selectedProjectId, setSelectedProjectId, snapshot]);
 
   useEffect(() => {
-    const nextVisibleTopicState = resolveVisibleTopicState(
-      visibleTopics,
-      selectedTopicKey,
-      projectSurface
-    );
-    if (!nextVisibleTopicState) {
+    if (!searchMatchedProject || searchMatchedProject.id === selectedProjectId) {
       return;
     }
 
     startTransition(() => {
-      setSelectedTopicKey(nextVisibleTopicState.nextSelectedTopicKey);
-      setProjectSurface(nextVisibleTopicState.nextProjectSurface);
+      setSelectedProjectId(searchMatchedProject.id);
     });
-  }, [projectSurface, selectedTopicKey, setProjectSurface, setSelectedTopicKey, visibleTopics]);
+  }, [searchMatchedProject, selectedProjectId, setSelectedProjectId]);
+
+  const backlogSections = useMemo(
+    () => buildBacklogSections(selectedProject, deferredTopicFilter, workspaceFilterState, dictionary),
+    [deferredTopicFilter, dictionary, selectedProject, workspaceFilterState]
+  );
+  const visibleTopics = useMemo(
+    () => backlogSections.flatMap((section) => section.rows.map((row) => row.topic)),
+    [backlogSections]
+  );
+  const nextVisibleTopicKey = useMemo(
+    () => resolveVisibleTopicSelection(visibleTopics, selectedTopicKey),
+    [selectedTopicKey, visibleTopics]
+  );
+  const selectedTopic = useMemo(
+    () => resolveSelectedTopic(visibleTopics, nextVisibleTopicKey),
+    [nextVisibleTopicKey, visibleTopics]
+  );
+  const artifactEntries = useMemo(() => buildTopicArtifactEntries(selectedTopic), [selectedTopic]);
+  const insightsSummary = useMemo(
+    () => buildInsightsSummary(selectedProject, snapshot?.recentActivity ?? [], dictionary),
+    [dictionary, selectedProject, snapshot?.recentActivity]
+  );
 
   useEffect(() => {
-    const nextSelection = resolveNextDetailSelection(selectedTopic, detailSelection, artifactEntries);
+    if (nextVisibleTopicKey === selectedTopicKey) {
+      return;
+    }
+
+    startTransition(() => {
+      setSelectedTopicKey(nextVisibleTopicKey);
+    });
+  }, [nextVisibleTopicKey, selectedTopicKey, setSelectedTopicKey]);
+
+  useEffect(() => {
+    const nextSelection = getDefaultArtifactSelection(selectedTopic);
     if (
       detailSelection?.topicKey === nextSelection?.topicKey &&
       detailSelection?.sourcePath === nextSelection?.sourcePath
@@ -162,7 +172,7 @@ export default function DashboardApp() {
     }
 
     setDetailSelection(nextSelection);
-  }, [artifactEntries, detailSelection, selectedTopic]);
+  }, [detailSelection, selectedTopic]);
 
   useEffect(() => {
     if (snapshot?.generatedAt) {
@@ -175,18 +185,6 @@ export default function DashboardApp() {
       markDashboardInteraction("project-switch", "ready");
     }
   }, [selectedProject?.id]);
-
-  useEffect(() => {
-    if (selectedProject) {
-      markDashboardInteraction("topic-filter", "ready");
-    }
-  }, [deferredFilter, selectedProject, visibleTopics.length]);
-
-  useEffect(() => {
-    if (projectSurface === "detail" && selectedTopic) {
-      markDashboardInteraction("detail-open", "ready");
-    }
-  }, [projectSurface, selectedTopic]);
 
   const snapshotMutation = useMutation({
     mutationFn: async (payload: DashboardMutationPayload) => {
@@ -224,146 +222,101 @@ export default function DashboardApp() {
     );
   };
 
-  const openCategoryDialog = (mode: CategoryDialogMode, categoryId?: string | null, name = "") => {
-    setCategoryDialogMode(mode);
-    setEditingCategoryId(categoryId ?? null);
-    setCategoryDraft(name);
-  };
-
-  const openCreateProjectDialog = () => {
-    setProjectCategoryDraft(
-      categories.find((category) => category.isDefault)?.id ?? categories[0]?.id ?? ""
-    );
-    setProjectRootDirDraft("");
-    setProjectDialogOpen(true);
-  };
-
-  const openProjectDetail = (projectId: string) => {
+  const openProjectContext = (projectId: string) => {
     markDashboardInteraction("project-switch", "start");
     startTransition(() => {
       setSelectedProjectId(projectId);
       setActiveTopMenu("projects");
-      setActiveProjectsView("board");
-      setProjectSurface("detail");
+      setActiveSidebarItem("backlog");
       setSelectedTopicKey(null);
+      if (isCompactShell) {
+        setSidebarDrawerOpen(false);
+      }
     });
   };
 
-  const openTopicDetail = (topicKey: string) => {
+  const openTopicDialog = (topicKey: string) => {
+    const topic = visibleTopics.find((item) => `${item.bucket}:${item.name}` === topicKey) ?? null;
     markDashboardInteraction("detail-open", "start");
     startTransition(() => {
-      setActiveTopMenu("projects");
-      setActiveProjectsView("board");
-      setProjectSurface("detail");
       setSelectedTopicKey(topicKey);
+      setDetailSelection(getDefaultArtifactSelection(topic));
+      setDetailDialogOpen(true);
     });
   };
 
-  const renderProjectsSurface = () => {
-    if (activeProjectsView === "board") {
-      if (projectSurface === "detail") {
-        return (
-          <ProjectDetailWorkspace
-            project={selectedProject}
-            selectedTopic={selectedTopic}
-            activeTopics={visibleBuckets.activeTopics}
-            archivedTopics={visibleBuckets.archivedTopics}
-            selectedTopicKey={selectedTopicKey}
-            topicFilter={topicFilter}
-            detailSelection={detailSelection}
-            artifactEntries={artifactEntries}
-            dictionary={dictionary}
-            onBack={() => setProjectSurface("board")}
-            onTopicFilterChange={(value) => {
-              markDashboardInteraction("topic-filter", "start");
-              setTopicFilter(value);
-            }}
-            onSelectTopic={(topicKey) => setSelectedTopicKey(topicKey)}
-            onPreviewArtifact={(topic) => {
-              const preview = getDefaultArtifactSelection(topic);
-              setDetailSelection(preview);
-            }}
-            onSelectArtifact={(entry) => {
-              if (!selectedTopic) {
-                return;
-              }
-              setDetailSelection(
-                createArtifactSelection(buildTopicKey(selectedTopic), entry)
-              );
-            }}
-            onOpenDetailDialog={() => setDetailDialogOpen(true)}
-            onWorkflowNodeClick={(selection) => {
-              setDetailSelection(selection);
-              setDetailDialogOpen(true);
-            }}
-          />
-        );
-      }
+  const openSettingsPanel = (panel: DashboardSettingsView) => {
+    setActiveSettingsView(panel);
+    if (isCompactShell) {
+      setSidebarDrawerOpen(false);
+    }
+  };
 
+  const renderMainSurface = () => {
+    if (activeTopMenu === "settings") {
+      return (
+        <SettingsWorkspace
+          project={currentProject}
+          panel={activeSettingsView}
+          dictionary={dictionary}
+          isLiveMode={isLiveMode}
+          onSaveTitle={(title) => mutateCurrentProject("main", { title })}
+          onSaveRefreshInterval={(refreshIntervalMs) =>
+            mutateCurrentProject("refresh", { refreshIntervalMs })
+          }
+          onSaveGitPrefixes={(workingBranchPrefix, releaseBranchPrefix) =>
+            mutateCurrentProject("git", { workingBranchPrefix, releaseBranchPrefix })
+          }
+          onSaveSystem={(payload) => mutateCurrentProject("system", payload)}
+        />
+      );
+    }
+
+    if (workspaceMode === "board") {
       return (
         <ProjectListBoard
           categories={categories}
           projects={snapshot?.projects ?? []}
           currentProjectId={currentProject?.id ?? null}
           selectedProjectId={selectedProjectId}
-          latestActiveProjectId={latestActiveProject?.id ?? null}
+          latestActiveProjectId={currentProject?.id ?? null}
           dictionary={dictionary}
           snapshotSource={snapshotSource}
           isLiveMode={isLiveMode}
-          onAddProject={openCreateProjectDialog}
-          onOpenProject={openProjectDetail}
+          onAddProject={() => setProjectDialogOpen(true)}
+          onOpenProject={openProjectContext}
         />
       );
     }
 
-    if (activeProjectsView === "categories") {
-      return (
-        <CategoryManagementPanel
-          categories={categories}
-          dictionary={dictionary}
-          isLiveMode={isLiveMode}
-          onCreateCategory={() => openCategoryDialog("create")}
-          onEditCategory={(categoryId, currentName) => openCategoryDialog("edit", categoryId, currentName)}
-          onSetDefaultCategory={(categoryId) =>
-            mutateSnapshot(createMutationPayload(`/api/dashboard/categories/${categoryId}/default`, "POST"))
-          }
-          onDeleteCategory={(categoryId) =>
-            mutateSnapshot(createMutationPayload(`/api/dashboard/categories/${categoryId}`, "DELETE"))
-          }
-        />
-      );
-    }
-
-    if (activeProjectsView === "reports") {
+    if (workspaceMode === "reports") {
       return (
         <RecentActivityTable
           entries={snapshot?.recentActivity ?? []}
           dictionary={dictionary}
           language={selectedProject?.language ?? currentProject?.language ?? "en"}
-          onOpenProject={openProjectDetail}
+          onOpenProject={openProjectContext}
         />
       );
     }
 
     return (
-      <BoardSettingsPanel
-        categories={categories}
+      <BacklogWorkspace
+        project={selectedProject}
+        sections={backlogSections}
         dictionary={dictionary}
+        language={selectedProject?.language ?? currentProject?.language ?? "en"}
         isLiveMode={isLiveMode}
-        onMoveCategory={(categoryId, targetIndex) =>
-          mutateSnapshot(
-            createMutationPayload(`/api/dashboard/categories/${categoryId}/reorder`, "POST", {
-              targetIndex
-            })
-          )
-        }
-        onToggleCategory={(categoryId, visible) =>
-          mutateSnapshot(
-            createMutationPayload(`/api/dashboard/categories/${categoryId}/visibility`, "PATCH", {
-              visible
-            })
-          )
-        }
+        searchQuery={topicFilter}
+        filterState={workspaceFilterState}
+        selectedTopicKey={nextVisibleTopicKey}
+        onSearchChange={(value) => {
+          markDashboardInteraction("topic-filter", "start");
+          setTopicFilter(value);
+        }}
+        onFilterChange={setWorkspaceFilterState}
+        onOpenCreateAction={() => setProjectDialogOpen(true)}
+        onOpenTopic={openTopicDialog}
       />
     );
   };
@@ -377,124 +330,129 @@ export default function DashboardApp() {
   }
 
   return (
-    <Box sx={{ minHeight: "100vh", px: { xs: 1.5, md: 2.5 }, py: { xs: 1.5, md: 2 } }}>
-      <Stack spacing={2}>
-        <DashboardHeader
-          title={currentProject?.dashboardTitle ?? dictionary.dashboardFallbackTitle}
-          subtitle={dictionary.subtitle}
-          latestActiveProject={latestActiveProject}
-          dictionary={dictionary}
-          snapshotSource={snapshotSource}
-          themeMode={themeMode}
-          activeTopMenu={activeTopMenu}
-          onToggleThemeMode={() => setThemeMode(themeMode === "dark" ? "light" : "dark")}
-          onChangeTopMenu={(next) => {
-            setActiveTopMenu(next);
-            if (next === "projects") {
-              setActiveProjectsView("board");
-              setProjectSurface("board");
-            } else {
-              setActiveSettingsView("main");
-            }
-          }}
-        />
+    <Box sx={{ minHeight: "100vh", backgroundColor: "background.default" }}>
+      <TopNavigation
+        title={currentProject?.dashboardTitle ?? dictionary.dashboardFallbackTitle}
+        latestProject={currentProject?.name ?? "-"}
+        dictionary={dictionary}
+        shellSearchQuery={shellSearchQuery}
+        activeTopMenu={activeTopMenu}
+        isLiveMode={isLiveMode}
+        compactShell={isCompactShell}
+        onOpenProjects={() => setActiveTopMenu("projects")}
+        onOpenSettings={() => setActiveTopMenu("settings")}
+        onSearchChange={setShellSearchQuery}
+        onOpenCreate={() => setProjectDialogOpen(true)}
+        onToggleSidebar={() => setSidebarDrawerOpen(true)}
+        onToggleInsights={() => setInsightsRailOpen(!insightsRailOpen)}
+      />
 
-        <Box
-          sx={{
-            display: "grid",
-            gap: 2,
-            gridTemplateColumns: { xs: "1fr", lg: "300px minmax(0, 1fr)" },
-            alignItems: "start"
-          }}
-        >
-          <DashboardRail
-            activeTopMenu={activeTopMenu}
-            activeProjectsView={activeProjectsView}
-            activeSettingsView={activeSettingsView}
-            selectedProject={selectedProject}
-            dictionary={dictionary}
-            onOpenProjectsView={(view) => {
-              setActiveTopMenu("projects");
-              setActiveProjectsView(view);
-              if (view !== "board") {
-                setProjectSurface("board");
-              }
-            }}
-            onOpenSettingsView={(view) => {
-              setActiveTopMenu("settings");
-              setActiveSettingsView(view);
-            }}
-          />
-
-          <Stack spacing={2.5}>
-            {feedback ? (
-              <Alert severity="error" onClose={() => setFeedback(null)}>
-                {feedback}
-              </Alert>
-            ) : null}
-
-            {activeTopMenu === "projects" ? (
-              renderProjectsSurface()
-            ) : (
-              <SettingsWorkspace
-                project={currentProject}
-                panel={activeSettingsView}
-                dictionary={dictionary}
-                isLiveMode={isLiveMode}
-                onSaveTitle={(title) => mutateCurrentProject("main", { title })}
-                onSaveRefreshInterval={(refreshIntervalMs) =>
-                  mutateCurrentProject("refresh", { refreshIntervalMs })
-                }
-                onSaveGitPrefixes={(workingBranchPrefix, releaseBranchPrefix) =>
-                  mutateCurrentProject("git", { workingBranchPrefix, releaseBranchPrefix })
-                }
-                onSaveSystem={(payload) => mutateCurrentProject("system", payload)}
-              />
-            )}
-          </Stack>
-        </Box>
-      </Stack>
-
-      <Dialog
-        open={categoryDialogMode !== null}
-        onClose={() => setCategoryDialogMode(null)}
-        fullWidth
-        maxWidth="sm"
+      <Box
+        sx={{
+          display: "grid",
+          minHeight: "calc(100vh - 74px)",
+          gridTemplateColumns:
+            !isCompactShell && activeTopMenu === "projects" && insightsRailOpen
+              ? "292px minmax(0, 1fr) 360px"
+              : !isCompactShell
+                ? "292px minmax(0, 1fr)"
+                : "1fr"
+        }}
       >
-        <DialogTitle>
-          {categoryDialogMode === "create" ? dictionary.createCategoryTitle : dictionary.editCategoryTitle}
-        </DialogTitle>
-        <DialogContent>
-          <TextField
-            autoFocus
-            fullWidth
-            margin="dense"
-            label={dictionary.categoryName}
-            value={categoryDraft}
-            onChange={(event) => setCategoryDraft(event.target.value)}
-          />
-        </DialogContent>
-        <DialogActions>
-          <Button onClick={() => setCategoryDialogMode(null)}>{dictionary.cancel}</Button>
-          <Button
-            variant="contained"
-            onClick={() => {
-              if (categoryDialogMode === "create") {
-                mutateSnapshot(createMutationPayload("/api/dashboard/categories", "POST", { name: categoryDraft }));
-              } else if (editingCategoryId) {
-                mutateSnapshot(
-                  createMutationPayload(`/api/dashboard/categories/${editingCategoryId}`, "PATCH", {
-                    name: categoryDraft
-                  })
-                );
-              }
-              setCategoryDialogMode(null);
+        {!isCompactShell ? (
+          <Box sx={{ borderRight: `1px solid ${theme.palette.divider}`, minHeight: "100%" }}>
+            <ProjectContextSidebar
+              activeTopMenu={activeTopMenu}
+              activeSidebarItem={activeSidebarItem}
+              activeSettingsView={activeSettingsView}
+              project={selectedProject}
+              dictionary={dictionary}
+              onSelectSidebarItem={setActiveSidebarItem}
+              onSelectSettingsView={openSettingsPanel}
+            />
+          </Box>
+        ) : null}
+
+        <Stack spacing={2} sx={{ px: { xs: 1.5, md: 2.5 }, py: { xs: 1.5, md: 2 } }}>
+          {feedback ? (
+            <Alert severity="error" onClose={() => setFeedback(null)}>
+              {feedback}
+            </Alert>
+          ) : null}
+
+          {activeTopMenu === "projects" && !insightsRailOpen && !isCompactShell ? (
+            <Stack direction="row" sx={{ justifyContent: "flex-end" }}>
+              <Button variant="outlined" onClick={() => setInsightsRailOpen(true)}>
+                {dictionary.openInsights}
+              </Button>
+            </Stack>
+          ) : null}
+
+          {renderMainSurface()}
+        </Stack>
+
+        {!isCompactShell && activeTopMenu === "projects" && insightsRailOpen ? (
+          <Box
+            sx={{
+              p: 1.5,
+              borderLeft: `1px solid ${theme.palette.divider}`,
+              backgroundColor: alpha(theme.palette.background.paper, 0.4)
             }}
           >
-            {dictionary.save}
-          </Button>
-        </DialogActions>
-      </Dialog>
+            <InsightsRail
+              summary={insightsSummary}
+              dictionary={dictionary}
+              isLiveMode={isLiveMode}
+              onClose={() => setInsightsRailOpen(false)}
+            />
+          </Box>
+        ) : null}
+      </Box>
+
+      <Drawer
+        open={isCompactShell && sidebarDrawerOpen}
+        onClose={() => setSidebarDrawerOpen(false)}
+        PaperProps={{
+          sx: {
+            width: 292,
+            backgroundColor: "background.paper"
+          }
+        }}
+      >
+        <ProjectContextSidebar
+          activeTopMenu={activeTopMenu}
+          activeSidebarItem={activeSidebarItem}
+          activeSettingsView={activeSettingsView}
+          project={selectedProject}
+          dictionary={dictionary}
+          onSelectSidebarItem={(item) => {
+            setActiveSidebarItem(item);
+            setSidebarDrawerOpen(false);
+          }}
+          onSelectSettingsView={openSettingsPanel}
+        />
+      </Drawer>
+
+      <Drawer
+        anchor="right"
+        open={isCompactShell && activeTopMenu === "projects" && insightsRailOpen}
+        onClose={() => setInsightsRailOpen(false)}
+        PaperProps={{
+          sx: {
+            width: { xs: "100%", sm: 360 },
+            backgroundColor: "background.default"
+          }
+        }}
+      >
+        <Box sx={{ p: 1.5 }}>
+          <InsightsRail
+            summary={insightsSummary}
+            dictionary={dictionary}
+            isLiveMode={isLiveMode}
+            onClose={() => setInsightsRailOpen(false)}
+          />
+        </Box>
+      </Drawer>
 
       <Dialog open={projectDialogOpen} onClose={() => setProjectDialogOpen(false)} fullWidth maxWidth="sm">
         <DialogTitle>{dictionary.addProjectTitle}</DialogTitle>
@@ -529,6 +487,7 @@ export default function DashboardApp() {
           <Button onClick={() => setProjectDialogOpen(false)}>{dictionary.cancel}</Button>
           <Button
             variant="contained"
+            disabled={!isLiveMode}
             onClick={() => {
               mutateSnapshot(
                 createMutationPayload("/api/dashboard/projects", "POST", {
@@ -555,142 +514,373 @@ export default function DashboardApp() {
   );
 }
 
-function DashboardHeader(props: {
+function TopNavigation(props: {
   title: string;
-  subtitle: string;
-  latestActiveProject: ProjectSnapshot | null;
+  latestProject: string;
   dictionary: DashboardLocale;
-  snapshotSource: "live" | "static";
-  themeMode: "light" | "dark";
-  activeTopMenu: "projects" | "settings";
-  onToggleThemeMode: () => void;
-  onChangeTopMenu: (next: "projects" | "settings") => void;
+  shellSearchQuery: string;
+  activeTopMenu: DashboardPrimaryMenu;
+  isLiveMode: boolean;
+  compactShell: boolean;
+  onOpenProjects: () => void;
+  onOpenSettings: () => void;
+  onSearchChange: (value: string) => void;
+  onOpenCreate: () => void;
+  onToggleSidebar: () => void;
+  onToggleInsights: () => void;
 }) {
+  const theme = useTheme();
+  const navItems = [
+    props.dictionary.navYourWork,
+    props.dictionary.projects,
+    props.dictionary.navFilter,
+    props.dictionary.navDashboards,
+    props.dictionary.navTeams,
+    props.dictionary.navApps
+  ];
+
   return (
-    <Paper sx={{ p: { xs: 1.5, md: 2 }, borderRadius: 1 }}>
-      <Stack direction={{ xs: "column", xl: "row" }} spacing={2} sx={{ justifyContent: "space-between" }}>
-        <Stack spacing={1.5}>
-          <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ alignItems: { md: "center" } }}>
-            <Stack spacing={0.35}>
-              <Typography variant="overline" color="primary.main">
-                {props.dictionary.eyebrow}
-              </Typography>
-              <Typography variant="h4" sx={{ lineHeight: 1 }}>
-                {props.title}
-              </Typography>
-            </Stack>
-            <Stack direction="row" spacing={1}>
-              {(["projects", "settings"] as const).map((menu) => (
-                <Button
-                  key={menu}
-                  variant={props.activeTopMenu === menu ? "contained" : "text"}
-                  onClick={() => props.onChangeTopMenu(menu)}
-                >
-                  {menu === "projects" ? props.dictionary.projects : props.dictionary.settings}
-                </Button>
-              ))}
-            </Stack>
+    <Paper
+      square
+      sx={{
+        px: { xs: 1.25, md: 2.25 },
+        py: 1.15,
+        borderRadius: 0,
+        borderLeft: 0,
+        borderRight: 0,
+        position: "sticky",
+        top: 0,
+        zIndex: 10
+      }}
+    >
+      <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", justifyContent: "space-between" }}>
+        <Stack direction="row" spacing={1.5} sx={{ alignItems: "center", minWidth: 0 }}>
+          {props.compactShell ? (
+            <Button variant="text" onClick={props.onToggleSidebar} sx={{ minWidth: 0, px: 1 }}>
+              {props.dictionary.menu}
+            </Button>
+          ) : (
+            <AppLauncherMark />
+          )}
+
+          <Stack direction="row" spacing={1.1} sx={{ alignItems: "center", minWidth: 0 }}>
+            <BrandMark />
+            <Typography variant="h6" sx={{ whiteSpace: "nowrap" }}>
+              {props.title}
+            </Typography>
           </Stack>
-          <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 720 }}>
-            {props.subtitle}
-          </Typography>
+
+          {!props.compactShell ? (
+            <Stack direction="row" spacing={0.3} sx={{ alignItems: "center" }}>
+              {navItems.map((item) => {
+                const active = item === props.dictionary.projects && props.activeTopMenu === "projects";
+                return (
+                  <ButtonBase
+                    key={item}
+                    onClick={item === props.dictionary.projects ? props.onOpenProjects : undefined}
+                    sx={{
+                      px: 1.25,
+                      py: 1,
+                      borderRadius: 0.6,
+                      color: active ? "primary.light" : "text.secondary",
+                      borderBottom: active
+                        ? `3px solid ${theme.palette.primary.main}`
+                        : "3px solid transparent"
+                    }}
+                  >
+                    <Typography variant="body1" sx={{ fontWeight: active ? 700 : 500 }}>
+                      {item}
+                    </Typography>
+                  </ButtonBase>
+                );
+              })}
+            </Stack>
+          ) : null}
         </Stack>
 
-        <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap", alignSelf: "flex-start" }}>
-          <Button variant="outlined" onClick={props.onToggleThemeMode}>
-            {props.themeMode === "dark" ? props.dictionary.lightMode : props.dictionary.darkMode}
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+          {!props.compactShell ? (
+            <Paper
+              sx={{
+                px: 1.35,
+                py: 0.75,
+                width: 320,
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                bgcolor: alpha(theme.palette.common.white, 0.03)
+              }}
+            >
+              <Box
+                sx={{
+                  width: 14,
+                  height: 14,
+                  borderRadius: "50%",
+                  border: `2px solid ${theme.palette.text.secondary}`,
+                  position: "relative"
+                }}
+              >
+                <Box
+                  sx={{
+                    position: "absolute",
+                    width: 8,
+                    height: 2,
+                    bgcolor: "text.secondary",
+                    right: -6,
+                    bottom: -3,
+                    transform: "rotate(45deg)"
+                  }}
+                />
+              </Box>
+              <InputBase
+                value={props.shellSearchQuery}
+                onChange={(event) => props.onSearchChange(event.target.value)}
+                placeholder={props.dictionary.globalSearchPlaceholder}
+                sx={{ flex: 1 }}
+              />
+            </Paper>
+          ) : null}
+
+          <Chip
+            label={`${props.dictionary.latestProject}: ${props.latestProject}`}
+            variant="outlined"
+            sx={{ display: { xs: "none", md: "inline-flex" } }}
+          />
+
+          <Button
+            variant="contained"
+            disabled={!props.isLiveMode}
+            onClick={props.onOpenCreate}
+            sx={{ px: 2.4 }}
+          >
+            {props.dictionary.createAction}
           </Button>
-          <Chip
-            label={`${props.dictionary.themeMode}: ${props.themeMode === "dark" ? props.dictionary.darkMode : props.dictionary.lightMode}`}
-            variant="outlined"
+
+          <UtilityButton label={props.dictionary.openInsights} onClick={props.onToggleInsights} />
+          <UtilityButton
+            label={props.dictionary.settings}
+            active={props.activeTopMenu === "settings"}
+            onClick={props.onOpenSettings}
           />
-          <Chip
-            label={`${props.dictionary.latestProject}: ${props.latestActiveProject?.name ?? "-"}`}
-            color="primary"
-            variant="outlined"
-          />
-          <Chip
-            label={
-              props.snapshotSource === "live" ? props.dictionary.liveMode : props.dictionary.staticMode
-            }
-            variant="outlined"
-          />
+          <Avatar sx={{ width: 38, height: 38, bgcolor: "primary.dark" }}>PG</Avatar>
         </Stack>
       </Stack>
     </Paper>
   );
 }
 
-function DashboardRail(props: {
-  activeTopMenu: "projects" | "settings";
-  activeProjectsView: "board" | "categories" | "reports" | "board-settings";
-  activeSettingsView: "main" | "refresh" | "git" | "system";
-  selectedProject: ProjectSnapshot | null;
+function ProjectContextSidebar(props: {
+  activeTopMenu: DashboardPrimaryMenu;
+  activeSidebarItem: DashboardSidebarItem;
+  activeSettingsView: DashboardSettingsView;
+  project: ProjectSnapshot | null;
   dictionary: DashboardLocale;
-  onOpenProjectsView: (view: "board" | "categories" | "reports" | "board-settings") => void;
-  onOpenSettingsView: (view: "main" | "refresh" | "git" | "system") => void;
+  onSelectSidebarItem: (item: DashboardSidebarItem) => void;
+  onSelectSettingsView: (view: DashboardSettingsView) => void;
 }) {
-  const items =
-    props.activeTopMenu === "projects"
-      ? [
-          { id: "board", label: props.dictionary.board },
-          { id: "categories", label: props.dictionary.categories },
-          { id: "reports", label: props.dictionary.reports },
-          { id: "board-settings", label: props.dictionary.boardSettings }
-        ]
-      : [
-          { id: "main", label: props.dictionary.main },
-          { id: "refresh", label: props.dictionary.refresh },
-          { id: "git", label: props.dictionary.git },
-          { id: "system", label: props.dictionary.system }
-        ];
-
-  const activeId = props.activeTopMenu === "projects" ? props.activeProjectsView : props.activeSettingsView;
+  const theme = useTheme();
+  const projectItems = [
+    { id: "backlog", label: props.dictionary.backlogTitle, enabled: true },
+    { id: "board", label: props.dictionary.board, enabled: true },
+    { id: "reports", label: props.dictionary.reports, enabled: true },
+    { id: "issues", label: props.dictionary.sidebarIssues, enabled: false },
+    { id: "components", label: props.dictionary.sidebarComponents, enabled: false },
+    { id: "code", label: props.dictionary.sidebarCode, enabled: false },
+    { id: "releases", label: props.dictionary.sidebarReleases, enabled: false },
+    { id: "pages", label: props.dictionary.sidebarPages, enabled: false },
+    { id: "shortcuts", label: props.dictionary.sidebarShortcuts, enabled: false },
+    { id: "project-settings", label: props.dictionary.sidebarProjectSettings, enabled: true }
+  ] as const;
+  const settingsItems = [
+    { id: "main", label: props.dictionary.main },
+    { id: "refresh", label: props.dictionary.refresh },
+    { id: "git", label: props.dictionary.git },
+    { id: "system", label: props.dictionary.system }
+  ] as const;
 
   return (
-    <Paper sx={{ p: 1.5, borderRadius: 1, alignSelf: "start" }}>
-      <Stack spacing={1.5}>
-        <Stack spacing={0.35}>
-          <Typography variant="overline" color="text.secondary">
-            {props.activeTopMenu === "projects" ? props.dictionary.projectRailTitle : props.dictionary.settingsTitle}
-          </Typography>
-          <Typography variant="body2" color="text.secondary">
-            {props.activeTopMenu === "projects" ? props.dictionary.projectRailHint : props.dictionary.settingsHint}
-          </Typography>
-        </Stack>
-
-        <Stack direction={{ xs: "row", lg: "column" }} spacing={1} sx={{ overflowX: { xs: "auto", lg: "visible" } }}>
-          {items.map((item) => (
-            <Button
-              key={item.id}
-              variant={activeId === item.id ? "contained" : "text"}
-              onClick={() => {
-                if (props.activeTopMenu === "projects") {
-                  props.onOpenProjectsView(item.id as "board" | "categories" | "reports" | "board-settings");
-                } else {
-                  props.onOpenSettingsView(item.id as "main" | "refresh" | "git" | "system");
-                }
-              }}
-              sx={{ justifyContent: "flex-start", minWidth: { xs: "auto", lg: "100%" } }}
-            >
-              {item.label}
-            </Button>
-          ))}
-        </Stack>
-
-        {props.activeTopMenu === "settings" && props.selectedProject ? (
-          <>
-            <Divider />
-            <Paper sx={{ p: 1.25, borderRadius: 1, backgroundColor: alpha("#d1643a", 0.08) }}>
-              <Typography variant="subtitle2">{props.selectedProject.name}</Typography>
-              <Typography variant="caption" color="text.secondary">
-                {props.selectedProject.rootDir}
-              </Typography>
-            </Paper>
-          </>
+    <Stack sx={{ minHeight: "100%", p: 1.5, justifyContent: "space-between" }}>
+      <Stack spacing={2}>
+        {props.project ? (
+          <Paper
+            sx={{
+              p: 1.75,
+              borderRadius: 1,
+              bgcolor: alpha(theme.palette.background.default, 0.36)
+            }}
+          >
+            <Stack direction="row" spacing={1.2} sx={{ alignItems: "center" }}>
+              <Avatar
+                variant="rounded"
+                sx={{ width: 46, height: 46, bgcolor: alpha(theme.palette.primary.main, 0.18), color: "primary.light" }}
+              >
+                {props.project.name.slice(0, 2).toUpperCase()}
+              </Avatar>
+              <Stack spacing={0.25}>
+                <Typography variant="h6">{props.project.name}</Typography>
+                <Typography variant="body2" color="text.secondary">
+                  {props.dictionary.projectIdentityHint}
+                </Typography>
+              </Stack>
+            </Stack>
+          </Paper>
         ) : null}
+
+        {props.activeTopMenu === "projects" ? (
+          <>
+            <SidebarSectionLabel label={props.dictionary.sidebarPlanning} />
+            <Stack spacing={0.5}>
+              {projectItems.slice(0, 3).map((item) => (
+                <SidebarNavButton
+                  key={item.id}
+                  label={item.label}
+                  active={props.activeSidebarItem === item.id}
+                  disabled={!item.enabled}
+                  onClick={() => props.onSelectSidebarItem(item.id)}
+                />
+              ))}
+            </Stack>
+
+            <SidebarSectionLabel label={props.dictionary.sidebarDevelopment} />
+            <Stack spacing={0.5}>
+              {projectItems.slice(3).map((item) => (
+                <SidebarNavButton
+                  key={item.id}
+                  label={item.label}
+                  active={props.activeSidebarItem === item.id}
+                  disabled={!item.enabled}
+                  onClick={() => props.onSelectSidebarItem(item.id)}
+                />
+              ))}
+            </Stack>
+          </>
+        ) : (
+          <>
+            <SidebarSectionLabel label={props.dictionary.settings} />
+            <Stack spacing={0.5}>
+              {settingsItems.map((item) => (
+                <SidebarNavButton
+                  key={item.id}
+                  label={item.label}
+                  active={props.activeSettingsView === item.id}
+                  onClick={() => props.onSelectSettingsView(item.id)}
+                />
+              ))}
+            </Stack>
+          </>
+        )}
       </Stack>
-    </Paper>
+
+      <Paper sx={{ p: 1.5, borderRadius: 1, bgcolor: alpha(theme.palette.background.default, 0.32) }}>
+        <Stack spacing={0.45}>
+          <Typography variant="body2" color="text.secondary">
+            {props.dictionary.sidebarFooterTitle}
+          </Typography>
+          <Typography variant="caption" color="text.secondary">
+            {props.dictionary.verificationRequired}
+          </Typography>
+        </Stack>
+      </Paper>
+    </Stack>
+  );
+}
+
+function SidebarSectionLabel(props: { label: string }) {
+  return (
+    <Typography variant="overline" color="text.secondary" sx={{ px: 1.1, pt: 0.8 }}>
+      {props.label}
+    </Typography>
+  );
+}
+
+function SidebarNavButton(props: {
+  label: string;
+  active: boolean;
+  disabled?: boolean;
+  onClick: () => void;
+}) {
+  const theme = useTheme();
+
+  return (
+    <ButtonBase
+      disabled={props.disabled}
+      onClick={props.onClick}
+      sx={{
+        width: "100%",
+        justifyContent: "flex-start",
+        px: 1.1,
+        py: 1.1,
+        borderRadius: 0.9,
+        color: props.disabled ? "text.disabled" : props.active ? "primary.light" : "text.secondary",
+        backgroundColor: props.active ? alpha(theme.palette.primary.main, 0.18) : "transparent",
+        borderLeft: props.active ? `4px solid ${theme.palette.primary.main}` : "4px solid transparent"
+      }}
+    >
+      <Typography variant="body1" sx={{ fontWeight: props.active ? 700 : 500 }}>
+        {props.label}
+      </Typography>
+    </ButtonBase>
+  );
+}
+
+function UtilityButton(props: { label: string; active?: boolean; onClick: () => void }) {
+  const theme = useTheme();
+
+  return (
+    <ButtonBase
+      onClick={props.onClick}
+      sx={{
+        px: 1.2,
+        py: 0.95,
+        borderRadius: 0.8,
+        border: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
+        bgcolor: props.active ? alpha(theme.palette.primary.main, 0.16) : "transparent",
+        color: props.active ? "primary.light" : "text.secondary"
+      }}
+    >
+      <Typography variant="caption" sx={{ fontWeight: 700 }}>
+        {props.label}
+      </Typography>
+    </ButtonBase>
+  );
+}
+
+function BrandMark() {
+  const theme = useTheme();
+
+  return (
+    <Box sx={{ position: "relative", width: 22, height: 22 }}>
+      <Box
+        sx={{
+          position: "absolute",
+          inset: 0,
+          clipPath: "polygon(0 0, 100% 0, 58% 48%, 100% 100%, 54% 100%, 0 50%)",
+          bgcolor: theme.palette.primary.main
+        }}
+      />
+      <Box
+        sx={{
+          position: "absolute",
+          inset: "3px 3px auto auto",
+          width: 8,
+          height: 8,
+          borderRadius: 0.4,
+          bgcolor: alpha(theme.palette.primary.light, 0.85)
+        }}
+      />
+    </Box>
+  );
+}
+
+function AppLauncherMark() {
+  const theme = useTheme();
+
+  return (
+    <Box sx={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 0.35, width: 22, height: 22 }}>
+      {Array.from({ length: 9 }).map((_, index) => (
+        <Box key={index} sx={{ borderRadius: 0.25, bgcolor: alpha(theme.palette.text.secondary, 0.92) }} />
+      ))}
+    </Box>
   );
 }
 

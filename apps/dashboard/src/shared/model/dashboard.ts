@@ -162,6 +162,29 @@ export type DashboardQueryResult = {
 
 export type DashboardThemeMode = "light" | "dark";
 
+export type DashboardPrimaryMenu = "projects" | "settings";
+
+export type DashboardSidebarItem =
+  | "backlog"
+  | "board"
+  | "reports"
+  | "issues"
+  | "components"
+  | "code"
+  | "releases"
+  | "pages"
+  | "shortcuts"
+  | "project-settings";
+
+export type DashboardSettingsView = "main" | "refresh" | "git" | "system";
+
+export type DashboardWorkspaceMode = "backlog" | "board" | "reports" | "settings";
+
+export type DashboardWorkspaceFilterState = {
+  bucket: "all" | "active" | "archive";
+  stage: "all" | "proposal" | "plan" | "implementation" | "qa" | "blocked";
+};
+
 export type FlowStatus = "done" | "current" | "upcoming";
 
 export type FlowNodeData = {
@@ -198,22 +221,28 @@ export type ArtifactSelection = {
 };
 
 export type DashboardStore = {
-  activeTopMenu: "projects" | "settings";
-  activeProjectsView: "board" | "categories" | "reports" | "board-settings";
-  activeSettingsView: "main" | "refresh" | "git" | "system";
-  projectSurface: "board" | "detail";
+  activeTopMenu: DashboardPrimaryMenu;
+  activeSidebarItem: DashboardSidebarItem;
+  activeSettingsView: DashboardSettingsView;
+  workspaceMode: DashboardWorkspaceMode;
   themeMode: DashboardThemeMode;
   selectedProjectId: string | null;
   selectedTopicKey: string | null;
+  shellSearchQuery: string;
   topicFilter: string;
-  setActiveTopMenu: (value: "projects" | "settings") => void;
-  setActiveProjectsView: (value: "board" | "categories" | "reports" | "board-settings") => void;
-  setActiveSettingsView: (value: "main" | "refresh" | "git" | "system") => void;
-  setProjectSurface: (value: "board" | "detail") => void;
+  workspaceFilterState: DashboardWorkspaceFilterState;
+  insightsRailOpen: boolean;
+  setActiveTopMenu: (value: DashboardPrimaryMenu) => void;
+  setActiveSidebarItem: (value: DashboardSidebarItem) => void;
+  setActiveSettingsView: (value: DashboardSettingsView) => void;
+  setWorkspaceMode: (value: DashboardWorkspaceMode) => void;
   setThemeMode: (value: DashboardThemeMode) => void;
   setSelectedProjectId: (value: string | null) => void;
   setSelectedTopicKey: (value: string | null) => void;
+  setShellSearchQuery: (value: string) => void;
   setTopicFilter: (value: string) => void;
+  setWorkspaceFilterState: (value: DashboardWorkspaceFilterState) => void;
+  setInsightsRailOpen: (value: boolean) => void;
 };
 
 export type TopicLane = {
