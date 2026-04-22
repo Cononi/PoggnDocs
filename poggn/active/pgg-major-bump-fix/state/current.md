@@ -55,7 +55,7 @@ implementation
 - `T1`: completed
 - `T2`: completed
 - `T3`: completed
-- `T4`: pending
+- `T4`: completed
 - `T5`: pending
 
 ## Git Publish Message
@@ -104,4 +104,4 @@ implementation
 
 ## Next Action
 
-`T4`
+`T5`

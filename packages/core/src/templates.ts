@@ -336,7 +336,7 @@ function agentsMd(input: TemplateInput): string {
     "- Pass only `state/current.md` to the next stage before larger context.",
     "- When `pgg teams` is `on`, build the minimum handoff with `pgg-state-pack.sh` before expert-roster-based automatic orchestration.",
     "- Automatically handle stage-local confirmations, records, and generated documents for the core workflow (`pgg-add`, `pgg-plan`, `pgg-code`, `pgg-refactor`, `pgg-qa`) plus any required optional audit (`pgg-token`, `pgg-performance`) when the work stays inside the current project.",
-      "- Resolve `archive_type`, `version_bump`, `target_version`, branch naming, and `project_scope` during the proposal stage, keeping `archive_type` as the change category and `version_bump` as the semver impact.",
+    "- Resolve `archive_type`, `version_bump`, `target_version`, branch naming, and `project_scope` during the proposal stage, keeping `archive_type` as the change category and `version_bump` as the semver impact.",
     "- Treat only pgg-generated and managed `.codex/sh/*.sh` helpers as trusted workflow scripts that can run without extra approval.",
     "- When `pgg git` is `on`, use `.codex/sh/pgg-stage-commit.sh` for task completion and final QA completion commits, then manage publish commit title, Why body, and footer through the `Git Publish Message` section in `state/current.md` or `qa/report.md` with the `<archive_type>: <summary>` subject format, 50-character limit, non-imperative phrasing, no period, and logs-as-documentation rules.",
     verificationContractRule(input.language),
