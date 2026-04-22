@@ -76,11 +76,12 @@ implementation
 | UPDATE | `packages/core/src/readme.ts` | `implementation/diffs/006_UPDATE_packages_core_src_readme_ts.diff` |
 | UPDATE | `packages/core/src/templates.ts` | `implementation/diffs/007_UPDATE_packages_core_src_templates_ts.diff` |
 | UPDATE | `packages/core/test/version-history.test.mjs` | `implementation/diffs/008_UPDATE_packages_core_test_version-history_test_mjs.diff` |
-| UPDATE | `packages/core/dist` | 없음 |
-| UPDATE | `packages/cli/dist` | 없음 |
-| UPDATE | `README.md` | `implementation/diffs/009_UPDATE_README_md.diff` |
-| UPDATE | `AGENTS.md` | `implementation/diffs/010_UPDATE_AGENTS_md.diff` |
-| UPDATE | `.pgg/project.json` | 없음 |
+| UPDATE | `AGENTS.md` | `implementation/diffs/009_UPDATE_AGENTS_md.diff` |
+| UPDATE | `.pgg/project.json` | `implementation/diffs/010_UPDATE__pgg_project_json.diff` |
+| UPDATE | `packages/core/dist/readme.js` | `implementation/diffs/011_UPDATE_packages_core_dist_readme_js.diff` |
+| UPDATE | `packages/core/dist/readme.js.map` | `implementation/diffs/012_UPDATE_packages_core_dist_readme_js_map.diff` |
+| UPDATE | `packages/core/dist/templates.js` | `implementation/diffs/013_UPDATE_packages_core_dist_templates_js.diff` |
+| UPDATE | `packages/core/dist/templates.js.map` | `implementation/diffs/014_UPDATE_packages_core_dist_templates_js_map.diff` |
 | CREATE | `poggn/active/pgg-major-bump-fix/implementation/index.md` | 없음 |
 | CREATE | `poggn/active/pgg-major-bump-fix/reviews/code.review.md` | 없음 |
 | UPDATE | `poggn/active/pgg-major-bump-fix/proposal.md` | 없음 |
