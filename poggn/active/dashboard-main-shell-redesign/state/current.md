@@ -6,11 +6,11 @@ dashboard-main-shell-redesign
 
 ## Current Stage
 
-refactor
+qa
 
 ## Goal
 
-top navigation, contextual sidebar, project board/detail/report, settings panels를 갖춘 dashboard main shell redesign 구현을 정리한 뒤 중복과 결합도를 줄이고 다음 `pgg-qa` 단계로 넘긴다.
+top navigation, contextual sidebar, project board/detail/report, settings panels를 갖춘 dashboard main shell redesign 구현과 refactor 결과를 검증하고 archive 가능 여부를 판정한다.
 
 ## Confirmed Scope
 
@@ -54,7 +54,7 @@ top navigation, contextual sidebar, project board/detail/report, settings panels
 
 ## Open Items
 
-- 없음
+- status: pass
 
 ## User Question Record
 
@@ -86,6 +86,7 @@ top navigation, contextual sidebar, project board/detail/report, settings panels
 
 - `pnpm build`: pass
 - `pnpm test`: pass
+- `./.codex/sh/pgg-gate.sh pgg-qa dashboard-main-shell-redesign`: pass
 - current-project verification contract: `manual verification required`
 
 ## Git Publish Message
@@ -110,6 +111,8 @@ top navigation, contextual sidebar, project board/detail/report, settings panels
 | CREATE | `poggn/active/dashboard-main-shell-redesign/implementation/index.md` | 없음 |
 | CREATE | `poggn/active/dashboard-main-shell-redesign/reviews/code.review.md` | 없음 |
 | CREATE | `poggn/active/dashboard-main-shell-redesign/reviews/refactor.review.md` | 없음 |
+| CREATE | `poggn/active/dashboard-main-shell-redesign/reviews/qa.review.md` | 없음 |
+| CREATE | `poggn/active/dashboard-main-shell-redesign/qa/report.md` | 없음 |
 | CREATE | `poggn/active/dashboard-main-shell-redesign/implementation/diffs/001_UPDATE_packages_core_src_index_ts.diff` | 없음 |
 | CREATE | `poggn/active/dashboard-main-shell-redesign/implementation/diffs/002_UPDATE_packages_core_src_templates_ts.diff` | 없음 |
 | CREATE | `poggn/active/dashboard-main-shell-redesign/implementation/diffs/003_UPDATE_packages_core_test_version-history_test_mjs.diff` | 없음 |
@@ -150,12 +153,16 @@ top navigation, contextual sidebar, project board/detail/report, settings panels
 | UPDATE | `poggn/active/dashboard-main-shell-redesign/state/history.ndjson` | 없음 |
 | UPDATE | `poggn/active/dashboard-main-shell-redesign/workflow.reactflow.json` | 없음 |
 
+## QA Report
+
+- ref: `qa/report.md`
+
 ## Last Expert Score
 
-- phase: refactor
-- score: 94
+- phase: qa
+- score: 95
 - blocking issues: 없음
 
 ## Next Action
 
-`pgg-qa`에서 dashboard shell, reports, settings, branch prefix refactor regression과 residual risk를 검증
+archive allowed
