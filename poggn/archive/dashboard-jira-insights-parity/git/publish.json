@@ -1,0 +1,32 @@
+{
+  "topic": "dashboard-jira-insights-parity",
+  "version": "0.10.0",
+  "targetVersion": "0.10.0",
+  "changeType": "feat",
+  "versionBump": "minor",
+  "commitTitle": "feat: align dashboard with jira insights",
+  "commitSha": "0d4e02d63378e8f026fd5f6e7b2e506834c7ea8a",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/0.10.0-jira-insights",
+  "workingBranch": "ai/feat/0.10.0-jira-insights",
+  "releaseBranch": "release/0.10.0-jira-insights",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-22T15:20:26Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/0.10.0-jira-insights'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/dashboard-jira-insights-parity",
+    "versionFile": "poggn/archive/dashboard-jira-insights-parity/version.json"
+  }
+}
