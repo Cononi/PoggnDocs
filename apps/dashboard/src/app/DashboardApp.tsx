@@ -24,7 +24,7 @@ import { RecentActivityTable } from "../features/reports/RecentActivityTable";
 import { SettingsWorkspace } from "../features/settings/SettingsWorkspace";
 import { fetchDashboardSnapshot, requestDashboardSnapshot } from "../shared/api/dashboard";
 import { dashboardLocale } from "../shared/locale/dashboardLocale";
-import type { ArtifactSelection, DashboardQueryResult, ProjectSnapshot } from "../shared/model/dashboard";
+import type { ArtifactSelection, DashboardQueryResult } from "../shared/model/dashboard";
 import { useDashboardStore } from "../shared/store/dashboardStore";
 import {
   applyOptimisticMove,
@@ -33,6 +33,14 @@ import {
   filterTopics,
   getDefaultArtifactSelection
 } from "../shared/utils/dashboard";
+import {
+  buildCategoryColumns,
+  createMutationPayload,
+  resolveCurrentProject,
+  resolveLatestActiveProject,
+  resolveSelectedProject,
+  type DashboardMutationPayload
+} from "./dashboardShell";
 
 type CategoryDialogMode = "create" | "edit" | null;
 
@@ -79,15 +87,9 @@ export default function DashboardApp() {
 
   const snapshot = snapshotQuery.data?.snapshot ?? null;
   const snapshotSource = snapshotQuery.data?.source ?? "static";
-  const currentProject =
-    snapshot?.projects.find((project) => project.id === snapshot.currentProjectId) ??
-    snapshot?.projects[0] ??
-    null;
-  const selectedProject =
-    snapshot?.projects.find((project) => project.id === selectedProjectId) ?? currentProject;
-  const latestActiveProject =
-    snapshot?.projects.find((project) => project.id === snapshot.latestActiveProjectId) ??
-    currentProject;
+  const currentProject = resolveCurrentProject(snapshot);
+  const selectedProject = resolveSelectedProject(snapshot, selectedProjectId, currentProject);
+  const latestActiveProject = resolveLatestActiveProject(snapshot, currentProject);
   const dictionary = dashboardLocale[(selectedProject ?? currentProject)?.language ?? "en"];
   const isLiveMode = snapshotSource === "live";
 
@@ -151,17 +153,7 @@ export default function DashboardApp() {
     () => [...(snapshot?.categories ?? [])].sort((left, right) => left.order - right.order),
     [snapshot?.categories]
   );
-  const projectsById = useMemo(
-    () => new Map(snapshot?.projects.map((project) => [project.id, project]) ?? []),
-    [snapshot?.projects]
-  );
-  const visibleCategories = categories.filter((category) => category.visible);
-  const categoryColumns = visibleCategories.map((category) => ({
-    ...category,
-    projects: category.projectIds
-      .map((projectId) => projectsById.get(projectId))
-      .filter((project): project is ProjectSnapshot => Boolean(project))
-  }));
+  const categoryColumns = useMemo(() => buildCategoryColumns(snapshot), [snapshot]);
 
   const moveProjectMutation = useMutation({
     mutationFn: async (payload: {
@@ -202,11 +194,7 @@ export default function DashboardApp() {
   });
 
   const snapshotMutation = useMutation({
-    mutationFn: async (payload: {
-      path: string;
-      method: "POST" | "PATCH" | "DELETE";
-      body?: string;
-    }) => {
+    mutationFn: async (payload: DashboardMutationPayload) => {
       if (!isLiveMode) {
         throw new Error(dictionary.liveEditingDisabled);
       }
@@ -223,6 +211,47 @@ export default function DashboardApp() {
       setFeedback(error instanceof Error ? error.message : dictionary.dashboardError);
     }
   });
+
+  const openProjectDetail = (projectId: string) => {
+    startTransition(() => {
+      setSelectedProjectId(projectId);
+      setActiveTopMenu("projects");
+      setActiveProjectsView("board");
+      setProjectSurface("detail");
+      setSelectedTopicKey(null);
+    });
+  };
+
+  const mutateSnapshot = (payload: DashboardMutationPayload) => {
+    snapshotMutation.mutate(payload);
+  };
+
+  const mutateCurrentProject = (
+    section: "main" | "refresh" | "git" | "system",
+    body: Record<string, unknown>
+  ) => {
+    if (!currentProject) {
+      return;
+    }
+
+    mutateSnapshot(
+      createMutationPayload(`/api/dashboard/projects/${currentProject.id}/${section}`, "PATCH", body)
+    );
+  };
+
+  const openCategoryDialog = (mode: CategoryDialogMode, categoryId?: string | null, name = "") => {
+    setCategoryDialogMode(mode);
+    setEditingCategoryId(categoryId ?? null);
+    setCategoryDraft(name);
+  };
+
+  const openCreateProjectDialog = () => {
+    setProjectCategoryDraft(
+      categories.find((category) => category.isDefault)?.id ?? categories[0]?.id ?? ""
+    );
+    setProjectRootDirDraft("");
+    setProjectDialogOpen(true);
+  };
 
   if (snapshotQuery.isLoading) {
     return <Box sx={{ p: 4 }}>{dictionary.loading}</Box>;
@@ -246,6 +275,7 @@ export default function DashboardApp() {
             setActiveTopMenu(next);
             if (next === "projects") {
               setActiveProjectsView("board");
+              setProjectSurface("board");
             } else {
               setActiveSettingsView("main");
             }
@@ -329,20 +359,8 @@ export default function DashboardApp() {
                       selectedProjectId={selectedProject?.id ?? null}
                       dictionary={dictionary}
                       isLiveMode={isLiveMode}
-                      onCreateProject={() => {
-                        setProjectCategoryDraft(categories.find((category) => category.isDefault)?.id ?? categories[0]?.id ?? "");
-                        setProjectRootDirDraft("");
-                        setProjectDialogOpen(true);
-                      }}
-                      onOpenProject={(projectId) => {
-                        startTransition(() => {
-                          setSelectedProjectId(projectId);
-                          setActiveTopMenu("projects");
-                          setActiveProjectsView("board");
-                          setProjectSurface("detail");
-                          setSelectedTopicKey(null);
-                        });
-                      }}
+                      onCreateProject={openCreateProjectDialog}
+                      onOpenProject={openProjectDetail}
                       onDragStart={(projectId) => setDraggingProjectId(projectId)}
                       onDragEnd={() => setDraggingProjectId(null)}
                       onDropProject={(categoryId, targetIndex) => {
@@ -363,27 +381,19 @@ export default function DashboardApp() {
                   categories={categories}
                   dictionary={dictionary}
                   isLiveMode={isLiveMode}
-                  onCreateCategory={() => {
-                    setCategoryDialogMode("create");
-                    setEditingCategoryId(null);
-                    setCategoryDraft("");
-                  }}
-                  onEditCategory={(categoryId, currentName) => {
-                    setCategoryDialogMode("edit");
-                    setEditingCategoryId(categoryId);
-                    setCategoryDraft(currentName);
-                  }}
+                  onCreateCategory={() => openCategoryDialog("create")}
+                  onEditCategory={(categoryId, currentName) =>
+                    openCategoryDialog("edit", categoryId, currentName)
+                  }
                   onSetDefaultCategory={(categoryId) =>
-                    snapshotMutation.mutate({
-                      path: `/api/dashboard/categories/${categoryId}/default`,
-                      method: "POST"
-                    })
+                    mutateSnapshot(
+                      createMutationPayload(`/api/dashboard/categories/${categoryId}/default`, "POST")
+                    )
                   }
                   onDeleteCategory={(categoryId) =>
-                    snapshotMutation.mutate({
-                      path: `/api/dashboard/categories/${categoryId}`,
-                      method: "DELETE"
-                    })
+                    mutateSnapshot(
+                      createMutationPayload(`/api/dashboard/categories/${categoryId}`, "DELETE")
+                    )
                   }
                 />
               ) : activeProjectsView === "reports" ? (
@@ -391,15 +401,7 @@ export default function DashboardApp() {
                   entries={snapshot.recentActivity}
                   dictionary={dictionary}
                   language={selectedProject?.language ?? currentProject?.language ?? "en"}
-                  onOpenProject={(projectId) => {
-                    startTransition(() => {
-                      setSelectedProjectId(projectId);
-                      setActiveTopMenu("projects");
-                      setActiveProjectsView("board");
-                      setProjectSurface("detail");
-                      setSelectedTopicKey(null);
-                    });
-                  }}
+                  onOpenProject={openProjectDetail}
                 />
               ) : (
                 <BoardSettingsPanel
@@ -407,18 +409,20 @@ export default function DashboardApp() {
                   dictionary={dictionary}
                   isLiveMode={isLiveMode}
                   onMoveCategory={(categoryId, targetIndex) =>
-                    snapshotMutation.mutate({
-                      path: `/api/dashboard/categories/${categoryId}/reorder`,
-                      method: "POST",
-                      body: JSON.stringify({ targetIndex })
-                    })
+                    mutateSnapshot(
+                      createMutationPayload(`/api/dashboard/categories/${categoryId}/reorder`, "POST", {
+                        targetIndex
+                      })
+                    )
                   }
                   onToggleCategory={(categoryId, visible) =>
-                    snapshotMutation.mutate({
-                      path: `/api/dashboard/categories/${categoryId}/visibility`,
-                      method: "PATCH",
-                      body: JSON.stringify({ visible })
-                    })
+                    mutateSnapshot(
+                      createMutationPayload(
+                        `/api/dashboard/categories/${categoryId}/visibility`,
+                        "PATCH",
+                        { visible }
+                      )
+                    )
                   }
                 />
               )
@@ -428,42 +432,14 @@ export default function DashboardApp() {
                 panel={activeSettingsView}
                 dictionary={dictionary}
                 isLiveMode={isLiveMode}
-                onSaveTitle={(title) =>
-                  currentProject
-                    ? snapshotMutation.mutate({
-                        path: `/api/dashboard/projects/${currentProject.id}/main`,
-                        method: "PATCH",
-                        body: JSON.stringify({ title })
-                      })
-                    : undefined
-                }
+                onSaveTitle={(title) => mutateCurrentProject("main", { title })}
                 onSaveRefreshInterval={(refreshIntervalMs) =>
-                  currentProject
-                    ? snapshotMutation.mutate({
-                        path: `/api/dashboard/projects/${currentProject.id}/refresh`,
-                        method: "PATCH",
-                        body: JSON.stringify({ refreshIntervalMs })
-                      })
-                    : undefined
+                  mutateCurrentProject("refresh", { refreshIntervalMs })
                 }
                 onSaveGitPrefixes={(workingBranchPrefix, releaseBranchPrefix) =>
-                  currentProject
-                    ? snapshotMutation.mutate({
-                        path: `/api/dashboard/projects/${currentProject.id}/git`,
-                        method: "PATCH",
-                        body: JSON.stringify({ workingBranchPrefix, releaseBranchPrefix })
-                      })
-                    : undefined
+                  mutateCurrentProject("git", { workingBranchPrefix, releaseBranchPrefix })
                 }
-                onSaveSystem={(payload) =>
-                  currentProject
-                    ? snapshotMutation.mutate({
-                        path: `/api/dashboard/projects/${currentProject.id}/system`,
-                        method: "PATCH",
-                        body: JSON.stringify(payload)
-                      })
-                    : undefined
-                }
+                onSaveSystem={(payload) => mutateCurrentProject("system", payload)}
               />
             )}
           </Stack>
@@ -495,17 +471,13 @@ export default function DashboardApp() {
             variant="contained"
             onClick={() => {
               if (categoryDialogMode === "create") {
-                snapshotMutation.mutate({
-                  path: "/api/dashboard/categories",
-                  method: "POST",
-                  body: JSON.stringify({ name: categoryDraft })
-                });
+                mutateSnapshot(createMutationPayload("/api/dashboard/categories", "POST", { name: categoryDraft }));
               } else if (editingCategoryId) {
-                snapshotMutation.mutate({
-                  path: `/api/dashboard/categories/${editingCategoryId}`,
-                  method: "PATCH",
-                  body: JSON.stringify({ name: categoryDraft })
-                });
+                mutateSnapshot(
+                  createMutationPayload(`/api/dashboard/categories/${editingCategoryId}`, "PATCH", {
+                    name: categoryDraft
+                  })
+                );
               }
               setCategoryDialogMode(null);
             }}
@@ -549,14 +521,12 @@ export default function DashboardApp() {
           <Button
             variant="contained"
             onClick={() => {
-              snapshotMutation.mutate({
-                path: "/api/dashboard/projects",
-                method: "POST",
-                body: JSON.stringify({
+              mutateSnapshot(
+                createMutationPayload("/api/dashboard/projects", "POST", {
                   rootDir: projectRootDirDraft,
                   targetCategoryId: projectCategoryDraft || undefined
                 })
-              });
+              );
               setProjectDialogOpen(false);
             }}
           >

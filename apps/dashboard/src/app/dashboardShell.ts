@@ -1,0 +1,78 @@
+import type {
+  CategoryColumn,
+  DashboardSnapshot,
+  ProjectSnapshot
+} from "../shared/model/dashboard";
+
+export type DashboardMutationMethod = "POST" | "PATCH" | "DELETE";
+
+export type DashboardMutationPayload = {
+  path: string;
+  method: DashboardMutationMethod;
+  body?: string;
+};
+
+export function resolveCurrentProject(snapshot: DashboardSnapshot | null): ProjectSnapshot | null {
+  if (!snapshot) {
+    return null;
+  }
+
+  return (
+    snapshot.projects.find((project) => project.id === snapshot.currentProjectId) ??
+    snapshot.projects[0] ??
+    null
+  );
+}
+
+export function resolveSelectedProject(
+  snapshot: DashboardSnapshot | null,
+  selectedProjectId: string | null,
+  fallbackProject: ProjectSnapshot | null
+): ProjectSnapshot | null {
+  if (!snapshot || !selectedProjectId) {
+    return fallbackProject;
+  }
+
+  return snapshot.projects.find((project) => project.id === selectedProjectId) ?? fallbackProject;
+}
+
+export function resolveLatestActiveProject(
+  snapshot: DashboardSnapshot | null,
+  fallbackProject: ProjectSnapshot | null
+): ProjectSnapshot | null {
+  if (!snapshot || !snapshot.latestActiveProjectId) {
+    return fallbackProject;
+  }
+
+  return snapshot.projects.find((project) => project.id === snapshot.latestActiveProjectId) ?? fallbackProject;
+}
+
+export function buildCategoryColumns(snapshot: DashboardSnapshot | null): CategoryColumn[] {
+  if (!snapshot) {
+    return [];
+  }
+
+  const categories = [...snapshot.categories].sort((left, right) => left.order - right.order);
+  const projectsById = new Map(snapshot.projects.map((project) => [project.id, project]));
+
+  return categories
+    .filter((category) => category.visible)
+    .map((category) => ({
+      ...category,
+      projects: category.projectIds
+        .map((projectId) => projectsById.get(projectId))
+        .filter((project): project is ProjectSnapshot => Boolean(project))
+    }));
+}
+
+export function createMutationPayload(
+  path: string,
+  method: DashboardMutationMethod,
+  body?: Record<string, unknown>
+): DashboardMutationPayload {
+  return {
+    path,
+    method,
+    body: body ? JSON.stringify(body) : undefined
+  };
+}

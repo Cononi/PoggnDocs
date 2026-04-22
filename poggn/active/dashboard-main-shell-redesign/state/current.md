@@ -6,11 +6,11 @@ dashboard-main-shell-redesign
 
 ## Current Stage
 
-implementation
+refactor
 
 ## Goal
 
-top navigation, contextual sidebar, project board/detail/report, settings panels를 갖춘 dashboard main shell redesign 구현 결과를 정리하고 다음 `pgg-refactor` 단계로 넘길 준비를 한다.
+top navigation, contextual sidebar, project board/detail/report, settings panels를 갖춘 dashboard main shell redesign 구현을 정리한 뒤 중복과 결합도를 줄이고 다음 `pgg-qa` 단계로 넘긴다.
 
 ## Confirmed Scope
 
@@ -35,6 +35,8 @@ top navigation, contextual sidebar, project board/detail/report, settings panels
 - core snapshot/API는 category visibility/order, dashboard title, refresh interval, recent activity, branch prefix projection을 제공한다.
 - manifest git branch prefix 설정은 current-project helper와 generated template helper에도 반영되도록 연결되었다.
 - `pnpm build`, `pnpm test`를 통과했고 current-project verification contract 미선언 상태는 그대로 유지되어 `manual verification required`를 남긴다.
+- `DashboardApp`의 project selection, category column 계산, JSON mutation payload 생성은 `apps/dashboard/src/app/dashboardShell.ts`로 분리되어 shell component 중복을 줄였다.
+- generated helper template는 shared git prefix loader를 재사용하도록 정리되어 branch prefix parsing 중복이 줄었다.
 
 ## Constraints
 
@@ -107,6 +109,7 @@ top navigation, contextual sidebar, project board/detail/report, settings panels
 | CREATE | `poggn/active/dashboard-main-shell-redesign/reviews/task.review.md` | 없음 |
 | CREATE | `poggn/active/dashboard-main-shell-redesign/implementation/index.md` | 없음 |
 | CREATE | `poggn/active/dashboard-main-shell-redesign/reviews/code.review.md` | 없음 |
+| CREATE | `poggn/active/dashboard-main-shell-redesign/reviews/refactor.review.md` | 없음 |
 | CREATE | `poggn/active/dashboard-main-shell-redesign/implementation/diffs/001_UPDATE_packages_core_src_index_ts.diff` | 없음 |
 | CREATE | `poggn/active/dashboard-main-shell-redesign/implementation/diffs/002_UPDATE_packages_core_src_templates_ts.diff` | 없음 |
 | CREATE | `poggn/active/dashboard-main-shell-redesign/implementation/diffs/003_UPDATE_packages_core_test_version-history_test_mjs.diff` | 없음 |
@@ -121,11 +124,15 @@ top navigation, contextual sidebar, project board/detail/report, settings panels
 | CREATE | `poggn/active/dashboard-main-shell-redesign/implementation/diffs/012_UPDATE_apps_dashboard_src_shared_model_dashboard_ts.diff` | 없음 |
 | CREATE | `poggn/active/dashboard-main-shell-redesign/implementation/diffs/013_UPDATE_apps_dashboard_src_shared_store_dashboardStore_ts.diff` | 없음 |
 | CREATE | `poggn/active/dashboard-main-shell-redesign/implementation/diffs/014_UPDATE_apps_dashboard_src_shared_locale_dashboardLocale_ts.diff` | 없음 |
+| CREATE | `poggn/active/dashboard-main-shell-redesign/implementation/diffs/015_UPDATE_apps_dashboard_src_app_DashboardApp_tsx.refactor.diff` | 없음 |
+| CREATE | `poggn/active/dashboard-main-shell-redesign/implementation/diffs/016_CREATE_apps_dashboard_src_app_dashboardShell_ts.diff` | 없음 |
+| CREATE | `poggn/active/dashboard-main-shell-redesign/implementation/diffs/017_UPDATE_packages_core_src_templates_ts.refactor.diff` | 없음 |
 | UPDATE | `packages/core/src/index.ts` | `implementation/diffs/001_UPDATE_packages_core_src_index_ts.diff` |
 | UPDATE | `packages/core/src/templates.ts` | `implementation/diffs/002_UPDATE_packages_core_src_templates_ts.diff` |
 | UPDATE | `packages/core/test/version-history.test.mjs` | `implementation/diffs/003_UPDATE_packages_core_test_version-history_test_mjs.diff` |
 | UPDATE | `apps/dashboard/vite.config.ts` | `implementation/diffs/004_UPDATE_apps_dashboard_vite_config_ts.diff` |
 | UPDATE | `apps/dashboard/src/app/DashboardApp.tsx` | `implementation/diffs/005_UPDATE_apps_dashboard_src_app_DashboardApp_tsx.diff` |
+| CREATE | `apps/dashboard/src/app/dashboardShell.ts` | `implementation/diffs/016_CREATE_apps_dashboard_src_app_dashboardShell_ts.diff` |
 | UPDATE | `apps/dashboard/src/features/project-list/ProjectListBoard.tsx` | `implementation/diffs/006_UPDATE_apps_dashboard_src_features_project-list_ProjectListBoard_tsx.diff` |
 | CREATE | `apps/dashboard/src/features/project-list/CategoryManagementPanel.tsx` | `implementation/diffs/007_CREATE_apps_dashboard_src_features_project-list_CategoryManagementPanel_tsx.diff` |
 | CREATE | `apps/dashboard/src/features/project-list/BoardSettingsPanel.tsx` | `implementation/diffs/008_CREATE_apps_dashboard_src_features_project-list_BoardSettingsPanel_tsx.diff` |
@@ -137,16 +144,18 @@ top navigation, contextual sidebar, project board/detail/report, settings panels
 | UPDATE | `apps/dashboard/src/shared/model/dashboard.ts` | `implementation/diffs/012_UPDATE_apps_dashboard_src_shared_model_dashboard_ts.diff` |
 | UPDATE | `apps/dashboard/src/shared/store/dashboardStore.ts` | `implementation/diffs/013_UPDATE_apps_dashboard_src_shared_store_dashboardStore_ts.diff` |
 | UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | `implementation/diffs/014_UPDATE_apps_dashboard_src_shared_locale_dashboardLocale_ts.diff` |
+| UPDATE | `apps/dashboard/src/app/DashboardApp.tsx` | `implementation/diffs/015_UPDATE_apps_dashboard_src_app_DashboardApp_tsx.refactor.diff` |
+| UPDATE | `packages/core/src/templates.ts` | `implementation/diffs/017_UPDATE_packages_core_src_templates_ts.refactor.diff` |
 | UPDATE | `poggn/active/dashboard-main-shell-redesign/state/current.md` | 없음 |
 | UPDATE | `poggn/active/dashboard-main-shell-redesign/state/history.ndjson` | 없음 |
 | UPDATE | `poggn/active/dashboard-main-shell-redesign/workflow.reactflow.json` | 없음 |
 
 ## Last Expert Score
 
-- phase: implementation
-- score: 95
+- phase: refactor
+- score: 94
 - blocking issues: 없음
 
 ## Next Action
 
-`pgg-refactor`에서 shell composition, helper/template duplication, dashboard bundle residual risk를 정리
+`pgg-qa`에서 dashboard shell, reports, settings, branch prefix refactor regression과 residual risk를 검증

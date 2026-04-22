@@ -4,3 +4,5 @@
 {"ts":"2026-04-22T06:25:14Z","stage":"task","event":"task-reviewed","score":96}
 {"ts":"2026-04-22T07:13:11Z","stage":"implementation","event":"completed","score":95,"verification":["pnpm build","pnpm test"],"next":"pgg-refactor"}
 {"ts":"2026-04-22T07:17:34Z","stage":"implementation","event":"stage-commit","archiveType":"feat","commitTitle":"feat: Dashboard shell redesign","summary":"Dashboard shell redesign","why":"Top navigation, contextual sidebar, board governance, reports, settings, and configurable git prefixes now share one snapshot-driven dashboard flow","footer":"Refs: dashboard-main-shell-redesign"}
+{"ts":"2026-04-22T07:23:55Z","stage":"refactor","event":"completed","score":94,"verification":["pnpm build","pnpm test"],"next":"pgg-qa"}
+{"ts":"2026-04-22T07:35:50Z","stage":"refactor","event":"stage-commit","archiveType":"feat","commitTitle":"feat: Dashboard shell cleanup","summary":"Dashboard shell cleanup","why":"Dashboard shell navigation and mutation helpers are now centralized, and generated git prefix loading reuses one shared path so the redesign is easier to extend without changing behavior","footer":"Refs: dashboard-main-shell-redesign"}

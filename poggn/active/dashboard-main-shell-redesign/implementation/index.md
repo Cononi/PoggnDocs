@@ -12,7 +12,7 @@ reactflow:
   label: "implementation/index.md"
 state:
   summary: "dashboard main shell redesign 구현 diff와 검증 결과를 기록한다."
-  next: "pgg-refactor"
+  next: "pgg-qa"
 ---
 
 # Implementation Index
@@ -33,6 +33,9 @@ state:
 | 012 | UPDATE | `apps/dashboard/src/shared/model/dashboard.ts` | `implementation/diffs/012_UPDATE_apps_dashboard_src_shared_model_dashboard_ts.diff` | `T1,T3,T4,T5` | shell/menu state와 recent activity/settings projection용 frontend 모델을 확장 |
 | 013 | UPDATE | `apps/dashboard/src/shared/store/dashboardStore.ts` | `implementation/diffs/013_UPDATE_apps_dashboard_src_shared_store_dashboardStore_ts.diff` | `T1,T5` | top menu, sidebar, detail surface selection store를 추가 |
 | 014 | UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | `implementation/diffs/014_UPDATE_apps_dashboard_src_shared_locale_dashboardLocale_ts.diff` | `T1,T2,T3,T4,T6` | shell, board, reports, settings용 `ko/en` i18n key를 확장 |
+| 015 | UPDATE | `apps/dashboard/src/app/DashboardApp.tsx` | `implementation/diffs/015_UPDATE_apps_dashboard_src_app_DashboardApp_tsx.refactor.diff` | `T1,T2,T3,T4,T5,T6` | project/detail navigation과 mutation payload 생성을 helper로 모아 shell component 결합도를 낮춤 |
+| 016 | CREATE | `apps/dashboard/src/app/dashboardShell.ts` | `implementation/diffs/016_CREATE_apps_dashboard_src_app_dashboardShell_ts.diff` | `T1,T5` | current/selected/latest project 선택과 category column 변환, json mutation payload helper를 분리 |
+| 017 | UPDATE | `packages/core/src/templates.ts` | `implementation/diffs/017_UPDATE_packages_core_src_templates_ts.refactor.diff` | `T4,T5,T6` | generated `pgg` helper가 shared git prefix loader를 재사용하도록 정리 |
 
 ## Notes
 
@@ -40,3 +43,4 @@ state:
 - 검증은 `pnpm build`, `pnpm test`를 통과했다.
 - `apps/dashboard` production bundle은 여전히 500kB chunk warning을 남긴다. 기능 blocker는 아니지만 QA에서 residual risk로 이어서 확인해야 한다.
 - current-project verification contract는 여전히 선언되지 않았으므로 framework-specific 자동 검증 대신 `manual verification required` 상태를 유지한다.
+- refactor 단계에서는 dashboard shell 계산/요청 생성 helper와 generated git prefix loader 중복을 줄였고, 기능 범위는 넓히지 않았다.
