@@ -85,6 +85,7 @@ qa
 | CREATE | `poggn/active/pgg-task-scoped-stage-commit-governance/implementation/index.md` | `implementation/index.md` |
 | CREATE | `poggn/active/pgg-task-scoped-stage-commit-governance/reviews/code.review.md` | `reviews/code.review.md` |
 | CREATE | `poggn/active/pgg-task-scoped-stage-commit-governance/reviews/refactor.review.md` | `reviews/refactor.review.md` |
+| CREATE | `poggn/active/pgg-task-scoped-stage-commit-governance/qa/report.md` | `qa/report.md` |
 | UPDATE | `packages/core/src/templates.ts` | `implementation/diffs/001_UPDATE_packages_core_src_templates_ts.diff` |
 | UPDATE | `packages/core/src/readme.ts` | `implementation/diffs/002_UPDATE_packages_core_src_readme_ts.diff` |
 | UPDATE | `packages/core/test/git-publish.test.mjs` | `implementation/diffs/003_UPDATE_packages_core_test_git-publish_test_mjs.diff` |
@@ -97,10 +98,10 @@ qa
 
 ## Last Expert Score
 
-- phase: refactor
+- phase: qa
 - score: 99
 - blocking issues: 없음
 
 ## Next Action
 
-`pgg-qa`
+`archive`
