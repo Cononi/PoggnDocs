@@ -6,11 +6,11 @@ dashboard-jira-insights-parity
 
 ## Current Stage
 
-refactor
+qa
 
 ## Goal
 
-`Insights.png` 기준 dashboard redesign 구현을 구조적으로 정리하고 QA 단계로 넘긴다.
+`Insights.png` 기준 dashboard redesign 구현 결과를 QA로 검증하고 archive 가능 여부를 판정한다.
 
 ## Confirmed Scope
 
@@ -28,6 +28,7 @@ refactor
 - 기존 snapshot/API shape는 유지하고 current project/topic/recent activity projection을 backlog row와 analytics widget으로 재해석한다.
 - refactor 단계에서 `DashboardApp`의 shell presentation은 `DashboardShellChrome.tsx`로 분리했고, backlog/insights tone 계산은 `shared/theme/dashboardTone.ts`로 통합했다.
 - `pnpm build:dashboard`, `pnpm build`, `pnpm test`를 통과했고 current-project verification contract 미선언 상태는 그대로 유지되어 `manual verification required`를 남긴다.
+- QA 단계에서 `./.codex/sh/pgg-gate.sh pgg-qa dashboard-jira-insights-parity`도 통과해 archive 전제 문서와 상태 정합성을 확인했다.
 
 ## Constraints
 
@@ -99,6 +100,7 @@ refactor
 | CREATE | `poggn/active/dashboard-jira-insights-parity/implementation/index.md` | 없음 |
 | CREATE | `poggn/active/dashboard-jira-insights-parity/reviews/code.review.md` | 없음 |
 | CREATE | `poggn/active/dashboard-jira-insights-parity/reviews/refactor.review.md` | 없음 |
+| CREATE | `poggn/active/dashboard-jira-insights-parity/qa/report.md` | 없음 |
 | CREATE | `poggn/active/dashboard-jira-insights-parity/implementation/diffs/001_UPDATE_apps_dashboard_src_shared_model_dashboard_ts.diff` | 없음 |
 | CREATE | `poggn/active/dashboard-jira-insights-parity/implementation/diffs/002_UPDATE_apps_dashboard_src_shared_store_dashboardStore_ts.diff` | 없음 |
 | CREATE | `poggn/active/dashboard-jira-insights-parity/implementation/diffs/003_UPDATE_apps_dashboard_src_shared_theme_dashboardTheme_ts.diff` | 없음 |
@@ -141,10 +143,10 @@ refactor
 
 ## Last Expert Score
 
-- phase: refactor
+- phase: qa
 - score: 96
 - blocking issues: 없음
 
 ## Next Action
 
-`pgg-qa`로 Jira insights parity의 시각 정합성과 residual chunk warning을 확인
+archive helper로 topic을 보관하고 release publish/cleanup 결과를 기록
