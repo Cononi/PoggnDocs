@@ -1,0 +1,5 @@
+{"ts":"2026-04-23T15:26:44Z","stage":"proposal","event":"topic-created"}
+{"ts":"2026-04-23T15:26:55Z","stage":"proposal","event":"proposal-reviewed"}
+{"ts":"2026-04-23T15:29:24Z","stage":"plan","event":"plan-docs-created"}
+{"ts":"2026-04-23T15:36:51Z","stage":"implementation","event":"implementation-started"}
+{"ts":"2026-04-23T15:37:47Z","stage":"implementation","event":"stage-commit","archiveType":"feat","commitTitle":"feat: project selector modal","summary":"project selector modal","why":"workspace selector를 modal 기반 project picker로 바꾸고 선택 프로젝트 기준으로 Project 화면 문맥을 일관되게 맞춰야 전환 흐름이 자연스러워진다.","footer":"Refs: dashboard-project-selector","branchRecovery":"recovered","branchRecoveryReason":"Governed checkout recovered the stage helper onto 'ai/feat/0.14.0-dashboard-project-selector' from 'main'.","branchRecoveryFrom":"main"}
