@@ -5,6 +5,7 @@ import react from "@vitejs/plugin-react";
 import {
   buildDashboardSnapshot,
   createProjectCategory,
+  deleteRegisteredProject,
   deleteProjectCategory,
   moveProjectToCategory,
   registerExistingProject,
@@ -13,9 +14,9 @@ import {
   setProjectCategoryVisibility,
   setDefaultProjectCategory,
   updateProjectAutoMode,
-  updateProjectDashboardTitle,
   updateProjectGitBranchPrefixes,
   updateProjectGitMode,
+  updateProjectMainSettings,
   updateProjectRefreshInterval,
   updateProjectTeamsMode
 } from "../../packages/core/src/index";
@@ -167,11 +168,21 @@ function createDashboardApiPlugin(): Plugin {
           const projectMainMatch = url.pathname.match(/^\/api\/dashboard\/projects\/([^/]+)\/main$/);
           if (projectMainMatch && request.method === "PATCH") {
             const body = await readJsonBody(request);
-            if (typeof body.title !== "string") {
-              writeJson(response, 400, { error: "title is required." });
+            if (
+              typeof body.title !== "string" &&
+              typeof body.titleIconSvg !== "string" &&
+              typeof body.language !== "string"
+            ) {
+              writeJson(response, 400, {
+                error: "At least one of title, titleIconSvg, or language is required."
+              });
               return;
             }
-            await updateProjectDashboardTitle(await resolveProjectRootDir(projectMainMatch[1]!), body.title);
+            await updateProjectMainSettings(await resolveProjectRootDir(projectMainMatch[1]!), {
+              title: typeof body.title === "string" ? body.title : undefined,
+              titleIconSvg: typeof body.titleIconSvg === "string" ? body.titleIconSvg : undefined,
+              language: body.language === "en" || body.language === "ko" ? body.language : undefined
+            });
             writeJson(response, 200, await buildDashboardSnapshot(dashboardRoot));
             return;
           }
@@ -225,6 +236,17 @@ function createDashboardApiPlugin(): Plugin {
             if (typeof body.gitMode === "string") {
               await updateProjectGitMode(rootDir, body.gitMode === "on" ? "on" : "off");
             }
+            writeJson(response, 200, await buildDashboardSnapshot(dashboardRoot));
+            return;
+          }
+
+          const projectDeleteMatch = url.pathname.match(/^\/api\/dashboard\/projects\/([^/]+)$/);
+          if (projectDeleteMatch && request.method === "DELETE") {
+            const body = await readJsonBody(request);
+            await deleteRegisteredProject(projectDeleteMatch[1]!, {
+              deleteRootDir: body.dangerousDeleteRoot === true,
+              currentRootDir: dashboardRoot
+            });
             writeJson(response, 200, await buildDashboardSnapshot(dashboardRoot));
             return;
           }

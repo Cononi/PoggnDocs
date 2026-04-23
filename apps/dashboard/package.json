@@ -13,6 +13,7 @@
     "@mui/material": "latest",
     "@tanstack/react-query": "latest",
     "@xyflow/react": "latest",
+    "axios": "latest",
     "react": "latest",
     "react-dom": "latest",
     "zustand": "latest"

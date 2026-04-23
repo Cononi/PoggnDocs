@@ -1,0 +1,166 @@
+diff --git a/apps/dashboard/src/features/backlog/BacklogWorkspace.tsx b/apps/dashboard/src/features/backlog/BacklogWorkspace.tsx
+index 6e92863..cb06520 100644
+--- a/apps/dashboard/src/features/backlog/BacklogWorkspace.tsx
++++ b/apps/dashboard/src/features/backlog/BacklogWorkspace.tsx
+@@ -6,12 +6,15 @@ import {
+   Button,
+   ButtonBase,
+   Chip,
++  FormControl,
+   InputBase,
++  MenuItem,
+   Paper,
++  Select,
+   Stack,
+   Typography
+ } from "@mui/material";
+-import { useMemo, useState, type CSSProperties } from "react";
++import { useMemo, useState } from "react";
+ import type {
+   DashboardLocale,
+   DashboardTone,
+@@ -34,6 +37,9 @@ type BacklogWorkspaceProps = {
+   searchQuery: string;
+   filterState: DashboardWorkspaceFilterState;
+   selectedTopicKey: string | null;
++  title?: string;
++  hint?: string;
++  showCreateAction?: boolean;
+   onSearchChange: (value: string) => void;
+   onFilterChange: (value: DashboardWorkspaceFilterState) => void;
+   onOpenCreateAction: () => void;
+@@ -83,26 +89,28 @@ export function BacklogWorkspace(props: BacklogWorkspaceProps) {
+                 {props.dictionary.projectsBreadcrumb} / {props.project.name}
+               </Typography>
+               <Typography variant="h3" sx={{ lineHeight: 1.05 }}>
+-                {props.dictionary.backlogTitle}
++                {props.title ?? props.dictionary.backlogTitle}
+               </Typography>
+               <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 720 }}>
+-                {props.dictionary.backlogHint}
++                {props.hint ?? props.dictionary.backlogHint}
+               </Typography>
+             </Stack>
+ 
+-            <Button
+-              variant="contained"
+-              disabled={!props.isLiveMode}
+-              onClick={props.onOpenCreateAction}
+-              sx={{
+-                alignSelf: { xs: "stretch", lg: "flex-start" },
+-                bgcolor: "primary.main",
+-                color: "primary.contrastText",
+-                px: 2.5
+-              }}
+-            >
+-              {props.dictionary.createAction}
+-            </Button>
++            {props.showCreateAction === false ? null : (
++              <Button
++                variant="contained"
++                disabled={!props.isLiveMode}
++                onClick={props.onOpenCreateAction}
++                sx={{
++                  alignSelf: { xs: "stretch", lg: "flex-start" },
++                  bgcolor: "primary.main",
++                  color: "primary.contrastText",
++                  px: 2.5
++                }}
++              >
++                {props.dictionary.createAction}
++              </Button>
++            )}
+           </Stack>
+ 
+           <Stack
+@@ -121,40 +129,44 @@ export function BacklogWorkspace(props: BacklogWorkspaceProps) {
+               </ToolbarField>
+ 
+               <ToolbarField compact>
+-                <select
+-                  value={props.filterState.bucket}
+-                  onChange={(event) =>
+-                    props.onFilterChange({
+-                      ...props.filterState,
+-                      bucket: event.target.value as DashboardWorkspaceFilterState["bucket"]
+-                    })
+-                  }
+-                  style={nativeSelectStyle(theme)}
+-                >
+-                  <option value="all">{props.dictionary.filterAll}</option>
+-                  <option value="active">{props.dictionary.filterActive}</option>
+-                  <option value="archive">{props.dictionary.filterArchive}</option>
+-                </select>
++                <FormControl fullWidth>
++                  <Select
++                    size="small"
++                    value={props.filterState.bucket}
++                    onChange={(event) =>
++                      props.onFilterChange({
++                        ...props.filterState,
++                        bucket: event.target.value as DashboardWorkspaceFilterState["bucket"]
++                      })
++                    }
++                  >
++                    <MenuItem value="all">{props.dictionary.filterAll}</MenuItem>
++                    <MenuItem value="active">{props.dictionary.filterActive}</MenuItem>
++                    <MenuItem value="archive">{props.dictionary.filterArchive}</MenuItem>
++                  </Select>
++                </FormControl>
+               </ToolbarField>
+ 
+               <ToolbarField compact>
+-                <select
+-                  value={props.filterState.stage}
+-                  onChange={(event) =>
+-                    props.onFilterChange({
+-                      ...props.filterState,
+-                      stage: event.target.value as DashboardWorkspaceFilterState["stage"]
+-                    })
+-                  }
+-                  style={nativeSelectStyle(theme)}
+-                >
+-                  <option value="all">{props.dictionary.filterAnyStage}</option>
+-                  <option value="proposal">{props.dictionary.filterProposal}</option>
+-                  <option value="plan">{props.dictionary.filterPlan}</option>
+-                  <option value="implementation">{props.dictionary.filterImplementation}</option>
+-                  <option value="qa">{props.dictionary.filterQa}</option>
+-                  <option value="blocked">{props.dictionary.filterBlocked}</option>
+-                </select>
++                <FormControl fullWidth>
++                  <Select
++                    size="small"
++                    value={props.filterState.stage}
++                    onChange={(event) =>
++                      props.onFilterChange({
++                        ...props.filterState,
++                        stage: event.target.value as DashboardWorkspaceFilterState["stage"]
++                      })
++                    }
++                  >
++                    <MenuItem value="all">{props.dictionary.filterAnyStage}</MenuItem>
++                    <MenuItem value="proposal">{props.dictionary.filterProposal}</MenuItem>
++                    <MenuItem value="plan">{props.dictionary.filterPlan}</MenuItem>
++                    <MenuItem value="implementation">{props.dictionary.filterImplementation}</MenuItem>
++                    <MenuItem value="qa">{props.dictionary.filterQa}</MenuItem>
++                    <MenuItem value="blocked">{props.dictionary.filterBlocked}</MenuItem>
++                  </Select>
++                </FormControl>
+               </ToolbarField>
+             </Stack>
+ 
+@@ -376,14 +388,3 @@ function MetricPill(props: { label: string }) {
+     </Box>
+   );
+ }
+-
+-function nativeSelectStyle(theme: ReturnType<typeof useTheme>): CSSProperties {
+-  return {
+-    width: "100%",
+-    border: "none",
+-    outline: "none",
+-    background: "transparent",
+-    color: theme.palette.text.primary,
+-    font: "inherit"
+-  };
+-}

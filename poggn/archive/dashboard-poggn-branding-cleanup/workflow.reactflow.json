@@ -1,0 +1,218 @@
+{
+  "topic": "dashboard-poggn-branding-cleanup",
+  "nodes": [
+    {
+      "id": "proposal",
+      "type": "document",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "label": "proposal.md",
+        "path": "poggn/active/dashboard-poggn-branding-cleanup/proposal.md",
+        "stage": "proposal"
+      }
+    },
+    {
+      "id": "proposal-review",
+      "type": "review",
+      "position": {
+        "x": 0,
+        "y": 140
+      },
+      "data": {
+        "label": "reviews/proposal.review.md",
+        "path": "poggn/active/dashboard-poggn-branding-cleanup/reviews/proposal.review.md",
+        "stage": "review"
+      }
+    },
+    {
+      "id": "plan",
+      "type": "document",
+      "position": {
+        "x": 0,
+        "y": 280
+      },
+      "data": {
+        "label": "plan.md",
+        "path": "poggn/active/dashboard-poggn-branding-cleanup/plan.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "spec-dashboard-brand-shell",
+      "type": "document",
+      "position": {
+        "x": 280,
+        "y": 280
+      },
+      "data": {
+        "label": "spec/ui/dashboard-brand-shell.md",
+        "path": "poggn/active/dashboard-poggn-branding-cleanup/spec/ui/dashboard-brand-shell.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "spec-dashboard-title-surfaces",
+      "type": "document",
+      "position": {
+        "x": 280,
+        "y": 420
+      },
+      "data": {
+        "label": "spec/ui/dashboard-title-surfaces.md",
+        "path": "poggn/active/dashboard-poggn-branding-cleanup/spec/ui/dashboard-title-surfaces.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "spec-dashboard-branding-source-sync",
+      "type": "document",
+      "position": {
+        "x": 560,
+        "y": 350
+      },
+      "data": {
+        "label": "spec/infra/dashboard-branding-source-sync.md",
+        "path": "poggn/active/dashboard-poggn-branding-cleanup/spec/infra/dashboard-branding-source-sync.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "task",
+      "type": "task",
+      "position": {
+        "x": 0,
+        "y": 560
+      },
+      "data": {
+        "label": "task.md",
+        "path": "poggn/active/dashboard-poggn-branding-cleanup/task.md",
+        "stage": "task"
+      }
+    },
+    {
+      "id": "plan-review",
+      "type": "review",
+      "position": {
+        "x": 0,
+        "y": 700
+      },
+      "data": {
+        "label": "reviews/plan.review.md",
+        "path": "poggn/active/dashboard-poggn-branding-cleanup/reviews/plan.review.md",
+        "stage": "review"
+      }
+    },
+    {
+      "id": "task-review",
+      "type": "review",
+      "position": {
+        "x": 280,
+        "y": 700
+      },
+      "data": {
+        "label": "reviews/task.review.md",
+        "path": "poggn/active/dashboard-poggn-branding-cleanup/reviews/task.review.md",
+        "stage": "review"
+      }
+    },
+    {
+      "id": "implementation-index",
+      "type": "document",
+      "position": {
+        "x": 0,
+        "y": 840
+      },
+      "data": {
+        "label": "implementation/index.md",
+        "path": "poggn/active/dashboard-poggn-branding-cleanup/implementation/index.md",
+        "stage": "implementation"
+      }
+    },
+    {
+      "id": "code-review",
+      "type": "review",
+      "position": {
+        "x": 280,
+        "y": 840
+      },
+      "data": {
+        "label": "reviews/code.review.md",
+        "path": "poggn/active/dashboard-poggn-branding-cleanup/reviews/code.review.md",
+        "stage": "review"
+      }
+    },
+    {
+      "id": "qa-report",
+      "type": "review",
+      "position": {
+        "x": 0,
+        "y": 980
+      },
+      "data": {
+        "label": "qa/report.md",
+        "path": "poggn/active/dashboard-poggn-branding-cleanup/qa/report.md",
+        "stage": "qa"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "proposal-to-review",
+      "source": "proposal",
+      "target": "proposal-review"
+    },
+    {
+      "id": "proposal-review-to-plan",
+      "source": "proposal-review",
+      "target": "plan"
+    },
+    {
+      "id": "plan-to-spec-shell",
+      "source": "plan",
+      "target": "spec-dashboard-brand-shell"
+    },
+    {
+      "id": "plan-to-spec-title",
+      "source": "plan",
+      "target": "spec-dashboard-title-surfaces"
+    },
+    {
+      "id": "plan-to-spec-sync",
+      "source": "plan",
+      "target": "spec-dashboard-branding-source-sync"
+    },
+    {
+      "id": "plan-to-task",
+      "source": "plan",
+      "target": "task"
+    },
+    {
+      "id": "plan-to-review",
+      "source": "plan",
+      "target": "plan-review"
+    },
+    {
+      "id": "task-to-review",
+      "source": "task",
+      "target": "task-review"
+    },
+    {
+      "id": "task-to-implementation",
+      "source": "task",
+      "target": "implementation-index"
+    },
+    {
+      "id": "implementation-to-review",
+      "source": "implementation-index",
+      "target": "code-review"
+    },
+    {
+      "id": "implementation-to-qa",
+      "source": "implementation-index",
+      "target": "qa-report"
+    }
+  ]
+}

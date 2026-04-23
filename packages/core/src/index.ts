@@ -62,6 +62,7 @@ export interface ProjectManifest {
   updatedAt: string;
   dashboard: {
     title: string;
+    titleIconSvg: string;
     defaultPort: number;
     refreshIntervalMs: number;
   };
@@ -269,6 +270,7 @@ export interface ProjectSnapshot {
   releaseBranchPrefix: string;
   installedVersion: string | null;
   dashboardTitle: string;
+  dashboardTitleIconSvg: string;
   refreshIntervalMs: number;
   dashboardDefaultPort: number;
   verificationMode: import("./verification.js").ProjectVerificationMode;
@@ -553,12 +555,28 @@ function buildTemplateInput(manifest: ProjectManifest): TemplateInput {
   };
 }
 
+function getDefaultDashboardTitleIconSvg(): string {
+  return [
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">',
+    '<defs><linearGradient id="pgg-dashboard-icon" x1="10%" y1="10%" x2="90%" y2="90%">',
+    '<stop offset="0%" stop-color="#2467d6" />',
+    '<stop offset="55%" stop-color="#4f92ff" />',
+    '<stop offset="100%" stop-color="#f59e0b" />',
+    "</linearGradient></defs>",
+    '<rect x="6" y="6" width="36" height="36" rx="14" fill="#0f172a" />',
+    '<path d="M24 11l5.2 7.9 9.3 2.7-5.9 7.3.2 9.9-8.8-3.4-8.8 3.4.2-9.9-5.9-7.3 9.3-2.7L24 11z" fill="url(#pgg-dashboard-icon)" />',
+    '<circle cx="24" cy="24" r="4.8" fill="#f8fafc" fill-opacity="0.9" />',
+    "</svg>"
+  ].join("");
+}
+
 function normalizeDashboardConfig(
   dashboard: ProjectManifest["dashboard"] | undefined,
   projectName: string
 ): ProjectManifest["dashboard"] {
   return {
     title: dashboard?.title?.trim() || `${projectName} dashboard`,
+    titleIconSvg: dashboard?.titleIconSvg?.trim() || getDefaultDashboardTitleIconSvg(),
     defaultPort: dashboard?.defaultPort ?? 4173,
     refreshIntervalMs:
       typeof dashboard?.refreshIntervalMs === "number" && Number.isFinite(dashboard.refreshIntervalMs)
@@ -579,7 +597,7 @@ function normalizeProjectGitConfig(git: ProjectManifest["git"] | undefined): Pro
 function normalizeProjectManifest(manifest: ProjectManifest): ProjectManifest {
   return {
     ...manifest,
-    schemaVersion: Math.max(manifest.schemaVersion ?? 1, 5),
+    schemaVersion: Math.max(manifest.schemaVersion ?? 1, 6),
     teamsMode: manifest.teamsMode ?? "off",
     git: normalizeProjectGitConfig(manifest.git),
     dashboard: normalizeDashboardConfig(manifest.dashboard, manifest.projectName),
@@ -641,7 +659,7 @@ async function retireManagedFile(
 export function createProjectManifest(rootDir: string, options: InitOptions = {}): ProjectManifest {
   const projectName = path.basename(rootDir);
   return {
-    schemaVersion: 5,
+    schemaVersion: 6,
     projectName,
     rootDir,
     provider: options.provider ?? "codex",
@@ -947,6 +965,34 @@ export async function updateProjectDashboardTitle(rootDir: string, title: string
   }));
 }
 
+export async function updateProjectMainSettings(
+  rootDir: string,
+  updates: {
+    title?: string;
+    titleIconSvg?: string;
+    language?: PggLanguage;
+  }
+): Promise<SyncResult> {
+  return updateRegisteredProject(rootDir, (manifest) => ({
+    ...manifest,
+    language:
+      updates.language === "en" || updates.language === "ko"
+        ? updates.language
+        : manifest.language,
+    dashboard: {
+      ...manifest.dashboard,
+      title:
+        typeof updates.title === "string"
+          ? updates.title.trim() || manifest.dashboard.title
+          : manifest.dashboard.title,
+      titleIconSvg:
+        typeof updates.titleIconSvg === "string"
+          ? updates.titleIconSvg.trim() || manifest.dashboard.titleIconSvg
+          : manifest.dashboard.titleIconSvg
+    }
+  }));
+}
+
 export async function updateProjectRefreshInterval(rootDir: string, refreshIntervalMs: number): Promise<SyncResult> {
   const normalized = Math.max(5_000, Math.min(120_000, Math.round(refreshIntervalMs)));
   return updateRegisteredProject(rootDir, (manifest) => ({
@@ -1177,6 +1223,46 @@ export async function registerExistingProject(rootDir: string): Promise<GlobalRe
   }
 
   return registerProject(manifest);
+}
+
+export async function deleteRegisteredProject(
+  projectId: string,
+  options: {
+    deleteRootDir?: boolean;
+    currentRootDir?: string;
+  } = {}
+): Promise<GlobalRegistry> {
+  const registry = await loadPersistedGlobalRegistry();
+  const project = registry.projects.find((entry) => entry.id === projectId) ?? null;
+  if (!project) {
+    throw new Error(`Project '${projectId}' was not found.`);
+  }
+
+  if (
+    options.currentRootDir &&
+    path.resolve(project.rootDir) === path.resolve(options.currentRootDir)
+  ) {
+    throw new Error("The current dashboard root project cannot be deleted.");
+  }
+
+  const nextRegistry = normalizeRegistryData({
+    ...registry,
+    projects: registry.projects.filter((entry) => entry.id !== projectId),
+    dashboard: {
+      categories: (registry.dashboard?.categories ?? []).map((category) => ({
+        ...category,
+        projectIds: category.projectIds.filter((entry) => entry !== projectId)
+      }))
+    }
+  }).registry;
+
+  await saveGlobalRegistry(nextRegistry);
+
+  if (options.deleteRootDir) {
+    await rm(project.rootDir, { recursive: true, force: true });
+  }
+
+  return nextRegistry;
 }
 
 function parseMarkdownSection(markdown: string, title: string): string | null {
@@ -2049,6 +2135,7 @@ export async function analyzeProject(rootDir: string, registered = false): Promi
       releaseBranchPrefix: "release",
       installedVersion: null,
       dashboardTitle: `${path.basename(rootDir)} dashboard`,
+      dashboardTitleIconSvg: getDefaultDashboardTitleIconSvg(),
       refreshIntervalMs: 10_000,
       dashboardDefaultPort: 4173,
       verificationMode: verification.mode,
@@ -2091,6 +2178,8 @@ export async function analyzeProject(rootDir: string, registered = false): Promi
     releaseBranchPrefix: manifest?.git.releaseBranchPrefix ?? "release",
     installedVersion: manifest?.installedVersion ?? null,
     dashboardTitle: manifest?.dashboard.title ?? `${path.basename(rootDir)} dashboard`,
+    dashboardTitleIconSvg:
+      manifest?.dashboard.titleIconSvg ?? getDefaultDashboardTitleIconSvg(),
     refreshIntervalMs: manifest?.dashboard.refreshIntervalMs ?? 10_000,
     dashboardDefaultPort: manifest?.dashboard.defaultPort ?? 4173,
     verificationMode: verification.mode,

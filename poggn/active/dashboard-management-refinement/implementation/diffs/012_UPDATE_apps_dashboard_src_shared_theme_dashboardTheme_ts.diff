@@ -1,0 +1,44 @@
+diff --git a/apps/dashboard/src/shared/theme/dashboardTheme.ts b/apps/dashboard/src/shared/theme/dashboardTheme.ts
+index 28f98b7..bd66157 100644
+--- a/apps/dashboard/src/shared/theme/dashboardTheme.ts
++++ b/apps/dashboard/src/shared/theme/dashboardTheme.ts
+@@ -185,6 +185,39 @@ export function createDashboardTheme(mode: DashboardThemeMode) {
+           }
+         }
+       },
++      MuiSelect: {
++        styleOverrides: {
++          select: {
++            borderRadius: 1,
++            minHeight: "auto",
++            paddingTop: 10,
++            paddingBottom: 10
++          },
++          icon: {
++            color: isDark ? "#9fadbc" : "#5e6c84"
++          }
++        }
++      },
++      MuiMenu: {
++        styleOverrides: {
++          paper: {
++            borderRadius: 12,
++            border: `1px solid ${surfaceBorder}`,
++            boxShadow: isDark
++              ? "0 16px 36px rgba(0, 0, 0, 0.38)"
++              : "0 16px 36px rgba(15, 23, 42, 0.14)"
++          }
++        }
++      },
++      MuiMenuItem: {
++        styleOverrides: {
++          root: {
++            borderRadius: 10,
++            marginInline: 6,
++            marginBlock: 2
++          }
++        }
++      },
+       MuiCard: {
+         styleOverrides: {
+           root: {

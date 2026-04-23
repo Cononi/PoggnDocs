@@ -33,6 +33,7 @@ export interface ProjectManifest {
     updatedAt: string;
     dashboard: {
         title: string;
+        titleIconSvg: string;
         defaultPort: number;
         refreshIntervalMs: number;
     };
@@ -212,6 +213,7 @@ export interface ProjectSnapshot {
     releaseBranchPrefix: string;
     installedVersion: string | null;
     dashboardTitle: string;
+    dashboardTitleIconSvg: string;
     refreshIntervalMs: number;
     dashboardDefaultPort: number;
     verificationMode: import("./verification.js").ProjectVerificationMode;
@@ -274,6 +276,11 @@ export declare function updateProjectTeamsMode(rootDir: string, teamsMode: PggTe
 export declare function updateProjectGitMode(rootDir: string, gitMode: PggGitMode): Promise<SyncResult>;
 export declare function updateProjectDashboardPort(rootDir: string, defaultPort: number): Promise<SyncResult>;
 export declare function updateProjectDashboardTitle(rootDir: string, title: string): Promise<SyncResult>;
+export declare function updateProjectMainSettings(rootDir: string, updates: {
+    title?: string;
+    titleIconSvg?: string;
+    language?: PggLanguage;
+}): Promise<SyncResult>;
 export declare function updateProjectRefreshInterval(rootDir: string, refreshIntervalMs: number): Promise<SyncResult>;
 export declare function updateProjectGitBranchPrefixes(rootDir: string, workingBranchPrefix: string, releaseBranchPrefix: string): Promise<SyncResult>;
 export declare function createProjectCategory(name: string): Promise<GlobalRegistry>;
@@ -284,6 +291,10 @@ export declare function setProjectCategoryVisibility(categoryId: string, visible
 export declare function reorderProjectCategory(categoryId: string, targetIndex: number): Promise<GlobalRegistry>;
 export declare function moveProjectToCategory(projectId: string, targetCategoryId: string, targetIndex?: number): Promise<GlobalRegistry>;
 export declare function registerExistingProject(rootDir: string): Promise<GlobalRegistry>;
+export declare function deleteRegisteredProject(projectId: string, options?: {
+    deleteRootDir?: boolean;
+    currentRootDir?: string;
+}): Promise<GlobalRegistry>;
 export declare function analyzeProject(rootDir: string, registered?: boolean): Promise<ProjectSnapshot>;
 export declare function analyzeProjectStatus(rootDir: string): Promise<ProjectStatusSnapshot>;
 export declare function buildDashboardSnapshot(currentRootDir: string): Promise<DashboardSnapshot>;

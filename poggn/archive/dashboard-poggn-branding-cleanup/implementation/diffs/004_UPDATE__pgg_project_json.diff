@@ -1,0 +1,13 @@
+diff --git a/.pgg/project.json b/.pgg/project.json
+index 9f2db99..a36bd4b 100644
+--- a/.pgg/project.json
++++ b/.pgg/project.json
+@@ -8,7 +8,7 @@
+   "installedVersion": "0.1.0",
+   "updatedAt": "2026-04-22T13:07:03.429Z",
+   "dashboard": {
+-    "title": "poggn dashboard",
++    "title": "POGGN",
+     "defaultPort": 4173,
+     "refreshIntervalMs": 10000
+   },

@@ -5,7 +5,6 @@ import {
   Button,
   ButtonBase,
   Chip,
-  InputBase,
   Paper,
   Stack,
   Typography
@@ -17,19 +16,17 @@ import type {
   DashboardSidebarItem,
   ProjectSnapshot
 } from "../shared/model/dashboard";
+import { normalizeDashboardTitleIconSvg, toSvgDataUrl } from "../shared/utils/brand";
 
 type TopNavigationProps = {
   title: string;
+  titleIconSvg: string;
   latestProject: string;
   dictionary: DashboardLocale;
-  shellSearchQuery: string;
   activeTopMenu: DashboardPrimaryMenu;
-  isLiveMode: boolean;
   compactShell: boolean;
   onOpenProjects: () => void;
   onOpenSettings: () => void;
-  onSearchChange: (value: string) => void;
-  onOpenCreate: () => void;
   onToggleSidebar: () => void;
   onToggleInsights: () => void;
 };
@@ -47,13 +44,9 @@ type ProjectContextSidebarProps = {
 export function TopNavigation(props: TopNavigationProps) {
   const theme = useTheme();
   const navItems = [
-    props.dictionary.navYourWork,
-    props.dictionary.projects,
-    props.dictionary.navFilter,
-    props.dictionary.navDashboards,
-    props.dictionary.navTeams,
-    props.dictionary.navApps
-  ];
+    { id: "projects", label: props.dictionary.projectMenu, onClick: props.onOpenProjects },
+    { id: "settings", label: props.dictionary.settings, onClick: props.onOpenSettings }
+  ] as const;
 
   return (
     <Paper
@@ -82,7 +75,7 @@ export function TopNavigation(props: TopNavigationProps) {
             spacing={{ xs: 0.75, md: 1.1 }}
             sx={{ alignItems: "center", minWidth: 0, flexShrink: 0 }}
           >
-            <BrandMark />
+            <BrandMark title={props.title} titleIconSvg={props.titleIconSvg} />
             <Typography variant="h6" sx={{ whiteSpace: "nowrap", letterSpacing: "0.08em", fontWeight: 800 }}>
               {props.title}
             </Typography>
@@ -91,15 +84,15 @@ export function TopNavigation(props: TopNavigationProps) {
           {!props.compactShell ? (
             <Stack direction="row" spacing={0.3} sx={{ alignItems: "center" }}>
               {navItems.map((item) => {
-                const active = item === props.dictionary.projects && props.activeTopMenu === "projects";
+                const active = item.id === props.activeTopMenu;
                 return (
                   <ButtonBase
-                    key={item}
-                    onClick={item === props.dictionary.projects ? props.onOpenProjects : undefined}
+                    key={item.id}
+                    onClick={item.onClick}
                     sx={{
                       px: 1.25,
                       py: 1,
-                      borderRadius: 0.6,
+                      borderRadius: 1.2,
                       color: active ? "primary.light" : "text.secondary",
                       borderBottom: active
                         ? `3px solid ${theme.palette.primary.main}`
@@ -107,7 +100,7 @@ export function TopNavigation(props: TopNavigationProps) {
                     }}
                   >
                     <Typography variant="body1" sx={{ fontWeight: active ? 700 : 500 }}>
-                      {item}
+                      {item.label}
                     </Typography>
                   </ButtonBase>
                 );
@@ -117,70 +110,13 @@ export function TopNavigation(props: TopNavigationProps) {
         </Stack>
 
         <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-          {!props.compactShell ? (
-            <Paper
-              sx={{
-                px: 1.35,
-                py: 0.75,
-                width: 320,
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-                bgcolor: alpha(theme.palette.common.white, 0.03)
-              }}
-            >
-              <Box
-                sx={{
-                  width: 14,
-                  height: 14,
-                  borderRadius: "50%",
-                  border: `2px solid ${theme.palette.text.secondary}`,
-                  position: "relative"
-                }}
-              >
-                <Box
-                  sx={{
-                    position: "absolute",
-                    width: 8,
-                    height: 2,
-                    bgcolor: "text.secondary",
-                    right: -6,
-                    bottom: -3,
-                    transform: "rotate(45deg)"
-                  }}
-                />
-              </Box>
-              <InputBase
-                value={props.shellSearchQuery}
-                onChange={(event) => props.onSearchChange(event.target.value)}
-                placeholder={props.dictionary.globalSearchPlaceholder}
-                sx={{ flex: 1 }}
-              />
-            </Paper>
-          ) : null}
-
           <Chip
             label={`${props.dictionary.latestProject}: ${props.latestProject}`}
-            variant="outlined"
-            sx={{ display: { xs: "none", md: "inline-flex" } }}
+            color="primary"
+            sx={{ maxWidth: { xs: 164, md: 280 } }}
           />
-
-          <Button
-            variant="contained"
-            disabled={!props.isLiveMode}
-            onClick={props.onOpenCreate}
-            sx={{ px: 2.4 }}
-          >
-            {props.dictionary.createAction}
-          </Button>
 
           <UtilityButton label={props.dictionary.openInsights} onClick={props.onToggleInsights} />
-          <UtilityButton
-            label={props.dictionary.settings}
-            active={props.activeTopMenu === "settings"}
-            onClick={props.onOpenSettings}
-          />
-          <Avatar sx={{ width: 38, height: 38, bgcolor: "primary.dark" }}>PG</Avatar>
         </Stack>
       </Stack>
     </Paper>
@@ -190,16 +126,10 @@ export function TopNavigation(props: TopNavigationProps) {
 export function ProjectContextSidebar(props: ProjectContextSidebarProps) {
   const theme = useTheme();
   const projectItems = [
-    { id: "backlog", label: props.dictionary.backlogTitle, enabled: true },
     { id: "board", label: props.dictionary.board, enabled: true },
-    { id: "reports", label: props.dictionary.reports, enabled: true },
-    { id: "issues", label: props.dictionary.sidebarIssues, enabled: false },
-    { id: "components", label: props.dictionary.sidebarComponents, enabled: false },
-    { id: "code", label: props.dictionary.sidebarCode, enabled: false },
-    { id: "releases", label: props.dictionary.sidebarReleases, enabled: false },
-    { id: "pages", label: props.dictionary.sidebarPages, enabled: false },
-    { id: "shortcuts", label: props.dictionary.sidebarShortcuts, enabled: false },
-    { id: "project-settings", label: props.dictionary.sidebarProjectSettings, enabled: true }
+    { id: "category", label: props.dictionary.categoryMenu, enabled: true },
+    { id: "report", label: props.dictionary.reportMenu, enabled: true },
+    { id: "history", label: props.dictionary.historyMenu, enabled: true }
   ] as const;
   const settingsItems = [
     { id: "main", label: props.dictionary.main },
@@ -243,22 +173,9 @@ export function ProjectContextSidebar(props: ProjectContextSidebarProps) {
 
         {props.activeTopMenu === "projects" ? (
           <>
-            <SidebarSectionLabel label={props.dictionary.sidebarPlanning} />
+            <SidebarSectionLabel label={props.dictionary.sidebarManagement} />
             <Stack spacing={0.5}>
-              {projectItems.slice(0, 3).map((item) => (
-                <SidebarNavButton
-                  key={item.id}
-                  label={item.label}
-                  active={props.activeSidebarItem === item.id}
-                  disabled={!item.enabled}
-                  onClick={() => props.onSelectSidebarItem(item.id)}
-                />
-              ))}
-            </Stack>
-
-            <SidebarSectionLabel label={props.dictionary.sidebarDevelopment} />
-            <Stack spacing={0.5}>
-              {projectItems.slice(3).map((item) => (
+              {projectItems.map((item) => (
                 <SidebarNavButton
                   key={item.id}
                   label={item.label}
@@ -375,14 +292,13 @@ function UtilityButton(props: { label: string; active?: boolean; onClick: () => 
   );
 }
 
-function BrandMark() {
+function BrandMark(props: { title: string; titleIconSvg: string }) {
   return (
-    <Typography
-      component="span"
-      aria-hidden="true"
-      sx={{ display: "inline-flex", alignItems: "center", justifyContent: "center", fontSize: 20, lineHeight: 1 }}
-    >
-      ✨
-    </Typography>
+    <Box
+      component="img"
+      alt={`${props.title} icon`}
+      src={toSvgDataUrl(normalizeDashboardTitleIconSvg(props.titleIconSvg))}
+      sx={{ width: 28, height: 28, borderRadius: 1, flexShrink: 0 }}
+    />
   );
 }

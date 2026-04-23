@@ -32,9 +32,9 @@ const defaultWorkspaceFilterState: DashboardWorkspaceFilterState = {
 
 const defaultUiState: DashboardUiState = {
   activeTopMenu: "projects",
-  activeSidebarItem: "backlog",
+  activeSidebarItem: "board",
   activeSettingsView: "main",
-  workspaceMode: "backlog",
+  workspaceMode: "board",
   selectedProjectId: null,
   selectedTopicKey: null,
   shellSearchQuery: "",
@@ -140,14 +140,15 @@ export const useDashboardStore = create<DashboardStore>((set, get) => {
       }
 
       const currentSidebarItem = get().activeSidebarItem;
-      const nextSidebarItem =
-        currentSidebarItem === "project-settings" ? "backlog" : currentSidebarItem;
+      const nextSidebarItem = currentSidebarItem ?? "board";
       const nextWorkspaceMode: DashboardWorkspaceMode =
-        nextSidebarItem === "reports"
-          ? "reports"
-          : nextSidebarItem === "board"
-            ? "board"
-            : "backlog";
+        nextSidebarItem === "category"
+          ? "category"
+          : nextSidebarItem === "report"
+            ? "report"
+            : nextSidebarItem === "history"
+              ? "history"
+              : "board";
 
       setAndPersist({
         activeTopMenu: "projects",
@@ -156,24 +157,19 @@ export const useDashboardStore = create<DashboardStore>((set, get) => {
       });
     },
     setActiveSidebarItem: (value) => {
-      if (value === "project-settings") {
-        setAndPersist({
-          activeTopMenu: "settings",
-          activeSidebarItem: value,
-          activeSettingsView: "main",
-          workspaceMode: "settings"
-        });
-        return;
-      }
-
       const nextWorkspaceMode: DashboardWorkspaceMode =
-        value === "reports" ? "reports" : value === "board" ? "board" : "backlog";
+        value === "category"
+          ? "category"
+          : value === "report"
+            ? "report"
+            : value === "history"
+              ? "history"
+              : "board";
       openProjectWorkspace(value, nextWorkspaceMode);
     },
     setActiveSettingsView: (value: DashboardSettingsView) =>
       setAndPersist({
         activeTopMenu: "settings",
-        activeSidebarItem: "project-settings",
         activeSettingsView: value,
         workspaceMode: "settings"
       }),

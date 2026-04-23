@@ -1,0 +1,8 @@
+{"ts":"2026-04-23T00:40:17Z","stage":"proposal","event":"topic-created"}
+{"ts":"2026-04-23T00:41:08Z","stage":"proposal","event":"proposal-reviewed","score":95}
+{"ts":"2026-04-23T00:44:14Z","stage":"plan","event":"plan-reviewed","score":95}
+{"ts":"2026-04-23T00:44:14Z","stage":"task","event":"task-reviewed","score":95}
+{"ts":"2026-04-23T00:59:47Z","stage":"implementation","event":"code-reviewed","score":95}
+{"ts":"2026-04-23T02:06:45Z","stage":"qa","event":"qa-reviewed","score":94}
+{"ts":"2026-04-23T02:11:14Z","stage":"archive","event":"version-recorded","version":"0.10.2","changeType":"fix","versionBump":"patch","targetVersion":"0.10.2","workingBranch":"ai/fix/0.10.2-dashboard-cleanup","releaseBranch":"release/0.10.2-dashboard-cleanup"}
+ts:stage:archivennts:event:archivednnts:2026-04-23T02:13:35Zn{"ts":"2026-04-23T02:14:56Z","stage":"archive","event":"git-publish-blocked","resultType":"publish_blocked","pushStatus":"not_attempted","reason":"Unrelated worktree changes are present, so automatic publish was deferred.","remote":"origin","workingBranch":"ai/fix/0.10.2-dashboard-cleanup","releaseBranch":"release/0.10.2-dashboard-cleanup","publishMode":"not_attempted","upstreamStatus":"not_attempted","cleanupStatus":"not_attempted","cleanupReason":"Dirty worktree blocked release branch promotion.","cleanupTiming":"after_release_promotion","notesRef":"refs/notes/pgg-publish"}

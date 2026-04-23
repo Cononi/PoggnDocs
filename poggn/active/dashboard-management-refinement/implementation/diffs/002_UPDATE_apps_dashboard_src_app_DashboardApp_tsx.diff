@@ -1,0 +1,447 @@
+diff --git a/apps/dashboard/src/app/DashboardApp.tsx b/apps/dashboard/src/app/DashboardApp.tsx
+index 0274b01..e16eb4b 100644
+--- a/apps/dashboard/src/app/DashboardApp.tsx
++++ b/apps/dashboard/src/app/DashboardApp.tsx
+@@ -10,6 +10,8 @@ import {
+   DialogContent,
+   DialogTitle,
+   Drawer,
++  MenuItem,
++  Paper,
+   Stack,
+   TextField,
+   Typography
+@@ -18,6 +20,7 @@ import { startTransition, useDeferredValue, useEffect, useMemo, useState } from
+ import { ArtifactDetailDialog } from "../features/artifact-inspector/ArtifactDetailDialog";
+ import { BacklogWorkspace } from "../features/backlog/BacklogWorkspace";
+ import { InsightsRail } from "../features/backlog/InsightsRail";
++import { CategoryManagementPanel } from "../features/project-list/CategoryManagementPanel";
+ import { ProjectListBoard } from "../features/project-list/ProjectListBoard";
+ import { RecentActivityTable } from "../features/reports/RecentActivityTable";
+ import { SettingsWorkspace } from "../features/settings/SettingsWorkspace";
+@@ -28,6 +31,7 @@ import type {
+   DashboardSettingsView,
+ } from "../shared/model/dashboard";
+ import { useDashboardStore } from "../shared/store/dashboardStore";
++import { normalizeDashboardTitleIconSvg, toSvgDataUrl } from "../shared/utils/brand";
+ import {
+   buildTopicArtifactEntries,
+   getDefaultArtifactSelection
+@@ -44,8 +48,8 @@ import {
+   markDashboardInteraction,
+   resolveCurrentProject,
+   resolveInitialSelectedProjectId,
++  resolveLatestActiveProject,
+   resolveSelectedProject,
+-  resolveSelectedProjectFromSearch,
+   resolveSelectedTopic,
+   resolveSnapshotRefreshInterval,
+   resolveVisibleTopicSelection,
+@@ -59,29 +63,29 @@ export default function DashboardApp() {
+   const activeTopMenu = useDashboardStore((state) => state.activeTopMenu);
+   const activeSidebarItem = useDashboardStore((state) => state.activeSidebarItem);
+   const activeSettingsView = useDashboardStore((state) => state.activeSettingsView);
+-  const workspaceMode = useDashboardStore((state) => state.workspaceMode);
+   const selectedProjectId = useDashboardStore((state) => state.selectedProjectId);
+   const selectedTopicKey = useDashboardStore((state) => state.selectedTopicKey);
+-  const shellSearchQuery = useDashboardStore((state) => state.shellSearchQuery);
+   const topicFilter = useDashboardStore((state) => state.topicFilter);
+   const workspaceFilterState = useDashboardStore((state) => state.workspaceFilterState);
+   const insightsRailOpen = useDashboardStore((state) => state.insightsRailOpen);
+   const setActiveTopMenu = useDashboardStore((state) => state.setActiveTopMenu);
+   const setActiveSidebarItem = useDashboardStore((state) => state.setActiveSidebarItem);
+   const setActiveSettingsView = useDashboardStore((state) => state.setActiveSettingsView);
++  const themeMode = useDashboardStore((state) => state.themeMode);
+   const setSelectedProjectId = useDashboardStore((state) => state.setSelectedProjectId);
+   const setSelectedTopicKey = useDashboardStore((state) => state.setSelectedTopicKey);
+-  const setShellSearchQuery = useDashboardStore((state) => state.setShellSearchQuery);
++  const setThemeMode = useDashboardStore((state) => state.setThemeMode);
+   const setTopicFilter = useDashboardStore((state) => state.setTopicFilter);
+   const setWorkspaceFilterState = useDashboardStore((state) => state.setWorkspaceFilterState);
+   const setInsightsRailOpen = useDashboardStore((state) => state.setInsightsRailOpen);
+-  const deferredShellSearchQuery = useDeferredValue(shellSearchQuery);
+   const deferredTopicFilter = useDeferredValue(topicFilter);
+ 
+   const [feedback, setFeedback] = useState<string | null>(null);
+   const [projectDialogOpen, setProjectDialogOpen] = useState(false);
+   const [projectRootDirDraft, setProjectRootDirDraft] = useState("");
+   const [projectCategoryDraft, setProjectCategoryDraft] = useState("");
++  const [pendingDeleteProjectId, setPendingDeleteProjectId] = useState<string | null>(null);
++  const [dangerousDeleteRoot, setDangerousDeleteRoot] = useState(false);
+   const [detailSelection, setDetailSelection] = useState<ArtifactSelection | null>(null);
+   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+   const [sidebarDrawerOpen, setSidebarDrawerOpen] = useState(false);
+@@ -96,13 +100,22 @@ export default function DashboardApp() {
+   const snapshotSource = snapshotQuery.data?.source ?? "static";
+   const currentProject = resolveCurrentProject(snapshot);
+   const selectedProject = resolveSelectedProject(snapshot, selectedProjectId, currentProject);
+-  const searchMatchedProject = resolveSelectedProjectFromSearch(snapshot, deferredShellSearchQuery);
++  const latestActiveProject = resolveLatestActiveProject(snapshot, currentProject);
+   const dictionary = dashboardLocale[(selectedProject ?? currentProject)?.language ?? "en"];
+   const isLiveMode = snapshotSource === "live";
+   const categories = useMemo(
+     () => [...(snapshot?.categories ?? [])].sort((left, right) => left.order - right.order),
+     [snapshot?.categories]
+   );
++  const selectedProjectRecentActivity = useMemo(
++    () =>
++      (snapshot?.recentActivity ?? []).filter(
++        (entry) => entry.projectId === (selectedProject?.id ?? currentProject?.id ?? "")
++      ),
++    [currentProject?.id, selectedProject?.id, snapshot?.recentActivity]
++  );
++  const pendingDeleteProject =
++    (snapshot?.projects ?? []).find((project) => project.id === pendingDeleteProjectId) ?? null;
+ 
+   useEffect(() => {
+     const nextSelectedProjectId = resolveInitialSelectedProjectId(snapshot, selectedProjectId);
+@@ -116,14 +129,32 @@ export default function DashboardApp() {
+   }, [selectedProjectId, setSelectedProjectId, snapshot]);
+ 
+   useEffect(() => {
+-    if (!searchMatchedProject || searchMatchedProject.id === selectedProjectId) {
+-      return;
++    const dashboardTitle = currentProject?.dashboardTitle ?? dictionary.dashboardFallbackTitle;
++    document.title = dashboardTitle;
++
++    const iconSvg = normalizeDashboardTitleIconSvg(currentProject?.dashboardTitleIconSvg);
++    const iconHref = toSvgDataUrl(iconSvg);
++    let link = document.querySelector("link[rel='icon']") as HTMLLinkElement | null;
++    if (!link) {
++      link = document.createElement("link");
++      link.rel = "icon";
++      document.head.appendChild(link);
+     }
++    link.href = iconHref;
++  }, [currentProject?.dashboardTitle, currentProject?.dashboardTitleIconSvg, dictionary.dashboardFallbackTitle]);
+ 
++  const openProjectContext = (projectId: string) => {
++    markDashboardInteraction("project-switch", "start");
+     startTransition(() => {
+-      setSelectedProjectId(searchMatchedProject.id);
++      setSelectedProjectId(projectId);
++      setActiveTopMenu("projects");
++      setActiveSidebarItem("history");
++      setSelectedTopicKey(null);
++      if (isCompactShell) {
++        setSidebarDrawerOpen(false);
++      }
+     });
+-  }, [searchMatchedProject, selectedProjectId, setSelectedProjectId]);
++  };
+ 
+   const backlogSections = useMemo(
+     () => buildBacklogSections(selectedProject, deferredTopicFilter, workspaceFilterState, dictionary),
+@@ -148,14 +179,18 @@ export default function DashboardApp() {
+   );
+ 
+   useEffect(() => {
+-    if (nextVisibleTopicKey === selectedTopicKey) {
++    if (activeSidebarItem !== "history") {
++      return;
++    }
++
++    if (!nextVisibleTopicKey || selectedTopicKey === nextVisibleTopicKey) {
+       return;
+     }
+ 
+     startTransition(() => {
+       setSelectedTopicKey(nextVisibleTopicKey);
+     });
+-  }, [nextVisibleTopicKey, selectedTopicKey, setSelectedTopicKey]);
++  }, [activeSidebarItem, nextVisibleTopicKey, selectedTopicKey, setSelectedTopicKey]);
+ 
+   useEffect(() => {
+     const nextSelection = getDefaultArtifactSelection(selectedTopic);
+@@ -217,19 +252,6 @@ export default function DashboardApp() {
+     );
+   };
+ 
+-  const openProjectContext = (projectId: string) => {
+-    markDashboardInteraction("project-switch", "start");
+-    startTransition(() => {
+-      setSelectedProjectId(projectId);
+-      setActiveTopMenu("projects");
+-      setActiveSidebarItem("backlog");
+-      setSelectedTopicKey(null);
+-      if (isCompactShell) {
+-        setSidebarDrawerOpen(false);
+-      }
+-    });
+-  };
+-
+   const openTopicDialog = (topicKey: string) => {
+     const topic = visibleTopics.find((item) => `${item.bucket}:${item.name}` === topicKey) ?? null;
+     markDashboardInteraction("detail-open", "start");
+@@ -255,39 +277,66 @@ export default function DashboardApp() {
+           panel={activeSettingsView}
+           dictionary={dictionary}
+           isLiveMode={isLiveMode}
+-          onSaveTitle={(title) => mutateCurrentProject("main", { title })}
+-          onSaveRefreshInterval={(refreshIntervalMs) =>
++          themeMode={themeMode}
++          onApplyTitle={(title) => mutateCurrentProject("main", { title })}
++          onApplyTitleIcon={(titleIconSvg) => mutateCurrentProject("main", { titleIconSvg })}
++          onApplyRefreshInterval={(refreshIntervalMs) =>
+             mutateCurrentProject("refresh", { refreshIntervalMs })
+           }
+-          onSaveGitPrefixes={(workingBranchPrefix, releaseBranchPrefix) =>
++          onApplyGitPrefixes={(workingBranchPrefix, releaseBranchPrefix) =>
+             mutateCurrentProject("git", { workingBranchPrefix, releaseBranchPrefix })
+           }
+-          onSaveSystem={(payload) => mutateCurrentProject("system", payload)}
++          onUpdateLanguage={(language) => mutateCurrentProject("main", { language })}
++          onUpdateThemeMode={setThemeMode}
++          onUpdateSystem={(payload) => mutateCurrentProject("system", payload)}
+         />
+       );
+     }
+ 
+-    if (workspaceMode === "board") {
++    if (activeSidebarItem === "category") {
+       return (
+-        <ProjectListBoard
++        <CategoryManagementPanel
+           categories={categories}
+-          projects={snapshot?.projects ?? []}
+-          currentProjectId={currentProject?.id ?? null}
+-          selectedProjectId={selectedProjectId}
+-          latestActiveProjectId={currentProject?.id ?? null}
+           dictionary={dictionary}
+-          snapshotSource={snapshotSource}
+           isLiveMode={isLiveMode}
+-          onAddProject={() => setProjectDialogOpen(true)}
+-          onOpenProject={openProjectContext}
++          onCreateCategory={() => {
++            const name = window.prompt(dictionary.createCategoryTitle, "");
++            if (!name) {
++              return;
++            }
++            mutateSnapshot(createMutationPayload("/api/dashboard/categories", "POST", { name }));
++          }}
++          onEditCategory={(categoryId, currentName) => {
++            const name = window.prompt(dictionary.editCategoryTitle, currentName);
++            if (!name || name === currentName) {
++              return;
++            }
++            mutateSnapshot(createMutationPayload(`/api/dashboard/categories/${categoryId}`, "PATCH", { name }));
++          }}
++          onSetDefaultCategory={(categoryId) =>
++            mutateSnapshot(createMutationPayload(`/api/dashboard/categories/${categoryId}/default`, "POST"))
++          }
++          onDeleteCategory={(categoryId) =>
++            mutateSnapshot(createMutationPayload(`/api/dashboard/categories/${categoryId}`, "DELETE"))
++          }
++          onToggleCategory={(categoryId, visible) =>
++            mutateSnapshot(
++              createMutationPayload(`/api/dashboard/categories/${categoryId}/visibility`, "PATCH", { visible })
++            )
++          }
++          onMoveCategory={(categoryId, targetIndex) =>
++            mutateSnapshot(
++              createMutationPayload(`/api/dashboard/categories/${categoryId}/reorder`, "POST", { targetIndex })
++            )
++          }
+         />
+       );
+     }
+ 
+-    if (workspaceMode === "reports") {
++    if (activeSidebarItem === "report") {
+       return (
+         <RecentActivityTable
+-          entries={snapshot?.recentActivity ?? []}
++          entries={selectedProjectRecentActivity}
+           dictionary={dictionary}
+           language={selectedProject?.language ?? currentProject?.language ?? "en"}
+           onOpenProject={openProjectContext}
+@@ -295,6 +344,61 @@ export default function DashboardApp() {
+       );
+     }
+ 
++    if (activeSidebarItem === "history") {
++      return (
++        <BacklogWorkspace
++          project={selectedProject}
++          sections={backlogSections}
++          dictionary={dictionary}
++          language={selectedProject?.language ?? currentProject?.language ?? "en"}
++          isLiveMode={isLiveMode}
++          title={dictionary.historyTitle}
++          hint={dictionary.historyHint}
++          showCreateAction={false}
++          searchQuery={topicFilter}
++          filterState={workspaceFilterState}
++          selectedTopicKey={nextVisibleTopicKey}
++          onSearchChange={(value) => {
++            markDashboardInteraction("topic-filter", "start");
++            setTopicFilter(value);
++          }}
++          onFilterChange={setWorkspaceFilterState}
++          onOpenCreateAction={() => setProjectDialogOpen(true)}
++          onOpenTopic={openTopicDialog}
++        />
++      );
++    }
++
++    if (activeSidebarItem === "board") {
++      return (
++        <ProjectListBoard
++          categories={categories}
++          projects={snapshot?.projects ?? []}
++          currentProjectId={currentProject?.id ?? null}
++          selectedProjectId={selectedProjectId}
++          latestActiveProjectId={latestActiveProject?.id ?? null}
++          dictionary={dictionary}
++          snapshotSource={snapshotSource}
++          isLiveMode={isLiveMode}
++          onAddProject={() => setProjectDialogOpen(true)}
++          onOpenProject={openProjectContext}
++          onDeleteProject={(projectId) => {
++            setPendingDeleteProjectId(projectId);
++            setDangerousDeleteRoot(false);
++          }}
++          onMoveProject={(projectId, targetCategoryId, targetIndex) =>
++            mutateSnapshot(
++              createMutationPayload("/api/dashboard/categories/move", "POST", {
++                projectId,
++                targetCategoryId,
++                targetIndex
++              })
++            )
++          }
++        />
++      );
++    }
++
+     return (
+       <BacklogWorkspace
+         project={selectedProject}
+@@ -328,16 +432,13 @@ export default function DashboardApp() {
+     <Box sx={{ minHeight: "100vh", backgroundColor: "background.default" }}>
+       <TopNavigation
+         title={currentProject?.dashboardTitle ?? dictionary.dashboardFallbackTitle}
+-        latestProject={currentProject?.name ?? "-"}
++        titleIconSvg={currentProject?.dashboardTitleIconSvg ?? ""}
++        latestProject={latestActiveProject?.name ?? "-"}
+         dictionary={dictionary}
+-        shellSearchQuery={shellSearchQuery}
+         activeTopMenu={activeTopMenu}
+-        isLiveMode={isLiveMode}
+         compactShell={isCompactShell}
+         onOpenProjects={() => setActiveTopMenu("projects")}
+         onOpenSettings={() => setActiveTopMenu("settings")}
+-        onSearchChange={setShellSearchQuery}
+-        onOpenCreate={() => setProjectDialogOpen(true)}
+         onToggleSidebar={() => setSidebarDrawerOpen(true)}
+         onToggleInsights={() => setInsightsRailOpen(!insightsRailOpen)}
+       />
+@@ -375,14 +476,6 @@ export default function DashboardApp() {
+             </Alert>
+           ) : null}
+ 
+-          {activeTopMenu === "projects" && !insightsRailOpen && !isCompactShell ? (
+-            <Stack direction="row" sx={{ justifyContent: "flex-end" }}>
+-              <Button variant="outlined" onClick={() => setInsightsRailOpen(true)}>
+-                {dictionary.openInsights}
+-              </Button>
+-            </Stack>
+-          ) : null}
+-
+           {renderMainSurface()}
+         </Stack>
+ 
+@@ -465,15 +558,14 @@ export default function DashboardApp() {
+             />
+             <TextField
+               select
+-              SelectProps={{ native: true }}
+               label={dictionary.targetCategory}
+               value={projectCategoryDraft}
+               onChange={(event) => setProjectCategoryDraft(event.target.value)}
+             >
+               {categories.map((category) => (
+-                <option key={category.id} value={category.id}>
++                <MenuItem key={category.id} value={category.id}>
+                   {category.name}
+-                </option>
++                </MenuItem>
+               ))}
+             </TextField>
+           </Stack>
+@@ -498,6 +590,75 @@ export default function DashboardApp() {
+         </DialogActions>
+       </Dialog>
+ 
++      <Dialog
++        open={pendingDeleteProject !== null}
++        onClose={() => setPendingDeleteProjectId(null)}
++        fullWidth
++        maxWidth="sm"
++      >
++        <DialogTitle>{dictionary.deleteProjectTitle}</DialogTitle>
++        <DialogContent>
++          <Stack spacing={2} sx={{ pt: 1 }}>
++            <Typography variant="body2" color="text.secondary">
++              {dictionary.deleteProjectHint}
++            </Typography>
++            {pendingDeleteProject ? (
++              <Paper variant="outlined" sx={{ p: 1.5, borderRadius: 1.25 }}>
++                <Stack spacing={0.5}>
++                  <Typography variant="subtitle2">{pendingDeleteProject.name}</Typography>
++                  <Typography variant="caption" color="text.secondary">
++                    {pendingDeleteProject.rootDir}
++                  </Typography>
++                </Stack>
++              </Paper>
++            ) : null}
++            {pendingDeleteProject?.id === currentProject?.id ? (
++              <Alert severity="warning">{dictionary.deleteProjectBlockedCurrent}</Alert>
++            ) : null}
++            <Paper variant="outlined" sx={{ p: 1.5, borderRadius: 1.25 }}>
++              <Stack direction="row" spacing={2} sx={{ alignItems: "center", justifyContent: "space-between" }}>
++                <Stack spacing={0.35}>
++                  <Typography variant="body2">{dictionary.deleteProjectRoot}</Typography>
++                  <Typography variant="caption" color="text.secondary">
++                    {dictionary.deleteProjectRootHint}
++                  </Typography>
++                </Stack>
++                <Button
++                  variant={dangerousDeleteRoot ? "contained" : "outlined"}
++                  color={dangerousDeleteRoot ? "error" : "inherit"}
++                  disabled={pendingDeleteProject?.id === currentProject?.id}
++                  onClick={() => setDangerousDeleteRoot((current) => !current)}
++                >
++                  {dangerousDeleteRoot ? dictionary.yes : dictionary.no}
++                </Button>
++              </Stack>
++            </Paper>
++          </Stack>
++        </DialogContent>
++        <DialogActions>
++          <Button onClick={() => setPendingDeleteProjectId(null)}>{dictionary.cancel}</Button>
++          <Button
++            color="error"
++            variant="contained"
++            disabled={!pendingDeleteProject || pendingDeleteProject.id === currentProject?.id || !isLiveMode}
++            onClick={() => {
++              if (!pendingDeleteProject) {
++                return;
++              }
++              mutateSnapshot(
++                createMutationPayload(`/api/dashboard/projects/${pendingDeleteProject.id}`, "DELETE", {
++                  dangerousDeleteRoot
++                })
++              );
++              setPendingDeleteProjectId(null);
++              setDangerousDeleteRoot(false);
++            }}
++          >
++            {dictionary.deleteProjectConfirm}
++          </Button>
++        </DialogActions>
++      </Dialog>
++
+       <ArtifactDetailDialog
+         open={detailDialogOpen}
+         detailSelection={detailSelection}

@@ -1,0 +1,13 @@
+diff --git a/apps/dashboard/index.html b/apps/dashboard/index.html
+index 87ecfe0..8b4cfc3 100644
+--- a/apps/dashboard/index.html
++++ b/apps/dashboard/index.html
+@@ -3,7 +3,7 @@
+   <head>
+     <meta charset="UTF-8" />
+     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+-    <title>pgg dashboard</title>
++    <title>POGGN</title>
+   </head>
+   <body>
+     <div id="root"></div>

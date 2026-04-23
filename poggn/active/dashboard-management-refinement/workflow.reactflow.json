@@ -1,0 +1,254 @@
+{
+  "topic": "dashboard-management-refinement",
+  "nodes": [
+    {
+      "id": "proposal",
+      "type": "document",
+      "position": {
+        "x": 0,
+        "y": 0
+      },
+      "data": {
+        "label": "proposal.md",
+        "path": "poggn/active/dashboard-management-refinement/proposal.md",
+        "stage": "proposal"
+      }
+    },
+    {
+      "id": "proposal-review",
+      "type": "review",
+      "position": {
+        "x": 0,
+        "y": 140
+      },
+      "data": {
+        "label": "reviews/proposal.review.md",
+        "path": "poggn/active/dashboard-management-refinement/reviews/proposal.review.md",
+        "stage": "review"
+      }
+    },
+    {
+      "id": "plan",
+      "type": "document",
+      "position": {
+        "x": 0,
+        "y": 280
+      },
+      "data": {
+        "label": "plan.md",
+        "path": "poggn/active/dashboard-management-refinement/plan.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "spec-shell-navigation",
+      "type": "document",
+      "position": {
+        "x": 280,
+        "y": 280
+      },
+      "data": {
+        "label": "spec/ui/shell-navigation-and-management-sidebar.md",
+        "path": "poggn/active/dashboard-management-refinement/spec/ui/shell-navigation-and-management-sidebar.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "spec-project-board-actions",
+      "type": "document",
+      "position": {
+        "x": 280,
+        "y": 420
+      },
+      "data": {
+        "label": "spec/ui/project-board-card-actions.md",
+        "path": "poggn/active/dashboard-management-refinement/spec/ui/project-board-card-actions.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "spec-category-history",
+      "type": "document",
+      "position": {
+        "x": 560,
+        "y": 280
+      },
+      "data": {
+        "label": "spec/ui/category-table-and-history-surface.md",
+        "path": "poggn/active/dashboard-management-refinement/spec/ui/category-table-and-history-surface.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "spec-settings-preferences",
+      "type": "document",
+      "position": {
+        "x": 560,
+        "y": 420
+      },
+      "data": {
+        "label": "spec/ui/settings-title-icon-and-preferences.md",
+        "path": "poggn/active/dashboard-management-refinement/spec/ui/settings-title-icon-and-preferences.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "spec-data-client-state",
+      "type": "document",
+      "position": {
+        "x": 840,
+        "y": 350
+      },
+      "data": {
+        "label": "spec/infra/dashboard-data-client-and-shared-state.md",
+        "path": "poggn/active/dashboard-management-refinement/spec/infra/dashboard-data-client-and-shared-state.md",
+        "stage": "plan"
+      }
+    },
+    {
+      "id": "task",
+      "type": "task",
+      "position": {
+        "x": 0,
+        "y": 560
+      },
+      "data": {
+        "label": "task.md",
+        "path": "poggn/active/dashboard-management-refinement/task.md",
+        "stage": "task"
+      }
+    },
+    {
+      "id": "plan-review",
+      "type": "review",
+      "position": {
+        "x": 0,
+        "y": 700
+      },
+      "data": {
+        "label": "reviews/plan.review.md",
+        "path": "poggn/active/dashboard-management-refinement/reviews/plan.review.md",
+        "stage": "review"
+      }
+    },
+    {
+      "id": "task-review",
+      "type": "review",
+      "position": {
+        "x": 280,
+        "y": 700
+      },
+      "data": {
+        "label": "reviews/task.review.md",
+        "path": "poggn/active/dashboard-management-refinement/reviews/task.review.md",
+        "stage": "review"
+      }
+    },
+    {
+      "id": "implementation-index",
+      "type": "document",
+      "position": {
+        "x": 0,
+        "y": 840
+      },
+      "data": {
+        "label": "implementation/index.md",
+        "path": "poggn/active/dashboard-management-refinement/implementation/index.md",
+        "stage": "implementation"
+      }
+    },
+    {
+      "id": "code-review",
+      "type": "review",
+      "position": {
+        "x": 280,
+        "y": 840
+      },
+      "data": {
+        "label": "reviews/code.review.md",
+        "path": "poggn/active/dashboard-management-refinement/reviews/code.review.md",
+        "stage": "review"
+      }
+    },
+    {
+      "id": "qa-report",
+      "type": "review",
+      "position": {
+        "x": 0,
+        "y": 980
+      },
+      "data": {
+        "label": "qa/report.md",
+        "path": "poggn/active/dashboard-management-refinement/qa/report.md",
+        "stage": "qa"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "proposal-to-review",
+      "source": "proposal",
+      "target": "proposal-review"
+    },
+    {
+      "id": "review-to-plan",
+      "source": "proposal-review",
+      "target": "plan"
+    },
+    {
+      "id": "plan-to-spec-shell",
+      "source": "plan",
+      "target": "spec-shell-navigation"
+    },
+    {
+      "id": "plan-to-spec-board",
+      "source": "plan",
+      "target": "spec-project-board-actions"
+    },
+    {
+      "id": "plan-to-spec-category-history",
+      "source": "plan",
+      "target": "spec-category-history"
+    },
+    {
+      "id": "plan-to-spec-settings",
+      "source": "plan",
+      "target": "spec-settings-preferences"
+    },
+    {
+      "id": "plan-to-spec-data-client",
+      "source": "plan",
+      "target": "spec-data-client-state"
+    },
+    {
+      "id": "plan-to-task",
+      "source": "plan",
+      "target": "task"
+    },
+    {
+      "id": "plan-to-review",
+      "source": "plan",
+      "target": "plan-review"
+    },
+    {
+      "id": "task-to-review",
+      "source": "task",
+      "target": "task-review"
+    },
+    {
+      "id": "task-to-implementation",
+      "source": "task",
+      "target": "implementation-index"
+    },
+    {
+      "id": "implementation-to-review",
+      "source": "implementation-index",
+      "target": "code-review"
+    },
+    {
+      "id": "implementation-to-qa",
+      "source": "implementation-index",
+      "target": "qa-report"
+    }
+  ]
+}

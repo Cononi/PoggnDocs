@@ -1,0 +1,6 @@
+{"ts":"2026-04-23T02:19:37Z","stage":"proposal","event":"topic-created"}
+{"ts":"2026-04-23T02:20:27Z","stage":"proposal","event":"proposal-reviewed","score":95}
+{"ts":"2026-04-23T02:24:55Z","stage":"plan","event":"plan-reviewed","score":95}
+{"ts":"2026-04-23T02:24:55Z","stage":"task","event":"task-reviewed","score":95}
+{"ts":"2026-04-23T03:14:53Z","stage":"implementation","event":"code-reviewed","score":95}
+{"ts":"2026-04-23T03:15:50Z","stage":"implementation","event":"stage-commit","archiveType":"feat","commitTitle":"feat: dashboard management refinement","summary":"dashboard management refinement","why":"dashboard shell, board actions, settings branding, and axios-backed live mutations were aligned under the approved implementation contract","footer":"Refs: dashboard-management-refinement"}

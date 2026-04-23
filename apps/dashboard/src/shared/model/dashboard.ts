@@ -128,6 +128,7 @@ export type ProjectSnapshot = {
   releaseBranchPrefix: string;
   installedVersion: string | null;
   dashboardTitle: string;
+  dashboardTitleIconSvg: string;
   refreshIntervalMs: number;
   dashboardDefaultPort: number;
   verificationMode: string;
@@ -165,20 +166,14 @@ export type DashboardThemeMode = "light" | "dark";
 export type DashboardPrimaryMenu = "projects" | "settings";
 
 export type DashboardSidebarItem =
-  | "backlog"
   | "board"
-  | "reports"
-  | "issues"
-  | "components"
-  | "code"
-  | "releases"
-  | "pages"
-  | "shortcuts"
-  | "project-settings";
+  | "category"
+  | "report"
+  | "history";
 
 export type DashboardSettingsView = "main" | "refresh" | "git" | "system";
 
-export type DashboardWorkspaceMode = "backlog" | "board" | "reports" | "settings";
+export type DashboardWorkspaceMode = "board" | "category" | "report" | "history" | "settings";
 
 export type DashboardWorkspaceFilterState = {
   bucket: "all" | "active" | "archive";

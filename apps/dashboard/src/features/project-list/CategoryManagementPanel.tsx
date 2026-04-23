@@ -1,4 +1,16 @@
-import { Button, Paper, Stack, Typography } from "@mui/material";
+import {
+  Button,
+  Paper,
+  Stack,
+  Switch,
+  Table,
+  TableBody,
+  TableCell,
+  TableContainer,
+  TableHead,
+  TableRow,
+  Typography
+} from "@mui/material";
 import type { DashboardLocale, ProjectCategory } from "../../shared/model/dashboard";
 
 type CategoryManagementPanelProps = {
@@ -9,16 +21,21 @@ type CategoryManagementPanelProps = {
   onEditCategory: (categoryId: string, currentName: string) => void;
   onSetDefaultCategory: (categoryId: string) => void;
   onDeleteCategory: (categoryId: string) => void;
+  onToggleCategory: (categoryId: string, visible: boolean) => void;
+  onMoveCategory: (categoryId: string, targetIndex: number) => void;
 };
 
 export function CategoryManagementPanel(props: CategoryManagementPanelProps) {
   return (
-    <Paper sx={{ p: 2.5, borderRadius: 1 }}>
+    <Paper sx={{ p: 2.5, borderRadius: 1.5 }}>
       <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ mb: 2, justifyContent: "space-between" }}>
         <Stack spacing={1}>
+          <Typography variant="overline" color="primary.main">
+            {props.dictionary.categoryMenu}
+          </Typography>
           <Typography variant="h6">{props.dictionary.categoryManagement}</Typography>
           <Typography variant="body2" color="text.secondary">
-            {props.dictionary.categoryManagementHint}
+            {props.dictionary.categoryTableHint}
           </Typography>
         </Stack>
         <Button variant="contained" disabled={!props.isLiveMode} onClick={props.onCreateCategory}>
@@ -26,44 +43,87 @@ export function CategoryManagementPanel(props: CategoryManagementPanelProps) {
         </Button>
       </Stack>
 
-      <Stack spacing={1.25}>
-        {props.categories.map((category) => (
-          <Paper key={category.id} variant="outlined" sx={{ p: 1.5, borderRadius: 1 }}>
-            <Stack direction={{ xs: "column", md: "row" }} spacing={2} sx={{ justifyContent: "space-between" }}>
-              <Stack spacing={0.4}>
-                <Typography variant="subtitle1">
-                  {category.name}
-                  {category.isDefault ? ` (${props.dictionary.defaultBadge})` : ""}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  {category.projectIds.length} {props.dictionary.projects}
-                </Typography>
-              </Stack>
-
-              <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
-                <Button size="small" disabled={!props.isLiveMode} onClick={() => props.onEditCategory(category.id, category.name)}>
-                  {props.dictionary.rename}
-                </Button>
-                <Button
-                  size="small"
-                  disabled={!props.isLiveMode || category.isDefault}
-                  onClick={() => props.onSetDefaultCategory(category.id)}
-                >
-                  {props.dictionary.makeDefault}
-                </Button>
-                <Button
-                  size="small"
-                  color="error"
-                  disabled={!props.isLiveMode || props.categories.length <= 1}
-                  onClick={() => props.onDeleteCategory(category.id)}
-                >
-                  {props.dictionary.remove}
-                </Button>
-              </Stack>
-            </Stack>
-          </Paper>
-        ))}
-      </Stack>
+      <TableContainer>
+        <Table size="small">
+          <TableHead>
+            <TableRow>
+              <TableCell>{props.dictionary.category}</TableCell>
+              <TableCell>{props.dictionary.defaultBadge}</TableCell>
+              <TableCell>{props.dictionary.visible}</TableCell>
+              <TableCell>{props.dictionary.projects}</TableCell>
+              <TableCell>{props.dictionary.categoryOrdering}</TableCell>
+              <TableCell align="right">{props.dictionary.settings}</TableCell>
+            </TableRow>
+          </TableHead>
+          <TableBody>
+            {props.categories.map((category, index) => (
+              <TableRow key={category.id} hover>
+                <TableCell>
+                  <Stack spacing={0.35}>
+                    <Typography variant="subtitle2">{category.name}</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {category.id}
+                    </Typography>
+                  </Stack>
+                </TableCell>
+                <TableCell>{category.isDefault ? props.dictionary.yes : props.dictionary.no}</TableCell>
+                <TableCell>
+                  <Switch
+                    checked={category.visible}
+                    disabled={!props.isLiveMode}
+                    onChange={(event) => props.onToggleCategory(category.id, event.target.checked)}
+                  />
+                </TableCell>
+                <TableCell>{category.projectIds.length}</TableCell>
+                <TableCell>
+                  <Stack direction="row" spacing={1}>
+                    <Button
+                      size="small"
+                      disabled={!props.isLiveMode || index === 0}
+                      onClick={() => props.onMoveCategory(category.id, index - 1)}
+                    >
+                      {props.dictionary.moveUp}
+                    </Button>
+                    <Button
+                      size="small"
+                      disabled={!props.isLiveMode || index === props.categories.length - 1}
+                      onClick={() => props.onMoveCategory(category.id, index + 1)}
+                    >
+                      {props.dictionary.moveDown}
+                    </Button>
+                  </Stack>
+                </TableCell>
+                <TableCell align="right">
+                  <Stack direction="row" spacing={1} sx={{ justifyContent: "flex-end" }}>
+                    <Button
+                      size="small"
+                      disabled={!props.isLiveMode}
+                      onClick={() => props.onEditCategory(category.id, category.name)}
+                    >
+                      {props.dictionary.rename}
+                    </Button>
+                    <Button
+                      size="small"
+                      disabled={!props.isLiveMode || category.isDefault}
+                      onClick={() => props.onSetDefaultCategory(category.id)}
+                    >
+                      {props.dictionary.makeDefault}
+                    </Button>
+                    <Button
+                      size="small"
+                      color="error"
+                      disabled={!props.isLiveMode || props.categories.length <= 1}
+                      onClick={() => props.onDeleteCategory(category.id)}
+                    >
+                      {props.dictionary.remove}
+                    </Button>
+                  </Stack>
+                </TableCell>
+              </TableRow>
+            ))}
+          </TableBody>
+        </Table>
+      </TableContainer>
     </Paper>
   );
 }
