@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 95
-  updated_at: "2026-04-23T03:14:53Z"
+  updated_at: "2026-04-23T03:23:16Z"
 reactflow:
   node_id: "implementation-index"
   node_type: "doc"
@@ -38,6 +38,11 @@ state:
 | 017 | UPDATE | `packages/core/dist/index.js` | `implementation/diffs/017_UPDATE_packages_core_dist_index_js.diff` | `T1` | core runtime bundle을 source 변경에 맞춰 재빌드 |
 | 018 | UPDATE | `packages/core/dist/index.js.map` | `implementation/diffs/018_UPDATE_packages_core_dist_index_js_map.diff` | `T1` | core source map을 재생성 |
 | 019 | UPDATE | `pnpm-lock.yaml` | `implementation/diffs/019_UPDATE_pnpm-lock_yaml.diff` | `T1` | `axios` 의존성 추가에 맞춰 lockfile을 갱신 |
+| 020 | UPDATE | `apps/dashboard/src/app/DashboardApp.tsx` | `implementation/diffs/020_UPDATE_apps_dashboard_src_app_DashboardApp_tsx.refactor.diff` | `refactor` | 화면 분기 내부 inline mutation을 handler로 정리하고 삭제 modal의 filesystem opt-in을 체크박스로 교체 |
+| 021 | UPDATE | `apps/dashboard/src/app/dashboardShell.ts` | `implementation/diffs/021_UPDATE_apps_dashboard_src_app_dashboardShell_ts.refactor.diff` | `refactor` | 더 이상 사용하지 않는 search/detail selection helper를 제거해 shell helper 계약을 현재 구조와 맞춤 |
+| 022 | UPDATE | `apps/dashboard/src/features/backlog/BacklogWorkspace.tsx` | `implementation/diffs/022_UPDATE_apps_dashboard_src_features_backlog_BacklogWorkspace_tsx.refactor.diff` | `refactor` | history/backlog surface에서 사용하지 않는 `language` prop을 제거 |
+| 023 | UPDATE | `apps/dashboard/src/shared/model/dashboard.ts` | `implementation/diffs/023_UPDATE_apps_dashboard_src_shared_model_dashboard_ts.refactor.diff` | `refactor` | 더 이상 쓰지 않는 `workspaceMode`, `shellSearchQuery` store contract를 model에서 제거 |
+| 024 | UPDATE | `apps/dashboard/src/shared/store/dashboardStore.ts` | `implementation/diffs/024_UPDATE_apps_dashboard_src_shared_store_dashboardStore_ts.refactor.diff` | `refactor` | persisted UI state를 현재 navigation 구조만 남기도록 단순화 |
 
 ## Notes
 
@@ -45,3 +50,4 @@ state:
 - 검증 contract는 여전히 선언되지 않았으므로 `manual verification required` 상태를 유지한다.
 - `History`는 기존 backlog surface를 history 문맥으로 재사용한다.
 - project delete는 dashboard 등록 삭제와 filesystem 삭제를 분리했고, 실제 폴더 삭제는 명시적 opt-in checkbox가 있을 때만 live API가 수행한다.
+- refactor 단계에서 dead shell helper, legacy store state, unused backlog prop을 제거했다.

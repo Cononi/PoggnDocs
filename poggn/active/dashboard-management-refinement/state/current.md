@@ -6,11 +6,11 @@ dashboard-management-refinement
 
 ## Current Stage
 
-implementation
+refactor
 
 ## Goal
 
-승인된 plan을 구현하고 implementation diff와 review를 기록한다.
+구현된 dashboard management refinement topic을 정리하고 레거시 상태를 제거해 QA 가능한 상태로 고정한다.
 
 ## Confirmed Scope
 
@@ -26,6 +26,8 @@ implementation
 - dashboard API client는 `fetch -> axios` 정리를 plan 범위에 포함한다.
 - 구현 spec은 shell/sidebar, board card actions, category/history surface, settings title/icon/preferences, data client/shared state로 분해되었다.
 - top navigation, board/category/report/history/settings, title icon branding, delete guard, axios client가 구현되었다.
+- refactor 단계에서 `DashboardApp`의 inline mutation 흐름을 handler로 정리했고, 사용하지 않는 shell helper/store state를 제거했다.
+- project delete modal의 실제 폴더 삭제 opt-in은 버튼 토글이 아니라 명시적 checkbox로 정렬되었다.
 
 ## Constraints
 
@@ -43,7 +45,7 @@ implementation
 
 ## Open Items
 
-- status: ready for `pgg-refactor`
+- status: ready for `pgg-qa`
 - blocking issues: 없음
 
 ## User Question Record
@@ -106,14 +108,20 @@ implementation
 | UPDATE | `pnpm-lock.yaml` | `implementation/diffs/019_UPDATE_pnpm-lock_yaml.diff` |
 | CREATE | `poggn/active/dashboard-management-refinement/implementation/index.md` | 없음 |
 | CREATE | `poggn/active/dashboard-management-refinement/reviews/code.review.md` | 없음 |
+| CREATE | `poggn/active/dashboard-management-refinement/reviews/refactor.review.md` | 없음 |
+| UPDATE | `apps/dashboard/src/app/DashboardApp.tsx` | `implementation/diffs/020_UPDATE_apps_dashboard_src_app_DashboardApp_tsx.refactor.diff` |
+| UPDATE | `apps/dashboard/src/app/dashboardShell.ts` | `implementation/diffs/021_UPDATE_apps_dashboard_src_app_dashboardShell_ts.refactor.diff` |
+| UPDATE | `apps/dashboard/src/features/backlog/BacklogWorkspace.tsx` | `implementation/diffs/022_UPDATE_apps_dashboard_src_features_backlog_BacklogWorkspace_tsx.refactor.diff` |
+| UPDATE | `apps/dashboard/src/shared/model/dashboard.ts` | `implementation/diffs/023_UPDATE_apps_dashboard_src_shared_model_dashboard_ts.refactor.diff` |
+| UPDATE | `apps/dashboard/src/shared/store/dashboardStore.ts` | `implementation/diffs/024_UPDATE_apps_dashboard_src_shared_store_dashboardStore_ts.refactor.diff` |
 | UPDATE | `poggn/active/dashboard-management-refinement/state/current.md` | 없음 |
 | UPDATE | `poggn/active/dashboard-management-refinement/state/history.ndjson` | 없음 |
 | UPDATE | `poggn/active/dashboard-management-refinement/workflow.reactflow.json` | 없음 |
 
 ## Last Expert Score
 
-- phase: implementation
-- score: 95
+- phase: refactor
+- score: 96
 - blocking issues: 없음
 
 ## Git Publish Message
@@ -124,4 +132,4 @@ implementation
 
 ## Next Action
 
-`pgg-refactor`
+`pgg-qa`

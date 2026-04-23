@@ -1,6 +1,4 @@
 import type {
-  ArtifactDocumentEntry,
-  ArtifactSelection,
   DashboardLocale,
   DashboardRecentActivityEntry,
   DashboardQueryResult,
@@ -10,7 +8,6 @@ import type {
   ProjectSnapshot,
   TopicSummary
 } from "../shared/model/dashboard";
-import { getDefaultArtifactSelection } from "../shared/utils/dashboard";
 
 export type DashboardMutationMethod = "POST" | "PATCH" | "DELETE";
 
@@ -156,26 +153,6 @@ export function resolveInitialSelectedProjectId(
   return snapshot.currentProjectId ?? snapshot.projects[0]?.id ?? null;
 }
 
-export function resolveSelectedProjectFromSearch(
-  snapshot: DashboardSnapshot | null,
-  shellSearchQuery: string
-): ProjectSnapshot | null {
-  if (!snapshot) {
-    return null;
-  }
-
-  const query = shellSearchQuery.trim().toLowerCase();
-  if (!query) {
-    return null;
-  }
-
-  return (
-    snapshot.projects.find((project) =>
-      `${project.name} ${project.rootDir} ${project.dashboardTitle}`.toLowerCase().includes(query)
-    ) ?? null
-  );
-}
-
 export function resolveVisibleTopicSelection(
   topics: TopicSummary[],
   selectedTopicKey: string | null
@@ -192,67 +169,6 @@ export function resolveVisibleTopicSelection(
   }
 
   return `${topics[0]!.bucket}:${topics[0]!.name}`;
-}
-
-export function resolveVisibleTopicState(
-  visibleTopics: TopicSummary[],
-  selectedTopicKey: string | null,
-  projectSurface: "board" | "detail"
-): {
-  nextSelectedTopicKey: string | null;
-  nextProjectSurface: "board" | "detail";
-} | null {
-  if (!visibleTopics.length) {
-    const nextSelectedTopicKey = selectedTopicKey ? null : selectedTopicKey;
-    const nextProjectSurface = projectSurface === "detail" ? "board" : projectSurface;
-    if (
-      nextSelectedTopicKey === selectedTopicKey &&
-      nextProjectSurface === projectSurface
-    ) {
-      return null;
-    }
-
-    return {
-      nextSelectedTopicKey,
-      nextProjectSurface
-    };
-  }
-
-  const hasSelectedTopic =
-    selectedTopicKey !== null &&
-    visibleTopics.some((topic) => `${topic.bucket}:${topic.name}` === selectedTopicKey);
-  if (projectSurface !== "detail" || hasSelectedTopic) {
-    return null;
-  }
-
-  return {
-    nextSelectedTopicKey: `${visibleTopics[0]!.bucket}:${visibleTopics[0]!.name}`,
-    nextProjectSurface: projectSurface
-  };
-}
-
-export function resolveNextDetailSelection(
-  selectedTopic: TopicSummary | null,
-  currentSelection: ArtifactSelection | null,
-  artifactEntries: ArtifactDocumentEntry[]
-): ArtifactSelection | null {
-  const nextSelection = getDefaultArtifactSelection(selectedTopic);
-  if (!nextSelection) {
-    return null;
-  }
-
-  const hasCurrentEntry =
-    currentSelection !== null &&
-    artifactEntries.some((entry) => entry.sourcePath === currentSelection.sourcePath);
-  if (
-    currentSelection &&
-    currentSelection.topicKey === nextSelection.topicKey &&
-    hasCurrentEntry
-  ) {
-    return currentSelection;
-  }
-
-  return nextSelection;
 }
 
 export function markDashboardInteraction(

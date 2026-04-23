@@ -32,7 +32,6 @@ type BacklogWorkspaceProps = {
   project: ProjectSnapshot | null;
   sections: BacklogSectionModel[];
   dictionary: DashboardLocale;
-  language: "ko" | "en";
   isLiveMode: boolean;
   searchQuery: string;
   filterState: DashboardWorkspaceFilterState;

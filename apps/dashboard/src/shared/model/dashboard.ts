@@ -173,8 +173,6 @@ export type DashboardSidebarItem =
 
 export type DashboardSettingsView = "main" | "refresh" | "git" | "system";
 
-export type DashboardWorkspaceMode = "board" | "category" | "report" | "history" | "settings";
-
 export type DashboardWorkspaceFilterState = {
   bucket: "all" | "active" | "archive";
   stage: "all" | "proposal" | "plan" | "implementation" | "qa" | "blocked";
@@ -221,22 +219,18 @@ export type DashboardStore = {
   activeTopMenu: DashboardPrimaryMenu;
   activeSidebarItem: DashboardSidebarItem;
   activeSettingsView: DashboardSettingsView;
-  workspaceMode: DashboardWorkspaceMode;
   themeMode: DashboardThemeMode;
   selectedProjectId: string | null;
   selectedTopicKey: string | null;
-  shellSearchQuery: string;
   topicFilter: string;
   workspaceFilterState: DashboardWorkspaceFilterState;
   insightsRailOpen: boolean;
   setActiveTopMenu: (value: DashboardPrimaryMenu) => void;
   setActiveSidebarItem: (value: DashboardSidebarItem) => void;
   setActiveSettingsView: (value: DashboardSettingsView) => void;
-  setWorkspaceMode: (value: DashboardWorkspaceMode) => void;
   setThemeMode: (value: DashboardThemeMode) => void;
   setSelectedProjectId: (value: string | null) => void;
   setSelectedTopicKey: (value: string | null) => void;
-  setShellSearchQuery: (value: string) => void;
   setTopicFilter: (value: string) => void;
   setWorkspaceFilterState: (value: DashboardWorkspaceFilterState) => void;
   setInsightsRailOpen: (value: boolean) => void;

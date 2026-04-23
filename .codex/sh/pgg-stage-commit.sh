@@ -155,6 +155,10 @@ list_changed_paths() {
 }
 
 list_dirty_paths() {
+  if ! git -C "$ROOT_DIR" rev-parse --show-toplevel >/dev/null 2>&1; then
+    return 0
+  fi
+
   node -e '
     const { execFileSync } = require("child_process");
     const commands = [["diff", "--name-only", "--relative"], ["diff", "--cached", "--name-only", "--relative"], ["ls-files", "--others", "--exclude-standard"]];

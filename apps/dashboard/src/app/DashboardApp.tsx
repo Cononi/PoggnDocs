@@ -5,11 +5,13 @@ import {
   Alert,
   Box,
   Button,
+  Checkbox,
   Dialog,
   DialogActions,
   DialogContent,
   DialogTitle,
   Drawer,
+  FormControlLabel,
   MenuItem,
   Paper,
   Stack,
@@ -26,16 +28,10 @@ import { RecentActivityTable } from "../features/reports/RecentActivityTable";
 import { SettingsWorkspace } from "../features/settings/SettingsWorkspace";
 import { fetchDashboardSnapshot, requestDashboardSnapshot } from "../shared/api/dashboard";
 import { dashboardLocale } from "../shared/locale/dashboardLocale";
-import type {
-  ArtifactSelection,
-  DashboardSettingsView,
-} from "../shared/model/dashboard";
+import type { ArtifactSelection, DashboardSettingsView } from "../shared/model/dashboard";
 import { useDashboardStore } from "../shared/store/dashboardStore";
 import { normalizeDashboardTitleIconSvg, toSvgDataUrl } from "../shared/utils/brand";
-import {
-  buildTopicArtifactEntries,
-  getDefaultArtifactSelection
-} from "../shared/utils/dashboard";
+import { getDefaultArtifactSelection } from "../shared/utils/dashboard";
 import {
   DashboardStatePanel,
   ProjectContextSidebar,
@@ -102,6 +98,7 @@ export default function DashboardApp() {
   const selectedProject = resolveSelectedProject(snapshot, selectedProjectId, currentProject);
   const latestActiveProject = resolveLatestActiveProject(snapshot, currentProject);
   const dictionary = dashboardLocale[(selectedProject ?? currentProject)?.language ?? "en"];
+  const projectLanguage = selectedProject?.language ?? currentProject?.language ?? "en";
   const isLiveMode = snapshotSource === "live";
   const categories = useMemo(
     () => [...(snapshot?.categories ?? [])].sort((left, right) => left.order - right.order),
@@ -172,11 +169,11 @@ export default function DashboardApp() {
     () => resolveSelectedTopic(visibleTopics, nextVisibleTopicKey),
     [nextVisibleTopicKey, visibleTopics]
   );
-  const artifactEntries = useMemo(() => buildTopicArtifactEntries(selectedTopic), [selectedTopic]);
   const insightsSummary = useMemo(
     () => buildInsightsSummary(selectedProject, snapshot?.recentActivity ?? [], dictionary),
     [dictionary, selectedProject, snapshot?.recentActivity]
   );
+  const isDeletingCurrentProject = pendingDeleteProject?.id === currentProject?.id;
 
   useEffect(() => {
     if (activeSidebarItem !== "history") {
@@ -269,6 +266,68 @@ export default function DashboardApp() {
     }
   };
 
+  const handleTopicFilterChange = (value: string) => {
+    markDashboardInteraction("topic-filter", "start");
+    setTopicFilter(value);
+  };
+
+  const promptForCategoryName = (title: string, currentName = "") => {
+    const nextName = window.prompt(title, currentName)?.trim() ?? "";
+    return nextName || null;
+  };
+
+  const handleCreateCategory = () => {
+    const name = promptForCategoryName(dictionary.createCategoryTitle);
+    if (!name) {
+      return;
+    }
+
+    mutateSnapshot(createMutationPayload("/api/dashboard/categories", "POST", { name }));
+  };
+
+  const handleEditCategory = (categoryId: string, currentName: string) => {
+    const name = promptForCategoryName(dictionary.editCategoryTitle, currentName);
+    if (!name || name === currentName) {
+      return;
+    }
+
+    mutateSnapshot(createMutationPayload(`/api/dashboard/categories/${categoryId}`, "PATCH", { name }));
+  };
+
+  const closeProjectDialog = () => {
+    setProjectDialogOpen(false);
+    setProjectRootDirDraft("");
+    setProjectCategoryDraft("");
+  };
+
+  const closeDeleteProjectDialog = () => {
+    setPendingDeleteProjectId(null);
+    setDangerousDeleteRoot(false);
+  };
+
+  const handleCreateProject = () => {
+    mutateSnapshot(
+      createMutationPayload("/api/dashboard/projects", "POST", {
+        rootDir: projectRootDirDraft,
+        targetCategoryId: projectCategoryDraft || undefined
+      })
+    );
+    closeProjectDialog();
+  };
+
+  const handleDeleteProject = () => {
+    if (!pendingDeleteProject) {
+      return;
+    }
+
+    mutateSnapshot(
+      createMutationPayload(`/api/dashboard/projects/${pendingDeleteProject.id}`, "DELETE", {
+        dangerousDeleteRoot
+      })
+    );
+    closeDeleteProjectDialog();
+  };
+
   const renderMainSurface = () => {
     if (activeTopMenu === "settings") {
       return (
@@ -299,20 +358,8 @@ export default function DashboardApp() {
           categories={categories}
           dictionary={dictionary}
           isLiveMode={isLiveMode}
-          onCreateCategory={() => {
-            const name = window.prompt(dictionary.createCategoryTitle, "");
-            if (!name) {
-              return;
-            }
-            mutateSnapshot(createMutationPayload("/api/dashboard/categories", "POST", { name }));
-          }}
-          onEditCategory={(categoryId, currentName) => {
-            const name = window.prompt(dictionary.editCategoryTitle, currentName);
-            if (!name || name === currentName) {
-              return;
-            }
-            mutateSnapshot(createMutationPayload(`/api/dashboard/categories/${categoryId}`, "PATCH", { name }));
-          }}
+          onCreateCategory={handleCreateCategory}
+          onEditCategory={handleEditCategory}
           onSetDefaultCategory={(categoryId) =>
             mutateSnapshot(createMutationPayload(`/api/dashboard/categories/${categoryId}/default`, "POST"))
           }
@@ -338,7 +385,7 @@ export default function DashboardApp() {
         <RecentActivityTable
           entries={selectedProjectRecentActivity}
           dictionary={dictionary}
-          language={selectedProject?.language ?? currentProject?.language ?? "en"}
+          language={projectLanguage}
           onOpenProject={openProjectContext}
         />
       );
@@ -350,7 +397,6 @@ export default function DashboardApp() {
           project={selectedProject}
           sections={backlogSections}
           dictionary={dictionary}
-          language={selectedProject?.language ?? currentProject?.language ?? "en"}
           isLiveMode={isLiveMode}
           title={dictionary.historyTitle}
           hint={dictionary.historyHint}
@@ -358,10 +404,7 @@ export default function DashboardApp() {
           searchQuery={topicFilter}
           filterState={workspaceFilterState}
           selectedTopicKey={nextVisibleTopicKey}
-          onSearchChange={(value) => {
-            markDashboardInteraction("topic-filter", "start");
-            setTopicFilter(value);
-          }}
+          onSearchChange={handleTopicFilterChange}
           onFilterChange={setWorkspaceFilterState}
           onOpenCreateAction={() => setProjectDialogOpen(true)}
           onOpenTopic={openTopicDialog}
@@ -404,15 +447,11 @@ export default function DashboardApp() {
         project={selectedProject}
         sections={backlogSections}
         dictionary={dictionary}
-        language={selectedProject?.language ?? currentProject?.language ?? "en"}
         isLiveMode={isLiveMode}
         searchQuery={topicFilter}
         filterState={workspaceFilterState}
         selectedTopicKey={nextVisibleTopicKey}
-        onSearchChange={(value) => {
-          markDashboardInteraction("topic-filter", "start");
-          setTopicFilter(value);
-        }}
+        onSearchChange={handleTopicFilterChange}
         onFilterChange={setWorkspaceFilterState}
         onOpenCreateAction={() => setProjectDialogOpen(true)}
         onOpenTopic={openTopicDialog}
@@ -542,7 +581,7 @@ export default function DashboardApp() {
         </Box>
       </Drawer>
 
-      <Dialog open={projectDialogOpen} onClose={() => setProjectDialogOpen(false)} fullWidth maxWidth="sm">
+      <Dialog open={projectDialogOpen} onClose={closeProjectDialog} fullWidth maxWidth="sm">
         <DialogTitle>{dictionary.addProjectTitle}</DialogTitle>
         <DialogContent>
           <Stack spacing={2} sx={{ pt: 1 }}>
@@ -571,20 +610,8 @@ export default function DashboardApp() {
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setProjectDialogOpen(false)}>{dictionary.cancel}</Button>
-          <Button
-            variant="contained"
-            disabled={!isLiveMode}
-            onClick={() => {
-              mutateSnapshot(
-                createMutationPayload("/api/dashboard/projects", "POST", {
-                  rootDir: projectRootDirDraft,
-                  targetCategoryId: projectCategoryDraft || undefined
-                })
-              );
-              setProjectDialogOpen(false);
-            }}
-          >
+          <Button onClick={closeProjectDialog}>{dictionary.cancel}</Button>
+          <Button variant="contained" disabled={!isLiveMode} onClick={handleCreateProject}>
             {dictionary.save}
           </Button>
         </DialogActions>
@@ -592,7 +619,7 @@ export default function DashboardApp() {
 
       <Dialog
         open={pendingDeleteProject !== null}
-        onClose={() => setPendingDeleteProjectId(null)}
+        onClose={closeDeleteProjectDialog}
         fullWidth
         maxWidth="sm"
       >
@@ -612,47 +639,39 @@ export default function DashboardApp() {
                 </Stack>
               </Paper>
             ) : null}
-            {pendingDeleteProject?.id === currentProject?.id ? (
+            {isDeletingCurrentProject ? (
               <Alert severity="warning">{dictionary.deleteProjectBlockedCurrent}</Alert>
             ) : null}
             <Paper variant="outlined" sx={{ p: 1.5, borderRadius: 1.25 }}>
-              <Stack direction="row" spacing={2} sx={{ alignItems: "center", justifyContent: "space-between" }}>
-                <Stack spacing={0.35}>
-                  <Typography variant="body2">{dictionary.deleteProjectRoot}</Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {dictionary.deleteProjectRootHint}
-                  </Typography>
-                </Stack>
-                <Button
-                  variant={dangerousDeleteRoot ? "contained" : "outlined"}
-                  color={dangerousDeleteRoot ? "error" : "inherit"}
-                  disabled={pendingDeleteProject?.id === currentProject?.id}
-                  onClick={() => setDangerousDeleteRoot((current) => !current)}
-                >
-                  {dangerousDeleteRoot ? dictionary.yes : dictionary.no}
-                </Button>
-              </Stack>
+              <FormControlLabel
+                control={
+                  <Checkbox
+                    checked={dangerousDeleteRoot}
+                    color="error"
+                    disabled={isDeletingCurrentProject}
+                    onChange={(event) => setDangerousDeleteRoot(event.target.checked)}
+                  />
+                }
+                label={
+                  <Stack spacing={0.35}>
+                    <Typography variant="body2">{dictionary.deleteProjectRoot}</Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {dictionary.deleteProjectRootHint}
+                    </Typography>
+                  </Stack>
+                }
+                sx={{ m: 0, alignItems: "flex-start" }}
+              />
             </Paper>
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setPendingDeleteProjectId(null)}>{dictionary.cancel}</Button>
+          <Button onClick={closeDeleteProjectDialog}>{dictionary.cancel}</Button>
           <Button
             color="error"
             variant="contained"
-            disabled={!pendingDeleteProject || pendingDeleteProject.id === currentProject?.id || !isLiveMode}
-            onClick={() => {
-              if (!pendingDeleteProject) {
-                return;
-              }
-              mutateSnapshot(
-                createMutationPayload(`/api/dashboard/projects/${pendingDeleteProject.id}`, "DELETE", {
-                  dangerousDeleteRoot
-                })
-              );
-              setPendingDeleteProjectId(null);
-              setDangerousDeleteRoot(false);
-            }}
+            disabled={!pendingDeleteProject || isDeletingCurrentProject || !isLiveMode}
+            onClick={handleDeleteProject}
           >
             {dictionary.deleteProjectConfirm}
           </Button>
