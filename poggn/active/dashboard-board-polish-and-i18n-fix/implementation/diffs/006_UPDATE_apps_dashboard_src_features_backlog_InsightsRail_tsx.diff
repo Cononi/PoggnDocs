@@ -1,13 +1,31 @@
 diff --git a/apps/dashboard/src/features/backlog/InsightsRail.tsx b/apps/dashboard/src/features/backlog/InsightsRail.tsx
-index fd4f68a..42200ea 100644
+index 42200ea..eec8f8d 100644
 --- a/apps/dashboard/src/features/backlog/InsightsRail.tsx
 +++ b/apps/dashboard/src/features/backlog/InsightsRail.tsx
-@@ -27,7 +27,7 @@ export function InsightsRail(props: InsightsRailProps) {
-               justifyContent: "space-between",
-               px: 0.75,
-               py: 0.5,
--              borderRadius: 0.8,
+@@ -121,7 +121,7 @@ function BarWidget(props: { widget: InsightsSummaryModel["widgets"][number] }) {
+           <Box
+             sx={{
+               height: 12,
+-              borderRadius: 999,
 +              borderRadius: 1,
-               color: "text.primary"
+               overflow: "hidden",
+               backgroundColor: alpha(theme.palette.text.secondary, 0.1)
              }}
-           >
+@@ -130,7 +130,7 @@ function BarWidget(props: { widget: InsightsSummaryModel["widgets"][number] }) {
+               sx={{
+                 width: `${Math.max((item.value / maxValue) * 100, item.value > 0 ? 10 : 0)}%`,
+                 height: "100%",
+-                borderRadius: 999,
++                borderRadius: 1,
+                 bgcolor: resolveDashboardToneAccent(theme, item.tone)
+               }}
+             />
+@@ -159,7 +159,7 @@ function ProgressWidget(props: { widget: InsightsSummaryModel["widgets"][number]
+           <Box
+             key={item.id}
+             sx={{
+-              borderRadius: 999,
++              borderRadius: 1,
+               bgcolor: resolveDashboardToneAccent(theme, item.tone)
+             }}
+           />

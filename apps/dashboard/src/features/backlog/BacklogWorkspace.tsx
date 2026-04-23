@@ -375,7 +375,7 @@ function MetricPill(props: { label: string }) {
         minWidth: 40,
         px: 1.1,
         py: 0.65,
-        borderRadius: 999,
+        borderRadius: 1,
         textAlign: "center",
         fontSize: 12,
         fontWeight: 700,

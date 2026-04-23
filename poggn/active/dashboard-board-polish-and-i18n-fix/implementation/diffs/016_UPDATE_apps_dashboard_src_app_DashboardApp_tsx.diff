@@ -1,0 +1,32 @@
+diff --git a/apps/dashboard/src/app/DashboardApp.tsx b/apps/dashboard/src/app/DashboardApp.tsx
+index 963caa3..37e627a 100644
+--- a/apps/dashboard/src/app/DashboardApp.tsx
++++ b/apps/dashboard/src/app/DashboardApp.tsx
+@@ -28,7 +28,11 @@ import { RecentActivityTable } from "../features/reports/RecentActivityTable";
+ import { SettingsWorkspace } from "../features/settings/SettingsWorkspace";
+ import { fetchDashboardSnapshot, requestDashboardSnapshot } from "../shared/api/dashboard";
+ import { dashboardLocale } from "../shared/locale/dashboardLocale";
+-import type { ArtifactSelection, DashboardSettingsView } from "../shared/model/dashboard";
++import type {
++  ArtifactSelection,
++  DashboardQueryResult,
++  DashboardSettingsView
++} from "../shared/model/dashboard";
+ import { useDashboardStore } from "../shared/store/dashboardStore";
+ import { normalizeDashboardTitleIconSvg, toSvgDataUrl } from "../shared/utils/brand";
+ import { getDefaultArtifactSelection } from "../shared/utils/dashboard";
+@@ -224,8 +228,12 @@ export default function DashboardApp() {
+         body: payload.body
+       });
+     },
+-    onSuccess: async () => {
+-      await queryClient.invalidateQueries({ queryKey: ["dashboard-snapshot"] });
++    onSuccess: (nextSnapshot) => {
++      setFeedback(null);
++      queryClient.setQueryData<DashboardQueryResult>(["dashboard-snapshot"], (current) => ({
++        snapshot: nextSnapshot,
++        source: current?.source ?? "live"
++      }));
+     },
+     onError: (error) => {
+       setFeedback(error instanceof Error ? error.message : dictionary.dashboardError);

@@ -121,7 +121,7 @@ function BarWidget(props: { widget: InsightsSummaryModel["widgets"][number] }) {
           <Box
             sx={{
               height: 12,
-              borderRadius: 999,
+              borderRadius: 1,
               overflow: "hidden",
               backgroundColor: alpha(theme.palette.text.secondary, 0.1)
             }}
@@ -130,7 +130,7 @@ function BarWidget(props: { widget: InsightsSummaryModel["widgets"][number] }) {
               sx={{
                 width: `${Math.max((item.value / maxValue) * 100, item.value > 0 ? 10 : 0)}%`,
                 height: "100%",
-                borderRadius: 999,
+                borderRadius: 1,
                 bgcolor: resolveDashboardToneAccent(theme, item.tone)
               }}
             />
@@ -159,7 +159,7 @@ function ProgressWidget(props: { widget: InsightsSummaryModel["widgets"][number]
           <Box
             key={item.id}
             sx={{
-              borderRadius: 999,
+              borderRadius: 1,
               bgcolor: resolveDashboardToneAccent(theme, item.tone)
             }}
           />

@@ -6,11 +6,11 @@ dashboard-board-polish-and-i18n-fix
 
 ## Current Stage
 
-implementation
+refactor
 
 ## Goal
 
-dashboard board/category UX, responsiveness, latest chip metadata, radius normalization, i18n gaps 구현을 완료하고 required `pgg-performance` audit로 넘긴다.
+render/invalidation 잔여 위험을 줄이는 refactor를 마치고 `pgg-qa`로 넘긴다.
 
 ## Confirmed Scope
 
@@ -41,9 +41,9 @@ dashboard board/category UX, responsiveness, latest chip metadata, radius normal
 
 ## Open Items
 
-- status: ready for `pgg-performance`
+- status: ready for `pgg-qa`
 - blocking issues: 없음
-- note: required `pgg-performance` audit가 아직 남아 있다
+- note: mutation refetch invalidation은 제거했고 board fan-out도 줄였지만, browser profiler 기반 수동 responsiveness 검증과 JS chunk warning 추적은 여전히 남아 있다
 
 ## User Question Record
 
@@ -75,10 +75,20 @@ dashboard board/category UX, responsiveness, latest chip metadata, radius normal
 
 - ref: `implementation/index.md`
 
+## Performance Report
+
+- ref: `performance/report.md`
+
+## Refactor Review
+
+- ref: `reviews/refactor.review.md`
+
 ## Verification
 
 - verification contract | `manual verification required`
 - `pnpm --filter @pgg/dashboard build` | pass
+- `rg -n "borderRadius:\\s*(0\\.[0-9]+|[2-9]|1[0-9]|999)|borderRadius:\\s*\\{[^\\n]*[2-9]" apps/dashboard/src` | pass (`no matches`)
+- `git diff --check` | pass
 
 ## Changed Files
 
@@ -108,18 +118,22 @@ dashboard board/category UX, responsiveness, latest chip metadata, radius normal
 | UPDATE | `apps/dashboard/src/shared/theme/dashboardTheme.ts` | `implementation/diffs/013_UPDATE_apps_dashboard_src_shared_theme_dashboardTheme_ts.diff` |
 | UPDATE | `apps/dashboard/src/shared/utils/dashboard.tsx` | `implementation/diffs/014_UPDATE_apps_dashboard_src_shared_utils_dashboard_tsx.diff` |
 | UPDATE | `pnpm-lock.yaml` | `implementation/diffs/015_UPDATE_pnpm-lock_yaml.diff` |
+| CREATE | `poggn/active/dashboard-board-polish-and-i18n-fix/performance/report.md` | 없음 |
 | CREATE | `poggn/active/dashboard-board-polish-and-i18n-fix/reviews/proposal.review.md` | 없음 |
 | CREATE | `poggn/active/dashboard-board-polish-and-i18n-fix/reviews/plan.review.md` | 없음 |
 | CREATE | `poggn/active/dashboard-board-polish-and-i18n-fix/reviews/task.review.md` | 없음 |
 | CREATE | `poggn/active/dashboard-board-polish-and-i18n-fix/reviews/code.review.md` | 없음 |
+| CREATE | `poggn/active/dashboard-board-polish-and-i18n-fix/reviews/refactor.review.md` | 없음 |
 | CREATE | `poggn/active/dashboard-board-polish-and-i18n-fix/state/current.md` | 없음 |
 | CREATE | `poggn/active/dashboard-board-polish-and-i18n-fix/state/history.ndjson` | 없음 |
 | CREATE | `poggn/active/dashboard-board-polish-and-i18n-fix/workflow.reactflow.json` | 없음 |
+| UPDATE | `apps/dashboard/src/app/DashboardApp.tsx` | `implementation/diffs/016_UPDATE_apps_dashboard_src_app_DashboardApp_tsx.diff` |
+| UPDATE | `apps/dashboard/src/features/project-list/ProjectListBoard.tsx` | `implementation/diffs/017_UPDATE_apps_dashboard_src_features_project-list_ProjectListBoard_tsx.diff` |
 
 ## Last Expert Score
 
-- phase: implementation
-- score: 95
+- phase: refactor
+- score: 94
 - blocking issues: 없음
 
 ## Git Publish Message
@@ -130,4 +144,4 @@ dashboard board/category UX, responsiveness, latest chip metadata, radius normal
 
 ## Next Action
 
-`pgg-performance`
+`pgg-qa`
