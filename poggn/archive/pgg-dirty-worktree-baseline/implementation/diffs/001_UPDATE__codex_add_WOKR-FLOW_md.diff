@@ -1,0 +1,31 @@
+diff --git a/.codex/add/WOKR-FLOW.md b/.codex/add/WOKR-FLOW.md
+index e16ff13..07ac244 100644
+--- a/.codex/add/WOKR-FLOW.md
++++ b/.codex/add/WOKR-FLOW.md
+@@ -24,22 +24,23 @@ pgg는 core workflow와 필요할 때만 여는 optional audit로 delivery를 
+ 1. `pgg-add`
+    - topic 생성
+    - `proposal.md`, `reviews/proposal.review.md`, `state/current.md`, `workflow.reactflow.json` 생성
++   - topic 생성 시점의 dirty worktree path가 있으면 `state/dirty-worktree-baseline.txt`로 baseline을 기록
+    - 사용자 입력 질문 기록과 current-project 범위 내부 확인/기록 절차, `archive_type`, `version_bump`, `target_version`, branch naming 확정
+ 2. `pgg-plan`
+    - `plan.md`, `task.md`, `spec/*/*.md`, `reviews/plan.review.md`, `reviews/task.review.md` 생성
+ 3. `pgg-code`
+    - 코드 구현
+-   - `pgg git=on`이면 task 완료마다 `.codex/sh/pgg-stage-commit.sh <topic|topic_dir> implementation <summary> <why> [footer]`로 task-scoped commit을 남긴다
++   - `pgg git=on`이면 task 완료마다 `.codex/sh/pgg-stage-commit.sh <topic|topic_dir> implementation <summary> <why> [footer]`로 task-scoped commit을 남기고, helper는 필요 시 governed `working_branch` auto-checkout recovery를 먼저 시도하며 topic 시작 전에 기록된 dirty baseline은 unrelated blocker로 보지 않는다
+    - `implementation/index.md`, `implementation/diffs/*.diff`, `reviews/code.review.md` 생성
+ 4. `pgg-refactor`
+    - 구수행 코드 검사 후 레거시 코드 제거와 구조 개선 수행으로 최적화된 클린코드
+-   - `pgg git=on`이면 refactor task 완료마다 `.codex/sh/pgg-stage-commit.sh <topic|topic_dir> refactor <summary> <why> [footer]`로 refactor proof commit을 남긴다
++   - `pgg git=on`이면 refactor task 완료마다 `.codex/sh/pgg-stage-commit.sh <topic|topic_dir> refactor <summary> <why> [footer]`로 refactor proof commit을 남기고, helper는 필요 시 governed `working_branch` auto-checkout recovery를 먼저 시도하며 topic 시작 전에 기록된 dirty baseline은 unrelated blocker로 보지 않는다
+    - `reviews/refactor.review.md` 생성
+ 5. `pgg-qa`
+    - `qa/report.md` 생성
+    - `qa/report.md`가 pass면 `.codex/sh/pgg-archive.sh <topic|topic_dir>` 실행
+    - `pgg git=on`이고 QA 산출물 뒤 변경이 있으면 archive helper가 release publish 전에 `qa completion` commit을 먼저 남긴다
+-   - archive helper가 `version.json`과 append-only `poggn/version-history.ndjson` ledger를 기록하고, `pgg git=on`이면 `ai/<archive_type>/<target-version>-<short-name>`에서 `release/<target-version>-<short-name>`으로 승격하는 git publish helper까지 이어진다
++   - archive helper가 `version.json`과 append-only `poggn/version-history.ndjson` ledger를 기록하고, `pgg git=on`이면 필요 시 governed `working_branch` auto-checkout recovery를 거쳐 topic 시작 전에 기록된 dirty baseline을 무시한 상태로 `ai/<archive_type>/<target-version>-<short-name>`에서 `release/<target-version>-<short-name>`으로 승격하는 git publish helper까지 이어진다
+    - `pgg git=on`이면 `state/current.md` 또는 `qa/report.md`의 `## Git Publish Message`에서 `- title:`, `- why:`, `- footer:`를 읽고 `<archive_type>: <summary>` 형식, 제목 50자 이하, 명령형 금지, 마침표 금지, Why 중심 body, 한 커밋 = 하나의 의도 규칙을 검증한다
+ 
+ ### Optional Audits

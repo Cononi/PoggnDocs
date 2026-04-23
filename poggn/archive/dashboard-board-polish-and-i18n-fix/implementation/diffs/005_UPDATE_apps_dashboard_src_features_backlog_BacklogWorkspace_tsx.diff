@@ -1,0 +1,13 @@
+diff --git a/apps/dashboard/src/features/backlog/BacklogWorkspace.tsx b/apps/dashboard/src/features/backlog/BacklogWorkspace.tsx
+index 1f93c44..d8ab951 100644
+--- a/apps/dashboard/src/features/backlog/BacklogWorkspace.tsx
++++ b/apps/dashboard/src/features/backlog/BacklogWorkspace.tsx
+@@ -375,7 +375,7 @@ function MetricPill(props: { label: string }) {
+         minWidth: 40,
+         px: 1.1,
+         py: 0.65,
+-        borderRadius: 999,
++        borderRadius: 1,
+         textAlign: "center",
+         fontSize: 12,
+         fontWeight: 700,

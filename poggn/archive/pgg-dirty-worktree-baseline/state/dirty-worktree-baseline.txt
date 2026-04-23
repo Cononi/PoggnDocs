@@ -1,0 +1,7 @@
+.codex/add/WOKR-FLOW.md
+.pgg/project.json
+apps/dashboard/index.html
+apps/dashboard/public/dashboard-data.json
+apps/dashboard/src/app/DashboardShellChrome.tsx
+apps/dashboard/src/shared/locale/dashboardLocale.ts
+add-img

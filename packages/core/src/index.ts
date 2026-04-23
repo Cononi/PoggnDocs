@@ -62,6 +62,7 @@ export interface ProjectManifest {
   updatedAt: string;
   dashboard: {
     title: string;
+    titleIconSvg: string;
     defaultPort: number;
     refreshIntervalMs: number;
   };
@@ -158,6 +159,8 @@ export interface TopicSummary {
   artifactSummary: TopicArtifactSummary;
   artifactCompleteness: "complete" | "partial";
   health: "ok" | "partial";
+  userQuestionRecord: string[];
+  files: TopicFileEntry[];
 }
 
 export interface DashboardRecentActivityEntry {
@@ -189,6 +192,15 @@ export interface TopicArtifactSummary {
   qaDocs: TopicArtifactGroupSummary;
   releaseDocs: TopicArtifactGroupSummary;
   workflowDocs: TopicArtifactGroupSummary;
+}
+
+export interface TopicFileEntry {
+  relativePath: string;
+  sourcePath: string;
+  kind: "markdown" | "diff" | "text";
+  updatedAt: string | null;
+  size: number | null;
+  editable: boolean;
 }
 
 export type TopicProgressStatus = "ready" | "in_progress" | "blocked" | "archive_ready";
@@ -268,7 +280,10 @@ export interface ProjectSnapshot {
   workingBranchPrefix: string;
   releaseBranchPrefix: string;
   installedVersion: string | null;
+  pggVersion: string | null;
+  projectVersion: string | null;
   dashboardTitle: string;
+  dashboardTitleIconSvg: string;
   refreshIntervalMs: number;
   dashboardDefaultPort: number;
   verificationMode: import("./verification.js").ProjectVerificationMode;
@@ -530,6 +545,31 @@ async function readTextIfExists(filePath: string): Promise<string | null> {
   }
 }
 
+async function readProjectVersion(rootDir: string): Promise<string | null> {
+  const candidatePaths = [
+    path.join(rootDir, "package.json"),
+    path.join(rootDir, "apps", "dashboard", "package.json")
+  ];
+
+  for (const candidatePath of candidatePaths) {
+    const raw = await readTextIfExists(candidatePath);
+    if (!raw) {
+      continue;
+    }
+
+    try {
+      const parsed = JSON.parse(raw) as { version?: unknown };
+      if (typeof parsed.version === "string" && parsed.version.trim()) {
+        return parsed.version;
+      }
+    } catch {
+      continue;
+    }
+  }
+
+  return null;
+}
+
 async function writeTextFile(filePath: string, content: string): Promise<void> {
   await ensureParentDir(filePath);
   await writeFile(filePath, content, "utf8");
@@ -553,12 +593,28 @@ function buildTemplateInput(manifest: ProjectManifest): TemplateInput {
   };
 }
 
+function getDefaultDashboardTitleIconSvg(): string {
+  return [
+    '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48">',
+    '<defs><linearGradient id="pgg-dashboard-icon" x1="10%" y1="10%" x2="90%" y2="90%">',
+    '<stop offset="0%" stop-color="#2467d6" />',
+    '<stop offset="55%" stop-color="#4f92ff" />',
+    '<stop offset="100%" stop-color="#f59e0b" />',
+    "</linearGradient></defs>",
+    '<rect x="6" y="6" width="36" height="36" rx="14" fill="#0f172a" />',
+    '<path d="M24 11l5.2 7.9 9.3 2.7-5.9 7.3.2 9.9-8.8-3.4-8.8 3.4.2-9.9-5.9-7.3 9.3-2.7L24 11z" fill="url(#pgg-dashboard-icon)" />',
+    '<circle cx="24" cy="24" r="4.8" fill="#f8fafc" fill-opacity="0.9" />',
+    "</svg>"
+  ].join("");
+}
+
 function normalizeDashboardConfig(
   dashboard: ProjectManifest["dashboard"] | undefined,
   projectName: string
 ): ProjectManifest["dashboard"] {
   return {
     title: dashboard?.title?.trim() || `${projectName} dashboard`,
+    titleIconSvg: dashboard?.titleIconSvg?.trim() || getDefaultDashboardTitleIconSvg(),
     defaultPort: dashboard?.defaultPort ?? 4173,
     refreshIntervalMs:
       typeof dashboard?.refreshIntervalMs === "number" && Number.isFinite(dashboard.refreshIntervalMs)
@@ -579,7 +635,7 @@ function normalizeProjectGitConfig(git: ProjectManifest["git"] | undefined): Pro
 function normalizeProjectManifest(manifest: ProjectManifest): ProjectManifest {
   return {
     ...manifest,
-    schemaVersion: Math.max(manifest.schemaVersion ?? 1, 5),
+    schemaVersion: Math.max(manifest.schemaVersion ?? 1, 6),
     teamsMode: manifest.teamsMode ?? "off",
     git: normalizeProjectGitConfig(manifest.git),
     dashboard: normalizeDashboardConfig(manifest.dashboard, manifest.projectName),
@@ -641,7 +697,7 @@ async function retireManagedFile(
 export function createProjectManifest(rootDir: string, options: InitOptions = {}): ProjectManifest {
   const projectName = path.basename(rootDir);
   return {
-    schemaVersion: 5,
+    schemaVersion: 6,
     projectName,
     rootDir,
     provider: options.provider ?? "codex",
@@ -947,6 +1003,34 @@ export async function updateProjectDashboardTitle(rootDir: string, title: string
   }));
 }
 
+export async function updateProjectMainSettings(
+  rootDir: string,
+  updates: {
+    title?: string;
+    titleIconSvg?: string;
+    language?: PggLanguage;
+  }
+): Promise<SyncResult> {
+  return updateRegisteredProject(rootDir, (manifest) => ({
+    ...manifest,
+    language:
+      updates.language === "en" || updates.language === "ko"
+        ? updates.language
+        : manifest.language,
+    dashboard: {
+      ...manifest.dashboard,
+      title:
+        typeof updates.title === "string"
+          ? updates.title.trim() || manifest.dashboard.title
+          : manifest.dashboard.title,
+      titleIconSvg:
+        typeof updates.titleIconSvg === "string"
+          ? updates.titleIconSvg.trim() || manifest.dashboard.titleIconSvg
+          : manifest.dashboard.titleIconSvg
+    }
+  }));
+}
+
 export async function updateProjectRefreshInterval(rootDir: string, refreshIntervalMs: number): Promise<SyncResult> {
   const normalized = Math.max(5_000, Math.min(120_000, Math.round(refreshIntervalMs)));
   return updateRegisteredProject(rootDir, (manifest) => ({
@@ -1179,6 +1263,46 @@ export async function registerExistingProject(rootDir: string): Promise<GlobalRe
   return registerProject(manifest);
 }
 
+export async function deleteRegisteredProject(
+  projectId: string,
+  options: {
+    deleteRootDir?: boolean;
+    currentRootDir?: string;
+  } = {}
+): Promise<GlobalRegistry> {
+  const registry = await loadPersistedGlobalRegistry();
+  const project = registry.projects.find((entry) => entry.id === projectId) ?? null;
+  if (!project) {
+    throw new Error(`Project '${projectId}' was not found.`);
+  }
+
+  if (
+    options.currentRootDir &&
+    path.resolve(project.rootDir) === path.resolve(options.currentRootDir)
+  ) {
+    throw new Error("The current dashboard root project cannot be deleted.");
+  }
+
+  const nextRegistry = normalizeRegistryData({
+    ...registry,
+    projects: registry.projects.filter((entry) => entry.id !== projectId),
+    dashboard: {
+      categories: (registry.dashboard?.categories ?? []).map((category) => ({
+        ...category,
+        projectIds: category.projectIds.filter((entry) => entry !== projectId)
+      }))
+    }
+  }).registry;
+
+  await saveGlobalRegistry(nextRegistry);
+
+  if (options.deleteRootDir) {
+    await rm(project.rootDir, { recursive: true, force: true });
+  }
+
+  return nextRegistry;
+}
+
 function parseMarkdownSection(markdown: string, title: string): string | null {
   const escaped = title.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
   const pattern = new RegExp(`## ${escaped}\\n\\n([\\s\\S]*?)(?=\\n## |$)`);
@@ -1188,6 +1312,45 @@ function parseMarkdownSection(markdown: string, title: string): string | null {
   }
 
   return match[1].trim();
+}
+
+function parseMarkdownSectionByKeyword(markdown: string, keyword: string): string | null {
+  const normalizedKeyword = keyword.trim().toLowerCase();
+  const sections = [...markdown.matchAll(/^##\s+(.+)$/gm)];
+
+  for (let index = 0; index < sections.length; index += 1) {
+    const section = sections[index];
+    const title = section[1]?.trim().toLowerCase() ?? "";
+    if (!title.includes(normalizedKeyword)) {
+      continue;
+    }
+
+    const start = (section.index ?? 0) + section[0].length;
+    const end = sections[index + 1]?.index ?? markdown.length;
+    return markdown.slice(start, end).trim();
+  }
+
+  return null;
+}
+
+function parseUserQuestionRecord(markdown: string | null): string[] {
+  if (!markdown) {
+    return [];
+  }
+
+  const section =
+    parseMarkdownSectionByKeyword(markdown, "사용자 입력 질문 기록") ??
+    parseMarkdownSectionByKeyword(markdown, "user question record");
+  if (!section) {
+    return [];
+  }
+
+  return section
+    .split("\n")
+    .map((line) => line.trim())
+    .filter((line) => line.startsWith("- "))
+    .map((line) => line.slice(2).replace(/^`|`$/g, "").trim())
+    .filter(Boolean);
 }
 
 function parseKeyValue(markdown: string, key: string): string | null {
@@ -1816,6 +1979,45 @@ async function readTopicArtifactSummary(topicDir: string): Promise<TopicArtifact
   };
 }
 
+function resolveTopicFileKind(absolutePath: string): TopicFileEntry["kind"] {
+  const extension = path.extname(absolutePath).toLowerCase();
+  if (extension === ".diff") {
+    return "diff";
+  }
+  if (extension === ".md") {
+    return "markdown";
+  }
+
+  return "text";
+}
+
+async function listTopicFiles(
+  rootDir: string,
+  topicDir: string,
+  bucket: "active" | "archive",
+  topic: string
+): Promise<TopicFileEntry[]> {
+  const files = await collectMatchingFiles(topicDir, () => true);
+
+  const entries = await Promise.all(
+    files.map(async (absolutePath) => {
+      const fileStat = await stat(absolutePath).catch(() => null);
+      const relativePath = toRelativePath(topicDir, absolutePath);
+
+      return {
+        relativePath,
+        sourcePath: `poggn/${bucket}/${topic}/${relativePath}`,
+        kind: resolveTopicFileKind(absolutePath),
+        updatedAt: fileStat?.mtime.toISOString() ?? null,
+        size: fileStat?.size ?? null,
+        editable: true
+      } satisfies TopicFileEntry;
+    })
+  );
+
+  return entries.sort((left, right) => left.relativePath.localeCompare(right.relativePath));
+}
+
 function deriveTopicUpdatedAt(artifactSummary: TopicArtifactSummary, archivedAt: string | null): string | null {
   return (
     [
@@ -1849,6 +2051,8 @@ async function listTopicSummaries(rootDir: string, bucket: "active" | "archive")
     const release = await readTopicVersion(topicDir);
     const publish = await readTopicPublishMetadata(topicDir);
     const artifactSummary = await readTopicArtifactSummary(topicDir);
+    const userQuestionRecord = parseUserQuestionRecord(proposalMarkdown);
+    const files = await listTopicFiles(rootDir, topicDir, bucket, entry.name);
     const updatedAt = deriveTopicUpdatedAt(artifactSummary, release.archivedAt);
     const stage = stateMarkdown ? parseMarkdownSection(stateMarkdown, "Current Stage") : parseKeyValue(proposalMarkdown ?? "", "stage");
     const goal = stateMarkdown ? parseMarkdownSection(stateMarkdown, "Goal") : null;
@@ -1890,7 +2094,9 @@ async function listTopicSummaries(rootDir: string, bucket: "active" | "archive")
         artifactSummary.workflowDocs.missingRequired
           ? "partial"
           : "complete",
-      health: stateMarkdown && workflow ? "ok" : "partial"
+      health: stateMarkdown && workflow ? "ok" : "partial",
+      userQuestionRecord,
+      files
     });
   }
 
@@ -2048,7 +2254,10 @@ export async function analyzeProject(rootDir: string, registered = false): Promi
       workingBranchPrefix: "ai",
       releaseBranchPrefix: "release",
       installedVersion: null,
+      pggVersion: null,
+      projectVersion: null,
       dashboardTitle: `${path.basename(rootDir)} dashboard`,
+      dashboardTitleIconSvg: getDefaultDashboardTitleIconSvg(),
       refreshIntervalMs: 10_000,
       dashboardDefaultPort: 4173,
       verificationMode: verification.mode,
@@ -2069,6 +2278,7 @@ export async function analyzeProject(rootDir: string, registered = false): Promi
   }
 
   const manifest = await loadProjectManifest(rootDir);
+  const projectVersion = await readProjectVersion(rootDir);
   const activeTopics = await listTopicSummaries(rootDir, "active");
   const archivedTopics = await listTopicSummaries(rootDir, "archive");
   const verification = resolveProjectVerification(rootDir, manifest?.verification);
@@ -2090,7 +2300,11 @@ export async function analyzeProject(rootDir: string, registered = false): Promi
     workingBranchPrefix: manifest?.git.workingBranchPrefix ?? "ai",
     releaseBranchPrefix: manifest?.git.releaseBranchPrefix ?? "release",
     installedVersion: manifest?.installedVersion ?? null,
+    pggVersion: manifest?.installedVersion ?? null,
+    projectVersion,
     dashboardTitle: manifest?.dashboard.title ?? `${path.basename(rootDir)} dashboard`,
+    dashboardTitleIconSvg:
+      manifest?.dashboard.titleIconSvg ?? getDefaultDashboardTitleIconSvg(),
     refreshIntervalMs: manifest?.dashboard.refreshIntervalMs ?? 10_000,
     dashboardDefaultPort: manifest?.dashboard.defaultPort ?? 4173,
     verificationMode: verification.mode,
@@ -2192,6 +2406,107 @@ export async function buildDashboardSnapshot(currentRootDir: string): Promise<Da
     recentActivity,
     projects: projectsWithCategories
   };
+}
+
+function resolveTopicDir(rootDir: string, bucket: "active" | "archive", topic: string): string {
+  return path.join(rootDir, "poggn", bucket, topic);
+}
+
+function normalizeTopicRelativeFilePath(relativePath: string): string {
+  const trimmed = relativePath.trim();
+  if (!trimmed) {
+    throw new Error("A topic-relative file path is required.");
+  }
+
+  if (path.isAbsolute(trimmed)) {
+    throw new Error("Absolute paths are not allowed.");
+  }
+
+  const normalized = path.posix.normalize(trimmed.replace(/\\/g, "/"));
+  if (!normalized || normalized === "." || normalized.startsWith("../") || normalized.includes("/../")) {
+    throw new Error("The file path must stay inside the topic directory.");
+  }
+
+  return normalized;
+}
+
+function resolveTopicFilePath(
+  rootDir: string,
+  bucket: "active" | "archive",
+  topic: string,
+  relativePath: string
+): { absolutePath: string; normalizedRelativePath: string } {
+  const topicDir = path.resolve(resolveTopicDir(rootDir, bucket, topic));
+  const normalizedRelativePath = normalizeTopicRelativeFilePath(relativePath);
+  const absolutePath = path.resolve(topicDir, normalizedRelativePath);
+
+  if (!absolutePath.startsWith(`${topicDir}${path.sep}`) && absolutePath !== topicDir) {
+    throw new Error("The file path must stay inside the topic directory.");
+  }
+
+  return {
+    absolutePath,
+    normalizedRelativePath
+  };
+}
+
+export async function readTopicFileDetail(
+  rootDir: string,
+  bucket: "active" | "archive",
+  topic: string,
+  relativePath: string
+): Promise<WorkflowDetailPayload> {
+  const { absolutePath, normalizedRelativePath } = resolveTopicFilePath(rootDir, bucket, topic, relativePath);
+  const content = await readTextIfExists(absolutePath);
+  if (content === null) {
+    throw new Error(`Topic file '${normalizedRelativePath}' was not found.`);
+  }
+
+  const fileStat = await stat(absolutePath).catch(() => null);
+  const kind = resolveTopicFileKind(absolutePath);
+  const contentType =
+    kind === "diff" ? "text/x-diff" : kind === "markdown" ? "text/markdown" : "text/plain";
+
+  return {
+    kind,
+    title: path.basename(absolutePath),
+    sourcePath: toRelativePath(rootDir, absolutePath),
+    content,
+    contentType,
+    updatedAt: fileStat?.mtime.toISOString() ?? null
+  };
+}
+
+export async function updateTopicFile(
+  rootDir: string,
+  bucket: "active" | "archive",
+  topic: string,
+  relativePath: string,
+  content: string
+): Promise<WorkflowDetailPayload> {
+  const { absolutePath, normalizedRelativePath } = resolveTopicFilePath(rootDir, bucket, topic, relativePath);
+  const current = await readTextIfExists(absolutePath);
+  if (current === null) {
+    throw new Error(`Topic file '${normalizedRelativePath}' was not found.`);
+  }
+
+  await writeTextFile(absolutePath, content);
+  return readTopicFileDetail(rootDir, bucket, topic, normalizedRelativePath);
+}
+
+export async function deleteTopicFile(
+  rootDir: string,
+  bucket: "active" | "archive",
+  topic: string,
+  relativePath: string
+): Promise<void> {
+  const { absolutePath, normalizedRelativePath } = resolveTopicFilePath(rootDir, bucket, topic, relativePath);
+  const current = await readTextIfExists(absolutePath);
+  if (current === null) {
+    throw new Error(`Topic file '${normalizedRelativePath}' was not found.`);
+  }
+
+  await rm(absolutePath, { force: true });
 }
 
 export function findWorkspaceRoot(startDir: string): string | null {

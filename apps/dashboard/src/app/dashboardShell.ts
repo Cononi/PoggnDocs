@@ -1,6 +1,4 @@
 import type {
-  ArtifactDocumentEntry,
-  ArtifactSelection,
   DashboardLocale,
   DashboardRecentActivityEntry,
   DashboardQueryResult,
@@ -10,7 +8,7 @@ import type {
   ProjectSnapshot,
   TopicSummary
 } from "../shared/model/dashboard";
-import { getDefaultArtifactSelection } from "../shared/utils/dashboard";
+import { resolveDashboardStageLabel } from "../shared/locale/dashboardLocale";
 
 export type DashboardMutationMethod = "POST" | "PATCH" | "DELETE";
 
@@ -156,26 +154,6 @@ export function resolveInitialSelectedProjectId(
   return snapshot.currentProjectId ?? snapshot.projects[0]?.id ?? null;
 }
 
-export function resolveSelectedProjectFromSearch(
-  snapshot: DashboardSnapshot | null,
-  shellSearchQuery: string
-): ProjectSnapshot | null {
-  if (!snapshot) {
-    return null;
-  }
-
-  const query = shellSearchQuery.trim().toLowerCase();
-  if (!query) {
-    return null;
-  }
-
-  return (
-    snapshot.projects.find((project) =>
-      `${project.name} ${project.rootDir} ${project.dashboardTitle}`.toLowerCase().includes(query)
-    ) ?? null
-  );
-}
-
 export function resolveVisibleTopicSelection(
   topics: TopicSummary[],
   selectedTopicKey: string | null
@@ -192,67 +170,6 @@ export function resolveVisibleTopicSelection(
   }
 
   return `${topics[0]!.bucket}:${topics[0]!.name}`;
-}
-
-export function resolveVisibleTopicState(
-  visibleTopics: TopicSummary[],
-  selectedTopicKey: string | null,
-  projectSurface: "board" | "detail"
-): {
-  nextSelectedTopicKey: string | null;
-  nextProjectSurface: "board" | "detail";
-} | null {
-  if (!visibleTopics.length) {
-    const nextSelectedTopicKey = selectedTopicKey ? null : selectedTopicKey;
-    const nextProjectSurface = projectSurface === "detail" ? "board" : projectSurface;
-    if (
-      nextSelectedTopicKey === selectedTopicKey &&
-      nextProjectSurface === projectSurface
-    ) {
-      return null;
-    }
-
-    return {
-      nextSelectedTopicKey,
-      nextProjectSurface
-    };
-  }
-
-  const hasSelectedTopic =
-    selectedTopicKey !== null &&
-    visibleTopics.some((topic) => `${topic.bucket}:${topic.name}` === selectedTopicKey);
-  if (projectSurface !== "detail" || hasSelectedTopic) {
-    return null;
-  }
-
-  return {
-    nextSelectedTopicKey: `${visibleTopics[0]!.bucket}:${visibleTopics[0]!.name}`,
-    nextProjectSurface: projectSurface
-  };
-}
-
-export function resolveNextDetailSelection(
-  selectedTopic: TopicSummary | null,
-  currentSelection: ArtifactSelection | null,
-  artifactEntries: ArtifactDocumentEntry[]
-): ArtifactSelection | null {
-  const nextSelection = getDefaultArtifactSelection(selectedTopic);
-  if (!nextSelection) {
-    return null;
-  }
-
-  const hasCurrentEntry =
-    currentSelection !== null &&
-    artifactEntries.some((entry) => entry.sourcePath === currentSelection.sourcePath);
-  if (
-    currentSelection &&
-    currentSelection.topicKey === nextSelection.topicKey &&
-    hasCurrentEntry
-  ) {
-    return currentSelection;
-  }
-
-  return nextSelection;
 }
 
 export function markDashboardInteraction(
@@ -319,7 +236,7 @@ function buildTicketKey(project: ProjectSnapshot, topic: TopicSummary, index: nu
   return `${projectKey}-${topicWeight + index + 1}`;
 }
 
-function buildRowLabel(topic: TopicSummary): { label: string; tone: DashboardTone } {
+function buildRowLabel(topic: TopicSummary, dictionary: DashboardLocale): { label: string; tone: DashboardTone } {
   if (topic.archiveType) {
     return {
       label: topic.archiveType.toUpperCase(),
@@ -335,27 +252,27 @@ function buildRowLabel(topic: TopicSummary): { label: string; tone: DashboardTon
   }
 
   return {
-    label: topic.bucket === "active" ? "ACTIVE" : "ARCHIVE",
+    label: topic.bucket === "active" ? dictionary.active : dictionary.archive,
     tone: topic.bucket === "active" ? "primary" : "neutral"
   };
 }
 
-function buildRowStatus(topic: TopicSummary): { label: string; tone: DashboardTone } {
+function buildRowStatus(topic: TopicSummary, dictionary: DashboardLocale): { label: string; tone: DashboardTone } {
   const normalizedStage = normalizeStage(topic);
   if (normalizedStage === "blocked") {
-    return { label: "BLOCKED", tone: "danger" };
+    return { label: dictionary.statusBlocked, tone: "danger" };
   }
   if (normalizedStage === "proposal" || normalizedStage === "plan") {
-    return { label: normalizedStage.toUpperCase(), tone: "warning" };
+    return { label: resolveDashboardStageLabel(normalizedStage, dictionary), tone: "warning" };
   }
   if (normalizedStage === "implementation") {
-    return { label: "IN PROGRESS", tone: "primary" };
+    return { label: dictionary.statusInProgress, tone: "primary" };
   }
   if (topic.bucket === "archive") {
-    return { label: "DONE", tone: "success" };
+    return { label: dictionary.statusDone, tone: "success" };
   }
 
-  return { label: "READY", tone: "success" };
+  return { label: dictionary.statusReady, tone: "success" };
 }
 
 function buildRowMetric(topic: TopicSummary): string {
@@ -382,10 +299,11 @@ function buildAssigneeInitials(topic: TopicSummary): string {
 function mapTopicToBacklogRow(
   project: ProjectSnapshot,
   topic: TopicSummary,
-  index: number
+  index: number,
+  dictionary: DashboardLocale
 ): BacklogRowModel {
-  const label = buildRowLabel(topic);
-  const status = buildRowStatus(topic);
+  const label = buildRowLabel(topic, dictionary);
+  const status = buildRowStatus(topic, dictionary);
   return {
     id: `${topic.bucket}:${topic.name}`,
     topicKey: `${topic.bucket}:${topic.name}`,
@@ -423,10 +341,10 @@ export function buildBacklogSections(
 
   const activeRows = visibleActiveTopics
     .sort((left, right) => (right.updatedAt ?? "").localeCompare(left.updatedAt ?? ""))
-    .map((topic, index) => mapTopicToBacklogRow(project, topic, index));
+    .map((topic, index) => mapTopicToBacklogRow(project, topic, index, dictionary));
   const archiveRows = visibleArchivedTopics
     .sort((left, right) => (right.updatedAt ?? right.archivedAt ?? "").localeCompare(left.updatedAt ?? left.archivedAt ?? ""))
-    .map((topic, index) => mapTopicToBacklogRow(project, topic, index + activeRows.length));
+    .map((topic, index) => mapTopicToBacklogRow(project, topic, index + activeRows.length, dictionary));
 
   return [
     {
@@ -474,7 +392,7 @@ export function buildInsightsSummary(
   const activeByStage = ["proposal", "plan", "implementation", "qa"].map((stage) =>
     buildMetricItem(
       stage,
-      stage,
+      resolveDashboardStageLabel(stage, dictionary),
       activeTopics.filter((topic) => normalizeStage(topic) === stage).length,
       stage === "implementation" ? "primary" : stage === "qa" ? "success" : "warning"
     )
@@ -500,9 +418,9 @@ export function buildInsightsSummary(
 
   const totalTopics = Math.max(activeTopics.length + archivedTopics.length, 1);
   const progressItems = [
-    buildMetricItem("done", "Done", archivedTopics.length, "success"),
-    buildMetricItem("progress", "In progress", activeTopics.length, "primary"),
-    buildMetricItem("blocked", "Blocked", blockedCount, "danger")
+    buildMetricItem("done", dictionary.metricDone, archivedTopics.length, "success"),
+    buildMetricItem("progress", dictionary.metricProgress, activeTopics.length, "primary"),
+    buildMetricItem("blocked", dictionary.metricBlocked, blockedCount, "danger")
   ].map((item) => ({
     ...item,
     displayValue: `${Math.round((item.value / totalTopics) * 100)}%`
@@ -510,9 +428,9 @@ export function buildInsightsSummary(
 
   return {
     headlineItems: [
-      buildMetricItem("active", "Active", activeTopics.length, "neutral"),
-      buildMetricItem("archive", "Archive", archivedTopics.length, "primary"),
-      buildMetricItem("blocked", "Blocked", blockedCount, "success")
+      buildMetricItem("active", dictionary.active, activeTopics.length, "neutral"),
+      buildMetricItem("archive", dictionary.archive, archivedTopics.length, "primary"),
+      buildMetricItem("blocked", dictionary.metricBlocked, blockedCount, "success")
     ],
     widgets: [
       {

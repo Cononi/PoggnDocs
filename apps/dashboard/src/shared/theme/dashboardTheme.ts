@@ -165,7 +165,7 @@ export function createDashboardTheme(mode: DashboardThemeMode) {
       MuiChip: {
         styleOverrides: {
           root: {
-            borderRadius: 0.75,
+            borderRadius: 1,
             height: 28
           }
         }
@@ -182,6 +182,39 @@ export function createDashboardTheme(mode: DashboardThemeMode) {
           root: {
             borderRadius: 1,
             backgroundColor: alpha(navSurface, isDark ? 0.72 : 0.55)
+          }
+        }
+      },
+      MuiSelect: {
+        styleOverrides: {
+          select: {
+            borderRadius: 1,
+            minHeight: "auto",
+            paddingTop: 10,
+            paddingBottom: 10
+          },
+          icon: {
+            color: isDark ? "#9fadbc" : "#5e6c84"
+          }
+        }
+      },
+      MuiMenu: {
+        styleOverrides: {
+          paper: {
+            borderRadius: 1,
+            border: `1px solid ${surfaceBorder}`,
+            boxShadow: isDark
+              ? "0 16px 36px rgba(0, 0, 0, 0.38)"
+              : "0 16px 36px rgba(15, 23, 42, 0.14)"
+          }
+        }
+      },
+      MuiMenuItem: {
+        styleOverrides: {
+          root: {
+            borderRadius: 1,
+            marginInline: 6,
+            marginBlock: 2
           }
         }
       },

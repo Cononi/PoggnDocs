@@ -57,6 +57,15 @@ export type TopicArtifactSummary = {
   workflowDocs: TopicArtifactGroupSummary;
 };
 
+export type TopicFileEntry = {
+  relativePath: string;
+  sourcePath: string;
+  kind: "markdown" | "diff" | "text";
+  updatedAt: string | null;
+  size: number | null;
+  editable: boolean;
+};
+
 export type TopicSummary = {
   name: string;
   bucket: "active" | "archive";
@@ -86,6 +95,8 @@ export type TopicSummary = {
   artifactSummary: TopicArtifactSummary;
   artifactCompleteness: "complete" | "partial";
   health: "ok" | "partial";
+  userQuestionRecord: string[];
+  files: TopicFileEntry[];
 };
 
 export type ProjectCategory = {
@@ -127,7 +138,10 @@ export type ProjectSnapshot = {
   workingBranchPrefix: string;
   releaseBranchPrefix: string;
   installedVersion: string | null;
+  pggVersion: string | null;
+  projectVersion: string | null;
   dashboardTitle: string;
+  dashboardTitleIconSvg: string;
   refreshIntervalMs: number;
   dashboardDefaultPort: number;
   verificationMode: string;
@@ -164,21 +178,18 @@ export type DashboardThemeMode = "light" | "dark";
 
 export type DashboardPrimaryMenu = "projects" | "settings";
 
-export type DashboardSidebarItem =
-  | "backlog"
-  | "board"
-  | "reports"
-  | "issues"
-  | "components"
-  | "code"
-  | "releases"
-  | "pages"
-  | "shortcuts"
-  | "project-settings";
+export type DashboardSidebarItem = "board" | "category";
+
+export type DashboardDetailSection =
+  | "project-info"
+  | "workflow"
+  | "history"
+  | "report"
+  | "files";
+
+export type DashboardWorkflowViewMode = "flow" | "timeline";
 
 export type DashboardSettingsView = "main" | "refresh" | "git" | "system";
-
-export type DashboardWorkspaceMode = "backlog" | "board" | "reports" | "settings";
 
 export type DashboardWorkspaceFilterState = {
   bucket: "all" | "active" | "archive";
@@ -210,9 +221,11 @@ export type ArtifactDocumentEntry = {
   id: string;
   label: string;
   sourcePath: string;
+  relativePath: string | null;
   detail: WorkflowDetailPayload | null;
   group: ArtifactGroupKey;
   updatedAt: string | null;
+  editable: boolean;
 };
 
 export type ArtifactSelection = {
@@ -220,28 +233,32 @@ export type ArtifactSelection = {
   title: string;
   detail: WorkflowDetailPayload | null;
   sourcePath: string | null;
+  relativePath: string | null;
+  editable: boolean;
 };
 
 export type DashboardStore = {
   activeTopMenu: DashboardPrimaryMenu;
   activeSidebarItem: DashboardSidebarItem;
+  projectDetailOpen: boolean;
+  activeDetailSection: DashboardDetailSection;
+  workflowViewMode: DashboardWorkflowViewMode;
   activeSettingsView: DashboardSettingsView;
-  workspaceMode: DashboardWorkspaceMode;
   themeMode: DashboardThemeMode;
   selectedProjectId: string | null;
   selectedTopicKey: string | null;
-  shellSearchQuery: string;
   topicFilter: string;
   workspaceFilterState: DashboardWorkspaceFilterState;
   insightsRailOpen: boolean;
   setActiveTopMenu: (value: DashboardPrimaryMenu) => void;
   setActiveSidebarItem: (value: DashboardSidebarItem) => void;
+  setProjectDetailOpen: (value: boolean) => void;
+  setActiveDetailSection: (value: DashboardDetailSection) => void;
+  setWorkflowViewMode: (value: DashboardWorkflowViewMode) => void;
   setActiveSettingsView: (value: DashboardSettingsView) => void;
-  setWorkspaceMode: (value: DashboardWorkspaceMode) => void;
   setThemeMode: (value: DashboardThemeMode) => void;
   setSelectedProjectId: (value: string | null) => void;
   setSelectedTopicKey: (value: string | null) => void;
-  setShellSearchQuery: (value: string) => void;
   setTopicFilter: (value: string) => void;
   setWorkspaceFilterState: (value: DashboardWorkspaceFilterState) => void;
   setInsightsRailOpen: (value: boolean) => void;

@@ -1,0 +1,54 @@
+diff --git a/apps/dashboard/src/features/artifact-inspector/ArtifactInspectorPanel.tsx b/apps/dashboard/src/features/artifact-inspector/ArtifactInspectorPanel.tsx
+index 49d1161..b8072bf 100644
+--- a/apps/dashboard/src/features/artifact-inspector/ArtifactInspectorPanel.tsx
++++ b/apps/dashboard/src/features/artifact-inspector/ArtifactInspectorPanel.tsx
+@@ -7,7 +7,7 @@ import type {
+   TopicSummary
+ } from "../../shared/model/dashboard";
+ import { formatDate } from "../../shared/utils/dashboard";
+-import { DiffViewer } from "../../shared/ui/DiffViewer";
++import { ArtifactDocumentContent } from "../../shared/ui/ArtifactDocumentContent";
+ 
+ type ArtifactInspectorPanelProps = {
+   topic: TopicSummary | null;
+@@ -113,39 +113,7 @@ export function ArtifactInspectorPanel(props: ArtifactInspectorPanelProps) {
+               </Stack>
+ 
+               {props.detailSelection.detail ? (
+-                props.detailSelection.detail.kind === "diff" ? (
+-                  <DiffViewer value={props.detailSelection.detail.content} />
+-                ) : (
+-                  <Paper
+-                    variant="outlined"
+-                    sx={{
+-                      p: 2,
+-                      borderRadius: 1,
+-                      maxHeight: "42vh",
+-                      overflow: "auto",
+-                      backgroundColor: alpha(
+-                        theme.palette.text.primary,
+-                        theme.palette.mode === "dark" ? 0.14 : 0.04
+-                      )
+-                    }}
+-                  >
+-                    <Typography
+-                      component="pre"
+-                      sx={{
+-                        m: 0,
+-                        whiteSpace: "pre-wrap",
+-                        fontFamily:
+-                          props.detailSelection.detail.kind === "markdown"
+-                            ? "inherit"
+-                            : '"IBM Plex Mono", "SFMono-Regular", monospace',
+-                        fontSize: props.detailSelection.detail.kind === "markdown" ? "0.95rem" : "0.84rem",
+-                        lineHeight: 1.7
+-                      }}
+-                    >
+-                      {props.detailSelection.detail.content}
+-                    </Typography>
+-                  </Paper>
+-                )
++                <ArtifactDocumentContent detail={props.detailSelection.detail} maxHeight="42vh" />
+               ) : (
+                 <Alert severity="info">{props.dictionary.detailUnavailable}</Alert>
+               )}

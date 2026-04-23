@@ -1,0 +1,61 @@
+diff --git a/apps/dashboard/src/features/project-list/projectBoard.ts b/apps/dashboard/src/features/project-list/projectBoard.ts
+index 3650e0e..8f745fb 100644
+--- a/apps/dashboard/src/features/project-list/projectBoard.ts
++++ b/apps/dashboard/src/features/project-list/projectBoard.ts
+@@ -2,8 +2,7 @@ import type { ProjectCategory, ProjectSnapshot } from "../../shared/model/dashbo
+ 
+ export type ProjectBoardSection = {
+   category: ProjectCategory;
+-  activeProjects: ProjectSnapshot[];
+-  inactiveProjects: ProjectSnapshot[];
++  projects: ProjectSnapshot[];
+ };
+ 
+ export function filterProjectsByQuery(projects: ProjectSnapshot[], query: string): ProjectSnapshot[] {
+@@ -33,7 +32,7 @@ export function buildProjectBoardSections(
+ 
+       return {
+         category,
+-        ...splitProjectsByActivity(categoryProjects)
++        projects: categoryProjects
+       };
+     });
+ 
+@@ -51,13 +50,11 @@ export function buildProjectBoardSections(
+     return sections;
+   }
+ 
+-  const splitUnassigned = splitProjectsByActivity(unassignedProjects);
+   return sections.map((section) =>
+     section.category.id === defaultCategory.id
+       ? {
+           ...section,
+-          activeProjects: [...section.activeProjects, ...splitUnassigned.activeProjects],
+-          inactiveProjects: [...section.inactiveProjects, ...splitUnassigned.inactiveProjects]
++          projects: [...section.projects, ...unassignedProjects]
+         }
+       : section
+   );
+@@ -76,6 +73,11 @@ function buildProjectSearchText(project: ProjectSnapshot): string {
+ }
+ 
+ function compareProjectsByActivity(left: ProjectSnapshot, right: ProjectSnapshot): number {
++  const activeCompare = right.activeTopics.length - left.activeTopics.length;
++  if (activeCompare !== 0) {
++    return activeCompare;
++  }
++
+   const activityCompare = (right.latestActivityAt ?? "").localeCompare(left.latestActivityAt ?? "");
+   if (activityCompare !== 0) {
+     return activityCompare;
+@@ -100,10 +102,3 @@ function resolveCategoryProjects(
+     .map((projectId) => projectById.get(projectId))
+     .filter((project): project is ProjectSnapshot => Boolean(project));
+ }
+-
+-function splitProjectsByActivity(projects: ProjectSnapshot[]): Pick<ProjectBoardSection, "activeProjects" | "inactiveProjects"> {
+-  return {
+-    activeProjects: projects.filter((project) => project.activeTopics.length > 0),
+-    inactiveProjects: projects.filter((project) => project.activeTopics.length === 0)
+-  };
+-}

@@ -1,0 +1,118 @@
+diff --git a/apps/dashboard/src/features/project-list/ProjectListBoard.tsx b/apps/dashboard/src/features/project-list/ProjectListBoard.tsx
+index dd02772..ad78694 100644
+--- a/apps/dashboard/src/features/project-list/ProjectListBoard.tsx
++++ b/apps/dashboard/src/features/project-list/ProjectListBoard.tsx
+@@ -1,4 +1,4 @@
+-import { useDeferredValue, useMemo, useState } from "react";
++import { memo, useDeferredValue, useMemo, useState } from "react";
+ import { alpha, useTheme } from "@mui/material/styles";
+ import {
+   Alert,
+@@ -134,7 +134,7 @@ export function ProjectListBoard(props: ProjectListBoardProps) {
+ 
+       <Stack spacing={2.5}>
+         {boardSections.map((section) => (
+-          <CategorySection
++          <MemoizedCategorySection
+             key={section.category.id}
+             category={section.category}
+             activeProjects={section.activeProjects}
+@@ -261,7 +261,7 @@ function ProjectGroup(props: {
+         }}
+       >
+         {props.projects.map((project) => (
+-          <ProjectCard
++          <MemoizedProjectCard
+             key={project.id}
+             project={project}
+             currentProjectId={props.currentProjectId}
+@@ -278,7 +278,7 @@ function ProjectGroup(props: {
+   );
+ }
+ 
+-function ProjectCard(props: {
++type ProjectCardProps = {
+   project: ProjectSnapshot;
+   currentProjectId: string | null;
+   isSelected: boolean;
+@@ -287,7 +287,9 @@ function ProjectGroup(props: {
+   isLiveMode: boolean;
+   onOpenProject: () => void;
+   onDeleteProject: () => void;
+-}) {
++};
++
++function ProjectCard(props: ProjectCardProps) {
+   const theme = useTheme();
+   const isActive = props.project.activeTopics.length > 0;
+   const isCurrentDashboardRoot = props.currentProjectId === props.project.id;
+@@ -428,3 +430,69 @@ function ProjectCardMetric(props: { label: string; value: string }) {
+     </Stack>
+   );
+ }
++
++const MemoizedCategorySection = memo(CategorySection, areCategorySectionPropsEqual);
++const MemoizedProjectCard = memo(ProjectCard, areProjectCardPropsEqual);
++
++function areCategorySectionPropsEqual(previous: CategorySectionProps, next: CategorySectionProps): boolean {
++  if (
++    previous.category !== next.category ||
++    previous.activeProjects !== next.activeProjects ||
++    previous.inactiveProjects !== next.inactiveProjects ||
++    previous.dictionary !== next.dictionary ||
++    previous.isLiveMode !== next.isLiveMode
++  ) {
++    return false;
++  }
++
++  if (!hasSameSectionSelectionState(previous, next, previous.selectedProjectId, next.selectedProjectId)) {
++    return false;
++  }
++
++  if (!hasSameSectionSelectionState(previous, next, previous.currentProjectId, next.currentProjectId)) {
++    return false;
++  }
++
++  return hasSameSectionSelectionState(previous, next, previous.latestActiveProjectId, next.latestActiveProjectId);
++}
++
++function areProjectCardPropsEqual(previous: ProjectCardProps, next: ProjectCardProps): boolean {
++  return (
++    previous.project === next.project &&
++    previous.currentProjectId === next.currentProjectId &&
++    previous.isSelected === next.isSelected &&
++    previous.isLatest === next.isLatest &&
++    previous.dictionary === next.dictionary &&
++    previous.isLiveMode === next.isLiveMode
++  );
++}
++
++function hasSameSectionSelectionState(
++  previous: Pick<CategorySectionProps, "activeProjects" | "inactiveProjects">,
++  next: Pick<CategorySectionProps, "activeProjects" | "inactiveProjects">,
++  previousProjectId: string | null,
++  nextProjectId: string | null
++): boolean {
++  const previousContains = sectionContainsProjectId(previous, previousProjectId);
++  const nextContains = sectionContainsProjectId(next, nextProjectId);
++
++  if (!previousContains && !nextContains) {
++    return true;
++  }
++
++  return previousProjectId === nextProjectId;
++}
++
++function sectionContainsProjectId(
++  section: Pick<CategorySectionProps, "activeProjects" | "inactiveProjects">,
++  projectId: string | null
++): boolean {
++  if (!projectId) {
++    return false;
++  }
++
++  return (
++    section.activeProjects.some((project) => project.id === projectId) ||
++    section.inactiveProjects.some((project) => project.id === projectId)
++  );
++}

@@ -1,0 +1,64 @@
+diff --git a/apps/dashboard/src/features/artifact-inspector/ArtifactDetailDialog.tsx b/apps/dashboard/src/features/artifact-inspector/ArtifactDetailDialog.tsx
+index 8cc6daf..99533d7 100644
+--- a/apps/dashboard/src/features/artifact-inspector/ArtifactDetailDialog.tsx
++++ b/apps/dashboard/src/features/artifact-inspector/ArtifactDetailDialog.tsx
+@@ -1,8 +1,7 @@
+ import { Alert, Button, Chip, Dialog, DialogActions, DialogContent, DialogTitle, Paper, Stack, Typography } from "@mui/material";
+-import { alpha, useTheme } from "@mui/material/styles";
+ import type { ArtifactSelection, DashboardLocale } from "../../shared/model/dashboard";
+ import { formatDate } from "../../shared/utils/dashboard";
+-import { DiffViewer } from "../../shared/ui/DiffViewer";
++import { ArtifactDocumentContent } from "../../shared/ui/ArtifactDocumentContent";
+ 
+ type ArtifactDetailDialogProps = {
+   open: boolean;
+@@ -13,8 +12,6 @@ type ArtifactDetailDialogProps = {
+ };
+ 
+ export function ArtifactDetailDialog(props: ArtifactDetailDialogProps) {
+-  const theme = useTheme();
+-
+   return (
+     <Dialog open={props.open} onClose={props.onClose} fullWidth maxWidth="lg">
+       <DialogTitle>{props.detailSelection?.detail?.title ?? props.detailSelection?.title}</DialogTitle>
+@@ -39,39 +36,7 @@ export function ArtifactDetailDialog(props: ArtifactDetailDialogProps) {
+           </Stack>
+ 
+           {props.detailSelection?.detail ? (
+-            props.detailSelection.detail.kind === "diff" ? (
+-              <DiffViewer value={props.detailSelection.detail.content} />
+-            ) : (
+-              <Paper
+-                variant="outlined"
+-                sx={{
+-                  p: 2,
+-                  borderRadius: 1,
+-                  maxHeight: "65vh",
+-                  overflow: "auto",
+-                  backgroundColor: alpha(
+-                    theme.palette.text.primary,
+-                    theme.palette.mode === "dark" ? 0.14 : 0.04
+-                  )
+-                }}
+-              >
+-                <Typography
+-                  component="pre"
+-                  sx={{
+-                    m: 0,
+-                    whiteSpace: "pre-wrap",
+-                    fontFamily:
+-                      props.detailSelection.detail.kind === "markdown"
+-                        ? "inherit"
+-                        : '"IBM Plex Mono", "SFMono-Regular", monospace',
+-                    fontSize: props.detailSelection.detail.kind === "markdown" ? "0.95rem" : "0.84rem",
+-                    lineHeight: 1.7
+-                  }}
+-                >
+-                  {props.detailSelection.detail.content}
+-                </Typography>
+-              </Paper>
+-            )
++            <ArtifactDocumentContent detail={props.detailSelection.detail} />
+           ) : (
+             <Alert severity="info">{props.dictionary.detailUnavailable}</Alert>
+           )}

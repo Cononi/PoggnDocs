@@ -1,0 +1,14 @@
+{
+  "topic": "dashboard-management-refinement",
+  "changeType": "feat",
+  "versionBump": "minor",
+  "version": "0.11.0",
+  "targetVersion": "0.11.0",
+  "previousVersion": "0.10.2",
+  "shortName": "dashboard-management-refinement",
+  "workingBranch": "ai/feat/0.11.0-dashboard-management-refinement",
+  "releaseBranch": "release/0.11.0-dashboard-management-refinement",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-23T03:31:57Z",
+  "history": "poggn/version-history.ndjson"
+}

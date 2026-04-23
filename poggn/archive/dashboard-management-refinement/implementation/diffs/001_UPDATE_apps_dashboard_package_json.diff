@@ -1,0 +1,12 @@
+diff --git a/apps/dashboard/package.json b/apps/dashboard/package.json
+index 9a4431f..1aaa09f 100644
+--- a/apps/dashboard/package.json
++++ b/apps/dashboard/package.json
+@@ -13,6 +13,7 @@
+     "@mui/material": "latest",
+     "@tanstack/react-query": "latest",
+     "@xyflow/react": "latest",
++    "axios": "latest",
+     "react": "latest",
+     "react-dom": "latest",
+     "zustand": "latest"

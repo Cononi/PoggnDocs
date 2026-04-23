@@ -8,9 +8,11 @@ import type {
   FlowNodeData,
   FlowStatus,
   ProjectSnapshot,
+  TopicFileEntry,
   TopicLane,
   TopicSummary,
   WorkflowDocument,
+  WorkflowDetailPayload,
   WorkflowNode
 } from "../model/dashboard";
 
@@ -23,6 +25,35 @@ export function formatDate(value: string, language: "ko" | "en"): string {
 
 export function buildTopicKey(topic: Pick<TopicSummary, "bucket" | "name">): string {
   return `${topic.bucket}:${topic.name}`;
+}
+
+export function buildTopicSourcePathPrefix(topic: Pick<TopicSummary, "bucket" | "name">): string {
+  return `poggn/${topic.bucket}/${topic.name}/`;
+}
+
+export function resolveTopicRelativePath(
+  topic: Pick<TopicSummary, "bucket" | "name">,
+  sourcePath: string | null
+): string | null {
+  if (!sourcePath) {
+    return null;
+  }
+
+  const prefix = buildTopicSourcePathPrefix(topic);
+  return sourcePath.startsWith(prefix) ? sourcePath.slice(prefix.length) : null;
+}
+
+export function resolveTopicKeyFromSourcePath(sourcePath: string | null): string | null {
+  if (!sourcePath) {
+    return null;
+  }
+
+  const match = /^poggn\/(active|archive)\/([^/]+)\//.exec(sourcePath);
+  if (!match) {
+    return null;
+  }
+
+  return `${match[1]}:${match[2]}`;
 }
 
 export function filterTopics(project: ProjectSnapshot | null, filter: string): TopicSummary[] {
@@ -93,12 +124,20 @@ export function buildTopicLanes(
       id: lane,
       label:
         lane === "proposal"
-          ? "proposal"
+          ? dictionary.filterProposal
           : lane === "plan"
-            ? "plan/task"
-            : lane,
+            ? dictionary.lanePlanTask
+            : lane === "code"
+              ? dictionary.laneImplementation
+              : lane === "refactor"
+                ? dictionary.laneRefactor
+                : lane === "blocked"
+                  ? dictionary.filterBlocked
+                  : dictionary.filterQa,
       helper: dictionary.topicNext,
-      topics: laneMap.get(lane) ?? []
+      topics: (laneMap.get(lane) ?? []).sort((left, right) =>
+        (right.updatedAt ?? "").localeCompare(left.updatedAt ?? "")
+      )
     }));
   }
 
@@ -124,7 +163,7 @@ export function buildTopicLanes(
 }
 
 function topicRelativePathToSourcePath(topic: TopicSummary, relativePath: string): string {
-  return `poggn/${topic.bucket}/${topic.name}/${relativePath}`;
+  return `${buildTopicSourcePathPrefix(topic)}${relativePath}`;
 }
 
 function resolveArtifactGroupFromPath(sourcePath: string): ArtifactGroupKey {
@@ -154,12 +193,124 @@ function resolveArtifactGroupFromPath(sourcePath: string): ArtifactGroupKey {
   return "lifecycleDocs";
 }
 
+export function buildTopicFileArtifactEntry(file: TopicFileEntry): ArtifactDocumentEntry {
+  return {
+    id: file.sourcePath,
+    label: file.relativePath.split("/").pop() ?? file.relativePath,
+    sourcePath: file.sourcePath,
+    relativePath: file.relativePath,
+    detail: null,
+    group: resolveArtifactGroupFromPath(file.sourcePath),
+    updatedAt: file.updatedAt,
+    editable: file.editable
+  };
+}
+
+export type TopicFileTreeNode = {
+  id: string;
+  name: string;
+  kind: "folder" | "file";
+  relativePath: string | null;
+  file: TopicFileEntry | null;
+  children: TopicFileTreeNode[];
+};
+
+export function buildTopicFileTree(files: TopicFileEntry[]): TopicFileTreeNode[] {
+  const root: TopicFileTreeNode[] = [];
+
+  files
+    .slice()
+    .sort((left, right) => left.relativePath.localeCompare(right.relativePath))
+    .forEach((file) => {
+      const segments = file.relativePath.split("/").filter(Boolean);
+      let currentLevel = root;
+      let currentPath = "";
+
+      segments.forEach((segment, index) => {
+        currentPath = currentPath ? `${currentPath}/${segment}` : segment;
+        const isLeaf = index === segments.length - 1;
+        const existingNode = currentLevel.find((node) => node.name === segment);
+        if (existingNode) {
+          currentLevel = existingNode.children;
+          return;
+        }
+
+        const nextNode: TopicFileTreeNode = isLeaf
+          ? {
+              id: currentPath,
+              name: segment,
+              kind: "file",
+              relativePath: file.relativePath,
+              file,
+              children: []
+            }
+          : {
+              id: currentPath,
+              name: segment,
+              kind: "folder",
+              relativePath: currentPath,
+              file: null,
+              children: []
+            };
+
+        currentLevel.push(nextNode);
+        currentLevel = nextNode.children;
+      });
+    });
+
+  return sortFileTreeNodes(root);
+}
+
+function sortFileTreeNodes(nodes: TopicFileTreeNode[]): TopicFileTreeNode[] {
+  return nodes
+    .map((node) => ({
+      ...node,
+      children: sortFileTreeNodes(node.children)
+    }))
+    .sort((left, right) => {
+      if (left.kind !== right.kind) {
+        return left.kind === "folder" ? -1 : 1;
+      }
+
+      return left.name.localeCompare(right.name);
+    });
+}
+
+export function collectAncestorFolders(relativePath: string | null): string[] {
+  if (!relativePath) {
+    return [];
+  }
+
+  const segments = relativePath.split("/").filter(Boolean);
+  return segments.slice(0, -1).map((_segment, index) => segments.slice(0, index + 1).join("/"));
+}
+
+export function createTopicArtifactSelection(
+  topic: Pick<TopicSummary, "bucket" | "name">,
+  payload: {
+    title: string;
+    detail: WorkflowDetailPayload | null;
+    sourcePath: string | null;
+    editable: boolean;
+  }
+): ArtifactSelection {
+  return {
+    topicKey: buildTopicKey(topic),
+    title: payload.title,
+    detail: payload.detail,
+    sourcePath: payload.sourcePath,
+    relativePath: resolveTopicRelativePath(topic, payload.sourcePath),
+    editable: payload.editable
+  };
+}
+
 export function buildTopicArtifactEntries(topic: TopicSummary | null): ArtifactDocumentEntry[] {
   if (!topic) {
     return [];
   }
 
   const entries = new Map<string, ArtifactDocumentEntry>();
+  const prefixTopic = { bucket: topic.bucket, name: topic.name } as const;
   for (const node of topic.workflow?.nodes ?? []) {
     const sourcePath = node.data.detail?.sourcePath ?? node.data.path ?? node.data.diffRef ?? null;
     if (!sourcePath) {
@@ -169,9 +320,11 @@ export function buildTopicArtifactEntries(topic: TopicSummary | null): ArtifactD
       id: node.id,
       label: node.data.label ?? node.id,
       sourcePath,
+      relativePath: resolveTopicRelativePath(prefixTopic, sourcePath),
       detail: node.data.detail ?? null,
       group: resolveArtifactGroupFromPath(sourcePath),
-      updatedAt: node.data.detail?.updatedAt ?? null
+      updatedAt: node.data.detail?.updatedAt ?? null,
+      editable: true
     });
   }
 
@@ -227,13 +380,39 @@ export function buildTopicArtifactEntries(topic: TopicSummary | null): ArtifactD
       id: sourcePath,
       label: ref.split("/").pop() ?? ref,
       sourcePath,
+      relativePath: ref,
       detail: null,
       group,
-      updatedAt
+      updatedAt,
+      editable: true
     });
   });
 
+  topic.files.forEach((file) => {
+    if (entries.has(file.sourcePath)) {
+      return;
+    }
+
+    entries.set(file.sourcePath, buildTopicFileArtifactEntry(file));
+  });
+
   return [...entries.values()].sort((left, right) => left.sourcePath.localeCompare(right.sourcePath));
+}
+
+export function getPreferredArtifactEntry(
+  topic: TopicSummary,
+  preferredRelativePaths: string[]
+): ArtifactDocumentEntry | null {
+  const entries = buildTopicArtifactEntries(topic);
+
+  for (const relativePath of preferredRelativePaths) {
+    const directMatch = entries.find((entry) => entry.relativePath === relativePath);
+    if (directMatch) {
+      return directMatch;
+    }
+  }
+
+  return entries[0] ?? null;
 }
 
 export function createArtifactSelection(
@@ -248,7 +427,9 @@ export function createArtifactSelection(
     topicKey,
     title: entry.label,
     detail: entry.detail,
-    sourcePath: entry.sourcePath
+    sourcePath: entry.sourcePath,
+    relativePath: entry.relativePath,
+    editable: entry.editable
   };
 }
 
@@ -392,9 +573,13 @@ export function buildWorkflowModel(
         y
       },
       type: "default",
+      className: status === "current" ? "workflow-node-current" : undefined,
       data: {
         label: (
           <Stack spacing={0.75}>
+            <Typography variant="overline" sx={{ color: alpha(color, 0.92), lineHeight: 1 }}>
+              {inferNodeStage(node)}
+            </Typography>
             <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
               {node.data.label ?? node.id}
             </Typography>

@@ -112,10 +112,31 @@ apply_topic_semver_metadata() {
   refresh_topic_semver_metadata
 }
 
+list_dirty_paths() {
+  if ! git -C "$ROOT_DIR" rev-parse --show-toplevel >/dev/null 2>&1; then
+    return 0
+  fi
+
+  node -e '
+    const { execFileSync } = require("child_process");
+    const commands = [["diff", "--name-only", "--relative"], ["diff", "--cached", "--name-only", "--relative"], ["ls-files", "--others", "--exclude-standard"]];
+    const paths = new Set();
+    for (const args of commands) {
+      const output = execFileSync("git", ["-C", process.argv[1], ...args], { encoding: "utf8" });
+      for (const line of output.split(/\n+/).map((entry) => entry.trim()).filter(Boolean)) {
+        paths.add(line);
+      }
+    }
+    process.stdout.write(Array.from(paths).join("\n"));
+  ' "$ROOT_DIR"
+}
+
 validate_short_name "$SHORT_NAME" || {
   echo "{\"error\":\"short_name must be a concise alias with 1 to 3 lowercase lexical tokens\"}" >&2
   exit 1
 }
+
+DIRTY_WORKTREE_BASELINE="$(list_dirty_paths)"
 
 mkdir -p "$TOPIC_DIR/reviews" "$TOPIC_DIR/state"
 
@@ -209,6 +230,12 @@ proposal
 - working branch: \`$WORKING_BRANCH\`
 - release branch: \`$RELEASE_BRANCH\`
 EOF
+
+if [[ -n "$DIRTY_WORKTREE_BASELINE" ]]; then
+  printf '%s\n' "$DIRTY_WORKTREE_BASELINE" > "$TOPIC_DIR/state/dirty-worktree-baseline.txt"
+else
+  : > "$TOPIC_DIR/state/dirty-worktree-baseline.txt"
+fi
 
 if [[ -f "$ROOT_DIR/.pgg/project.json" && "$ARCHIVE_TYPE" != "pending" && "$VERSION_BUMP" != "pending" ]]; then
   MANIFEST_GIT_MODE="$(node -e 'const fs=require("fs"); const manifest=JSON.parse(fs.readFileSync(process.argv[1],"utf8")); process.stdout.write(String(manifest.git?.mode ?? "off"));' "$ROOT_DIR/.pgg/project.json")"

@@ -1,0 +1,14 @@
+diff --git a/apps/dashboard/package.json b/apps/dashboard/package.json
+index 9f7d757..5dd6992 100644
+--- a/apps/dashboard/package.json
++++ b/apps/dashboard/package.json
+@@ -17,6 +17,9 @@
+     "axios": "latest",
+     "react": "latest",
+     "react-dom": "latest",
++    "react-markdown": "^10.1.0",
++    "react-syntax-highlighter": "^16.1.1",
++    "remark-gfm": "^4.0.1",
+     "zustand": "latest"
+   },
+   "devDependencies": {

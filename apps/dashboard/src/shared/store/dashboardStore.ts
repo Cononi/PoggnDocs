@@ -4,8 +4,7 @@ import type {
   DashboardSidebarItem,
   DashboardStore,
   DashboardThemeMode,
-  DashboardWorkspaceFilterState,
-  DashboardWorkspaceMode
+  DashboardWorkspaceFilterState
 } from "../model/dashboard";
 
 const DASHBOARD_THEME_MODE_STORAGE_KEY = "pgg.dashboard.theme-mode";
@@ -15,11 +14,12 @@ type DashboardUiState = Pick<
   DashboardStore,
   | "activeTopMenu"
   | "activeSidebarItem"
+  | "projectDetailOpen"
+  | "activeDetailSection"
+  | "workflowViewMode"
   | "activeSettingsView"
-  | "workspaceMode"
   | "selectedProjectId"
   | "selectedTopicKey"
-  | "shellSearchQuery"
   | "topicFilter"
   | "workspaceFilterState"
   | "insightsRailOpen"
@@ -32,12 +32,13 @@ const defaultWorkspaceFilterState: DashboardWorkspaceFilterState = {
 
 const defaultUiState: DashboardUiState = {
   activeTopMenu: "projects",
-  activeSidebarItem: "backlog",
+  activeSidebarItem: "board",
+  projectDetailOpen: false,
+  activeDetailSection: "project-info",
+  workflowViewMode: "flow",
   activeSettingsView: "main",
-  workspaceMode: "backlog",
   selectedProjectId: null,
   selectedTopicKey: null,
-  shellSearchQuery: "",
   topicFilter: "",
   workspaceFilterState: defaultWorkspaceFilterState,
   insightsRailOpen: true
@@ -72,9 +73,22 @@ function readInitialUiState(): DashboardUiState {
     }
 
     const parsed = JSON.parse(raw) as Partial<DashboardUiState>;
+    const activeSidebarItem =
+      parsed.activeSidebarItem === "category" ? "category" : "board";
+    const activeDetailSection =
+      parsed.activeDetailSection === "workflow" ||
+      parsed.activeDetailSection === "history" ||
+      parsed.activeDetailSection === "report" ||
+      parsed.activeDetailSection === "files"
+        ? parsed.activeDetailSection
+        : "project-info";
+    const workflowViewMode = parsed.workflowViewMode === "timeline" ? "timeline" : "flow";
     return {
       ...defaultUiState,
       ...parsed,
+      activeSidebarItem,
+      activeDetailSection,
+      workflowViewMode,
       workspaceFilterState: {
         ...defaultWorkspaceFilterState,
         ...(parsed.workspaceFilterState ?? {})
@@ -97,11 +111,12 @@ function toUiState(store: DashboardStore): DashboardUiState {
   return {
     activeTopMenu: store.activeTopMenu,
     activeSidebarItem: store.activeSidebarItem,
+    projectDetailOpen: store.projectDetailOpen,
+    activeDetailSection: store.activeDetailSection,
+    workflowViewMode: store.workflowViewMode,
     activeSettingsView: store.activeSettingsView,
-    workspaceMode: store.workspaceMode,
     selectedProjectId: store.selectedProjectId,
     selectedTopicKey: store.selectedTopicKey,
-    shellSearchQuery: store.shellSearchQuery,
     topicFilter: store.topicFilter,
     workspaceFilterState: store.workspaceFilterState,
     insightsRailOpen: store.insightsRailOpen
@@ -116,75 +131,40 @@ export const useDashboardStore = create<DashboardStore>((set, get) => {
     persistUiState({ ...toUiState(get()), ...partial });
   };
 
-  const openProjectWorkspace = (
-    sidebarItem: DashboardSidebarItem,
-    workspaceMode: DashboardWorkspaceMode
-  ) => {
-    setAndPersist({
-      activeTopMenu: "projects",
-      activeSidebarItem: sidebarItem,
-      workspaceMode
-    });
-  };
-
   return {
     ...initialUiState,
     themeMode: readInitialThemeMode(),
     setActiveTopMenu: (value) => {
       if (value === "settings") {
-        setAndPersist({
-          activeTopMenu: "settings",
-          workspaceMode: "settings"
-        });
+        setAndPersist({ activeTopMenu: "settings", projectDetailOpen: false });
         return;
       }
-
-      const currentSidebarItem = get().activeSidebarItem;
-      const nextSidebarItem =
-        currentSidebarItem === "project-settings" ? "backlog" : currentSidebarItem;
-      const nextWorkspaceMode: DashboardWorkspaceMode =
-        nextSidebarItem === "reports"
-          ? "reports"
-          : nextSidebarItem === "board"
-            ? "board"
-            : "backlog";
 
       setAndPersist({
         activeTopMenu: "projects",
-        activeSidebarItem: nextSidebarItem,
-        workspaceMode: nextWorkspaceMode
+        activeSidebarItem: get().activeSidebarItem ?? "board"
       });
     },
-    setActiveSidebarItem: (value) => {
-      if (value === "project-settings") {
-        setAndPersist({
-          activeTopMenu: "settings",
-          activeSidebarItem: value,
-          activeSettingsView: "main",
-          workspaceMode: "settings"
-        });
-        return;
-      }
-
-      const nextWorkspaceMode: DashboardWorkspaceMode =
-        value === "reports" ? "reports" : value === "board" ? "board" : "backlog";
-      openProjectWorkspace(value, nextWorkspaceMode);
-    },
+    setActiveSidebarItem: (value: DashboardSidebarItem) =>
+      setAndPersist({
+        activeTopMenu: "projects",
+        activeSidebarItem: value,
+        projectDetailOpen: false
+      }),
+    setProjectDetailOpen: (value) => setAndPersist({ projectDetailOpen: value }),
+    setActiveDetailSection: (value) => setAndPersist({ activeDetailSection: value }),
+    setWorkflowViewMode: (value) => setAndPersist({ workflowViewMode: value }),
     setActiveSettingsView: (value: DashboardSettingsView) =>
       setAndPersist({
         activeTopMenu: "settings",
-        activeSidebarItem: "project-settings",
-        activeSettingsView: value,
-        workspaceMode: "settings"
+        activeSettingsView: value
       }),
-    setWorkspaceMode: (value) => setAndPersist({ workspaceMode: value }),
     setThemeMode: (value) => {
       persistThemeMode(value);
       set({ themeMode: value });
     },
     setSelectedProjectId: (value) => setAndPersist({ selectedProjectId: value }),
     setSelectedTopicKey: (value) => setAndPersist({ selectedTopicKey: value }),
-    setShellSearchQuery: (value) => setAndPersist({ shellSearchQuery: value }),
     setTopicFilter: (value) => setAndPersist({ topicFilter: value }),
     setWorkspaceFilterState: (value) => setAndPersist({ workspaceFilterState: value }),
     setInsightsRailOpen: (value) => setAndPersist({ insightsRailOpen: value })

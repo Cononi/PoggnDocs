@@ -1,0 +1,32 @@
+{
+  "topic": "dashboard-management-refinement",
+  "version": "0.11.0",
+  "targetVersion": "0.11.0",
+  "changeType": "feat",
+  "versionBump": "minor",
+  "commitTitle": "feat: dashboard management refinement",
+  "commitSha": "48ec25e535452da31646c3fcb5ea6d860450739c",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/0.11.0-dashboard-management-refinement",
+  "workingBranch": "ai/feat/0.11.0-dashboard-management-refinement",
+  "releaseBranch": "release/0.11.0-dashboard-management-refinement",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-23T03:32:03Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/0.11.0-dashboard-management-refinement'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/dashboard-management-refinement",
+    "versionFile": "poggn/archive/dashboard-management-refinement/version.json"
+  }
+}

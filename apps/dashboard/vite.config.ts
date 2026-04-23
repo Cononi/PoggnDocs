@@ -5,17 +5,21 @@ import react from "@vitejs/plugin-react";
 import {
   buildDashboardSnapshot,
   createProjectCategory,
+  deleteTopicFile,
+  deleteRegisteredProject,
   deleteProjectCategory,
   moveProjectToCategory,
+  readTopicFileDetail,
   registerExistingProject,
   reorderProjectCategory,
   renameProjectCategory,
   setProjectCategoryVisibility,
   setDefaultProjectCategory,
+  updateTopicFile,
   updateProjectAutoMode,
-  updateProjectDashboardTitle,
   updateProjectGitBranchPrefixes,
   updateProjectGitMode,
+  updateProjectMainSettings,
   updateProjectRefreshInterval,
   updateProjectTeamsMode
 } from "../../packages/core/src/index";
@@ -167,11 +171,21 @@ function createDashboardApiPlugin(): Plugin {
           const projectMainMatch = url.pathname.match(/^\/api\/dashboard\/projects\/([^/]+)\/main$/);
           if (projectMainMatch && request.method === "PATCH") {
             const body = await readJsonBody(request);
-            if (typeof body.title !== "string") {
-              writeJson(response, 400, { error: "title is required." });
+            if (
+              typeof body.title !== "string" &&
+              typeof body.titleIconSvg !== "string" &&
+              typeof body.language !== "string"
+            ) {
+              writeJson(response, 400, {
+                error: "At least one of title, titleIconSvg, or language is required."
+              });
               return;
             }
-            await updateProjectDashboardTitle(await resolveProjectRootDir(projectMainMatch[1]!), body.title);
+            await updateProjectMainSettings(await resolveProjectRootDir(projectMainMatch[1]!), {
+              title: typeof body.title === "string" ? body.title : undefined,
+              titleIconSvg: typeof body.titleIconSvg === "string" ? body.titleIconSvg : undefined,
+              language: body.language === "en" || body.language === "ko" ? body.language : undefined
+            });
             writeJson(response, 200, await buildDashboardSnapshot(dashboardRoot));
             return;
           }
@@ -226,6 +240,81 @@ function createDashboardApiPlugin(): Plugin {
               await updateProjectGitMode(rootDir, body.gitMode === "on" ? "on" : "off");
             }
             writeJson(response, 200, await buildDashboardSnapshot(dashboardRoot));
+            return;
+          }
+
+          const projectDeleteMatch = url.pathname.match(/^\/api\/dashboard\/projects\/([^/]+)$/);
+          if (projectDeleteMatch && request.method === "DELETE") {
+            const body = await readJsonBody(request);
+            await deleteRegisteredProject(projectDeleteMatch[1]!, {
+              deleteRootDir: body.dangerousDeleteRoot === true,
+              currentRootDir: dashboardRoot
+            });
+            writeJson(response, 200, await buildDashboardSnapshot(dashboardRoot));
+            return;
+          }
+
+          const topicFileMatch = url.pathname.match(
+            /^\/api\/dashboard\/projects\/([^/]+)\/topics\/(active|archive)\/([^/]+)\/files\/content$/
+          );
+          if (topicFileMatch && request.method === "GET") {
+            const relativePath = url.searchParams.get("path");
+            if (!relativePath) {
+              writeJson(response, 400, { error: "path is required." });
+              return;
+            }
+
+            writeJson(
+              response,
+              200,
+              await readTopicFileDetail(
+                await resolveProjectRootDir(topicFileMatch[1]!),
+                topicFileMatch[2] as "active" | "archive",
+                topicFileMatch[3]!,
+                relativePath
+              )
+            );
+            return;
+          }
+
+          if (topicFileMatch && request.method === "PATCH") {
+            const body = await readJsonBody(request);
+            if (typeof body.path !== "string" || typeof body.content !== "string") {
+              writeJson(response, 400, { error: "path and content are required." });
+              return;
+            }
+
+            const rootDir = await resolveProjectRootDir(topicFileMatch[1]!);
+            const detail = await updateTopicFile(
+              rootDir,
+              topicFileMatch[2] as "active" | "archive",
+              topicFileMatch[3]!,
+              body.path,
+              body.content
+            );
+            writeJson(response, 200, {
+              snapshot: await buildDashboardSnapshot(dashboardRoot),
+              detail
+            });
+            return;
+          }
+
+          if (topicFileMatch && request.method === "DELETE") {
+            const body = await readJsonBody(request);
+            if (typeof body.path !== "string") {
+              writeJson(response, 400, { error: "path is required." });
+              return;
+            }
+
+            await deleteTopicFile(
+              await resolveProjectRootDir(topicFileMatch[1]!),
+              topicFileMatch[2] as "active" | "archive",
+              topicFileMatch[3]!,
+              body.path
+            );
+            writeJson(response, 200, {
+              snapshot: await buildDashboardSnapshot(dashboardRoot)
+            });
             return;
           }
 

@@ -1,0 +1,32 @@
+{
+  "topic": "dashboard-poggn-branding-cleanup",
+  "version": "0.10.2",
+  "targetVersion": "0.10.2",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "commitTitle": "fix: dashboard branding cleanup",
+  "commitSha": null,
+  "pushStatus": "not_attempted",
+  "remote": "origin",
+  "branch": "release/0.10.2-dashboard-cleanup",
+  "workingBranch": "ai/fix/0.10.2-dashboard-cleanup",
+  "releaseBranch": "release/0.10.2-dashboard-cleanup",
+  "resultType": "publish_blocked",
+  "reason": "Unrelated worktree changes are present, so automatic publish was deferred.",
+  "publishedAt": null,
+  "retryable": true,
+  "rollbackEligible": false,
+  "publishMode": "not_attempted",
+  "upstreamStatus": "not_attempted",
+  "cleanupStatus": "not_attempted",
+  "cleanupReason": "Dirty worktree blocked release branch promotion.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/dashboard-poggn-branding-cleanup",
+    "versionFile": "poggn/archive/dashboard-poggn-branding-cleanup/version.json"
+  }
+}

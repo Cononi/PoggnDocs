@@ -1,0 +1,30 @@
+diff --git a/apps/dashboard/src/shared/locale/dashboardLocale.ts b/apps/dashboard/src/shared/locale/dashboardLocale.ts
+index 71ff3a0..1e03ced 100644
+--- a/apps/dashboard/src/shared/locale/dashboardLocale.ts
++++ b/apps/dashboard/src/shared/locale/dashboardLocale.ts
+@@ -1,10 +1,10 @@
+ export const dashboardLocale = {
+   ko: {
+     eyebrow: "workflow control center",
+-    title: "pgg dashboard",
++    title: "POGGN",
+     subtitle:
+       "Jira insights 구조를 기준으로 project context, backlog workspace, analytics rail을 하나의 운영 화면에서 다룹니다.",
+-    dashboardFallbackTitle: "pgg dashboard",
++    dashboardFallbackTitle: "POGGN",
+     loading: "dashboard snapshot 로딩 중...",
+     empty: "등록된 프로젝트가 없습니다. `pgg init` 또는 `pgg dashboard --snapshot-only`를 먼저 실행하세요.",
+     generatedAt: "generated",
+@@ -206,10 +206,10 @@ export const dashboardLocale = {
+   },
+   en: {
+     eyebrow: "workflow control center",
+-    title: "pgg dashboard",
++    title: "POGGN",
+     subtitle:
+       "Run a Jira insights-style shell with project context, a backlog workspace, and an analytics rail from one operating screen.",
+-    dashboardFallbackTitle: "pgg dashboard",
++    dashboardFallbackTitle: "POGGN",
+     loading: "Loading dashboard snapshot...",
+     empty: "No registered projects. Run `pgg init` or `pgg dashboard --snapshot-only` first.",
+     generatedAt: "generated",
