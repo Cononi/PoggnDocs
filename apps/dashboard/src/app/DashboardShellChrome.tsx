@@ -10,6 +10,7 @@ import {
   Typography
 } from "@mui/material";
 import type {
+  DashboardDetailSection,
   DashboardLocale,
   DashboardPrimaryMenu,
   DashboardSettingsView,
@@ -35,10 +36,13 @@ type TopNavigationProps = {
 type ProjectContextSidebarProps = {
   activeTopMenu: DashboardPrimaryMenu;
   activeSidebarItem: DashboardSidebarItem;
+  projectDetailOpen: boolean;
+  activeDetailSection: DashboardDetailSection;
   activeSettingsView: DashboardSettingsView;
   project: ProjectSnapshot | null;
   dictionary: DashboardLocale;
   onSelectSidebarItem: (item: DashboardSidebarItem) => void;
+  onSelectDetailSection: (section: DashboardDetailSection) => void;
   onSelectSettingsView: (view: DashboardSettingsView) => void;
 };
 
@@ -131,9 +135,14 @@ export function ProjectContextSidebar(props: ProjectContextSidebarProps) {
   const theme = useTheme();
   const projectItems = [
     { id: "board", label: props.dictionary.board, enabled: true },
-    { id: "category", label: props.dictionary.categoryMenu, enabled: true },
-    { id: "report", label: props.dictionary.reportMenu, enabled: true },
-    { id: "history", label: props.dictionary.historyMenu, enabled: true }
+    { id: "category", label: props.dictionary.categoryMenu, enabled: true }
+  ] as const;
+  const detailItems = [
+    { id: "project-info", label: props.dictionary.projectInfoSection },
+    { id: "workflow", label: props.dictionary.workflowSection },
+    { id: "history", label: props.dictionary.historySection },
+    { id: "report", label: props.dictionary.reportSection },
+    { id: "files", label: props.dictionary.filesSection }
   ] as const;
   const settingsItems = [
     { id: "main", label: props.dictionary.main },
@@ -175,7 +184,21 @@ export function ProjectContextSidebar(props: ProjectContextSidebarProps) {
           </Paper>
         ) : null}
 
-        {props.activeTopMenu === "projects" ? (
+        {props.activeTopMenu === "projects" ? props.projectDetailOpen ? (
+          <>
+            <SidebarSectionLabel label={props.dictionary.projectDetailSectionLabel} />
+            <Stack spacing={0.5}>
+              {detailItems.map((item) => (
+                <SidebarNavButton
+                  key={item.id}
+                  label={item.label}
+                  active={props.activeDetailSection === item.id}
+                  onClick={() => props.onSelectDetailSection(item.id)}
+                />
+              ))}
+            </Stack>
+          </>
+        ) : (
           <>
             <SidebarSectionLabel label={props.dictionary.sidebarManagement} />
             <Stack spacing={0.5}>

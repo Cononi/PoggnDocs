@@ -1,0 +1,89 @@
+diff --git a/apps/dashboard/src/shared/model/dashboard.ts b/apps/dashboard/src/shared/model/dashboard.ts
+index 8edaad2..5894574 100644
+--- a/apps/dashboard/src/shared/model/dashboard.ts
++++ b/apps/dashboard/src/shared/model/dashboard.ts
+@@ -57,6 +57,15 @@ export type TopicArtifactSummary = {
+   workflowDocs: TopicArtifactGroupSummary;
+ };
+ 
++export type TopicFileEntry = {
++  relativePath: string;
++  sourcePath: string;
++  kind: "markdown" | "diff" | "text";
++  updatedAt: string | null;
++  size: number | null;
++  editable: boolean;
++};
++
+ export type TopicSummary = {
+   name: string;
+   bucket: "active" | "archive";
+@@ -86,6 +95,8 @@ export type TopicSummary = {
+   artifactSummary: TopicArtifactSummary;
+   artifactCompleteness: "complete" | "partial";
+   health: "ok" | "partial";
++  userQuestionRecord: string[];
++  files: TopicFileEntry[];
+ };
+ 
+ export type ProjectCategory = {
+@@ -165,11 +176,16 @@ export type DashboardThemeMode = "light" | "dark";
+ 
+ export type DashboardPrimaryMenu = "projects" | "settings";
+ 
+-export type DashboardSidebarItem =
+-  | "board"
+-  | "category"
++export type DashboardSidebarItem = "board" | "category";
++
++export type DashboardDetailSection =
++  | "project-info"
++  | "workflow"
++  | "history"
+   | "report"
+-  | "history";
++  | "files";
++
++export type DashboardWorkflowViewMode = "flow" | "timeline";
+ 
+ export type DashboardSettingsView = "main" | "refresh" | "git" | "system";
+ 
+@@ -203,9 +219,11 @@ export type ArtifactDocumentEntry = {
+   id: string;
+   label: string;
+   sourcePath: string;
++  relativePath: string | null;
+   detail: WorkflowDetailPayload | null;
+   group: ArtifactGroupKey;
+   updatedAt: string | null;
++  editable: boolean;
+ };
+ 
+ export type ArtifactSelection = {
+@@ -213,11 +231,16 @@ export type ArtifactSelection = {
+   title: string;
+   detail: WorkflowDetailPayload | null;
+   sourcePath: string | null;
++  relativePath: string | null;
++  editable: boolean;
+ };
+ 
+ export type DashboardStore = {
+   activeTopMenu: DashboardPrimaryMenu;
+   activeSidebarItem: DashboardSidebarItem;
++  projectDetailOpen: boolean;
++  activeDetailSection: DashboardDetailSection;
++  workflowViewMode: DashboardWorkflowViewMode;
+   activeSettingsView: DashboardSettingsView;
+   themeMode: DashboardThemeMode;
+   selectedProjectId: string | null;
+@@ -227,6 +250,9 @@ export type DashboardStore = {
+   insightsRailOpen: boolean;
+   setActiveTopMenu: (value: DashboardPrimaryMenu) => void;
+   setActiveSidebarItem: (value: DashboardSidebarItem) => void;
++  setProjectDetailOpen: (value: boolean) => void;
++  setActiveDetailSection: (value: DashboardDetailSection) => void;
++  setWorkflowViewMode: (value: DashboardWorkflowViewMode) => void;
+   setActiveSettingsView: (value: DashboardSettingsView) => void;
+   setThemeMode: (value: DashboardThemeMode) => void;
+   setSelectedProjectId: (value: string | null) => void;

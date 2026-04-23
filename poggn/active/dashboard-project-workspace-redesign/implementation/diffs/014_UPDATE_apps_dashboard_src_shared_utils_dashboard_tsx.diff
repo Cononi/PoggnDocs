@@ -1,0 +1,63 @@
+diff --git a/apps/dashboard/src/shared/utils/dashboard.tsx b/apps/dashboard/src/shared/utils/dashboard.tsx
+index 21f1138..afb0a95 100644
+--- a/apps/dashboard/src/shared/utils/dashboard.tsx
++++ b/apps/dashboard/src/shared/utils/dashboard.tsx
+@@ -171,13 +171,16 @@ export function buildTopicArtifactEntries(topic: TopicSummary | null): ArtifactD
+     if (!sourcePath) {
+       continue;
+     }
++    const prefix = `poggn/${topic.bucket}/${topic.name}/`;
+     entries.set(sourcePath, {
+       id: node.id,
+       label: node.data.label ?? node.id,
+       sourcePath,
++      relativePath: sourcePath.startsWith(prefix) ? sourcePath.slice(prefix.length) : null,
+       detail: node.data.detail ?? null,
+       group: resolveArtifactGroupFromPath(sourcePath),
+-      updatedAt: node.data.detail?.updatedAt ?? null
++      updatedAt: node.data.detail?.updatedAt ?? null,
++      editable: true
+     });
+   }
+ 
+@@ -233,9 +236,28 @@ export function buildTopicArtifactEntries(topic: TopicSummary | null): ArtifactD
+       id: sourcePath,
+       label: ref.split("/").pop() ?? ref,
+       sourcePath,
++      relativePath: ref,
+       detail: null,
+       group,
+-      updatedAt
++      updatedAt,
++      editable: true
++    });
++  });
++
++  topic.files.forEach((file) => {
++    if (entries.has(file.sourcePath)) {
++      return;
++    }
++
++    entries.set(file.sourcePath, {
++      id: file.sourcePath,
++      label: file.relativePath.split("/").pop() ?? file.relativePath,
++      sourcePath: file.sourcePath,
++      relativePath: file.relativePath,
++      detail: null,
++      group: resolveArtifactGroupFromPath(file.sourcePath),
++      updatedAt: file.updatedAt,
++      editable: file.editable
+     });
+   });
+ 
+@@ -254,7 +276,9 @@ export function createArtifactSelection(
+     topicKey,
+     title: entry.label,
+     detail: entry.detail,
+-    sourcePath: entry.sourcePath
++    sourcePath: entry.sourcePath,
++    relativePath: entry.relativePath,
++    editable: entry.editable
+   };
+ }
+ 

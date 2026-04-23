@@ -14,6 +14,9 @@ type DashboardUiState = Pick<
   DashboardStore,
   | "activeTopMenu"
   | "activeSidebarItem"
+  | "projectDetailOpen"
+  | "activeDetailSection"
+  | "workflowViewMode"
   | "activeSettingsView"
   | "selectedProjectId"
   | "selectedTopicKey"
@@ -30,6 +33,9 @@ const defaultWorkspaceFilterState: DashboardWorkspaceFilterState = {
 const defaultUiState: DashboardUiState = {
   activeTopMenu: "projects",
   activeSidebarItem: "board",
+  projectDetailOpen: false,
+  activeDetailSection: "project-info",
+  workflowViewMode: "flow",
   activeSettingsView: "main",
   selectedProjectId: null,
   selectedTopicKey: null,
@@ -67,9 +73,22 @@ function readInitialUiState(): DashboardUiState {
     }
 
     const parsed = JSON.parse(raw) as Partial<DashboardUiState>;
+    const activeSidebarItem =
+      parsed.activeSidebarItem === "category" ? "category" : "board";
+    const activeDetailSection =
+      parsed.activeDetailSection === "workflow" ||
+      parsed.activeDetailSection === "history" ||
+      parsed.activeDetailSection === "report" ||
+      parsed.activeDetailSection === "files"
+        ? parsed.activeDetailSection
+        : "project-info";
+    const workflowViewMode = parsed.workflowViewMode === "timeline" ? "timeline" : "flow";
     return {
       ...defaultUiState,
       ...parsed,
+      activeSidebarItem,
+      activeDetailSection,
+      workflowViewMode,
       workspaceFilterState: {
         ...defaultWorkspaceFilterState,
         ...(parsed.workspaceFilterState ?? {})
@@ -92,6 +111,9 @@ function toUiState(store: DashboardStore): DashboardUiState {
   return {
     activeTopMenu: store.activeTopMenu,
     activeSidebarItem: store.activeSidebarItem,
+    projectDetailOpen: store.projectDetailOpen,
+    activeDetailSection: store.activeDetailSection,
+    workflowViewMode: store.workflowViewMode,
     activeSettingsView: store.activeSettingsView,
     selectedProjectId: store.selectedProjectId,
     selectedTopicKey: store.selectedTopicKey,
@@ -114,7 +136,7 @@ export const useDashboardStore = create<DashboardStore>((set, get) => {
     themeMode: readInitialThemeMode(),
     setActiveTopMenu: (value) => {
       if (value === "settings") {
-        setAndPersist({ activeTopMenu: "settings" });
+        setAndPersist({ activeTopMenu: "settings", projectDetailOpen: false });
         return;
       }
 
@@ -126,8 +148,12 @@ export const useDashboardStore = create<DashboardStore>((set, get) => {
     setActiveSidebarItem: (value: DashboardSidebarItem) =>
       setAndPersist({
         activeTopMenu: "projects",
-        activeSidebarItem: value
+        activeSidebarItem: value,
+        projectDetailOpen: false
       }),
+    setProjectDetailOpen: (value) => setAndPersist({ projectDetailOpen: value }),
+    setActiveDetailSection: (value) => setAndPersist({ activeDetailSection: value }),
+    setWorkflowViewMode: (value) => setAndPersist({ workflowViewMode: value }),
     setActiveSettingsView: (value: DashboardSettingsView) =>
       setAndPersist({
         activeTopMenu: "settings",

@@ -1,0 +1,118 @@
+import { alpha, useTheme } from "@mui/material/styles";
+import { Paper, Typography } from "@mui/material";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import { Prism as SyntaxHighlighter } from "react-syntax-highlighter";
+import { oneDark, oneLight } from "react-syntax-highlighter/dist/esm/styles/prism";
+import type { WorkflowDetailPayload } from "../model/dashboard";
+import { DiffViewer } from "./DiffViewer";
+
+type ArtifactDocumentContentProps = {
+  detail: WorkflowDetailPayload;
+  maxHeight?: string | number;
+};
+
+export function ArtifactDocumentContent(props: ArtifactDocumentContentProps) {
+  const theme = useTheme();
+
+  if (props.detail.kind === "diff") {
+    return <DiffViewer value={props.detail.content} />;
+  }
+
+  if (props.detail.kind === "markdown") {
+    return (
+      <Paper
+        variant="outlined"
+        sx={{
+          p: 2,
+          borderRadius: 1,
+          maxHeight: props.maxHeight ?? "65vh",
+          overflow: "auto",
+          backgroundColor: alpha(theme.palette.background.paper, theme.palette.mode === "dark" ? 0.84 : 0.94),
+          "& p": { my: 1.2, lineHeight: 1.75 },
+          "& ul, & ol": { my: 1.2, pl: 3 },
+          "& li": { my: 0.5 },
+          "& blockquote": {
+            my: 1.5,
+            mx: 0,
+            px: 1.5,
+            py: 1,
+            borderLeft: `3px solid ${alpha(theme.palette.primary.main, 0.48)}`,
+            backgroundColor: alpha(theme.palette.primary.main, 0.08)
+          },
+          "& code": {
+            px: 0.45,
+            py: 0.2,
+            borderRadius: 0.75,
+            backgroundColor: alpha(theme.palette.text.primary, theme.palette.mode === "dark" ? 0.18 : 0.08),
+            fontFamily: '"IBM Plex Mono", "SFMono-Regular", monospace',
+            fontSize: "0.86em"
+          },
+          "& pre": {
+            m: 0
+          }
+        }}
+      >
+        <ReactMarkdown
+          remarkPlugins={[remarkGfm]}
+          components={{
+            code({ className, children, ...rest }) {
+              const match = /language-(\w+)/.exec(className ?? "");
+              if (!match) {
+                return (
+                  <code className={className} {...rest}>
+                    {children}
+                  </code>
+                );
+              }
+
+              return (
+                <SyntaxHighlighter
+                  style={theme.palette.mode === "dark" ? oneDark : oneLight}
+                  language={match[1]}
+                  PreTag="div"
+                  customStyle={{
+                    margin: 0,
+                    borderRadius: 8,
+                    padding: 16,
+                    fontSize: "0.85rem"
+                  }}
+                >
+                  {String(children).replace(/\n$/, "")}
+                </SyntaxHighlighter>
+              );
+            }
+          }}
+        >
+          {props.detail.content}
+        </ReactMarkdown>
+      </Paper>
+    );
+  }
+
+  return (
+    <Paper
+      variant="outlined"
+      sx={{
+        p: 2,
+        borderRadius: 1,
+        maxHeight: props.maxHeight ?? "65vh",
+        overflow: "auto",
+        backgroundColor: alpha(theme.palette.text.primary, theme.palette.mode === "dark" ? 0.14 : 0.04)
+      }}
+    >
+      <Typography
+        component="pre"
+        sx={{
+          m: 0,
+          whiteSpace: "pre-wrap",
+          fontFamily: '"IBM Plex Mono", "SFMono-Regular", monospace',
+          fontSize: "0.84rem",
+          lineHeight: 1.7
+        }}
+      >
+        {props.detail.content}
+      </Typography>
+    </Paper>
+  );
+}
