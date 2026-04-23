@@ -138,6 +138,8 @@ export type ProjectSnapshot = {
   workingBranchPrefix: string;
   releaseBranchPrefix: string;
   installedVersion: string | null;
+  pggVersion: string | null;
+  projectVersion: string | null;
   dashboardTitle: string;
   dashboardTitleIconSvg: string;
   refreshIntervalMs: number;

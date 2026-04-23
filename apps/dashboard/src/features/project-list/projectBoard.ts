@@ -66,6 +66,8 @@ function buildProjectSearchText(project: ProjectSnapshot): string {
     project.rootDir,
     project.latestTopicName ?? "",
     project.latestTopicStage ?? "",
+    project.projectVersion ?? "",
+    project.pggVersion ?? "",
     project.installedVersion ?? ""
   ]
     .join(" ")

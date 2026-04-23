@@ -626,7 +626,7 @@ export default function DashboardApp() {
         title={currentProject?.dashboardTitle ?? dictionary.dashboardFallbackTitle}
         titleIconSvg={currentProject?.dashboardTitleIconSvg ?? ""}
         latestProject={latestActiveProject?.name ?? "-"}
-        latestProjectVersion={latestActiveProject?.installedVersion ?? null}
+        latestProjectVersion={latestActiveProject?.projectVersion ?? latestActiveProject?.pggVersion ?? null}
         dictionary={dictionary}
         activeTopMenu={activeTopMenu}
         compactShell={isCompactShell}
