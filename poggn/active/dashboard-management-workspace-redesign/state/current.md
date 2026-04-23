@@ -6,11 +6,11 @@ dashboard-management-workspace-redesign
 
 ## Current Stage
 
-refactor
+qa
 
 ## Goal
 
-management workspace 구현 뒤 남은 불필요 prop 연결과 helper 중복을 제거하고 refactor 기록을 남긴다.
+management workspace 구현과 refactor 정리를 검증하고 archive 가능 여부를 판정한다.
 
 ## Document Refs
 
@@ -23,6 +23,8 @@ management workspace 구현 뒤 남은 불필요 prop 연결과 helper 중복을
 - implementation index: `poggn/active/dashboard-management-workspace-redesign/implementation/index.md`
 - code review: `poggn/active/dashboard-management-workspace-redesign/reviews/code.review.md`
 - refactor review: `poggn/active/dashboard-management-workspace-redesign/reviews/refactor.review.md`
+- qa review: `poggn/active/dashboard-management-workspace-redesign/reviews/qa.review.md`
+- qa report: `poggn/active/dashboard-management-workspace-redesign/qa/report.md`
 - spec:
   - `poggn/active/dashboard-management-workspace-redesign/spec/ui/project-selector-version-and-sync.md`
   - `poggn/active/dashboard-management-workspace-redesign/spec/ui/management-navigation-shell.md`
@@ -78,8 +80,10 @@ management workspace 구현 뒤 남은 불필요 prop 연결과 helper 중복을
 - CREATE `poggn/active/dashboard-management-workspace-redesign/implementation/index.md`
 - CREATE `poggn/active/dashboard-management-workspace-redesign/reviews/code.review.md`
 - CREATE `poggn/active/dashboard-management-workspace-redesign/reviews/refactor.review.md`
+- CREATE `poggn/active/dashboard-management-workspace-redesign/reviews/qa.review.md`
 - CREATE `poggn/active/dashboard-management-workspace-redesign/reviews/plan.review.md`
 - CREATE `poggn/active/dashboard-management-workspace-redesign/reviews/task.review.md`
+- CREATE `poggn/active/dashboard-management-workspace-redesign/qa/report.md`
 - CREATE `poggn/active/dashboard-management-workspace-redesign/state/current.md`
 - CREATE `poggn/active/dashboard-management-workspace-redesign/state/history.ndjson`
 - CREATE `poggn/active/dashboard-management-workspace-redesign/state/dirty-worktree-baseline.txt`
@@ -94,23 +98,28 @@ management workspace 구현 뒤 남은 불필요 prop 연결과 helper 중복을
 
 ## Last Expert Score
 
+- phase: qa
 - score: 96
 - blocking issues: none
 
+## QA Report
+
+- ref: `poggn/active/dashboard-management-workspace-redesign/qa/report.md`
+
 ## Open Items
 
-- status: refactor completed
-
-## Next Workflow
-
-- `pgg-qa`
-- reason: refactor review와 build 검증까지 마쳐 QA 단계로 넘길 수 있다.
+- status: pass
 
 ## Verification
 
-- project verification: `manual verification required`
-- workspace check: `pnpm build` pass
-- note: current-project verification contract가 선언되어 있지 않다.
+- `pnpm build`: pass
+- `pnpm test`: pass
+- `bash ./.codex/sh/pgg-gate.sh pgg-qa dashboard-management-workspace-redesign`: pass
+- current-project verification contract: `manual verification required`
+
+## Next Action
+
+archive allowed
 
 ## Git Publish Message
 
