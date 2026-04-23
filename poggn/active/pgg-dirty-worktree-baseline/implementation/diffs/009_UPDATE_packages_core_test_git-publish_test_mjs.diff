@@ -1,0 +1,105 @@
+diff --git a/packages/core/test/git-publish.test.mjs b/packages/core/test/git-publish.test.mjs
+index ed84379..5e6055e 100644
+--- a/packages/core/test/git-publish.test.mjs
++++ b/packages/core/test/git-publish.test.mjs
+@@ -86,6 +86,7 @@ async function createActiveStageTopic(rootDir, topic, stage, changedPaths, goal,
+   const topicDir = path.join(rootDir, "poggn", "active", topic);
+   await mkdir(topicDir, { recursive: true });
+   const branch = buildBranchNames(topic, options);
++  const initialDirtyPaths = options.initialDirtyPaths ?? [];
+   const changedFileRows = changedPaths
+     .map((changedPath) => `| UPDATE | \`${changedPath}\` | 없음 |`)
+     .join("\n");
+@@ -158,6 +159,7 @@ async function createActiveStageTopic(rootDir, topic, stage, changedPaths, goal,
+     "state/history.ndjson",
+     `{"ts":"2026-04-21T00:00:00Z","stage":"${stage}","event":"${stage}-started"}\n`
+   );
++  await writeTopicFile(topicDir, "state/dirty-worktree-baseline.txt", `${initialDirtyPaths.join("\n")}${initialDirtyPaths.length ? "\n" : ""}`);
+ 
+   git(rootDir, ["checkout", "-B", branch.workingBranch]);
+   return branch;
+@@ -169,7 +171,8 @@ async function createQaTopic(rootDir, topic, changedPaths, goal, options = {}) {
+   const {
+     statePublishMessage,
+     qaPublishMessage = statePublishMessage,
+-    createBranch = true
++    createBranch = true,
++    initialDirtyPaths = []
+   } = options;
+   const branch = buildBranchNames(topic, options);
+ 
+@@ -251,6 +254,7 @@ async function createQaTopic(rootDir, topic, changedPaths, goal, options = {}) {
+     "state/history.ndjson",
+     '{"ts":"2026-04-21T00:00:00Z","stage":"qa","event":"qa-started"}\n'
+   );
++  await writeTopicFile(topicDir, "state/dirty-worktree-baseline.txt", `${initialDirtyPaths.join("\n")}${initialDirtyPaths.length ? "\n" : ""}`);
+ 
+   await writeTopicFile(
+     topicDir,
+@@ -894,6 +898,39 @@ test("stage commit helper defers when unrelated dirty files exist under a change
+   });
+ });
+ 
++test("stage commit helper ignores pre-existing unrelated dirty files recorded in the baseline", async () => {
++  await withGitPublishFixture("pgg-stage-commit-baseline", { remote: false }, async ({ rootDir }) => {
++    const agentsPath = path.join(rootDir, "AGENTS.md");
++    await writeFile(agentsPath, `${await readFile(agentsPath, "utf8")}\n# pre-existing unrelated dirty change\n`, "utf8");
++    await writeFile(path.join(rootDir, "feature.txt"), "candidate stage change\n", "utf8");
++    await createActiveStageTopic(
++      rootDir,
++      "stage-commit-baseline",
++      "implementation",
++      ["feature.txt"],
++      "Baseline-aware stage commit",
++      {
++        archiveType: "fix",
++        versionBump: "patch",
++        targetVersion: "0.1.1",
++        shortName: "stage-baseline",
++        initialDirtyPaths: ["AGENTS.md"]
++      }
++    );
++
++    const result = runStageCommitHelper(
++      rootDir,
++      "stage-commit-baseline",
++      "implementation",
++      "baseline stage proof",
++      "Pre-existing unrelated dirty paths should not block the governed stage commit once the topic baseline recorded them."
++    );
++
++    assert.equal(result.resultType, "committed");
++    assert.match(git(rootDir, ["log", "-1", "--format=%B"]), /^fix: baseline stage proof$/m);
++  });
++});
++
+ test("archive helper publishes even when poggn is locally ignored", async () => {
+   await withGitPublishFixture("pgg-archive-ignored-topic", { remote: true }, async ({ rootDir, remoteDir }) => {
+     await ignorePoggnLocally(rootDir);
+@@ -915,3 +952,26 @@ test("archive helper publishes even when poggn is locally ignored", async () =>
+     assert.equal(result.git.commitTitle, "feat: ignored topic archive");
+   });
+ });
++
++test("archive helper ignores pre-existing unrelated dirty files recorded in the baseline", async () => {
++  await withGitPublishFixture("pgg-archive-baseline", { remote: true }, async ({ rootDir, remoteDir }) => {
++    const agentsPath = path.join(rootDir, "AGENTS.md");
++    await writeFile(agentsPath, `${await readFile(agentsPath, "utf8")}\n# pre-existing unrelated dirty change\n`, "utf8");
++    await writeFile(path.join(rootDir, "feature.txt"), "candidate archive publish case\n", "utf8");
++    const branch = await createQaTopic(rootDir, "archive-baseline", ["feature.txt"], "Baseline-aware archive publish", {
++      initialDirtyPaths: ["AGENTS.md"],
++      qaPublishMessage: {
++        title: "feat: baseline publish metadata",
++        why: "Pre-existing unrelated dirty paths should not block archive publish after the topic baseline recorded them.",
++        footer: "Refs: PGG-BASELINE"
++      }
++    });
++
++    const result = runArchiveHelper(rootDir, "archive-baseline");
++
++    assert.equal(result.qaCompletion.resultType, "committed");
++    assert.equal(result.git.resultType, "published");
++    const remoteReleaseHead = readRemoteRef(remoteDir, `refs/heads/${result.git.releaseBranch}`);
++    assert.equal(result.git.commitSha, remoteReleaseHead);
++  });
++});

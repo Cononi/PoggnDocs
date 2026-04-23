@@ -1,0 +1,83 @@
+{
+  "topic": "pgg-dirty-worktree-baseline",
+  "nodes": [
+    {
+      "id": "proposal",
+      "type": "document",
+      "position": { "x": 0, "y": 0 },
+      "data": { "label": "proposal.md", "path": "poggn/active/pgg-dirty-worktree-baseline/proposal.md", "stage": "proposal" }
+    },
+    {
+      "id": "proposal-review",
+      "type": "review",
+      "position": { "x": 0, "y": 140 },
+      "data": { "label": "reviews/proposal.review.md", "path": "poggn/active/pgg-dirty-worktree-baseline/reviews/proposal.review.md", "stage": "review" }
+    },
+    {
+      "id": "plan",
+      "type": "document",
+      "position": { "x": 0, "y": 280 },
+      "data": { "label": "plan.md", "path": "poggn/active/pgg-dirty-worktree-baseline/plan.md", "stage": "plan" }
+    },
+    {
+      "id": "spec-dirty-worktree-baseline",
+      "type": "document",
+      "position": { "x": 280, "y": 280 },
+      "data": { "label": "spec/infra/dirty-worktree-baseline.md", "path": "poggn/active/pgg-dirty-worktree-baseline/spec/infra/dirty-worktree-baseline.md", "stage": "plan" }
+    },
+    {
+      "id": "spec-stage-publish-dirty-guard",
+      "type": "document",
+      "position": { "x": 280, "y": 420 },
+      "data": { "label": "spec/infra/stage-publish-dirty-guard.md", "path": "poggn/active/pgg-dirty-worktree-baseline/spec/infra/stage-publish-dirty-guard.md", "stage": "plan" }
+    },
+    {
+      "id": "task",
+      "type": "task",
+      "position": { "x": 0, "y": 560 },
+      "data": { "label": "task.md", "path": "poggn/active/pgg-dirty-worktree-baseline/task.md", "stage": "task" }
+    },
+    {
+      "id": "plan-review",
+      "type": "review",
+      "position": { "x": 0, "y": 700 },
+      "data": { "label": "reviews/plan.review.md", "path": "poggn/active/pgg-dirty-worktree-baseline/reviews/plan.review.md", "stage": "review" }
+    },
+    {
+      "id": "task-review",
+      "type": "review",
+      "position": { "x": 280, "y": 700 },
+      "data": { "label": "reviews/task.review.md", "path": "poggn/active/pgg-dirty-worktree-baseline/reviews/task.review.md", "stage": "review" }
+    },
+    {
+      "id": "implementation-index",
+      "type": "document",
+      "position": { "x": 0, "y": 840 },
+      "data": { "label": "implementation/index.md", "path": "poggn/active/pgg-dirty-worktree-baseline/implementation/index.md", "stage": "implementation" }
+    },
+    {
+      "id": "code-review",
+      "type": "review",
+      "position": { "x": 280, "y": 840 },
+      "data": { "label": "reviews/code.review.md", "path": "poggn/active/pgg-dirty-worktree-baseline/reviews/code.review.md", "stage": "review" }
+    },
+    {
+      "id": "qa-report",
+      "type": "review",
+      "position": { "x": 0, "y": 980 },
+      "data": { "label": "qa/report.md", "path": "poggn/active/pgg-dirty-worktree-baseline/qa/report.md", "stage": "qa" }
+    }
+  ],
+  "edges": [
+    { "id": "proposal-to-review", "source": "proposal", "target": "proposal-review" },
+    { "id": "proposal-review-to-plan", "source": "proposal-review", "target": "plan" },
+    { "id": "plan-to-spec-baseline", "source": "plan", "target": "spec-dirty-worktree-baseline" },
+    { "id": "plan-to-spec-guard", "source": "plan", "target": "spec-stage-publish-dirty-guard" },
+    { "id": "plan-to-task", "source": "plan", "target": "task" },
+    { "id": "plan-to-review", "source": "plan", "target": "plan-review" },
+    { "id": "task-to-review", "source": "task", "target": "task-review" },
+    { "id": "task-review-to-implementation", "source": "task-review", "target": "implementation-index" },
+    { "id": "implementation-to-code-review", "source": "implementation-index", "target": "code-review" },
+    { "id": "implementation-to-qa", "source": "implementation-index", "target": "qa-report" }
+  ]
+}
