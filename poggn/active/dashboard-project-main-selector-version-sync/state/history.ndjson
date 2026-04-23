@@ -1,0 +1,4 @@
+{"ts":"2026-04-23T16:22:57Z","stage":"proposal","event":"topic-created"}
+{"ts":"2026-04-23T16:23:24Z","stage":"proposal","event":"proposal-reviewed"}
+{"ts":"2026-04-23T16:26:59Z","stage":"plan","event":"plan-docs-created"}
+{"ts":"2026-04-23T16:33:46Z","stage":"implementation","event":"stage-commit","archiveType":"fix","commitTitle":"fix: project version source","summary":"project version source","why":"dashboard project version must follow archive lifecycle metadata instead of package.json so the UI reflects the true latest archived release.","footer":"Refs: dashboard-project-main-selector-version-sync","branchRecovery":"recovered","branchRecoveryReason":"Governed checkout recovered the stage helper onto 'ai/fix/0.15.1-dashboard-sync' from 'release/0.15.0-management-workspace'.","branchRecoveryFrom":"release/0.15.0-management-workspace"}
