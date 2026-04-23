@@ -6,9 +6,9 @@
   "language": "ko",
   "autoMode": "on",
   "installedVersion": "0.1.0",
-  "updatedAt": "2026-04-22T13:07:03.429Z",
+  "updatedAt": "2026-04-23T01:12:12.215Z",
   "dashboard": {
-    "title": "poggn dashboard",
+    "title": "POGGN",
     "defaultPort": 4173,
     "refreshIntervalMs": 10000
   },
@@ -20,7 +20,7 @@
     },
     {
       "path": ".codex/add/WOKR-FLOW.md",
-      "checksum": "17f3ddb15811c30f0f1a3a3ee55aa8571d4512fe61d62bdd9584c15ec0dff76a",
+      "checksum": "86480748cbf91c212f7f858455d988d4840026219ebb39f8740bc721258ed71f",
       "executable": false
     },
     {
@@ -125,7 +125,7 @@
     },
     {
       "path": ".codex/sh/pgg-stage-commit.sh",
-      "checksum": "9a7543cc2ed259e78ae1d5d2b9f17db7e3b365122fa921c9cbf777e533bb8a0a",
+      "checksum": "6371579d724a3fc42b4d9c342decc3d4d2d18c830e498b2bdfa21bee39a458d3",
       "executable": true
     },
     {
@@ -135,7 +135,7 @@
     },
     {
       "path": ".codex/sh/pgg-git-publish.sh",
-      "checksum": "214b0a4fb5e8dab7dda38bd325c0f102561fa943d7fc9200298834fdfdc0da40",
+      "checksum": "aaafbd7f76b0f4c6c89b31e673c0be071f14edba6a5bb1f73105d2219fba60ef",
       "executable": true
     },
     {
