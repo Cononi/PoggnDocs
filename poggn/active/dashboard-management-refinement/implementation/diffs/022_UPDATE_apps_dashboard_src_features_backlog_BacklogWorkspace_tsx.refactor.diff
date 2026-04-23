@@ -1,0 +1,12 @@
+diff --git a/apps/dashboard/src/features/backlog/BacklogWorkspace.tsx b/apps/dashboard/src/features/backlog/BacklogWorkspace.tsx
+index cb06520..d56a27d 100644
+--- a/apps/dashboard/src/features/backlog/BacklogWorkspace.tsx
++++ b/apps/dashboard/src/features/backlog/BacklogWorkspace.tsx
+@@ -32,7 +32,6 @@ type BacklogWorkspaceProps = {
+   project: ProjectSnapshot | null;
+   sections: BacklogSectionModel[];
+   dictionary: DashboardLocale;
+-  language: "ko" | "en";
+   isLiveMode: boolean;
+   searchQuery: string;
+   filterState: DashboardWorkspaceFilterState;

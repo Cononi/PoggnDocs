@@ -47,6 +47,7 @@ refactor
 
 - status: ready for `pgg-qa`
 - blocking issues: 없음
+- refactor stage commit helper: deferred | unrelated worktree changes `.codex/sh/pgg-stage-commit.sh`, `.pgg/project.json`, `apps/dashboard/public/dashboard-data.json`
 
 ## User Question Record
 
@@ -82,6 +83,7 @@ refactor
 
 - verification contract | `manual verification required`
 - `pnpm build` | pass
+- `bash ./.codex/sh/pgg-stage-commit.sh ... refactor ...` | `publish_blocked` | unrelated worktree changes present
 
 ## Changed Files
 
