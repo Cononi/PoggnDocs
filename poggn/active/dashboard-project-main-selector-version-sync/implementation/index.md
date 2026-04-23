@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-23T16:36:05Z"
+  updated_at: "2026-04-23T22:25:24Z"
 ---
 
 # Implementation Index
@@ -18,3 +18,5 @@ pgg:
 | 004 | UPDATE | `packages/core/dist/index.js.map` | `implementation/diffs/004_UPDATE_packages_core_dist_index_js_map.diff` | `T1` | source resolver 변경을 반영하도록 tracked source map을 재생성했다 |
 | 005 | UPDATE | `apps/dashboard/src/app/DashboardShellChrome.tsx` | `implementation/diffs/005_UPDATE_apps_dashboard_src_app_DashboardShellChrome_tsx.diff` | `T2/T3` | selector card와 modal row를 whole-card affordance로 보이게 정리하고 project path를 multi-line으로 노출했다 |
 | 006 | UPDATE | `apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx` | `implementation/diffs/006_UPDATE_apps_dashboard_src_features_project-detail_ProjectDetailWorkspace_tsx.diff` | `T2/T3` | workspace header path wrapping과 main workspace overview/info/current-project 패널 구성을 `main.png` 기준 위계로 재배치했다 |
+| 007 | UPDATE | `apps/dashboard/src/app/DashboardShellChrome.tsx` | `implementation/diffs/007_UPDATE_apps_dashboard_src_app_DashboardShellChrome_tsx.diff` | `refactor` | selector trigger와 modal이 공유하는 version fallback 계산을 helper로 묶어 metadata 책임을 한 곳으로 정리했다 |
+| 008 | UPDATE | `apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx` | `implementation/diffs/008_UPDATE_apps_dashboard_src_features_project-detail_ProjectDetailWorkspace_tsx.diff` | `refactor` | main workspace의 overview/info/current project metric row를 배열 기반으로 재구성해 중복 JSX를 줄였다 |

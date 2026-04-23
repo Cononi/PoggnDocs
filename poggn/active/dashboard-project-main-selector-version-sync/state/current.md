@@ -6,7 +6,7 @@ dashboard-project-main-selector-version-sync
 
 ## Current Stage
 
-implementation
+refactor
 
 ## Goal
 
@@ -22,6 +22,8 @@ implementation
 - task review: `poggn/active/dashboard-project-main-selector-version-sync/reviews/task.review.md`
 - implementation index: `poggn/active/dashboard-project-main-selector-version-sync/implementation/index.md`
 - code review: `poggn/active/dashboard-project-main-selector-version-sync/reviews/code.review.md`
+- refactor review: `poggn/active/dashboard-project-main-selector-version-sync/reviews/refactor.review.md`
+- qa report: `poggn/active/dashboard-project-main-selector-version-sync/qa/report.md`
 - spec:
   - `poggn/active/dashboard-project-main-selector-version-sync/spec/ui/project-main-reference-alignment.md`
   - `poggn/active/dashboard-project-main-selector-version-sync/spec/ui/project-selector-path-affordance.md`
@@ -72,6 +74,10 @@ implementation
 - CREATE `poggn/active/dashboard-project-main-selector-version-sync/implementation/diffs/005_UPDATE_apps_dashboard_src_app_DashboardShellChrome_tsx.diff`
 - CREATE `poggn/active/dashboard-project-main-selector-version-sync/implementation/diffs/006_UPDATE_apps_dashboard_src_features_project-detail_ProjectDetailWorkspace_tsx.diff`
 - CREATE `poggn/active/dashboard-project-main-selector-version-sync/reviews/code.review.md`
+- CREATE `poggn/active/dashboard-project-main-selector-version-sync/implementation/diffs/007_UPDATE_apps_dashboard_src_app_DashboardShellChrome_tsx.diff`
+- CREATE `poggn/active/dashboard-project-main-selector-version-sync/implementation/diffs/008_UPDATE_apps_dashboard_src_features_project-detail_ProjectDetailWorkspace_tsx.diff`
+- CREATE `poggn/active/dashboard-project-main-selector-version-sync/reviews/refactor.review.md`
+- CREATE `poggn/active/dashboard-project-main-selector-version-sync/qa/report.md`
 - CREATE `poggn/active/dashboard-project-main-selector-version-sync/state/current.md`
 - CREATE `poggn/active/dashboard-project-main-selector-version-sync/state/history.ndjson`
 - CREATE `poggn/active/dashboard-project-main-selector-version-sync/state/dirty-worktree-baseline.txt`
@@ -85,24 +91,26 @@ implementation
 
 ## Last Expert Score
 
-- score: 96
+- score: 95
 - blocking issues: none
 
 ## Open Items
 
-- status: ready for refactor
+- status: refactor review와 helper cleanup이 완료되어 QA 재실행 준비가 됐다.
 
 ## Next Workflow
 
-- `pgg-refactor`
-- reason: 구현과 code review, implementation diff/index, workspace verification 기록이 완료돼 refactor 단계로 넘길 수 있다.
+- `pgg-qa`
+- reason: refactor review artifact와 구조 정리가 완료돼 QA gate를 다시 실행할 수 있다.
 
 ## Verification
 
 - project verification: `manual verification required`
-- workspace check: `pnpm build` pass
-- core regression: `pnpm --filter @pgg/core test` pass
-- dashboard build: `pnpm --filter @pgg/dashboard build` pass
+- workspace check: `pnpm --filter @pgg/dashboard build` pass
+- implementation gate: `bash ./.codex/sh/pgg-gate.sh pgg-code dashboard-project-main-selector-version-sync` pass
+- refactor entry gate: `bash ./.codex/sh/pgg-gate.sh pgg-refactor dashboard-project-main-selector-version-sync` pass
+- qa retry gate: `bash ./.codex/sh/pgg-gate.sh pgg-qa dashboard-project-main-selector-version-sync` pass
+- git preflight: branch `ai/fix/0.15.1-dashboard-sync`, remote `origin` configured
 
 ## Git Publish Message
 
