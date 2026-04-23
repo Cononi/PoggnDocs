@@ -7,3 +7,5 @@
 {"ts":"2026-04-23T04:41:19Z","stage":"performance","event":"performance-reviewed","score":90}
 {"ts":"2026-04-23T04:56:50Z","stage":"refactor","event":"refactor-reviewed","score":94,"next":"pgg-qa"}
 {"ts":"2026-04-23T04:59:44Z","stage":"refactor","event":"stage-commit","archiveType":"fix","commitTitle":"fix: dashboard board refactor","summary":"dashboard board refactor","why":"dashboard snapshot mutation refetch를 제거하고 board memo 경계를 추가해 category reorder와 selection fan-out을 줄인다","footer":"Refs: dashboard-board-polish-and-i18n-fix"}
+{"ts":"2026-04-23T05:00:49Z","stage":"qa","event":"qa-reviewed","score":95,"result":"pass","next":"archive"}
+{"ts":"2026-04-23T05:02:44Z","stage":"qa","event":"stage-commit","archiveType":"fix","commitTitle":"fix: qa completion","summary":"qa completion","why":"QA artifacts and final verification updates need a completion commit before archive publish.","footer":"Refs: dashboard-board-polish-and-i18n-fix"}

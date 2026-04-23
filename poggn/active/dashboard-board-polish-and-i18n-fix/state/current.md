@@ -6,11 +6,11 @@ dashboard-board-polish-and-i18n-fix
 
 ## Current Stage
 
-refactor
+qa
 
 ## Goal
 
-render/invalidation 잔여 위험을 줄이는 refactor를 마치고 `pgg-qa`로 넘긴다.
+QA 판정을 마치고 archive/publish bookkeeping으로 넘긴다.
 
 ## Confirmed Scope
 
@@ -41,9 +41,9 @@ render/invalidation 잔여 위험을 줄이는 refactor를 마치고 `pgg-qa`로
 
 ## Open Items
 
-- status: ready for `pgg-qa`
+- status: ready for `archive`
 - blocking issues: 없음
-- note: mutation refetch invalidation은 제거했고 board fan-out도 줄였지만, browser profiler 기반 수동 responsiveness 검증과 JS chunk warning 추적은 여전히 남아 있다
+- note: browser profiler 기반 수동 responsiveness 검증과 JS chunk warning 추적은 residual risk로 남지만 QA blocking issue는 아니다
 
 ## User Question Record
 
@@ -82,6 +82,10 @@ render/invalidation 잔여 위험을 줄이는 refactor를 마치고 `pgg-qa`로
 ## Refactor Review
 
 - ref: `reviews/refactor.review.md`
+
+## QA Report
+
+- ref: `qa/report.md`
 
 ## Verification
 
@@ -124,6 +128,7 @@ render/invalidation 잔여 위험을 줄이는 refactor를 마치고 `pgg-qa`로
 | CREATE | `poggn/active/dashboard-board-polish-and-i18n-fix/reviews/task.review.md` | 없음 |
 | CREATE | `poggn/active/dashboard-board-polish-and-i18n-fix/reviews/code.review.md` | 없음 |
 | CREATE | `poggn/active/dashboard-board-polish-and-i18n-fix/reviews/refactor.review.md` | 없음 |
+| CREATE | `poggn/active/dashboard-board-polish-and-i18n-fix/qa/report.md` | 없음 |
 | CREATE | `poggn/active/dashboard-board-polish-and-i18n-fix/state/current.md` | 없음 |
 | CREATE | `poggn/active/dashboard-board-polish-and-i18n-fix/state/history.ndjson` | 없음 |
 | CREATE | `poggn/active/dashboard-board-polish-and-i18n-fix/workflow.reactflow.json` | 없음 |
@@ -132,8 +137,8 @@ render/invalidation 잔여 위험을 줄이는 refactor를 마치고 `pgg-qa`로
 
 ## Last Expert Score
 
-- phase: refactor
-- score: 94
+- phase: qa
+- score: 95
 - blocking issues: 없음
 
 ## Git Publish Message
@@ -144,4 +149,4 @@ render/invalidation 잔여 위험을 줄이는 refactor를 마치고 `pgg-qa`로
 
 ## Next Action
 
-`pgg-qa`
+`archive`
