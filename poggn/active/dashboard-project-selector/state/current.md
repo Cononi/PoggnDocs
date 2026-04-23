@@ -6,7 +6,7 @@ dashboard-project-selector
 
 ## Current Stage
 
-refactor
+qa
 
 ## Goal
 
@@ -23,6 +23,7 @@ refactor
 - implementation index: `poggn/active/dashboard-project-selector/implementation/index.md`
 - code review: `poggn/active/dashboard-project-selector/reviews/code.review.md`
 - refactor review: `poggn/active/dashboard-project-selector/reviews/refactor.review.md`
+- qa report: `poggn/active/dashboard-project-selector/qa/report.md`
 - spec:
   - `poggn/active/dashboard-project-selector/spec/ui/project-selector-modal.md`
   - `poggn/active/dashboard-project-selector/spec/ui/project-surface-selection-sync.md`
@@ -65,6 +66,7 @@ refactor
 - CREATE `poggn/active/dashboard-project-selector/implementation/diffs/003_UPDATE_apps_dashboard_src_shared_locale_dashboardLocale_ts.diff`
 - CREATE `poggn/active/dashboard-project-selector/reviews/code.review.md`
 - CREATE `poggn/active/dashboard-project-selector/reviews/refactor.review.md`
+- CREATE `poggn/active/dashboard-project-selector/qa/report.md`
 - CREATE `poggn/active/dashboard-project-selector/state/current.md`
 - CREATE `poggn/active/dashboard-project-selector/state/history.ndjson`
 - CREATE `poggn/active/dashboard-project-selector/state/dirty-worktree-baseline.txt`
@@ -84,13 +86,20 @@ refactor
 
 ## Next Workflow
 
-- `pgg-qa`
-- reason: selector modal 구조 정리와 dead-path cleanup까지 끝나 QA 검증 단계로 넘길 수 있다.
+- `archive`
+- reason: QA report와 qa gate까지 완료되면 archive helper를 실행할 수 있다.
 
 ## Verification
 
 - project verification: `manual verification required`
 - workspace check: `pnpm build` pass
+
+## QA Result
+
+- `pnpm build` pass
+- `pgg-code gate` pass
+- `pgg-refactor gate` pass
+- current-project verification contract는 없어 `manual verification required`로 기록했다
 
 ## Git Publish Message
 
