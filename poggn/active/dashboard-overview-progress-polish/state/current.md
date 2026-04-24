@@ -6,11 +6,11 @@ dashboard-overview-progress-polish
 
 ## Current Stage
 
-implementation
+refactor
 
 ## Goal
 
-Project Workflow Overview 탭의 Workflow Progress polish를 구현하고 implementation diff와 code review를 기록했다.
+Project Workflow Overview 탭의 Workflow Progress polish 구현을 리팩터링하고 refactor review를 기록했다.
 
 ## Document Refs
 
@@ -22,6 +22,7 @@ Project Workflow Overview 탭의 Workflow Progress polish를 구현하고 implem
 - task review: `poggn/active/dashboard-overview-progress-polish/reviews/task.review.md`
 - implementation index: `poggn/active/dashboard-overview-progress-polish/implementation/index.md`
 - code review: `poggn/active/dashboard-overview-progress-polish/reviews/code.review.md`
+- refactor review: `poggn/active/dashboard-overview-progress-polish/reviews/refactor.review.md`
 - spec:
   - `poggn/active/dashboard-overview-progress-polish/spec/model/workflow-step-time-and-visibility.md`
   - `poggn/active/dashboard-overview-progress-polish/spec/ui/circular-workflow-progress.md`
@@ -52,6 +53,8 @@ Project Workflow Overview 탭의 Workflow Progress polish를 구현하고 implem
 - implementation은 `historyModel.ts`에서 `WorkflowStep` start/update display fields와 refactor core visibility를 처리하고, `HistoryWorkspace.tsx`에서 원형 responsive Progress UI, hidden chart legend, numeric status counts, modal Start/Updated Time을 처리했다.
 - `Start Time`은 flow 관련 source 중 가장 이른 시간, `Updated Time`은 가장 늦은 시간으로 산정한다.
 - build verification은 `pnpm --filter @pgg/dashboard build`로 통과했다.
+- refactor는 `HistoryWorkspace.tsx`의 Progress track grid/connector style 계산을 `workflowProgressTrackSx` helper로 분리해 JSX 안의 반복 step-count math를 제거했다.
+- refactor build verification도 `pnpm --filter @pgg/dashboard build`로 통과했다.
 
 ## User Question Record
 
@@ -88,7 +91,10 @@ Project Workflow Overview 탭의 Workflow Progress polish를 구현하고 implem
 - CREATE `poggn/active/dashboard-overview-progress-polish/implementation/index.md`
 - CREATE `poggn/active/dashboard-overview-progress-polish/implementation/diffs/001_UPDATE_apps_dashboard_src_features_history_historyModel_ts.diff`
 - CREATE `poggn/active/dashboard-overview-progress-polish/implementation/diffs/002_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.diff`
+- CREATE `poggn/active/dashboard-overview-progress-polish/implementation/diffs/003_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx_refactor.diff`
 - CREATE `poggn/active/dashboard-overview-progress-polish/reviews/code.review.md`
+- CREATE `poggn/active/dashboard-overview-progress-polish/reviews/refactor.review.md`
+- UPDATE `poggn/active/dashboard-overview-progress-polish/implementation/index.md`
 - UPDATE `poggn/active/dashboard-overview-progress-polish/workflow.reactflow.json`
 - UPDATE `poggn/active/dashboard-overview-progress-polish/state/current.md`
 - UPDATE `poggn/active/dashboard-overview-progress-polish/state/history.ndjson`
@@ -97,13 +103,13 @@ Project Workflow Overview 탭의 Workflow Progress polish를 구현하고 implem
 
 ## Last Expert Score
 
-- phase: implementation
-- score: 95
+- phase: refactor
+- score: 96
 - blocking issues: none
 
 ## Open Items
 
-- status: ready for `pgg-refactor`
+- status: ready for `pgg-qa`
 
 ## Verification
 
@@ -111,11 +117,12 @@ Project Workflow Overview 탭의 Workflow Progress polish를 구현하고 implem
 - proposal document review: pass
 - plan/task document review: pass
 - `pnpm --filter @pgg/dashboard build`: pass
+- refactor `pnpm --filter @pgg/dashboard build`: pass
 - implementation source checks for refactor visibility, modal time fields, removed Progress horizontal scroll, and status label de-duplication: pass
 
 ## Next Action
 
-Run `pgg-refactor` for `dashboard-overview-progress-polish`.
+Run `pgg-qa` for `dashboard-overview-progress-polish`.
 
 ## Git Publish Message
 

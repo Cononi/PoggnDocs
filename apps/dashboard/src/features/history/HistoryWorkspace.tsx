@@ -313,6 +313,7 @@ function HistoryOverview(props: {
   const theme = useTheme();
   const [selectedStep, setSelectedStep] = useState<WorkflowStep | null>(null);
   const steps = buildWorkflowSteps(props.topic, props.language);
+  const stepCount = Math.max(steps.length, 1);
   const progress = buildProgressOverview(steps);
   const updatedLabel = formatTopicDate(props.topic, props.language, props.dictionary.unknown);
   const activity = buildActivitySummary(props.topic, props.language);
@@ -348,22 +349,7 @@ function HistoryOverview(props: {
             }}
           >
             <Box
-              sx={{
-                display: "grid",
-                gridTemplateColumns: `repeat(${Math.max(steps.length, 1)}, minmax(0, 1fr))`,
-                gap: { xs: 0.35, sm: 0.75, md: 1 },
-                position: "relative",
-                minWidth: 0,
-                px: { xs: 0.3, sm: 0.6 },
-                "&::before": {
-                  content: "\"\"",
-                  position: "absolute",
-                  left: `calc(${50 / Math.max(steps.length, 1)}% + 2px)`,
-                  right: `calc(${50 / Math.max(steps.length, 1)}% + 2px)`,
-                  top: { xs: 26, sm: 31, md: 35 },
-                  borderTop: `2px solid ${alpha(theme.palette.divider, 0.9)}`
-                }
-              }}
+              sx={workflowProgressTrackSx(theme, stepCount)}
             >
               {steps.map((step) => (
                 <WorkflowStepNode key={step.id} step={step} onSelect={() => setSelectedStep(step)} />
@@ -440,6 +426,27 @@ function HistoryOverview(props: {
       <WorkflowLogDialog step={selectedStep} onClose={() => setSelectedStep(null)} />
     </Stack>
   );
+}
+
+function workflowProgressTrackSx(theme: Theme, stepCount: number) {
+  const connectorInset = `${50 / stepCount}% + 2px`;
+
+  return {
+    display: "grid",
+    gridTemplateColumns: `repeat(${stepCount}, minmax(0, 1fr))`,
+    gap: { xs: 0.35, sm: 0.75, md: 1 },
+    position: "relative",
+    minWidth: 0,
+    px: { xs: 0.3, sm: 0.6 },
+    "&::before": {
+      content: "\"\"",
+      position: "absolute",
+      left: `calc(${connectorInset})`,
+      right: `calc(${connectorInset})`,
+      top: { xs: 26, sm: 31, md: 35 },
+      borderTop: `2px solid ${alpha(theme.palette.divider, 0.9)}`
+    }
+  };
 }
 
 function buildProgressOverview(steps: WorkflowStep[]) {
