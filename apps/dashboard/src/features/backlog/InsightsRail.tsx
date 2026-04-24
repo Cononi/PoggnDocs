@@ -20,6 +20,8 @@ type InsightsRailProps = {
   onClose: () => void;
 };
 
+type InsightItem = InsightsSummaryModel["widgets"][number]["items"][number];
+
 export function InsightsRail(props: InsightsRailProps) {
   const theme = useTheme();
   const backlogWidget = props.summary.widgets.find((widget) => widget.id === "workload") ?? props.summary.widgets[0] ?? null;
@@ -41,7 +43,7 @@ export function InsightsRail(props: InsightsRailProps) {
 
   return (
     <Stack spacing={1.5}>
-      <Paper sx={{ p: 1.5, borderRadius: 1, ...dashboardPanelSx(theme) }}>
+      <RailPanel>
         <Stack spacing={1.5}>
           <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between", alignItems: "center" }}>
             <Typography variant="overline" color="text.secondary">
@@ -83,9 +85,9 @@ export function InsightsRail(props: InsightsRailProps) {
             </Paper>
           ) : null}
         </Stack>
-      </Paper>
+      </RailPanel>
 
-      <Paper sx={{ p: 1.5, borderRadius: 1, ...dashboardPanelSx(theme) }}>
+      <RailPanel>
         <Stack spacing={1.2}>
           <RailSectionTitle icon={<BarChartRounded fontSize="small" />} title={props.dictionary.quickStatsTitle} />
           <Box sx={{ display: "grid", gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: 1 }}>
@@ -104,10 +106,10 @@ export function InsightsRail(props: InsightsRailProps) {
             ))}
           </Box>
         </Stack>
-      </Paper>
+      </RailPanel>
 
       {backlogWidget ? (
-        <Paper sx={{ p: 1.5, borderRadius: 1, ...dashboardPanelSx(theme) }}>
+        <RailPanel>
           <Stack spacing={1.2}>
             <RailSectionTitle icon={<AutoGraphRounded fontSize="small" />} title={props.dictionary.backlogInsightsTitle} />
             <Box sx={{ width: "100%", height: 178 }}>
@@ -136,11 +138,11 @@ export function InsightsRail(props: InsightsRailProps) {
               ))}
             </Stack>
           </Stack>
-        </Paper>
+        </RailPanel>
       ) : null}
 
       {progressWidget ? (
-        <Paper sx={{ p: 1.5, borderRadius: 1, ...dashboardPanelSx(theme) }}>
+        <RailPanel>
           <Stack spacing={1.2}>
             <RailSectionTitle icon={<DonutLargeRounded fontSize="small" />} title={props.dictionary.sprintProgressTitle} />
             <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
@@ -167,7 +169,7 @@ export function InsightsRail(props: InsightsRailProps) {
               </Stack>
             </Stack>
           </Stack>
-        </Paper>
+        </RailPanel>
       ) : null}
 
       <Button variant="outlined" onClick={props.onClose}>
@@ -181,6 +183,12 @@ export function InsightsRail(props: InsightsRailProps) {
       ) : null}
     </Stack>
   );
+}
+
+function RailPanel(props: { children: ReactNode }) {
+  const theme = useTheme();
+
+  return <Paper sx={{ p: 1.5, borderRadius: 1, ...dashboardPanelSx(theme) }}>{props.children}</Paper>;
 }
 
 function RailSectionTitle(props: { icon: ReactNode; title: string }) {
@@ -216,12 +224,11 @@ function RailChip(props: { label: string; tone: "primary" | "success" }) {
 }
 
 function ProgressDonut(props: {
-  items: InsightsSummaryModel["widgets"][number]["items"];
+  items: InsightItem[];
   totalLabel: string;
 }) {
   const theme = useTheme();
-  const total = Math.max(props.items.reduce((sum, item) => sum + item.value, 0), 1);
-  const completed = Math.round((props.items.find((item) => item.tone === "success")?.value ?? props.items[0]?.value ?? 0) / total * 100);
+  const completed = resolveCompletionPercent(props.items);
 
   return (
     <Box
@@ -237,12 +244,7 @@ function ProgressDonut(props: {
         height={120}
         series={[
           {
-            data: props.items.map((item) => ({
-              id: item.id,
-              value: item.value,
-              label: item.label,
-              color: resolveDashboardToneAccent(theme, item.tone)
-            })),
+            data: buildPieChartData(theme, props.items),
             innerRadius: 42,
             outerRadius: 58,
             paddingAngle: 2,
@@ -254,16 +256,32 @@ function ProgressDonut(props: {
       />
       <Box sx={{ position: "absolute", inset: 0, zIndex: 1, display: "grid", placeItems: "center", textAlign: "center", pointerEvents: "none" }}>
         <Box>
-        <Typography variant="h4" sx={{ lineHeight: 1 }}>
-          {completed}%
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          {props.items.length > 0 ? props.totalLabel : "-"}
-        </Typography>
+          <Typography variant="h4" sx={{ lineHeight: 1 }}>
+            {completed}%
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {props.items.length > 0 ? props.totalLabel : "-"}
+          </Typography>
         </Box>
       </Box>
     </Box>
   );
+}
+
+function resolveCompletionPercent(items: InsightItem[]): number {
+  const total = Math.max(items.reduce((sum, item) => sum + item.value, 0), 1);
+  const completed = items.find((item) => item.tone === "success")?.value ?? items[0]?.value ?? 0;
+
+  return Math.round((completed / total) * 100);
+}
+
+function buildPieChartData(theme: Theme, items: InsightItem[]) {
+  return items.map((item) => ({
+    id: item.id,
+    value: item.value,
+    label: item.label,
+    color: resolveDashboardToneAccent(theme, item.tone)
+  }));
 }
 
 function MetricLegendRow(props: { label: string; value: string; color: string }) {

@@ -65,7 +65,7 @@
       "id": "state",
       "type": "state",
       "position": { "x": 1400, "y": 0 },
-      "data": { "label": "state/current.md", "stage": "implementation", "status": "ready_for_refactor" }
+      "data": { "label": "state/current.md", "stage": "refactor", "status": "ready_for_token" }
     },
     {
       "id": "implementation",
@@ -78,6 +78,12 @@
       "type": "review",
       "position": { "x": 1680, "y": 130 },
       "data": { "label": "reviews/code.review.md", "stage": "implementation", "status": "reviewed", "score": 96 }
+    },
+    {
+      "id": "refactor-review",
+      "type": "review",
+      "position": { "x": 1960, "y": 130 },
+      "data": { "label": "reviews/refactor.review.md", "stage": "refactor", "status": "reviewed", "score": 96 }
     }
   ],
   "edges": [
@@ -92,6 +98,7 @@
     { "id": "task-to-task-review", "source": "task", "target": "task-review" },
     { "id": "reviews-to-state", "source": "task-review", "target": "state" },
     { "id": "state-to-implementation", "source": "state", "target": "implementation" },
-    { "id": "implementation-to-code-review", "source": "implementation", "target": "code-review" }
+    { "id": "implementation-to-code-review", "source": "implementation", "target": "code-review" },
+    { "id": "code-review-to-refactor-review", "source": "code-review", "target": "refactor-review" }
   ]
 }

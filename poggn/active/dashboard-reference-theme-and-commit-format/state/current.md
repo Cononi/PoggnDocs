@@ -6,11 +6,11 @@ dashboard-reference-theme-and-commit-format
 
 ## Current Stage
 
-implementation
+refactor
 
 ## Goal
 
-`add-img/1.png`, `add-img/2.png`, `add-img/3.png`의 dark navy/cyan dashboard visual language를 전체 dashboard에 적용하고, pgg commit 제목 규격을 `{convention}: {version}.{commit message}`로 변경하는 구현을 완료했다.
+`add-img/1.png`, `add-img/2.png`, `add-img/3.png`의 dark navy/cyan dashboard visual language를 전체 dashboard에 적용하고, pgg commit 제목 규격을 `{convention}: {version}.{commit message}`로 변경한 구현을 리팩터링했다.
 
 ## Constraints
 
@@ -38,6 +38,7 @@ implementation
 - Implementation preserves dashboard route/sidebar/board placement while changing shared theme, shell surface styling, project board panels, and Insights rail chart rendering.
 - `@mui/x-charts` is installed for dashboard charts.
 - Runtime helpers and generated templates now generate/validate version-dot commit subjects.
+- Refactor extracted repeated Insights rail panel styling and pie chart data/percentage helpers without changing placement or data semantics.
 
 ## Scope
 
@@ -61,6 +62,7 @@ implementation
 - `implementation/index.md`
 - `implementation/diffs/*.diff`
 - `reviews/code.review.md`
+- `reviews/refactor.review.md`
 
 ## Active Specs
 
@@ -90,6 +92,7 @@ implementation
 - evidence: `pnpm --filter @pgg/dashboard build` passed
 - evidence: `pnpm test:core` passed
 - evidence: `pnpm build` passed
+- evidence: refactor `pnpm --filter @pgg/dashboard build` passed
 - evidence: old bracket commit subject search has one intentional rejection fixture in `packages/core/test/git-publish.test.mjs`
 
 ## Changed Files
@@ -119,6 +122,7 @@ implementation
 | UPDATE | `packages/core/test/skill-generation.test.mjs` | `implementation/diffs/021_UPDATE_packages_core_test_skill-generation_test_mjs.diff` |
 | UPDATE | `packages/core/test/version-history.test.mjs` | `implementation/diffs/022_UPDATE_packages_core_test_version-history_test_mjs.diff` |
 | UPDATE | `pnpm-lock.yaml` | `implementation/diffs/023_UPDATE_pnpm-lock_yaml.diff` |
+| UPDATE | `apps/dashboard/src/features/backlog/InsightsRail.tsx` | `implementation/diffs/024_UPDATE_apps_dashboard_src_features_backlog_InsightsRail_tsx.refactor.diff` |
 
 ## Dirty Worktree Baseline
 
@@ -128,7 +132,7 @@ implementation
 
 - score: `96`
 - blocking issue: `none`
-- review refs: `reviews/proposal.review.md`, `reviews/plan.review.md`, `reviews/task.review.md`, `reviews/code.review.md`
+- review refs: `reviews/proposal.review.md`, `reviews/plan.review.md`, `reviews/task.review.md`, `reviews/code.review.md`, `reviews/refactor.review.md`
 
 ## Git Publish Message
 
@@ -138,8 +142,8 @@ implementation
 
 ## Next
 
-`pgg-refactor`
+`pgg-token`
 
 ## Next Action
 
-Run `pgg-refactor` using `state/current.md`, `implementation/index.md`, `reviews/code.review.md`, and S1-S5 specs. Preserve required `pgg-token` and `pgg-performance` audit applicability.
+Run required `pgg-token` audit first, then required `pgg-performance` audit before `pgg-qa`.

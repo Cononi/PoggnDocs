@@ -35,10 +35,12 @@ pgg:
 | 021 | UPDATE | `packages/core/test/skill-generation.test.mjs` | `implementation/diffs/021_UPDATE_packages_core_test_skill-generation_test_mjs.diff` | `T4,T5` | Generated workflow/readme assertions now expect version-dot contract text. |
 | 022 | UPDATE | `packages/core/test/version-history.test.mjs` | `implementation/diffs/022_UPDATE_packages_core_test_version-history_test_mjs.diff` | `T4,T5` | State-pack publish message fixture now uses version-dot subject text. |
 | 023 | UPDATE | `pnpm-lock.yaml` | `implementation/diffs/023_UPDATE_pnpm-lock_yaml.diff` | `T3` | Lockfile updated for `@mui/x-charts`. |
+| 024 | UPDATE | `apps/dashboard/src/features/backlog/InsightsRail.tsx` | `implementation/diffs/024_UPDATE_apps_dashboard_src_features_backlog_InsightsRail_tsx.refactor.diff` | `T2,T3` | Refactored repeated rail panel styling and donut data/percentage helpers without changing the insights layout or data. |
 
 ## Verification
 
 - `pnpm --filter @pgg/dashboard build` passed.
 - `pnpm test:core` passed.
 - `pnpm build` passed.
+- Refactor verification: `pnpm --filter @pgg/dashboard build` passed.
 - Old bracket commit subject search has one intentional regression fixture: `packages/core/test/git-publish.test.mjs`.
