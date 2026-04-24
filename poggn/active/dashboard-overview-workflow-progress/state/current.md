@@ -6,11 +6,11 @@ dashboard-overview-workflow-progress
 
 ## Current Stage
 
-refactor
+qa
 
 ## Goal
 
-Project Workflow Overview 탭 구현의 helper 구조와 render 책임을 정리하고 refactor review를 기록했다.
+Project Workflow Overview 탭 구현과 refactor 결과를 검증하고 archive 가능 판정을 기록했다.
 
 ## Document Refs
 
@@ -23,6 +23,7 @@ Project Workflow Overview 탭 구현의 helper 구조와 render 책임을 정리
 - implementation index: `poggn/active/dashboard-overview-workflow-progress/implementation/index.md`
 - code review: `poggn/active/dashboard-overview-workflow-progress/reviews/code.review.md`
 - refactor review: `poggn/active/dashboard-overview-workflow-progress/reviews/refactor.review.md`
+- qa report: `poggn/active/dashboard-overview-workflow-progress/qa/report.md`
 - spec:
   - `poggn/active/dashboard-overview-workflow-progress/spec/model/overview-flow-model.md`
   - `poggn/active/dashboard-overview-workflow-progress/spec/model/flow-completion-and-detail.md`
@@ -57,6 +58,7 @@ Project Workflow Overview 탭 구현의 helper 구조와 render 책임을 정리
 - implementation은 `historyModel.ts`에 flow/status/detail/activity 계산을 모으고 `HistoryWorkspace.tsx`는 렌더링과 Dialog/Mui Chart만 담당하도록 분리했다.
 - refactor는 `historyModel.ts`의 긴 indexed access 타입, 날짜 정렬, file count formatting을 helper로 빼고, `HistoryWorkspace.tsx`의 progress count와 step color 계산을 helper로 분리했다.
 - build verification은 `pnpm --filter @pgg/dashboard build`로 통과했다.
+- QA decision은 `pass`이며 archive allowed 상태다.
 
 ## User Question Record
 
@@ -97,6 +99,7 @@ Project Workflow Overview 탭 구현의 helper 구조와 render 책임을 정리
 - CREATE `poggn/active/dashboard-overview-workflow-progress/implementation/diffs/004_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx_refactor.diff`
 - CREATE `poggn/active/dashboard-overview-workflow-progress/reviews/code.review.md`
 - CREATE `poggn/active/dashboard-overview-workflow-progress/reviews/refactor.review.md`
+- CREATE `poggn/active/dashboard-overview-workflow-progress/qa/report.md`
 - CREATE `poggn/active/dashboard-overview-workflow-progress/state/current.md`
 - CREATE `poggn/active/dashboard-overview-workflow-progress/state/history.ndjson`
 - CREATE `poggn/active/dashboard-overview-workflow-progress/state/dirty-worktree-baseline.txt`
@@ -107,23 +110,29 @@ Project Workflow Overview 탭 구현의 helper 구조와 render 책임을 정리
 
 ## Last Expert Score
 
-- phase: refactor
-- score: 96
+- phase: qa
+- score: 97
 - blocking issues: none
+
+## QA Report
+
+- ref: `poggn/active/dashboard-overview-workflow-progress/qa/report.md`
 
 ## Open Items
 
-- status: ready_for_qa
+- status: pass
 
 ## Verification
 
 - current-project verification contract: `manual verification required`
 - `pnpm --filter @pgg/dashboard build`: pass
+- `./.codex/sh/pgg-gate.sh pgg-code dashboard-overview-workflow-progress`: pass
+- `./.codex/sh/pgg-gate.sh pgg-refactor dashboard-overview-workflow-progress`: pass
 - source search for removed Workflow Progress placeholder copy and fixed activity placeholders: pass
 
 ## Next Action
 
-Run `pgg-qa dashboard-overview-workflow-progress`.
+archive allowed
 
 ## Git Publish Message
 
