@@ -1,88 +1,26 @@
 diff --git a/apps/dashboard/src/features/history/historyModel.ts b/apps/dashboard/src/features/history/historyModel.ts
-index 1801266..4011862 100644
+index 4011862..348f1dc 100644
 --- a/apps/dashboard/src/features/history/historyModel.ts
 +++ b/apps/dashboard/src/features/history/historyModel.ts
-@@ -513,19 +513,42 @@ function flowRevisionEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition)
-   return [...eventEvidence, ...nodeEvidence];
- }
+@@ -687,16 +687,17 @@ export function buildWorkflowSteps(topic: TopicSummary, language: HistoryLanguag
  
--function flowHasUpdatingStatus(topic: TopicSummary, flow: WorkflowFlowDefinition, completedAt: string | null): boolean {
-+function timestampMillis(value: string | null): number | null {
-+  if (!value) {
-+    return null;
-+  }
-+  const time = new Date(value).getTime();
-+  return Number.isFinite(time) ? time : null;
-+}
-+
-+function compareTimestamps(left: string | null, right: string | null): number {
-+  const leftTime = timestampMillis(left);
-+  const rightTime = timestampMillis(right);
-+  if (leftTime === null && rightTime === null) {
-+    return 0;
-+  }
-+  if (leftTime === null) {
-+    return -1;
-+  }
-+  if (rightTime === null) {
-+    return 1;
-+  }
-+  return leftTime - rightTime;
-+}
-+
-+function flowUpdatingTimestamp(topic: TopicSummary, flow: WorkflowFlowDefinition, completedAt: string | null): string | null {
-   if (topic.bucket === "archive") {
--    return false;
-+    return null;
-   }
- 
-   const latestRevision = latestEvidence(flowRevisionEvidence(topic, flow)).value;
-   if (!latestRevision) {
--    return false;
-+    return null;
-   }
-   if (!completedAt) {
--    return true;
-+    return latestRevision;
-   }
--  return new Date(latestRevision).getTime() > new Date(completedAt).getTime();
-+  return compareTimestamps(latestRevision, completedAt) > 0 ? latestRevision : null;
- }
- 
- function nodeTimestampEvidence(
-@@ -645,13 +668,30 @@ export function buildWorkflowSteps(topic: TopicSummary, language: HistoryLanguag
-   const flows = visibleWorkflowFlows(topic);
-   const currentIndex = resolveStageIndex(topic, flows);
-   const stageComplete = topicStageIsComplete(topic);
--
--  return flows.map((flow, index) => {
-+  const entries = flows.map((flow, index) => {
-     const activeTaskIds = activeTaskIdsForFlow(topic, flow);
--    const currentFlowIsComplete = stageComplete && activeTaskIds.length === 0;
--    const isComplete = topic.bucket === "archive" || index < currentIndex || (index === currentIndex && currentFlowIsComplete);
-     const timestamps = flowTimestampBundle(topic, flow);
--    const updating = flowHasUpdatingStatus(topic, flow, timestamps.completedAt.value) && index === currentIndex;
-+    return {
-+      flow,
-+      index,
-+      activeTaskIds,
-+      timestamps,
-+      updatingAt: flowUpdatingTimestamp(topic, flow, timestamps.completedAt.value)
-+    };
-+  });
-+  const updatingIndex = entries
-+    .filter((entry) => entry.updatingAt)
-+    .sort((left, right) => compareTimestamps(left.updatingAt, right.updatingAt) || left.index - right.index)
-+    .at(-1)?.index;
-+  const effectiveCurrentIndex = updatingIndex ?? currentIndex;
-+
-+  return entries.map(({ flow, index, activeTaskIds, timestamps }) => {
-+    const currentFlowIsComplete = stageComplete && activeTaskIds.length === 0;
-+    const isComplete =
-+      topic.bucket === "archive" ||
-+      index < effectiveCurrentIndex ||
-+      (index === currentIndex && index === effectiveCurrentIndex && currentFlowIsComplete);
+   return entries.map(({ flow, index, activeTaskIds, timestamps }) => {
+     const currentFlowIsComplete = stageComplete && activeTaskIds.length === 0;
++    const completedByProgress = index < currentIndex || (index === currentIndex && currentFlowIsComplete);
++    const completedByEvidence = Boolean(timestamps.completedAt.value && timestamps.completedAt.confidence !== "low");
 +    const updating = updatingIndex === index;
+     const isComplete =
+       topic.bucket === "archive" ||
+-      index < effectiveCurrentIndex ||
+-      (index === currentIndex && index === effectiveCurrentIndex && currentFlowIsComplete);
+-    const updating = updatingIndex === index;
++      (!updating && (completedByProgress || completedByEvidence));
      const status: WorkflowStatus = updating
        ? "updating"
        : isComplete
+         ? "completed"
+-        : index === currentIndex
++        : index === effectiveCurrentIndex
+           ? "current"
+           : "pending";
+     const displayedCompletedAt = status === "completed" && timestamps.completedAt.confidence !== "low" ? timestamps.completedAt.value : null;

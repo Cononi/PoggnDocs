@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T18:35:31Z"
+  updated_at: "2026-04-24T18:40:53Z"
 ---
 
 # code.review
@@ -28,6 +28,8 @@ pgg:
 | UI 통합 리뷰어 | 96 | 탭 그룹 자체의 border/background와 header/content divider를 제거했다. 비선택 탭은 transparent text-only로 두고 선택 탭만 panel 배경과 같은 색으로 이어지게 했다. | none |
 | UI 정렬 리뷰어 | 96 | 선택 탭에 `overflow: visible`, relative stacking, 1px bottom overlap을 적용해 active tab 바로 아래의 panel edge line이 보이지 않도록 했다. | none |
 | 상태 모델 리뷰어 | 96 | `추가 진행`을 현재 index에만 제한하던 조건을 제거하고, 완료 이후 더 최신 revision evidence가 있는 flow를 effective current로 승격한다. 해당 flow 이후 단계는 completion evidence가 생길 때까지 pending으로 유지된다. | none |
+| 상태 모델 리뷰어 | 96 | `effectiveCurrentIndex`가 다른 완료 flow를 pending으로 되돌리던 회귀를 막기 위해 완료 evidence와 current stage 이전 완료 이력을 별도로 보존했다. current 표시는 effective current에만 붙는다. | none |
+| UI 통합 리뷰어 | 96 | 탭 그룹 전체가 아니라 선택 탭과 content panel만 같은 border/background surface를 공유하게 했다. 비선택 탭은 transparent text-only 상태로 유지된다. | none |
 
 ## Findings
 
@@ -39,6 +41,8 @@ pgg:
 - `./.codex/sh/pgg-gate.sh pgg-code dashboard-workflow-overview-sync`: pass
 - source check for extra status stage removal, updating status keys, telemetry/status/tooltip keys: pass
 - source check for unresolved revision status overriding completed status across flow advancement: pass
+- source check for completed-flow preservation while unresolved revision is active: pass
+- source check for selected-tab-only frame with unboxed inactive tabs: pass
 - source check for edge-to-edge connector geometry and removed internal connector: pass
 - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
 - source check for connector gap-inclusive end offset and circle-radius top alignment: pass

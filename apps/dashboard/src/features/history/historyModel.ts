@@ -687,16 +687,17 @@ export function buildWorkflowSteps(topic: TopicSummary, language: HistoryLanguag
 
   return entries.map(({ flow, index, activeTaskIds, timestamps }) => {
     const currentFlowIsComplete = stageComplete && activeTaskIds.length === 0;
+    const completedByProgress = index < currentIndex || (index === currentIndex && currentFlowIsComplete);
+    const completedByEvidence = Boolean(timestamps.completedAt.value && timestamps.completedAt.confidence !== "low");
+    const updating = updatingIndex === index;
     const isComplete =
       topic.bucket === "archive" ||
-      index < effectiveCurrentIndex ||
-      (index === currentIndex && index === effectiveCurrentIndex && currentFlowIsComplete);
-    const updating = updatingIndex === index;
+      (!updating && (completedByProgress || completedByEvidence));
     const status: WorkflowStatus = updating
       ? "updating"
       : isComplete
         ? "completed"
-        : index === currentIndex
+        : index === effectiveCurrentIndex
           ? "current"
           : "pending";
     const displayedCompletedAt = status === "completed" && timestamps.completedAt.confidence !== "low" ? timestamps.completedAt.value : null;

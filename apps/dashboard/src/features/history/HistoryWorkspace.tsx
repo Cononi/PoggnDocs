@@ -98,6 +98,8 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
     ) : (
       <HistoryRelations topic={selectedTopic} topics={allTopics} />
     );
+  const historyPanelBg = alpha(theme.palette.background.default, theme.palette.mode === "dark" ? 0.18 : 0.34);
+  const historyPanelBorder = alpha(theme.palette.divider, 0.72);
 
   return (
     <Box
@@ -185,7 +187,9 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
                   zIndex: 1,
                   mb: "-1px",
                   color: "primary.main",
-                  bgcolor: alpha(theme.palette.background.default, theme.palette.mode === "dark" ? 0.18 : 0.34)
+                  border: `1px solid ${historyPanelBorder}`,
+                  borderBottomColor: historyPanelBg,
+                  bgcolor: historyPanelBg
                 }
               }}
             >
@@ -201,9 +205,12 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
             role="tabpanel"
             sx={{
               p: { xs: 1.2, md: 1.5 },
+              border: `1px solid ${historyPanelBorder}`,
+              borderRadius: 1,
+              borderTopLeftRadius: activeTab === "overview" ? 0 : 1,
               borderBottomLeftRadius: 1,
               borderBottomRightRadius: 1,
-              bgcolor: alpha(theme.palette.background.default, theme.palette.mode === "dark" ? 0.18 : 0.34)
+              bgcolor: historyPanelBg
             }}
           >
             {activePanel}
