@@ -55,12 +55,24 @@
         "path": "poggn/active/dashboard-workflow-progress-reference/reviews/code.review.md"
       },
       "position": { "x": 880, "y": 0 }
+    },
+    {
+      "id": "refactor-review",
+      "type": "review",
+      "data": {
+        "label": "refactor.review.md",
+        "stage": "refactor",
+        "status": "reviewed",
+        "path": "poggn/active/dashboard-workflow-progress-reference/reviews/refactor.review.md"
+      },
+      "position": { "x": 1100, "y": 0 }
     }
   ],
   "edges": [
     { "id": "proposal-plan", "source": "proposal", "target": "plan" },
     { "id": "plan-task", "source": "plan", "target": "task" },
     { "id": "task-implementation", "source": "task", "target": "implementation" },
-    { "id": "implementation-code-review", "source": "implementation", "target": "code-review" }
+    { "id": "implementation-code-review", "source": "implementation", "target": "code-review" },
+    { "id": "code-review-refactor-review", "source": "code-review", "target": "refactor-review" }
   ]
 }

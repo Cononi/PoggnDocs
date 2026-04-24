@@ -6,11 +6,11 @@ dashboard-workflow-progress-reference
 
 ## Current Stage
 
-implementation
+refactor
 
 ## Goal
 
-Project Workflow Overview 탭의 Workflow Progress를 `add-img/4.png` reference에 맞춰 구현하고, 실제 flow/task 진행 상태를 i18n 문구와 상태별 강조 효과로 표시하는 code stage를 완료했다.
+Project Workflow Overview 탭의 Workflow Progress 구현 뒤 obsolete status와 중복 데이터 구성 코드를 정리하는 refactor stage를 완료했다.
 
 ## Document Refs
 
@@ -22,6 +22,7 @@ Project Workflow Overview 탭의 Workflow Progress를 `add-img/4.png` reference�
 - task review: `poggn/active/dashboard-workflow-progress-reference/reviews/task.review.md`
 - implementation index: `poggn/active/dashboard-workflow-progress-reference/implementation/index.md`
 - code review: `poggn/active/dashboard-workflow-progress-reference/reviews/code.review.md`
+- refactor review: `poggn/active/dashboard-workflow-progress-reference/reviews/refactor.review.md`
 - spec:
   - `poggn/active/dashboard-workflow-progress-reference/spec/model/task-aware-workflow-progress.md`
   - `poggn/active/dashboard-workflow-progress-reference/spec/ui/reference-workflow-progress-visual.md`
@@ -57,6 +58,9 @@ Project Workflow Overview 탭의 Workflow Progress를 `add-img/4.png` reference�
 - T3 implemented the dark reference-style panel with header icon, flow rail, status circles, connectors, right donut, count cards, active pulse, and reduced-motion fallback.
 - T4 verification evidence includes dashboard build and source checks. Manual visual parity remains a QA browser check.
 - Runtime follow-up fixed two reported issues: TextField `InputProps` DOM forwarding warning and missing `theme` binding in `HistoryOverview`.
+- Refactor removed the unused `next` workflow status from `WorkflowStatus` and active step detection.
+- Refactor split task evidence source collection from active task id extraction.
+- Refactor extracted progress chart/count item builders out of JSX-local arrays.
 
 ## User Question Record
 
@@ -96,24 +100,29 @@ Project Workflow Overview 탭의 Workflow Progress를 `add-img/4.png` reference�
 | CREATE | `poggn/active/dashboard-workflow-progress-reference/implementation/diffs/002_UPDATE_apps_dashboard_src_shared_locale_dashboardLocale_ts.diff` | |
 | CREATE | `poggn/active/dashboard-workflow-progress-reference/implementation/diffs/003_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.diff` | |
 | CREATE | `poggn/active/dashboard-workflow-progress-reference/implementation/diffs/004_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx_runtime_fix.diff` | |
+| CREATE | `poggn/active/dashboard-workflow-progress-reference/implementation/diffs/005_UPDATE_apps_dashboard_src_features_history_historyModel_ts_refactor.diff` | |
+| CREATE | `poggn/active/dashboard-workflow-progress-reference/implementation/diffs/006_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx_refactor.diff` | |
 | CREATE | `poggn/active/dashboard-workflow-progress-reference/reviews/code.review.md` | |
+| CREATE | `poggn/active/dashboard-workflow-progress-reference/reviews/refactor.review.md` | |
 | UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | `poggn/active/dashboard-workflow-progress-reference/implementation/diffs/001_UPDATE_apps_dashboard_src_features_history_historyModel_ts.diff` |
 | UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | `poggn/active/dashboard-workflow-progress-reference/implementation/diffs/002_UPDATE_apps_dashboard_src_shared_locale_dashboardLocale_ts.diff` |
 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `poggn/active/dashboard-workflow-progress-reference/implementation/diffs/003_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.diff` |
 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `poggn/active/dashboard-workflow-progress-reference/implementation/diffs/004_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx_runtime_fix.diff` |
+| UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | `poggn/active/dashboard-workflow-progress-reference/implementation/diffs/005_UPDATE_apps_dashboard_src_features_history_historyModel_ts_refactor.diff` |
+| UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `poggn/active/dashboard-workflow-progress-reference/implementation/diffs/006_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx_refactor.diff` |
 | UPDATE | `poggn/active/dashboard-workflow-progress-reference/state/current.md` | |
 | UPDATE | `poggn/active/dashboard-workflow-progress-reference/state/history.ndjson` | |
 | UPDATE | `poggn/active/dashboard-workflow-progress-reference/workflow.reactflow.json` | |
 
 ## Last Expert Score
 
-- phase: implementation
-- score: 95
+- phase: refactor
+- score: 96
 - blocking issues: none
 
 ## Open Items
 
-- status: ready_for_refactor
+- status: ready_for_qa
 
 ## Verification
 
@@ -125,12 +134,14 @@ Project Workflow Overview 탭의 Workflow Progress를 `add-img/4.png` reference�
 - spec files created: pass
 - `pnpm --filter @pgg/dashboard build`: pass
 - runtime fix `pnpm --filter @pgg/dashboard build`: pass
+- refactor `pnpm --filter @pgg/dashboard build`: pass
 - source check for active task ids, progressive visibility, i18n keys, and reduced-motion fallback: pass
 - source check for removed `InputProps`: pass
+- source check for removed `next` workflow status: pass
 
 ## Next Action
 
-Run `pgg-refactor` using this `state/current.md`, `implementation/index.md`, and `reviews/code.review.md` as the primary handoff.
+Run `pgg-qa` using this `state/current.md`, `implementation/index.md`, `reviews/code.review.md`, and `reviews/refactor.review.md` as the primary handoff.
 
 ## Git Publish Message
 
