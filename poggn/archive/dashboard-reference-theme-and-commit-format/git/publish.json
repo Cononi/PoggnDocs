@@ -1,0 +1,32 @@
+{
+  "topic": "dashboard-reference-theme-and-commit-format",
+  "version": "2.0.0",
+  "targetVersion": "2.0.0",
+  "changeType": "feat",
+  "versionBump": "major",
+  "commitTitle": "feat: 2.0.0.대시보드 테마와 커밋 규격",
+  "commitSha": "7ed59d0e8b59a5540e4a7453357951f1e4f858a4",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/2.0.0-dashboard-format",
+  "workingBranch": "ai/feat/2.0.0-dashboard-format",
+  "releaseBranch": "release/2.0.0-dashboard-format",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-24T06:30:43Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/2.0.0-dashboard-format'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/dashboard-reference-theme-and-commit-format",
+    "versionFile": "poggn/archive/dashboard-reference-theme-and-commit-format/version.json"
+  }
+}
