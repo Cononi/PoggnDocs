@@ -78,6 +78,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - Historical update events on previous flows do not keep those previous flows in update state after a newer completion evidence appears.
 - If a completed previous flow receives newer unresolved revision evidence, that flow becomes the effective current `추가 진행` flow and later flows are shown as pending.
 - Unresolved revision status must not reset other completed flows to `시작 전`; completed evidence and current-stage prior progress stay completed unless that exact flow is updating.
+- Earlier-flow revision candidates are resolved when later flows have newer started/updated/completed evidence, so stale Add updates do not remain `추가 진행` after Plan/Code completion.
 - Runtime follow-up fixed missing `AutoGraphRounded` import and replaced compact Drawer `PaperProps` with `slotProps.paper`.
 - `add-img/8.png` follow-up fixed connector end offset to include grid gap and connector top to align with the circle visual center.
 - Workflow Progress title and donut percentage typography were reduced to match surrounding Overview density.
@@ -91,6 +92,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - Tab group should not have its own border/background, inactive tabs should not look boxed, and selected tab should visually continue into the tab panel.
 - The active tab should cover the panel edge directly beneath it so no line appears under the selected tab.
 - Only the selected tab and its content panel are framed together; inactive tabs remain unboxed text controls.
+- Content panel top border is removed so the selected tab and content are not separated by a visible line.
 - Workflow Progress compact UI removes the bordered time/status box and uses caption typography.
 - Flow nodes expose hover/focus tooltip copy through locale keys.
 - Active/revision rail uses visible overflow and fixed visual sizing to avoid clipping while preserving click target.
@@ -111,6 +113,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - `클릭된 탭과 하단 콘텐츠가 선으로 이어지는데 클릭된 탭의 바로 밑에 라인은 없어야 합니다.`
 - `워크플로우에서 특정 flow에서 완료되서 다음 플로우 차례지만 체크해보니 추가사항이 생겨서 추가 처리를 요청한 상태입니다. 근데 추가 사항 처리중인데 불구하고 완료된 처리로 보여주고 있습니다. 실시간으로 반영이 되도록 상태가 현 상황에 맞는 걸로 해야하는거 아닌가요?`
 - `오버플로우 메뉴에서 탭이 클릭되면 다른 탭은 감싸지말고 하위 컨텐츠까지 감싸서 영역 분리되는 디자인을 원햇는데 그 방식은 어려운가요? 그리고 플로우 에서 추가중에서 완료 했는데 불구하고 추가중 상태이며 이전에 완료된 작업들 상태들도 바꿔버려서 이상한 상태가 되었습니다. add 추가 진행 - plan 시작전 - code 생성중 이런 상태가 맞나요?`
+- `탭과 컨텐츠사이에 영역에서 선이 있어서 하나로 분리된 영역처럼 안보입니다. 그리고 여전히 수정된 부분은 code쪽인데 add 추가 진행 - plan 완료 - code 완료 상태입니다. 그리고 분명히 진행이 전부 완료 되었는데 add가 설령 현 작업이 아니여도 완료로 나왔어야 합니다. 제대로된 실시간 플로우 상태 관리로 만들어주세요.`
 
 ## Audit Applicability
 
@@ -194,7 +197,9 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - source check for removed extra status stage and retained updating telemetry/status/tooltip keys: pass
 - source check for unresolved revision status overriding completed status across flow advancement: pass
 - source check for completed-flow preservation while unresolved revision is active: pass
+- source check for stale earlier-flow revision resolution by later flow evidence: pass
 - source check for selected-tab-only frame with unboxed inactive tabs: pass
+- source check for removed content panel top border under selected tabs: pass
 - source check for edge-to-edge connector geometry and removed internal connector: pass
 - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
 - source check for connector gap-inclusive end offset and circle-radius top alignment: pass

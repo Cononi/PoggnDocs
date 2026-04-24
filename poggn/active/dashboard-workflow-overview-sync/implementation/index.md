@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T18:40:53Z"
+  updated_at: "2026-04-24T18:45:44Z"
   auto_mode: "on"
   archive_type: "fix"
   version_bump: "patch"
@@ -35,6 +35,7 @@ state:
 - `시작 전`, `생성 중`, `완료`, `추가 진행` are modeled as the required user-facing statuses.
 - Completed flows with newer unresolved revision/additional requirement evidence now return to `추가 진행`; later flows remain pending until new completion evidence appears.
 - Unresolved revision status no longer resets other completed flows to `시작 전`; completed evidence and prior stage progress remain completed unless that exact flow is updating.
+- Older revision candidates are now resolved when a later flow has newer started/updated/completed evidence, preventing stale Add `추가 진행` after Plan/Code completion.
 - Workflow/React Flow nodes can also surface `updating` status from node metadata.
 - Workflow Progress UI is more compact, removes the bordered time/status box, shows small caption text, prevents active clipping with visible rail overflow, and adds flow tooltip affordance.
 - Connector geometry now draws edge-to-edge between circle visuals at the circle center height so the line touches the next flow without crossing inside circles.
@@ -49,6 +50,7 @@ state:
 - Overview tabs now remove the tab-group box and header/content divider; inactive tabs are text-only and the selected tab blends into the content panel.
 - Selected tab now overlaps the panel edge by 1px so the line is not visible directly under the active tab.
 - Selected tab and its content panel now share one framed surface while inactive tabs remain unboxed text controls.
+- Content panel top border was removed so the selected tab and content are not split by a visible line.
 - Status/Workflow Stage/Priority/Created/Updated metadata card bar now sits under the workflow rail inside Workflow Progress.
 - ko/en locale copy was updated for generated/current, update, count, and tooltip labels.
 - Restored the Workflow Progress header icon import and migrated compact Drawer paper styling from `PaperProps` to `slotProps.paper` to remove runtime console errors.
@@ -104,7 +106,9 @@ state:
 - source check for removed extra status stage and retained `workflowProgressStatusUpdating`: pass
 - source check for unresolved revision status overriding completed status across flow advancement: pass
 - source check for completed-flow preservation while unresolved revision is active: pass
+- source check for stale earlier-flow revision resolution by later flow evidence: pass
 - source check for selected-tab-only frame with unboxed inactive tabs: pass
+- source check for removed content panel top border under selected tabs: pass
 - source check for edge-to-edge connector geometry and removed center-to-center internal connector: pass
 - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
 - source check for connector gap-inclusive end offset and circle-radius top alignment: pass

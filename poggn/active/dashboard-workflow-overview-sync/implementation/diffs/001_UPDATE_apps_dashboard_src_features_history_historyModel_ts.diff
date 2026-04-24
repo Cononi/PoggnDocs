@@ -1,26 +1,31 @@
 diff --git a/apps/dashboard/src/features/history/historyModel.ts b/apps/dashboard/src/features/history/historyModel.ts
-index 4011862..348f1dc 100644
+index 348f1dc..da99ea9 100644
 --- a/apps/dashboard/src/features/history/historyModel.ts
 +++ b/apps/dashboard/src/features/history/historyModel.ts
-@@ -687,16 +687,17 @@ export function buildWorkflowSteps(topic: TopicSummary, language: HistoryLanguag
- 
-   return entries.map(({ flow, index, activeTaskIds, timestamps }) => {
-     const currentFlowIsComplete = stageComplete && activeTaskIds.length === 0;
-+    const completedByProgress = index < currentIndex || (index === currentIndex && currentFlowIsComplete);
-+    const completedByEvidence = Boolean(timestamps.completedAt.value && timestamps.completedAt.confidence !== "low");
-+    const updating = updatingIndex === index;
-     const isComplete =
-       topic.bucket === "archive" ||
--      index < effectiveCurrentIndex ||
--      (index === currentIndex && index === effectiveCurrentIndex && currentFlowIsComplete);
--    const updating = updatingIndex === index;
-+      (!updating && (completedByProgress || completedByEvidence));
-     const status: WorkflowStatus = updating
-       ? "updating"
-       : isComplete
-         ? "completed"
--        : index === currentIndex
-+        : index === effectiveCurrentIndex
-           ? "current"
-           : "pending";
-     const displayedCompletedAt = status === "completed" && timestamps.completedAt.confidence !== "low" ? timestamps.completedAt.value : null;
+@@ -679,8 +679,25 @@ export function buildWorkflowSteps(topic: TopicSummary, language: HistoryLanguag
+       updatingAt: flowUpdatingTimestamp(topic, flow, timestamps.completedAt.value)
+     };
+   });
++  const unresolvedRevisionEntries = entries.filter((entry) => {
++    if (!entry.updatingAt) {
++      return false;
++    }
++
++    return !entries.some((candidate) => {
++      if (candidate.index <= entry.index) {
++        return false;
++      }
++      const laterEvidence = latestEvidence([
++        candidate.timestamps.startedAt,
++        candidate.timestamps.updatedAt,
++        candidate.timestamps.completedAt
++      ]).value;
++      return compareTimestamps(laterEvidence, entry.updatingAt) > 0;
++    });
++  });
+   const updatingIndex = entries
+-    .filter((entry) => entry.updatingAt)
++    .filter((entry) => unresolvedRevisionEntries.includes(entry))
+     .sort((left, right) => compareTimestamps(left.updatingAt, right.updatingAt) || left.index - right.index)
+     .at(-1)?.index;
+   const effectiveCurrentIndex = updatingIndex ?? currentIndex;

@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T18:40:53Z"
+  updated_at: "2026-04-24T18:45:44Z"
 ---
 
 # code.review
@@ -30,6 +30,8 @@ pgg:
 | 상태 모델 리뷰어 | 96 | `추가 진행`을 현재 index에만 제한하던 조건을 제거하고, 완료 이후 더 최신 revision evidence가 있는 flow를 effective current로 승격한다. 해당 flow 이후 단계는 completion evidence가 생길 때까지 pending으로 유지된다. | none |
 | 상태 모델 리뷰어 | 96 | `effectiveCurrentIndex`가 다른 완료 flow를 pending으로 되돌리던 회귀를 막기 위해 완료 evidence와 current stage 이전 완료 이력을 별도로 보존했다. current 표시는 effective current에만 붙는다. | none |
 | UI 통합 리뷰어 | 96 | 탭 그룹 전체가 아니라 선택 탭과 content panel만 같은 border/background surface를 공유하게 했다. 비선택 탭은 transparent text-only 상태로 유지된다. | none |
+| 상태 모델 리뷰어 | 96 | Add의 과거 `proposal-updated`처럼 이미 후속 flow 진행/완료로 해소된 revision 후보는 `추가 진행`으로 유지하지 않도록 later flow evidence 비교를 추가했다. | none |
+| UI 통합 리뷰어 | 96 | content panel의 top border를 제거해 선택 탭과 콘텐츠 사이에 남던 선을 없앴다. 선택 탭과 panel은 같은 배경을 공유한다. | none |
 
 ## Findings
 
@@ -42,7 +44,9 @@ pgg:
 - source check for extra status stage removal, updating status keys, telemetry/status/tooltip keys: pass
 - source check for unresolved revision status overriding completed status across flow advancement: pass
 - source check for completed-flow preservation while unresolved revision is active: pass
+- source check for stale earlier-flow revision resolution by later flow evidence: pass
 - source check for selected-tab-only frame with unboxed inactive tabs: pass
+- source check for removed content panel top border under selected tabs: pass
 - source check for edge-to-edge connector geometry and removed internal connector: pass
 - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
 - source check for connector gap-inclusive end offset and circle-radius top alignment: pass

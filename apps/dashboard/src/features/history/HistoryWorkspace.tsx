@@ -206,6 +206,7 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
             sx={{
               p: { xs: 1.2, md: 1.5 },
               border: `1px solid ${historyPanelBorder}`,
+              borderTop: 0,
               borderRadius: 1,
               borderTopLeftRadius: activeTab === "overview" ? 0 : 1,
               borderBottomLeftRadius: 1,

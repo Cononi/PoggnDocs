@@ -679,8 +679,25 @@ export function buildWorkflowSteps(topic: TopicSummary, language: HistoryLanguag
       updatingAt: flowUpdatingTimestamp(topic, flow, timestamps.completedAt.value)
     };
   });
+  const unresolvedRevisionEntries = entries.filter((entry) => {
+    if (!entry.updatingAt) {
+      return false;
+    }
+
+    return !entries.some((candidate) => {
+      if (candidate.index <= entry.index) {
+        return false;
+      }
+      const laterEvidence = latestEvidence([
+        candidate.timestamps.startedAt,
+        candidate.timestamps.updatedAt,
+        candidate.timestamps.completedAt
+      ]).value;
+      return compareTimestamps(laterEvidence, entry.updatingAt) > 0;
+    });
+  });
   const updatingIndex = entries
-    .filter((entry) => entry.updatingAt)
+    .filter((entry) => unresolvedRevisionEntries.includes(entry))
     .sort((left, right) => compareTimestamps(left.updatingAt, right.updatingAt) || left.index - right.index)
     .at(-1)?.index;
   const effectiveCurrentIndex = updatingIndex ?? currentIndex;
