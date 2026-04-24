@@ -1,0 +1,24 @@
+diff --git a/.codex/add/STATE-CONTRACT.md b/.codex/add/STATE-CONTRACT.md
+index aeb79bc..cc478c2 100644
+--- a/.codex/add/STATE-CONTRACT.md
++++ b/.codex/add/STATE-CONTRACT.md
+@@ -22,13 +22,15 @@
+ ## Git Publish Message Contract
+ 
+ - When `pgg git=on`, keep the section below in at least one of `state/current.md` or `qa/report.md`.
+-- Subjects must follow `<archive_type>: <short subject>`, stay at 50 characters or fewer, remain non-imperative, stay period-free, and be understandable on their own.
+-- `why` is the source for the Why-focused commit body.
++- Subjects must follow `{convention}: [{version}]{commit message}`, stay at 50 characters or fewer, remain non-imperative, stay period-free, and be understandable on their own.
++- `{convention}` is the topic `archive_type`; `{version}` is the topic `target_version` before archive and the archived version during publish.
++- Commit message text must follow `pgg lang`: Korean for `ko`, English for `en`.
++- `why` is the source for the Why-focused commit body, while the subject summary is repeated in a `Changes` body section so logs explain what changed.
+ - When `footer` is empty, the helper falls back to `Refs: <topic>`.
+ 
+ ```md
+ ## Git Publish Message
+-- title: <archive_type>: <short subject>
+-- why: <why summary>
++- title: <convention>: [<version>]<commit message>
++- why: <detailed why and changed-content summary>
+ - footer: <tracker link or Refs: <topic>>
+ ```

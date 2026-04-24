@@ -1,0 +1,14 @@
+{
+  "topic": "pgg-versioned-localized-commit-contract",
+  "changeType": "feat",
+  "versionBump": "major",
+  "version": "1.0.0",
+  "targetVersion": "1.0.0",
+  "previousVersion": "0.15.1",
+  "shortName": "commit-contract",
+  "workingBranch": "ai/feat/1.0.0-commit-contract",
+  "releaseBranch": "release/1.0.0-commit-contract",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-24T04:01:57Z",
+  "history": "poggn/version-history.ndjson"
+}

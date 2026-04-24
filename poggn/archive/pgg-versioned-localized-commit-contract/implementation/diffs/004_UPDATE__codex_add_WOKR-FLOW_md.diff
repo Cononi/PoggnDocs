@@ -1,0 +1,37 @@
+diff --git a/.codex/add/WOKR-FLOW.md b/.codex/add/WOKR-FLOW.md
+index dc008b7..d4e4c79 100644
+--- a/.codex/add/WOKR-FLOW.md
++++ b/.codex/add/WOKR-FLOW.md
+@@ -12,7 +12,9 @@ pgg splits delivery into a core workflow plus optional audits that open only whe
+ - Interactive change commands print changed paths or a no-op/cancel status before exit.
+ - Confirm scope and exit criteria from `proposal.md`, `plan.md`, and `task.md` before implementation.
+ - Execute work through `poggn/active/<topic>` documents.
+-- Resolve `archive_type`, `version_bump`, `target_version`, branch naming, and `project_scope` during the proposal stage so later helpers use the same metadata, with `archive_type` as the change category and `version_bump` as the semver impact.
++- Resolve `archive_type`, `version_bump`, `target_version`, branch naming, and `project_scope` during the proposal stage so later helpers use the same metadata, with `archive_type` as the change category/commit convention and `version_bump` as the semver impact.
++- Automatic commit subjects use `{convention}: [{version}]{commit message}` where `{convention}` is `feat|fix|docs|refactor|chore|remove`, `{version}` is the topic/archive target version, and commit message text follows `pgg lang` (`ko` Korean, `en` English).
++- Use `major` when an existing user workflow, helper contract, generated file contract, or expected output format is broken; keep compatible feature work as `minor` and compatible fixes/docs/refactors/chores as `patch`.
+ - Use only declared current-project verification command contracts for project verification, and do not guess framework commands.
+ - Move only QA-passed topics to archive.
+ - Include the required expert review at every stage.
+@@ -30,18 +32,18 @@ pgg splits delivery into a core workflow plus optional audits that open only whe
+    - create `plan.md`, `task.md`, `spec/*/*.md`, `reviews/plan.review.md`, `reviews/task.review.md`
+ 3. `pgg-code`
+    - implement code
+-   - when `pgg git=on`, record a task-scoped commit after each completed task with `.codex/sh/pgg-stage-commit.sh <topic|topic_dir> implementation <summary> <why> [footer]`, let the helper attempt governed `working_branch` auto-checkout recovery when needed, and ignore dirty paths already captured in the topic baseline
++   - when `pgg git=on`, record a task-scoped commit after each completed task with `.codex/sh/pgg-stage-commit.sh <topic|topic_dir> implementation <summary> <why> [footer]`, using `{convention}: [{version}]{commit message}` plus detailed `Why` and `Changes` body sections, let the helper attempt governed `working_branch` auto-checkout recovery when needed, and ignore dirty paths already captured in the topic baseline
+    - create `implementation/index.md`, `implementation/diffs/*.diff`, `reviews/code.review.md`
+ 4. `pgg-refactor`
+    - remove legacy code and improve structure
+-   - when `pgg git=on`, record a refactor-proof commit after each completed refactor task with `.codex/sh/pgg-stage-commit.sh <topic|topic_dir> refactor <summary> <why> [footer]`, let the helper attempt governed `working_branch` auto-checkout recovery when needed, and ignore dirty paths already captured in the topic baseline
++   - when `pgg git=on`, record a refactor-proof commit after each completed refactor task with `.codex/sh/pgg-stage-commit.sh <topic|topic_dir> refactor <summary> <why> [footer]`, using `{convention}: [{version}]{commit message}` plus detailed `Why` and `Changes` body sections, let the helper attempt governed `working_branch` auto-checkout recovery when needed, and ignore dirty paths already captured in the topic baseline
+    - create `reviews/refactor.review.md`
+ 5. `pgg-qa`
+    - create `qa/report.md`
+    - run `.codex/sh/pgg-archive.sh <topic|topic_dir>` when the report passes
+    - when `pgg git=on` and QA artifacts leave additional changes, the archive helper records a `qa completion` commit before release publish
+    - record `version.json` plus the append-only `poggn/version-history.ndjson` ledger during archive, then continue into git publish that can recover onto the governed `working_branch` and ignore topic-baselined dirty paths before promoting `ai/<archive_type>/<target-version>-<short-name>` into `release/<target-version>-<short-name>` when `pgg git=on`
+-   - when `pgg git=on`, read `- title:`, `- why:`, and `- footer:` from `## Git Publish Message` in `state/current.md` or `qa/report.md`, then enforce the `<archive_type>: <summary>` subject format plus the 50-character, non-imperative, no-period, Why-first, one-commit-per-intent contract
++   - when `pgg git=on`, read `- title:`, `- why:`, and `- footer:` from `## Git Publish Message` in `state/current.md` or `qa/report.md`, then enforce the `{convention}: [{version}]{commit message}` subject format plus localized message text, detailed body, 50-character, non-imperative, no-period, Why-first, one-commit-per-intent contract
+ 
+ ### Optional Audits
+ 

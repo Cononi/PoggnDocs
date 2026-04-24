@@ -35,10 +35,8 @@ import ExpandMoreRounded from "@mui/icons-material/ExpandMoreRounded";
 import FavoriteRounded from "@mui/icons-material/FavoriteRounded";
 import FilterListRounded from "@mui/icons-material/FilterListRounded";
 import FolderRounded from "@mui/icons-material/FolderRounded";
-import GridViewRounded from "@mui/icons-material/GridViewRounded";
 import SearchRounded from "@mui/icons-material/SearchRounded";
 import SellRounded from "@mui/icons-material/SellRounded";
-import ViewListRounded from "@mui/icons-material/ViewListRounded";
 import { Background, Controls, MiniMap, ReactFlow } from "@xyflow/react";
 import {
   resolveDashboardFlowStatusLabel,
@@ -58,7 +56,6 @@ import {
   buildTopicFileArtifactEntry,
   buildTopicFileTree,
   buildTopicKey,
-  buildTopicLanes,
   buildWorkflowModel,
   collectAncestorFolders,
   createTopicArtifactSelection,
@@ -68,7 +65,7 @@ import {
   type TopicFileTreeNode
 } from "../../shared/utils/dashboard";
 import { ArtifactDocumentContent } from "../../shared/ui/ArtifactDocumentContent";
-import { TopicLifecycleBoard } from "../topic-board/TopicLifecycleBoard";
+import { HistoryWorkspace } from "../history/HistoryWorkspace";
 
 type ProjectDetailWorkspaceProps = {
   project: ProjectSnapshot | null;
@@ -192,14 +189,6 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
         .sort((left, right) => left.positionX - right.positionX || left.positionY - right.positionY),
     [workflowModel]
   );
-  const activeLanes = useMemo(
-    () => buildTopicLanes(props.activeTopics, "active", props.dictionary),
-    [props.activeTopics, props.dictionary]
-  );
-  const archiveLanes = useMemo(
-    () => buildTopicLanes(props.archivedTopics, "archive", props.dictionary),
-    [props.archivedTopics, props.dictionary]
-  );
   const reportTopics = useMemo(
     () =>
       visibleTopics.filter((topic) =>
@@ -277,19 +266,6 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
     [filteredReportTopics, reportPage, reportRowsPerPage]
   );
   const currentReportFilterLabel = resolveReportFilterLabel(reportFilter, props.dictionary);
-  const openTopicPreview = (topic: TopicSummary) => {
-    const entry = getPreferredArtifactEntry(topic, [
-      "state/current.md",
-      "qa/report.md",
-      "proposal.md",
-      "plan.md",
-      "task.md"
-    ]);
-    if (entry) {
-      props.onSelectArtifact(entry);
-      props.onOpenDetailDialog();
-    }
-  };
   const createWorkflowSelection = (
     title: string,
     detail: ArtifactSelection["detail"],
@@ -551,40 +527,17 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
       ) : null}
 
       {props.activeSection === "history" ? (
-        <Stack spacing={3}>
-          <TopicLifecycleBoard
-            board="active"
-            lanes={activeLanes}
-            dictionary={props.dictionary}
-            language={language}
-            onOpenTopic={openTopicPreview}
-            actions={
-              <Button variant="outlined" size="small">
-                {props.dictionary.viewAll}
-              </Button>
-            }
-          />
-          <TopicLifecycleBoard
-            board="archive"
-            lanes={archiveLanes}
-            dictionary={props.dictionary}
-            language={language}
-            onOpenTopic={openTopicPreview}
-            actions={
-              <Stack direction="row" spacing={1}>
-                <Button variant="outlined" size="small">
-                  {props.dictionary.viewAll}
-                </Button>
-                <IconButton size="small">
-                  <GridViewRounded fontSize="small" />
-                </IconButton>
-                <IconButton size="small">
-                  <ViewListRounded fontSize="small" />
-                </IconButton>
-              </Stack>
-            }
-          />
-        </Stack>
+        <HistoryWorkspace
+          project={props.project}
+          selectedTopic={props.selectedTopic}
+          activeTopics={props.activeTopics}
+          archivedTopics={props.archivedTopics}
+          selectedTopicKey={props.selectedTopicKey}
+          topicFilter={props.topicFilter}
+          dictionary={props.dictionary}
+          onTopicFilterChange={props.onTopicFilterChange}
+          onSelectTopic={props.onSelectTopic}
+        />
       ) : null}
 
       {props.activeSection === "report" ? (

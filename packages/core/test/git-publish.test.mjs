@@ -300,7 +300,7 @@ async function initializeGitRepository(rootDir, remoteDir = null) {
 }
 
 async function withGitPublishFixture(prefix, options, run) {
-  const { remote = false } = options;
+  const { remote = false, language = "en" } = options;
 
   await withTemporaryRoot(`${prefix}-`, async (rootDir) => {
     const remoteDir = remote ? await mkdtemp(path.join(os.tmpdir(), `${prefix}-remote-`)) : null;
@@ -309,7 +309,7 @@ async function withGitPublishFixture(prefix, options, run) {
       await withTemporaryPggHome(rootDir, async () => {
         await initializeProject(rootDir, {
           provider: "codex",
-          language: "en",
+          language,
           autoMode: "on",
           teamsMode: "off",
           gitMode: "on"
@@ -427,7 +427,7 @@ test("archive helper reports remote setup required when git mode is on without a
     await writeFile(path.join(rootDir, "feature.txt"), "remote missing case\n", "utf8");
     const branch = await createQaTopic(rootDir, "git-remote-missing", ["feature.txt"], "Remote setup required", {
       qaPublishMessage: {
-        title: "feat: remote setup status",
+        title: "feat: 0.1.0.remote setup status",
         why: "Remote wiring is incomplete, so the archive result must stay publish-ready without creating a misleading commit yet.",
         footer: "Refs: OPS-100"
       }
@@ -465,7 +465,7 @@ test("archive helper blocks automatic publish when unrelated dirty files exist",
     await writeFile(agentsPath, `${await readFile(agentsPath, "utf8")}\n# unrelated dirty change\n`, "utf8");
     const branch = await createQaTopic(rootDir, "git-dirty-blocked", ["feature.txt"], "Dirty worktree guardrail", {
       qaPublishMessage: {
-        title: "feat: dirty worktree guardrail",
+        title: "feat: 0.1.0.dirty worktree guardrail",
         why: "Unrelated changes must block automation so one commit stays scoped to one archive intent.",
         footer: "Refs: QA-201"
       }
@@ -492,7 +492,7 @@ test("archive helper commits and pushes when git mode is on and the remote is av
     await writeFile(path.join(rootDir, "feature.txt"), "publish success case\n", "utf8");
     const branch = await createQaTopic(rootDir, "git-publish-success", ["feature.txt"], "Automatic git publish", {
       qaPublishMessage: {
-        title: "feat: git publish governance",
+        title: "feat: 0.1.0.git publish governance",
         why: "Archived topics need a readable commit history so automated publish stays aligned with one intent and documented reasoning.",
         footer: "Refs: PGG-321"
       }
@@ -509,7 +509,7 @@ test("archive helper commits and pushes when git mode is on and the remote is av
     assert.equal(result.qaCompletion.resultType, "committed");
     assert.equal(result.git.resultType, "published");
     assert.equal(result.git.pushStatus, "success");
-    assert.equal(result.git.commitTitle, "feat: git publish governance");
+    assert.equal(result.git.commitTitle, "feat: 0.1.0.git publish governance");
     assert.equal(result.git.workingBranch, branch.workingBranch);
     assert.equal(result.git.releaseBranch, branch.releaseBranch);
     assert.equal(result.git.publishMode, "first_publish");
@@ -518,11 +518,12 @@ test("archive helper commits and pushes when git mode is on and the remote is av
     assert.equal(result.git.commitSha, git(rootDir, ["rev-parse", "HEAD"]));
     assert.equal(result.git.commitSha, remoteReleaseHead);
     assert.notEqual(result.git.commitSha, remoteMainHead);
-    assert.match(commitMessage, /^feat: git publish governance$/m);
+    assert.match(commitMessage, /^feat: 0\.1\.0\.git publish governance$/m);
     assert.match(commitMessage, /Why: Archived topics need a readable commit history/);
+    assert.match(commitMessage, /Changes: git publish governance/);
     assert.match(commitMessage, /^Refs: PGG-321$/m);
-    assert.match(recentSubjects, /^feat: git publish governance$/m);
-    assert.match(recentSubjects, /^feat: qa completion$/m);
+    assert.match(recentSubjects, /^feat: 0\.1\.0\.git publish governance$/m);
+    assert.match(recentSubjects, /^feat: 0\.1\.0\.qa completion record$/m);
     assert.equal(metadata.resultType, "published");
     assert.equal(metadata.releaseBranch, branch.releaseBranch);
     assert.equal(metadata.workingBranch, branch.workingBranch);
@@ -542,7 +543,7 @@ test("archive helper marks update publish when the remote release branch already
     await writeFile(path.join(rootDir, "feature.txt"), "publish update case\n", "utf8");
     const branch = await createQaTopic(rootDir, "git-publish-update", ["feature.txt"], "Release publish update", {
       qaPublishMessage: {
-        title: "feat: release update publish",
+        title: "feat: 0.1.0.release update publish",
         why: "An existing release branch should stay on the normal update path while metadata still records the different publish mode.",
         footer: "Refs: PGG-654"
       }
@@ -575,7 +576,7 @@ test("archive helper completes after QA stage recovery from main", async () => {
     await writeFile(path.join(rootDir, "feature.txt"), "main guard case\n", "utf8");
     const branch = await createQaTopic(rootDir, "git-main-guard", ["feature.txt"], "Main branch guardrail", {
       qaPublishMessage: {
-        title: "feat: main branch guardrail",
+        title: "feat: 0.1.0.main branch guardrail",
         why: "Release automation must refuse direct main pushes so publish only happens from the governed ai branch.",
         footer: "Refs: QA-301"
       },
@@ -606,7 +607,7 @@ test("archive helper completes after QA stage recovery from a branch mismatch", 
     await writeFile(path.join(rootDir, "feature.txt"), "branch mismatch case\n", "utf8");
     const branch = await createQaTopic(rootDir, "git-branch-recovery", ["feature.txt"], "Branch mismatch recovery", {
       qaPublishMessage: {
-        title: "feat: branch mismatch recovery",
+        title: "feat: 0.1.0.branch mismatch recovery",
         why: "Governed publish should recover onto the topic ai branch before release promotion when the current branch is unrelated.",
         footer: "Refs: QA-302"
       }
@@ -636,7 +637,7 @@ test("git publish helper recovers from main by checking out the governed ai bran
       "Direct publish main recovery",
       {
         qaPublishMessage: {
-          title: "feat: direct publish main recovery",
+          title: "feat: 0.1.0.direct publish main recovery",
           why: "Direct publish should recover onto the governed ai branch before release promotion when archive work already exists.",
           footer: "Refs: QA-303"
         },
@@ -669,7 +670,7 @@ test("git publish helper recovers from a branch mismatch before governed publish
       "Direct publish branch mismatch recovery",
       {
         qaPublishMessage: {
-          title: "feat: direct publish branch recovery",
+          title: "feat: 0.1.0.direct publish branch recovery",
           why: "Direct publish should recover onto the governed ai branch before release promotion when the current branch is unrelated.",
           footer: "Refs: QA-304"
         },
@@ -717,12 +718,50 @@ test("archive helper rejects governed publish messages that violate commit rules
   });
 });
 
+test("archive helper rejects legacy unversioned publish titles", async () => {
+  await withGitPublishFixture("pgg-git-legacy-title", { remote: true }, async ({ rootDir }) => {
+    await writeFile(path.join(rootDir, "feature.txt"), "legacy publish title case\n", "utf8");
+    await createQaTopic(rootDir, "git-legacy-title", ["feature.txt"], "Legacy publish title contract", {
+      qaPublishMessage: {
+        title: "feat: legacy publish title",
+        why: "Legacy publish titles should be rejected so commit logs always include the target version.",
+        footer: "Refs: PGG-LEGACY"
+      }
+    });
+
+    const result = runArchiveHelper(rootDir, "git-legacy-title");
+
+    assert.equal(result.qaCompletion.resultType, "committed");
+    assert.equal(result.git.resultType, "commit_message_invalid");
+    assert.match(result.git.reason, /Commit title must start with 'feat: 0\.1\.0\.'/);
+  });
+});
+
+test("archive helper rejects previous bracketed version publish titles", async () => {
+  await withGitPublishFixture("pgg-git-bracket-title", { remote: true }, async ({ rootDir }) => {
+    await writeFile(path.join(rootDir, "feature.txt"), "legacy bracket publish title case\n", "utf8");
+    await createQaTopic(rootDir, "git-bracket-title", ["feature.txt"], "Bracket publish title contract", {
+      qaPublishMessage: {
+        title: "feat: [0.1.0]bracket publish title",
+        why: "Bracketed version titles should be rejected after the version-dot commit contract migration.",
+        footer: "Refs: PGG-BRACKET"
+      }
+    });
+
+    const result = runArchiveHelper(rootDir, "git-bracket-title");
+
+    assert.equal(result.qaCompletion.resultType, "committed");
+    assert.equal(result.git.resultType, "commit_message_invalid");
+    assert.match(result.git.reason, /Commit title must start with 'feat: 0\.1\.0\.'/);
+  });
+});
+
 test("archive helper falls back to state publish metadata and default footer", async () => {
   await withGitPublishFixture("pgg-git-state-fallback", { remote: true }, async ({ rootDir, remoteDir }) => {
     await writeFile(path.join(rootDir, "feature.txt"), "state fallback case\n", "utf8");
     const branch = await createQaTopic(rootDir, "git-state-fallback", ["feature.txt"], "State fallback contract", {
       statePublishMessage: {
-        title: "feat: state fallback contract",
+        title: "feat: 0.1.0.state fallback contract",
         why: "State handoff still needs enough publish metadata when the QA report omits the governed message block."
       }
     });
@@ -734,7 +773,7 @@ test("archive helper falls back to state publish metadata and default footer", a
     assert.equal(result.qaCompletion.resultType, "committed");
     assert.equal(result.git.resultType, "published");
     assert.equal(result.git.commitSha, remoteHead);
-    assert.equal(result.git.commitTitle, "feat: state fallback contract");
+    assert.equal(result.git.commitTitle, "feat: 0.1.0.state fallback contract");
     assert.match(commitMessage, /^Refs: git-state-fallback$/m);
   });
 });
@@ -744,12 +783,12 @@ test("archive helper prefers QA publish fields and falls back to state footer", 
     await writeFile(path.join(rootDir, "feature.txt"), "qa priority case\n", "utf8");
     const branch = await createQaTopic(rootDir, "git-qa-priority", ["feature.txt"], "QA publish message priority", {
       statePublishMessage: {
-        title: "feat: state fallback title",
+        title: "feat: 0.1.0.state fallback title",
         why: "State handoff carries a complete publish message when QA metadata is still being prepared.",
         footer: "Refs: STATE-123"
       },
       qaPublishMessage: {
-        title: "feat: qa publish priority",
+        title: "feat: 0.1.0.qa publish priority",
         why: "QA review has the final governed publish wording, so helper precedence should follow the QA decision."
       }
     });
@@ -761,9 +800,61 @@ test("archive helper prefers QA publish fields and falls back to state footer", 
     assert.equal(result.qaCompletion.resultType, "committed");
     assert.equal(result.git.resultType, "published");
     assert.equal(result.git.commitSha, remoteHead);
-    assert.equal(result.git.commitTitle, "feat: qa publish priority");
+    assert.equal(result.git.commitTitle, "feat: 0.1.0.qa publish priority");
     assert.match(commitMessage, /Why: QA review has the final governed publish wording/);
     assert.match(commitMessage, /^Refs: STATE-123$/m);
+  });
+});
+
+test("stage commit helper enforces project language for Korean and English messages", async () => {
+  await withGitPublishFixture("pgg-stage-commit-language-ko", { remote: false, language: "ko" }, async ({ rootDir }) => {
+    await writeFile(path.join(rootDir, "feature.txt"), "korean language case\n", "utf8");
+    await createActiveStageTopic(rootDir, "stage-commit-language-ko", "implementation", ["feature.txt"], "Korean language commit", {
+      archiveType: "feat",
+      versionBump: "minor",
+      targetVersion: "0.1.0",
+      shortName: "stage-lang-ko"
+    });
+
+    const rejected = runStageCommitHelper(
+      rootDir,
+      "stage-commit-language-ko",
+      "implementation",
+      "english only summary",
+      "English only body text should be rejected for a Korean pgg project."
+    );
+    assert.equal(rejected.resultType, "commit_message_invalid");
+    assert.match(rejected.reason, /must be Korean/);
+
+    const accepted = runStageCommitHelper(
+      rootDir,
+      "stage-commit-language-ko",
+      "implementation",
+      "한글 커밋 기록",
+      "한글 프로젝트에서는 커밋 제목과 본문이 한글로 남아야 작업 이력을 바로 이해할 수 있다."
+    );
+    assert.equal(accepted.resultType, "committed");
+    assert.equal(accepted.commitTitle, "feat: 0.1.0.한글 커밋 기록");
+  });
+
+  await withGitPublishFixture("pgg-stage-commit-language-en", { remote: false, language: "en" }, async ({ rootDir }) => {
+    await writeFile(path.join(rootDir, "feature.txt"), "english language case\n", "utf8");
+    await createActiveStageTopic(rootDir, "stage-commit-language-en", "implementation", ["feature.txt"], "English language commit", {
+      archiveType: "feat",
+      versionBump: "minor",
+      targetVersion: "0.1.0",
+      shortName: "stage-lang-en"
+    });
+
+    const rejected = runStageCommitHelper(
+      rootDir,
+      "stage-commit-language-en",
+      "implementation",
+      "한글 커밋 기록",
+      "영어 프로젝트에서는 한글 커밋 본문을 거부해야 한다."
+    );
+    assert.equal(rejected.resultType, "commit_message_invalid");
+    assert.match(rejected.reason, /must be English/);
   });
 });
 
@@ -799,10 +890,11 @@ test("stage commit helper records archive-type-aware implementation commits", as
     );
 
     assert.equal(result.resultType, "committed");
-    assert.equal(result.commitTitle, "fix: task progress");
+    assert.equal(result.commitTitle, "fix: 0.1.1.task progress");
     assert.equal(result.workingBranch, branch.workingBranch);
-    assert.match(commitMessage, /^fix: task progress$/m);
+    assert.match(commitMessage, /^fix: 0\.1\.1\.task progress$/m);
     assert.match(commitMessage, /Why: This task needs a scoped implementation commit/);
+    assert.match(commitMessage, /Changes: task progress/);
     assert.match(commitMessage, /^Refs: TASK-101$/m);
     assert.match(history, /"stage":"implementation"/);
     assert.match(history, /"event":"stage-commit"/);
@@ -867,7 +959,7 @@ test("stage commit helper force-adds ignored topic artifacts", async () => {
 
     assert.equal(result.resultType, "committed");
     assert.match(history, /"event":"stage-commit"/);
-    assert.match(git(rootDir, ["log", "-1", "--format=%B"]), /^fix: ignored topic proof$/m);
+    assert.match(git(rootDir, ["log", "-1", "--format=%B"]), /^fix: 0\.1\.1\.ignored topic proof$/m);
   });
 });
 
@@ -927,7 +1019,7 @@ test("stage commit helper ignores pre-existing unrelated dirty files recorded in
     );
 
     assert.equal(result.resultType, "committed");
-    assert.match(git(rootDir, ["log", "-1", "--format=%B"]), /^fix: baseline stage proof$/m);
+    assert.match(git(rootDir, ["log", "-1", "--format=%B"]), /^fix: 0\.1\.1\.baseline stage proof$/m);
   });
 });
 
@@ -937,7 +1029,7 @@ test("archive helper publishes even when poggn is locally ignored", async () => 
     await writeFile(path.join(rootDir, "feature.txt"), "ignored archive publish case\n", "utf8");
     const branch = await createQaTopic(rootDir, "archive-ignored-topic", ["feature.txt"], "Ignored topic archive publish", {
       qaPublishMessage: {
-        title: "feat: ignored topic archive",
+        title: "feat: 0.1.0.ignored topic archive",
         why: "Ignored topic paths still need QA completion, archive metadata, and publish commits to stay reproducible.",
         footer: "Refs: PGG-IGNORED"
       }
@@ -949,7 +1041,7 @@ test("archive helper publishes even when poggn is locally ignored", async () => 
     assert.equal(result.qaCompletion.resultType, "committed");
     assert.equal(result.git.resultType, "published");
     assert.equal(result.git.commitSha, remoteReleaseHead);
-    assert.equal(result.git.commitTitle, "feat: ignored topic archive");
+    assert.equal(result.git.commitTitle, "feat: 0.1.0.ignored topic archive");
   });
 });
 
@@ -961,7 +1053,7 @@ test("archive helper ignores pre-existing unrelated dirty files recorded in the 
     const branch = await createQaTopic(rootDir, "archive-baseline", ["feature.txt"], "Baseline-aware archive publish", {
       initialDirtyPaths: ["AGENTS.md"],
       qaPublishMessage: {
-        title: "feat: baseline publish metadata",
+        title: "feat: 0.1.0.baseline publish metadata",
         why: "Pre-existing unrelated dirty paths should not block archive publish after the topic baseline recorded them.",
         footer: "Refs: PGG-BASELINE"
       }
