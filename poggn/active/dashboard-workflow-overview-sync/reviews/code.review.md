@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T22:57:13Z"
+  updated_at: "2026-04-24T23:01:35Z"
 ---
 
 # code.review
@@ -47,6 +47,7 @@ pgg:
 | UI 정렬 리뷰어 | 96 | line segment overlap을 3px로 제한해 선 끝은 tab side border 뒤에 숨기되 selected tab bottom까지 넘어가지 않게 했다. | none |
 | 워크플로우 계약 리뷰어 | 96 | `pgg update`의 source of truth인 `packages/core/src/templates.ts` ko/en WOKR-FLOW template에 global workflow 3줄을 넣어 generated markdown만 수정되던 문제를 해소했다. | none |
 | 상태 모델 리뷰어 | 96 | `stage-started`/`stage-progress` 또는 current/generated node evidence가 completion 이후 최신이면 해당 flow를 `생성 중`으로 계산하고, 현재 flow는 `reviewed`만으로 완료되지 않게 했다. | none |
+| 워크플로우 계약 리뷰어 | 96 | 모든 flow의 `시작 전`/`진행 중`/`추가 진행`/`완료` evidence 규격을 AGENTS, WOKR-FLOW, STATE-CONTRACT generator에 넣어 `pgg init/update`가 같은 계약을 배포하게 했다. | none |
 
 ## Findings
 
@@ -56,6 +57,7 @@ pgg:
 
 - `pnpm build`: pass
 - `node packages/cli/dist/index.js update`: pass; `.codex/add/WOKR-FLOW.md` unchanged and `.pgg/project.json` checksum updated
+- `node packages/cli/dist/index.js update`: pass; AGENTS, WOKR-FLOW, STATE-CONTRACT, and manifest updated with four-status flow contract
 - `./.codex/sh/pgg-gate.sh pgg-code dashboard-workflow-overview-sync`: pass
 - source check for extra status stage removal, updating status keys, telemetry/status/tooltip keys: pass
 - source check for unresolved revision status overriding completed status across flow advancement: pass
@@ -69,6 +71,7 @@ pgg:
 - source check for ko/en `pgg update` generator workflow rules: pass
 - source check for runtime active flow status from `stage-started`/`stage-progress`: pass
 - source check for current flow completion requiring completion evidence instead of `reviewed` alone: pass
+- source check for generated four-status flow contract in AGENTS/WOKR-FLOW/STATE-CONTRACT and ko/en templates: pass
 - source check for edge-to-edge connector geometry and removed internal connector: pass
 - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
 - source check for connector gap-inclusive end offset and circle-radius top alignment: pass

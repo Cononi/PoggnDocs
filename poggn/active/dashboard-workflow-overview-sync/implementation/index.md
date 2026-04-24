@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T22:57:13Z"
+  updated_at: "2026-04-24T23:01:35Z"
   auto_mode: "on"
   archive_type: "fix"
   version_bump: "patch"
@@ -67,6 +67,7 @@ state:
 - `pgg update` now preserves those three global workflow rules because the ko/en `WOKR-FLOW.md` generator template includes them instead of relying only on the generated markdown copy.
 - Runtime stage telemetry now affects workflow status directly: unresolved `stage-started` or `stage-progress` evidence moves that flow from pending to current.
 - The current flow no longer becomes completed from `status: reviewed` alone; completion requires trusted completion evidence or later-flow advancement.
+- `pgg init/update` now distributes the same four-status flow contract through generated AGENTS, WOKR-FLOW, and STATE-CONTRACT assets.
 - Status/Workflow Stage/Progress/Priority/Created/Updated metadata now renders as a fixed six-column row under the workflow rail so it does not wrap or overlap.
 - ko/en locale copy was updated for generated/current, update, count, and tooltip labels.
 - Restored the Workflow Progress header icon import and migrated compact Drawer paper styling from `PaperProps` to `slotProps.paper` to remove runtime console errors.
@@ -87,9 +88,16 @@ state:
 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `implementation/diffs/002_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.diff` |
 | UPDATE | `.codex/add/WOKR-FLOW.md` | `implementation/diffs/007_UPDATE_pgg_workflow_contracts.diff` |
 | UPDATE | `.pgg/project.json` | `implementation/diffs/008_UPDATE_pgg_update_workflow_template.diff` |
+| UPDATE | `AGENTS.md` | `implementation/diffs/009_UPDATE_pgg_flow_status_contracts.diff` |
+| UPDATE | `.codex/add/WOKR-FLOW.md` | `implementation/diffs/009_UPDATE_pgg_flow_status_contracts.diff` |
+| UPDATE | `.codex/add/STATE-CONTRACT.md` | `implementation/diffs/009_UPDATE_pgg_flow_status_contracts.diff` |
+| UPDATE | `.pgg/project.json` | `implementation/diffs/009_UPDATE_pgg_flow_status_contracts.diff` |
 | UPDATE | `packages/core/src/templates.ts` | `implementation/diffs/008_UPDATE_pgg_update_workflow_template.diff` |
 | UPDATE | `packages/core/dist/templates.js` | `implementation/diffs/008_UPDATE_pgg_update_workflow_template.diff` |
 | UPDATE | `packages/core/dist/templates.js.map` | `implementation/diffs/008_UPDATE_pgg_update_workflow_template.diff` |
+| UPDATE | `packages/core/src/templates.ts` | `implementation/diffs/009_UPDATE_pgg_flow_status_contracts.diff` |
+| UPDATE | `packages/core/dist/templates.js` | `implementation/diffs/009_UPDATE_pgg_flow_status_contracts.diff` |
+| UPDATE | `packages/core/dist/templates.js.map` | `implementation/diffs/009_UPDATE_pgg_flow_status_contracts.diff` |
 | UPDATE | `poggn/active/dashboard-workflow-overview-sync/plan.md` | `implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
 | UPDATE | `poggn/active/dashboard-workflow-overview-sync/task.md` | `implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
 | UPDATE | `poggn/active/dashboard-workflow-overview-sync/spec/model/flow-timestamp-and-status-source.md` | `implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
@@ -126,6 +134,7 @@ state:
 
 - `pnpm build`: pass
 - `node packages/cli/dist/index.js update`: pass; `.codex/add/WOKR-FLOW.md` remained unchanged and `.pgg/project.json` checksum updated
+- `node packages/cli/dist/index.js update`: pass; AGENTS, WOKR-FLOW, STATE-CONTRACT, and manifest updated with four-status flow contract
 - `./.codex/sh/pgg-gate.sh pgg-code dashboard-workflow-overview-sync`: pass
 - `./.codex/sh/pgg-gate.sh pgg-refactor dashboard-workflow-overview-sync`: pass
 - source check for removed extra status stage and retained `workflowProgressStatusUpdating`: pass
@@ -140,6 +149,7 @@ state:
 - source check for ko/en `pgg update` generator workflow rules: pass
 - source check for runtime active flow status from `stage-started`/`stage-progress`: pass
 - source check for current flow completion requiring completion evidence instead of `reviewed` alone: pass
+- source check for generated four-status flow contract in AGENTS/WOKR-FLOW/STATE-CONTRACT and ko/en templates: pass
 - source check for edge-to-edge connector geometry and removed center-to-center internal connector: pass
 - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
 - source check for connector gap-inclusive end offset and circle-radius top alignment: pass
