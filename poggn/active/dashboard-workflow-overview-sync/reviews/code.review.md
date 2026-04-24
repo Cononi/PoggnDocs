@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T19:02:12Z"
+  updated_at: "2026-04-24T19:16:53Z"
 ---
 
 # code.review
@@ -26,7 +26,7 @@ pgg:
 | UI 통합 리뷰어 | 96 | Overview/Timeline/Relations 콘텐츠를 topic header와 tabs가 있는 같은 `Paper`의 `tabpanel` 안으로 이동해 분리된 sibling-card 간격을 제거했다. active glow clipping 방지를 위해 outer overflow는 visible로 유지했다. | none |
 | UI 통합 리뷰어 | 96 | Tabs를 contained segmented treatment로 바꾸고, Status/Workflow Stage/Priority/Created/Updated 카드바를 Workflow Progress 제목 옆에서 rail 아래로 이동해 workflow 영역 내부 관계를 더 명확히 했다. | none |
 | UI 통합 리뷰어 | 96 | 탭 그룹 자체의 border/background와 header/content divider를 제거했다. 비선택 탭은 transparent text-only로 두고 선택 탭만 panel 배경과 같은 색으로 이어지게 했다. | none |
-| UI 정렬 리뷰어 | 96 | 선택 탭에 `overflow: visible`, relative stacking, 1px bottom overlap을 적용해 active tab 바로 아래의 panel edge line이 보이지 않도록 했다. | none |
+| UI 정렬 리뷰어 | 96 | 선택 탭을 panel edge와 같은 y축에 맞추고 panel top-line segment를 탭 side border와 2px 겹치게 해 active tab 바로 아래 line과 좌우 끊김을 제거했다. | none |
 | 상태 모델 리뷰어 | 96 | `추가 진행`을 현재 index에만 제한하던 조건을 제거하고, 완료 이후 더 최신 revision evidence가 있는 flow를 effective current로 승격한다. 해당 flow 이후 단계는 completion evidence가 생길 때까지 pending으로 유지된다. | none |
 | 상태 모델 리뷰어 | 96 | `effectiveCurrentIndex`가 다른 완료 flow를 pending으로 되돌리던 회귀를 막기 위해 완료 evidence와 current stage 이전 완료 이력을 별도로 보존했다. current 표시는 effective current에만 붙는다. | none |
 | UI 통합 리뷰어 | 96 | 탭 그룹 전체가 아니라 선택 탭과 content panel만 같은 border/background surface를 공유하게 했다. 비선택 탭은 transparent text-only 상태로 유지된다. | none |
@@ -34,6 +34,7 @@ pgg:
 | UI 통합 리뷰어 | 96 | `add-img/9.png` 기준으로 선택 탭에 rounded top, top/side border, panel fill, bottom-line gap을 적용했다. 비선택 탭은 박스 없이 유지된다. | none |
 | 상태 모델 리뷰어 | 96 | 이번 대화의 `requirements-added`를 완료 evidence보다 먼저 기록해 dashboard refresh 시 Code flow가 즉시 `추가 진행`으로 바뀔 수 있게 했다. 완료 시에는 `stage-completed`/`stage-commit`이 상태를 해소한다. | none |
 | 워크플로우 계약 리뷰어 | 96 | 모든 active topic에서 follow-up 요구가 들어오면 stage 작업 전 `requirements-added`를 먼저 append하도록 `.codex/add/WOKR-FLOW.md` 규칙을 보강했다. | none |
+| UI 통합 리뷰어 | 96 | MUI `Tabs`/`Tab`을 제거하고 `ButtonBase` 기반 `tablist`로 교체해 built-in selected underline을 없앴다. 선택 탭과 panel은 같은 2px outline으로 이어진다. | none |
 
 ## Findings
 
@@ -49,6 +50,7 @@ pgg:
 - source check for stale earlier-flow revision resolution by later flow evidence: pass
 - source check for selected-tab-only frame with unboxed inactive tabs: pass
 - source check for add-img/9 selected-tab shape and top-border segment masking: pass
+- source check for removed MUI Tabs/Tab selected indicator implementation: pass
 - source check for immediate `requirements-added` live workflow status evidence: pass
 - source check for global pgg workflow `requirements-added` first rule: pass
 - source check for edge-to-edge connector geometry and removed internal connector: pass
@@ -61,7 +63,7 @@ pgg:
 - source check for removed bordered time/status box pattern: pass
 - source check for unified tab panel surface wrapping Overview, Timeline, and Relations content: pass
 - source check for borderless text-only inactive tabs and selected-tab panel blending: pass
-- source check for selected-tab edge overlap hiding the active-tab bottom line: pass
+- source check for selected-tab flush edge alignment and no active-tab bottom line: pass
 - source check for metadata card bar under the workflow rail: pass
 
 ## Residual Risks

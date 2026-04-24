@@ -14,8 +14,6 @@ import {
   InputAdornment,
   Paper,
   Stack,
-  Tab,
-  Tabs,
   TextField,
   Tooltip,
   Typography
@@ -173,49 +171,63 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
               </Box>
             </Stack>
 
-            <Tabs
-              value={activeTab}
-              onChange={(_event, value: HistoryTab) => setActiveTab(value)}
-              TabIndicatorProps={{ sx: { display: "none" } }}
+            <Box
+              role="tablist"
+              aria-label="History sections"
               sx={{
-                alignSelf: "flex-start",
-                minHeight: historyTabHeight,
+                display: "flex",
+                alignItems: "flex-end",
+                gap: `${historyTabGap}px`,
                 mt: 0.4,
-                mb: "-1px",
+                pl: `${historyTabInset}px`,
+                minHeight: historyTabHeight,
                 overflow: "visible",
-                "& .MuiTabs-flexContainer": { gap: 0.25 },
-                "& .MuiTab-root": {
-                  minHeight: historyTabHeight,
-                  width: historyTabWidth,
-                  minWidth: historyTabWidth,
-                  px: 0,
-                  color: "text.secondary",
-                  fontWeight: 760,
-                  bgcolor: "transparent",
-                  letterSpacing: 0
-                },
-                "& .Mui-selected": {
-                  position: "relative",
-                  zIndex: 1,
-                  color: "text.primary",
-                  bgcolor: historyPanelBg,
-                  "&::before": {
-                    content: '""',
-                    position: "absolute",
-                    inset: 0,
-                    border: `2px solid ${historyPanelBorder}`,
-                    borderBottom: 0,
-                    borderTopLeftRadius: { xs: 2, sm: 2.5 },
-                    borderTopRightRadius: { xs: 2, sm: 2.5 },
-                    pointerEvents: "none"
-                  }
-                }
+                mb: 0
               }}
             >
-              <Tab id="history-tab-overview" aria-controls="history-panel-overview" value="overview" label="Overview" />
-              <Tab id="history-tab-timeline" aria-controls="history-panel-timeline" value="timeline" label="Timeline" />
-              <Tab id="history-tab-relations" aria-controls="history-panel-relations" value="relations" label="Relations" />
-            </Tabs>
+              {(["overview", "timeline", "relations"] as const).map((tab) => {
+                const selected = activeTab === tab;
+                const label = tab === "overview" ? "Overview" : tab === "timeline" ? "Timeline" : "Relations";
+                return (
+                  <ButtonBase
+                    key={tab}
+                    id={`history-tab-${tab}`}
+                    aria-controls={`history-panel-${tab}`}
+                    aria-selected={selected}
+                    role="tab"
+                    onClick={() => setActiveTab(tab)}
+                    sx={{
+                      width: historyTabWidth,
+                      minWidth: historyTabWidth,
+                      height: selected ? historyTabHeight : { xs: 34, sm: 38 },
+                      px: 0,
+                      color: selected ? "text.primary" : "text.secondary",
+                      fontWeight: selected ? 850 : 720,
+                      letterSpacing: 0,
+                      bgcolor: selected ? historyPanelBg : "transparent",
+                      border: selected ? `2px solid ${historyPanelBorder}` : "2px solid transparent",
+                      borderBottom: 0,
+                      borderTopLeftRadius: selected ? { xs: 2, sm: 2.5 } : 0,
+                      borderTopRightRadius: selected ? { xs: 2, sm: 2.5 } : 0,
+                      position: "relative",
+                      zIndex: selected ? 2 : 1,
+                      boxShadow: "none",
+                      "&:hover": {
+                        bgcolor: selected ? historyPanelBg : alpha(theme.palette.text.primary, 0.04)
+                      },
+                      "&:focus-visible": {
+                        outline: `2px solid ${alpha(theme.palette.primary.main, 0.72)}`,
+                        outlineOffset: 2
+                      }
+                    }}
+                  >
+                    <Typography component="span" variant="button" sx={{ fontWeight: "inherit", lineHeight: 1, letterSpacing: 0 }}>
+                      {label}
+                    </Typography>
+                  </ButtonBase>
+                );
+              })}
+            </Box>
           </Stack>
 
           <Box
@@ -225,7 +237,7 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
             sx={{
               position: "relative",
               p: { xs: 1.2, md: 1.5 },
-              border: `1px solid ${historyPanelBorder}`,
+              border: `2px solid ${historyPanelBorder}`,
               borderTop: 0,
               borderRadius: 1,
               borderTopLeftRadius: 0,
@@ -238,7 +250,10 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
                 position: "absolute",
                 top: 0,
                 left: 0,
-                width: historyTabMaskLeft,
+                width: {
+                  xs: `calc(${historyTabMaskLeft.xs} + 2px)`,
+                  sm: `calc(${historyTabMaskLeft.sm} + 2px)`
+                },
                 height: 2,
                 bgcolor: historyPanelBorder,
                 pointerEvents: "none"
@@ -247,7 +262,10 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
                 content: '""',
                 position: "absolute",
                 top: 0,
-                left: historyTabMaskRight,
+                left: {
+                  xs: `calc(${historyTabMaskRight.xs} - 2px)`,
+                  sm: `calc(${historyTabMaskRight.sm} - 2px)`
+                },
                 right: 0,
                 height: 2,
                 bgcolor: historyPanelBorder,

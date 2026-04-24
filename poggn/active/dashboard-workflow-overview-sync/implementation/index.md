@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T19:02:12Z"
+  updated_at: "2026-04-24T19:16:53Z"
   auto_mode: "on"
   archive_type: "fix"
   version_bump: "patch"
@@ -48,9 +48,11 @@ state:
 - Priority ignores non-blocking placeholder values such as `none` and uses score/workflow context as helper copy.
 - Overview, Timeline, and Relations content now renders inside the same tab panel surface as the topic header/tabs instead of detached sibling cards.
 - Overview tabs now remove the tab-group box and header/content divider; inactive tabs are text-only and the selected tab blends into the content panel.
-- Selected tab now overlaps the panel edge by 1px so the line is not visible directly under the active tab.
+- Selected tab now sits flush with the panel edge, and the panel top-line segments overlap the selected tab side borders by 2px so the outline does not break.
 - Selected tab and its content panel now share one framed surface while inactive tabs remain unboxed text controls.
 - Selected tabs now use the `add-img/9.png` tab shape with rounded top corners, top/side border, matching panel fill, and no bottom border.
+- History tabs now use a custom `ButtonBase` tablist instead of MUI `Tabs`/`Tab`, removing the built-in selected underline entirely.
+- Selected tab and panel borders now use the same thickness/color so the outline reads as one continuous tab path.
 - Content panel top border is retained except for the selected-tab segment, which is masked by the selected tab/panel fill.
 - New follow-up requests now append `requirements-added` before completion evidence so a live dashboard refresh can show Code as `추가 진행` during the conversation.
 - `.codex/add/WOKR-FLOW.md` now requires this `requirements-added` first rule for future topics, not only this topic.
@@ -114,6 +116,7 @@ state:
 - source check for stale earlier-flow revision resolution by later flow evidence: pass
 - source check for selected-tab-only frame with unboxed inactive tabs: pass
 - source check for add-img/9 selected-tab shape and top-border segment masking: pass
+- source check for removed MUI Tabs/Tab selected indicator implementation: pass
 - source check for immediate `requirements-added` live workflow status evidence: pass
 - source check for global pgg workflow `requirements-added` first rule: pass
 - source check for edge-to-edge connector geometry and removed center-to-center internal connector: pass
@@ -125,7 +128,7 @@ state:
 - source check for removed Type card, title-area metadata, fixed date/time formatter, and non-placeholder Priority helper: pass
 - source check for unified tab panel surface wrapping Overview, Timeline, and Relations content: pass
 - source check for borderless text-only inactive tabs and selected-tab panel blending: pass
-- source check for selected-tab edge overlap hiding the active-tab bottom line: pass
+- source check for selected-tab flush edge alignment and no active-tab bottom line: pass
 - source check for metadata card bar under the workflow rail: pass
 - source check for `workflowProgressTooltip`, `historyEvents`, `stage-started`, `stage-commit`: pass
 - source check for removed `minHeight: 48` bordered time/status box pattern: pass

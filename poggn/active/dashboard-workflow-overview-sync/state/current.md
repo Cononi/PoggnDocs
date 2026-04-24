@@ -34,6 +34,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - visual reference: `add-img/5.png`
 - follow-up connector reference: `add-img/6.png`
 - follow-up center/gap reference: `add-img/8.png`
+- follow-up tab reference: `add-img/9.png`
 - density reference: `add-img/1.png`
 
 ## Constraints
@@ -93,6 +94,9 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - The active tab should cover the panel edge directly beneath it so no line appears under the selected tab.
 - Only the selected tab and its content panel are framed together; inactive tabs remain unboxed text controls.
 - Selected tab should match `add-img/9.png`: rounded top corners, visible top/side border, matching panel fill, and no bottom border.
+- History tabs use custom `ButtonBase` tabs instead of MUI `Tabs`/`Tab`, so no built-in selected underline can appear.
+- Selected tab and content panel outline must use the same thickness/color and read as one continuous path.
+- Selected tab sits flush with the content panel edge, and panel top-line segments overlap the selected tab side borders by 2px to prevent visible connection gaps.
 - Content panel top border remains visible except under the selected tab segment, where the selected tab connects to the panel.
 - New dialogue requirements should append `requirements-added` before completion evidence so live dashboard refresh can show the current flow as `추가 진행`.
 - This `requirements-added` first rule is a global pgg workflow rule for future active topics, not a one-off behavior for this topic.
@@ -120,6 +124,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - `탭에 대해서 잘못되었습니다. 제가 원한건 선택한 탭의 border bottom 라인이 없고 선택 효과도 없는 상태이고 컨텐츠의 top 라인은 탭 영역과 이어지는 부분 제외하고 다른 라인은 있어야 합니다.`
 - `죄송합니다. tap 모양이 전혀 아닙니다. add-img의 9.png 처럼 수정해야합니다. 그리고 실시간으로 플로우 보여주는 기능이 있다면 분명 이 대화로 인해 flow의 상태가 변해야 합니다.`
 - `앞으로 플로우 처리는 다른 토픽 도 마찬가지고 전부 이렇게 되야 합니다. 그리고 add-img의 9.png 이미지 다시 보세요 경계선이 있나요? 전혀 다른 디자인입니다. 다시 해주세요.`
+- `탭 기능을 보세요. 9.png와 전혀 다릅니다. 라인 자체도 여전히 이어지지 않았고 탭의 하단에 셀렉트로 인한 라인도 살아 있습니다. 모습이 같습니까?`
 
 ## Audit Applicability
 
@@ -207,6 +212,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - source check for stale earlier-flow revision resolution by later flow evidence: pass
 - source check for selected-tab-only frame with unboxed inactive tabs: pass
 - source check for add-img/9 selected-tab shape and top-border segment masking: pass
+- source check for removed MUI Tabs/Tab selected indicator implementation: pass
 - source check for immediate `requirements-added` live workflow status evidence: pass
 - source check for global pgg workflow `requirements-added` first rule: pass
 - source check for edge-to-edge connector geometry and removed internal connector: pass
@@ -219,7 +225,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - source check for removed bordered time/status box pattern: pass
 - source check for unified tab panel surface wrapping Overview, Timeline, and Relations content: pass
 - source check for borderless text-only inactive tabs and selected-tab panel blending: pass
-- source check for selected-tab edge overlap hiding the active-tab bottom line: pass
+- source check for selected-tab flush edge alignment and no active-tab bottom line: pass
 - source check for metadata card bar under the workflow rail: pass
 
 ## Next Action

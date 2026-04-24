@@ -1,0 +1,15 @@
+diff --git a/poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md b/poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md
+index 3b82ef0..d8262e4 100644
+--- a/poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md
++++ b/poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md
+@@ -27,7 +27,9 @@ Workflow Overview sync 변경의 visual, model, telemetry, i18n, accessibility a
+ - Overview, Timeline, and Relations tab content is rendered inside the same tab surface as the topic header/tabs, without detached sibling-card spacing.
+ - Overview, Timeline, and Relations tab headers have no outer tab-group box; inactive tabs render as text-only controls.
+ - The selected tab follows the `add-img/9.png` shape: rounded top corners, visible top/side border, no bottom border, and a fill that matches the content panel.
+-- The selected tab overlaps the content panel edge so no line appears directly under the active tab.
++- The selected tab shape is implemented without MUI `Tabs`/`Tab` indicator styling; there must be no selected underline or extra bottom line.
++- The selected tab border and content panel border use the same thickness/color so their outline appears continuous.
++- The selected tab sits flush with the content panel edge, and panel top-line segments overlap the selected tab side borders enough to avoid visible gaps.
+ - Only the selected tab and its content panel are framed together; inactive tabs are not boxed.
+ - The content panel keeps its top border except for the segment directly under the selected tab.
+ - Status, Workflow Stage, Priority, Created, and Updated appear as a compact card bar under the workflow rail inside Workflow Progress.
