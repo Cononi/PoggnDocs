@@ -6,11 +6,11 @@ dashboard-workflow-progress-reference
 
 ## Current Stage
 
-refactor
+qa
 
 ## Goal
 
-Project Workflow Overview 탭의 Workflow Progress 구현 뒤 obsolete status와 중복 데이터 구성 코드를 정리하는 refactor stage를 완료했다.
+Project Workflow Overview 탭의 Workflow Progress 구현과 refactor 결과를 검증하고 archive 가능 판정을 기록했다.
 
 ## Document Refs
 
@@ -23,6 +23,7 @@ Project Workflow Overview 탭의 Workflow Progress 구현 뒤 obsolete status와
 - implementation index: `poggn/active/dashboard-workflow-progress-reference/implementation/index.md`
 - code review: `poggn/active/dashboard-workflow-progress-reference/reviews/code.review.md`
 - refactor review: `poggn/active/dashboard-workflow-progress-reference/reviews/refactor.review.md`
+- qa report: `poggn/active/dashboard-workflow-progress-reference/qa/report.md`
 - spec:
   - `poggn/active/dashboard-workflow-progress-reference/spec/model/task-aware-workflow-progress.md`
   - `poggn/active/dashboard-workflow-progress-reference/spec/ui/reference-workflow-progress-visual.md`
@@ -61,6 +62,8 @@ Project Workflow Overview 탭의 Workflow Progress 구현 뒤 obsolete status와
 - Refactor removed the unused `next` workflow status from `WorkflowStatus` and active step detection.
 - Refactor split task evidence source collection from active task id extraction.
 - Refactor extracted progress chart/count item builders out of JSX-local arrays.
+- QA decision is `pass` and archive is allowed.
+- Visual parity has manual verification note because the current-project verification contract has no declared visual automation command.
 
 ## User Question Record
 
@@ -104,6 +107,7 @@ Project Workflow Overview 탭의 Workflow Progress 구현 뒤 obsolete status와
 | CREATE | `poggn/active/dashboard-workflow-progress-reference/implementation/diffs/006_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx_refactor.diff` | |
 | CREATE | `poggn/active/dashboard-workflow-progress-reference/reviews/code.review.md` | |
 | CREATE | `poggn/active/dashboard-workflow-progress-reference/reviews/refactor.review.md` | |
+| CREATE | `poggn/active/dashboard-workflow-progress-reference/qa/report.md` | |
 | UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | `poggn/active/dashboard-workflow-progress-reference/implementation/diffs/001_UPDATE_apps_dashboard_src_features_history_historyModel_ts.diff` |
 | UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | `poggn/active/dashboard-workflow-progress-reference/implementation/diffs/002_UPDATE_apps_dashboard_src_shared_locale_dashboardLocale_ts.diff` |
 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `poggn/active/dashboard-workflow-progress-reference/implementation/diffs/003_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.diff` |
@@ -116,13 +120,13 @@ Project Workflow Overview 탭의 Workflow Progress 구현 뒤 obsolete status와
 
 ## Last Expert Score
 
-- phase: refactor
+- phase: qa
 - score: 96
 - blocking issues: none
 
 ## Open Items
 
-- status: ready_for_qa
+- status: pass
 
 ## Verification
 
@@ -135,13 +139,18 @@ Project Workflow Overview 탭의 Workflow Progress 구현 뒤 obsolete status와
 - `pnpm --filter @pgg/dashboard build`: pass
 - runtime fix `pnpm --filter @pgg/dashboard build`: pass
 - refactor `pnpm --filter @pgg/dashboard build`: pass
+- QA `pnpm --filter @pgg/dashboard build`: pass
+- `curl -I http://localhost:4173/`: pass
 - source check for active task ids, progressive visibility, i18n keys, and reduced-motion fallback: pass
 - source check for removed `InputProps`: pass
 - source check for removed `next` workflow status: pass
+- `./.codex/sh/pgg-gate.sh pgg-code dashboard-workflow-progress-reference`: pass
+- `./.codex/sh/pgg-gate.sh pgg-refactor dashboard-workflow-progress-reference`: pass
+- `./.codex/sh/pgg-gate.sh pgg-qa dashboard-workflow-progress-reference`: pass
 
 ## Next Action
 
-Run `pgg-qa` using this `state/current.md`, `implementation/index.md`, `reviews/code.review.md`, and `reviews/refactor.review.md` as the primary handoff.
+archive allowed
 
 ## Git Publish Message
 
