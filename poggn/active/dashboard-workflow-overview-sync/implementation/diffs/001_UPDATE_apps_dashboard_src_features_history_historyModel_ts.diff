@@ -1,70 +1,88 @@
 diff --git a/apps/dashboard/src/features/history/historyModel.ts b/apps/dashboard/src/features/history/historyModel.ts
-index 347a3ce..1801266 100644
+index 1801266..4011862 100644
 --- a/apps/dashboard/src/features/history/historyModel.ts
 +++ b/apps/dashboard/src/features/history/historyModel.ts
-@@ -311,21 +311,27 @@ export function topicUpdatedSummary(topic: TopicSummary, language: HistoryLangua
+@@ -513,19 +513,42 @@ function flowRevisionEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition)
+   return [...eventEvidence, ...nodeEvidence];
  }
  
- export function topicPrioritySummary(topic: TopicSummary): OverviewStatSummary {
--  if (topic.blockingIssues) {
-+  const blockingIssues = topic.blockingIssues?.trim();
-+  const hasBlockingIssue = Boolean(blockingIssues && !/^(none|no|없음|n\/a)$/i.test(blockingIssues));
-+  if (hasBlockingIssue) {
-     return { value: "Blocked", helper: topic.blockingIssues, tone: "danger" };
-   }
- 
-   if (typeof topic.score === "number") {
-     if (topic.score >= 95) {
--      return { value: "High", helper: `Score ${topic.score}`, tone: "primary" };
-+      return { value: "High", helper: `Score ${topic.score} · clear`, tone: "primary" };
-     }
-     if (topic.score >= 85) {
--      return { value: "Medium", helper: `Score ${topic.score}`, tone: "primary" };
-+      return { value: "Medium", helper: `Score ${topic.score} · review`, tone: "primary" };
-     }
--    return { value: "Low", helper: `Score ${topic.score}`, tone: "danger" };
-+    return { value: "Low", helper: `Score ${topic.score} · needs check`, tone: "danger" };
-   }
- 
--  return { value: topic.bucket === "archive" ? "Done" : "Normal", helper: topic.nextAction ?? topic.stage ?? "No score", tone: "primary" };
-+  return {
-+    value: topic.bucket === "archive" ? "Done" : "Normal",
-+    helper: topic.nextAction ?? (topic.stage ? `Stage ${topic.stage}` : "Score pending"),
-+    tone: "primary"
-+  };
- }
- 
- function latestDate(values: Array<string | null | undefined>): string | null {
-@@ -349,14 +355,26 @@ function formatDateTimeLines(value: string | null, language: HistoryLanguage, fa
-     return [fallback];
-   }
- 
--  const formatted = formatDate(value, language);
--  const marker = language === "ko" ? ". " : ", ";
--  const splitIndex = formatted.indexOf(marker);
--  if (splitIndex < 0) {
--    return [formatted];
-+  const date = new Date(value);
-+  if (Number.isNaN(date.getTime())) {
-+    return [formatDate(value, language)];
+-function flowHasUpdatingStatus(topic: TopicSummary, flow: WorkflowFlowDefinition, completedAt: string | null): boolean {
++function timestampMillis(value: string | null): number | null {
++  if (!value) {
++    return null;
 +  }
++  const time = new Date(value).getTime();
++  return Number.isFinite(time) ? time : null;
++}
 +
-+  const year = date.getFullYear();
-+  const month = String(date.getMonth() + 1).padStart(2, "0");
-+  const day = String(date.getDate()).padStart(2, "0");
-+  const hours24 = date.getHours();
-+  const minutes = String(date.getMinutes()).padStart(2, "0");
-+  const seconds = String(date.getSeconds()).padStart(2, "0");
++function compareTimestamps(left: string | null, right: string | null): number {
++  const leftTime = timestampMillis(left);
++  const rightTime = timestampMillis(right);
++  if (leftTime === null && rightTime === null) {
++    return 0;
++  }
++  if (leftTime === null) {
++    return -1;
++  }
++  if (rightTime === null) {
++    return 1;
++  }
++  return leftTime - rightTime;
++}
 +
-+  if (language === "ko") {
-+    const period = hours24 < 12 ? "오전" : "오후";
-+    const hours12 = String(hours24 % 12 || 12).padStart(2, "0");
-+    return [`${year}.${month}.${day}`, `${period} ${hours12}:${minutes}:${seconds}`];
++function flowUpdatingTimestamp(topic: TopicSummary, flow: WorkflowFlowDefinition, completedAt: string | null): string | null {
+   if (topic.bucket === "archive") {
+-    return false;
++    return null;
    }
  
--  return [formatted.slice(0, splitIndex + marker.length).trim(), formatted.slice(splitIndex + marker.length).trim()].filter(Boolean);
-+  const hours = String(hours24).padStart(2, "0");
-+  return [`${year}.${month}.${day}`, `${hours}:${minutes}:${seconds}`];
+   const latestRevision = latestEvidence(flowRevisionEvidence(topic, flow)).value;
+   if (!latestRevision) {
+-    return false;
++    return null;
+   }
+   if (!completedAt) {
+-    return true;
++    return latestRevision;
+   }
+-  return new Date(latestRevision).getTime() > new Date(completedAt).getTime();
++  return compareTimestamps(latestRevision, completedAt) > 0 ? latestRevision : null;
  }
  
- function latestEvidence(evidence: TimestampEvidence[]): TimestampEvidence {
+ function nodeTimestampEvidence(
+@@ -645,13 +668,30 @@ export function buildWorkflowSteps(topic: TopicSummary, language: HistoryLanguag
+   const flows = visibleWorkflowFlows(topic);
+   const currentIndex = resolveStageIndex(topic, flows);
+   const stageComplete = topicStageIsComplete(topic);
+-
+-  return flows.map((flow, index) => {
++  const entries = flows.map((flow, index) => {
+     const activeTaskIds = activeTaskIdsForFlow(topic, flow);
+-    const currentFlowIsComplete = stageComplete && activeTaskIds.length === 0;
+-    const isComplete = topic.bucket === "archive" || index < currentIndex || (index === currentIndex && currentFlowIsComplete);
+     const timestamps = flowTimestampBundle(topic, flow);
+-    const updating = flowHasUpdatingStatus(topic, flow, timestamps.completedAt.value) && index === currentIndex;
++    return {
++      flow,
++      index,
++      activeTaskIds,
++      timestamps,
++      updatingAt: flowUpdatingTimestamp(topic, flow, timestamps.completedAt.value)
++    };
++  });
++  const updatingIndex = entries
++    .filter((entry) => entry.updatingAt)
++    .sort((left, right) => compareTimestamps(left.updatingAt, right.updatingAt) || left.index - right.index)
++    .at(-1)?.index;
++  const effectiveCurrentIndex = updatingIndex ?? currentIndex;
++
++  return entries.map(({ flow, index, activeTaskIds, timestamps }) => {
++    const currentFlowIsComplete = stageComplete && activeTaskIds.length === 0;
++    const isComplete =
++      topic.bucket === "archive" ||
++      index < effectiveCurrentIndex ||
++      (index === currentIndex && index === effectiveCurrentIndex && currentFlowIsComplete);
++    const updating = updatingIndex === index;
+     const status: WorkflowStatus = updating
+       ? "updating"
+       : isComplete

@@ -24,9 +24,11 @@
   - `stage-revised`
   - `stage-updated`
   - `requirements-added`
-- revision status는 현재 active flow에 추가 user input 또는 update telemetry가 들어온 경우에만 사용한다.
+- revision status는 완료 이후 새 user input 또는 update telemetry가 더 최신인 flow에 사용한다.
+- 다음 flow 차례로 넘어간 뒤에도 이전 flow의 완료 시각 이후 추가 요구가 들어왔고 아직 그 flow의 새 completion evidence가 없으면 이전 flow를 `추가 진행`으로 되돌린다.
+- unresolved revision flow가 있으면 그 flow를 effective current flow로 보고 이후 flow는 pending으로 둔다.
 - not-started future flow에는 revision status를 붙이지 않는다.
-- 이미 다음 flow로 넘어간 과거 flow에는 historical update event가 있어도 `추가 진행`을 계속 붙이지 않는다.
+- 이미 다음 flow로 넘어간 과거 flow라도 revision 이후 새 completion evidence가 있으면 `추가 진행`을 계속 붙이지 않는다.
 
 ## Visual Mapping Contract
 
@@ -50,5 +52,6 @@
 ## Acceptance
 
 - 이번 topic처럼 완료 후 새 요구사항이 들어오면 대상 flow를 `추가 진행`으로 표시할 수 있다.
+- 완료된 flow에서 새 추가 처리가 진행 중이면 다음 flow 차례여도 대상 flow가 `완료`가 아니라 `추가 진행`으로 표시된다.
 - update status는 `생성 중`, `완료`, `시작 전`과 색/문구/아이콘 또는 badge로 구분된다.
 - revision event는 log modal에서 source로 확인할 수 있다.

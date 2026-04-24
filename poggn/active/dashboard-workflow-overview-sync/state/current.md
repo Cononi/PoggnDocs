@@ -10,7 +10,7 @@ implementation
 
 ## Goal
 
-Project Workflow Overview의 progress rail 연결, compact density, caption style, flow tooltip, 진행 중 clipping 방지, 필요한 네 상태(`시작 전`, `생성 중`, `완료`, `추가 진행`), flow별 시간 독립성, stage telemetry 반영, 상태별 색 구분, tab panel containment, borderless tabs를 보강 구현했다.
+Project Workflow Overview의 progress rail 연결, compact density, caption style, flow tooltip, 진행 중 clipping 방지, 필요한 네 상태(`시작 전`, `생성 중`, `완료`, `추가 진행`), flow별 시간 독립성, stage telemetry 반영, 상태별 색 구분, tab panel containment, borderless tabs, unresolved revision status를 보강 구현했다.
 
 ## Document Refs
 
@@ -61,7 +61,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - Internal stage names stay unchanged: `Add` maps to proposal and `Code` maps to implementation.
 - Active/generated step pulse, glow, and focus outline must not be clipped at the top or sides.
 - Progress rail should reserve active-state safe area and avoid clipping the active visual effect while keeping the layout box stable.
-- `추가 진행` is a transient update status for the current active workflow stage receiving additional user requirements after prior completion/progress.
+- `추가 진행` is a transient update status for a workflow stage receiving additional user requirements after prior completion/progress.
 - Update status must use a distinct accent color from not-started, generated/current, and completed states.
 - Revision events should be recorded with telemetry such as `proposal-updated`, `plan-updated`, `task-updated`, or `stage-revised`.
 - Flow time/status must be shown as small caption typography under the flow name, not as a bordered box.
@@ -75,7 +75,8 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - Broad artifacts such as `state/`, `workflow.reactflow.json`, and shared implementation index files are not promoted into per-flow start/completion times.
 - `stage-commit` is treated as governed completion evidence for implementation/refactor/qa stage-local commits.
 - `추가 진행` is implemented as `updating` status in Overview Progress and React Flow model.
-- Historical update events on previous flows do not keep those previous flows in update state after the workflow has advanced.
+- Historical update events on previous flows do not keep those previous flows in update state after a newer completion evidence appears.
+- If a completed previous flow receives newer unresolved revision evidence, that flow becomes the effective current `추가 진행` flow and later flows are shown as pending.
 - Runtime follow-up fixed missing `AutoGraphRounded` import and replaced compact Drawer `PaperProps` with `slotProps.paper`.
 - `add-img/8.png` follow-up fixed connector end offset to include grid gap and connector top to align with the circle visual center.
 - Workflow Progress title and donut percentage typography were reduced to match surrounding Overview density.
@@ -106,6 +107,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - `Status, Workflow Stage, Priority,Created, Updated 카드바를 같은 영역에서 워크플로우 아래에 배치 해주세요. 그리고 탭이 좀더 자연스럽게 녹아들었으면 좋겟습니다. Contained Tabs 느낌 일까요?`
 - `탭부분 경계선 없이 하위 컨테츠와 자연스럽게 이어져야 하며 클릭되지 않은 부분은 박스 자체가 없어야 하는 그런 디자인을 원했습니다.`
 - `클릭된 탭과 하단 콘텐츠가 선으로 이어지는데 클릭된 탭의 바로 밑에 라인은 없어야 합니다.`
+- `워크플로우에서 특정 flow에서 완료되서 다음 플로우 차례지만 체크해보니 추가사항이 생겨서 추가 처리를 요청한 상태입니다. 근데 추가 사항 처리중인데 불구하고 완료된 처리로 보여주고 있습니다. 실시간으로 반영이 되도록 상태가 현 상황에 맞는 걸로 해야하는거 아닌가요?`
 
 ## Audit Applicability
 
@@ -187,6 +189,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - `pnpm build`: pass
 - `./.codex/sh/pgg-gate.sh pgg-code dashboard-workflow-overview-sync`: pass
 - source check for removed extra status stage and retained updating telemetry/status/tooltip keys: pass
+- source check for unresolved revision status overriding completed status across flow advancement: pass
 - source check for edge-to-edge connector geometry and removed internal connector: pass
 - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
 - source check for connector gap-inclusive end offset and circle-radius top alignment: pass

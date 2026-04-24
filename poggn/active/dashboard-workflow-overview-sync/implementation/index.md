@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T18:30:45Z"
+  updated_at: "2026-04-24T18:35:31Z"
   auto_mode: "on"
   archive_type: "fix"
   version_bump: "patch"
@@ -19,7 +19,7 @@ reactflow:
   node_type: "doc"
   label: "implementation/index.md"
 state:
-  summary: "Workflow Progress connector geometry, four-state status model, stage-specific timestamp fallback, compact caption UI, tooltip, i18n, tab panel containment, contained tabs를 보강했다."
+  summary: "Workflow Progress connector geometry, four-state status model, stage-specific timestamp fallback, compact caption UI, tooltip, i18n, tab panel containment, borderless tabs, unresolved revision status를 보강했다."
   next: "pgg-refactor"
 ---
 
@@ -33,6 +33,7 @@ state:
 - Broad artifacts such as `state/`, `workflow.reactflow.json`, and shared implementation index files are no longer promoted into per-flow start/completion times.
 - Stage-specific telemetry and node timestamps now take priority over file updatedAt fallback for flow updated time, preventing later Add/Code/Refactor file churn from sharing one timestamp.
 - `시작 전`, `생성 중`, `완료`, `추가 진행` are modeled as the required user-facing statuses.
+- Completed flows with newer unresolved revision/additional requirement evidence now return to `추가 진행`; later flows remain pending until new completion evidence appears.
 - Workflow/React Flow nodes can also surface `updating` status from node metadata.
 - Workflow Progress UI is more compact, removes the bordered time/status box, shows small caption text, prevents active clipping with visible rail overflow, and adds flow tooltip affordance.
 - Connector geometry now draws edge-to-edge between circle visuals at the circle center height so the line touches the next flow without crossing inside circles.
@@ -99,6 +100,7 @@ state:
 - `pnpm build`: pass
 - `./.codex/sh/pgg-gate.sh pgg-code dashboard-workflow-overview-sync`: pass
 - source check for removed extra status stage and retained `workflowProgressStatusUpdating`: pass
+- source check for unresolved revision status overriding completed status across flow advancement: pass
 - source check for edge-to-edge connector geometry and removed center-to-center internal connector: pass
 - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
 - source check for connector gap-inclusive end offset and circle-radius top alignment: pass
