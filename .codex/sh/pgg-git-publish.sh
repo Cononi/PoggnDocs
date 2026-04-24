@@ -163,24 +163,22 @@ if (!title) {
   if (/[.。]$/.test(title)) {
     errors.push("Commit title must not end with a period.");
   }
-  const summary = title.startsWith(prefix) ? title.slice(prefix.length).trim() : title;
-  if (!summary) {
+  const titleSummary = title.startsWith(prefix) ? title.slice(prefix.length).trim() : title;
+  if (!titleSummary) {
     errors.push("Commit title summary is required.");
-  } else if (imperativePattern.test(summary) || koreanImperativePattern.test(summary)) {
+  } else if (imperativePattern.test(titleSummary) || koreanImperativePattern.test(titleSummary)) {
     errors.push("Commit title must not use an imperative command form.");
-  } else if (Array.from(summary).length < 8) {
-    errors.push("Commit title summary must describe the changed content.");
   }
-}
-if (!why) {
-  errors.push("Why summary is required.");
-} else if (Array.from(why).length < 15) {
-  errors.push("Why summary must explain the reason for the change.");
 }
 if (!summary) {
   errors.push("Change summary is required for commit body details.");
 } else if (Array.from(summary).length < 8) {
   errors.push("Change summary must describe the changed content.");
+}
+if (!why) {
+  errors.push("Why summary is required.");
+} else if (Array.from(why).length < 15) {
+  errors.push("Why summary must explain the reason for the change.");
 }
 const languageSample = `${summary}\n${why}`.trim();
 if (projectLanguage === "ko" && !hasHangul(languageSample)) {

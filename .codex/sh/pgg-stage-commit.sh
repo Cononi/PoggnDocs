@@ -66,8 +66,7 @@ manifest_language() {
   node -e '
     const fs = require("fs");
     const manifest = JSON.parse(fs.readFileSync(process.argv[1], "utf8"));
-    const language = manifest.language === "en" ? "en" : "ko";
-    process.stdout.write(language);
+    process.stdout.write(manifest.language === "en" ? "en" : "ko");
   ' "$manifest"
 }
 

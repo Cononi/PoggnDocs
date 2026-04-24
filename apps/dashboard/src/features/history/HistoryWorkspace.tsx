@@ -1,0 +1,996 @@
+import { useMemo, useState, type ReactNode } from "react";
+import { alpha, useTheme } from "@mui/material/styles";
+import {
+  Alert,
+  Box,
+  Button,
+  ButtonBase,
+  Chip,
+  Divider,
+  IconButton,
+  InputAdornment,
+  LinearProgress,
+  Paper,
+  Stack,
+  Tab,
+  Tabs,
+  TextField,
+  Typography
+} from "@mui/material";
+import CheckCircleRounded from "@mui/icons-material/CheckCircleRounded";
+import ChevronRightRounded from "@mui/icons-material/ChevronRightRounded";
+import DescriptionRounded from "@mui/icons-material/DescriptionRounded";
+import DifferenceRounded from "@mui/icons-material/DifferenceRounded";
+import DownloadRounded from "@mui/icons-material/DownloadRounded";
+import ExpandMoreRounded from "@mui/icons-material/ExpandMoreRounded";
+import FilterListRounded from "@mui/icons-material/FilterListRounded";
+import FolderRounded from "@mui/icons-material/FolderRounded";
+import MoreVertRounded from "@mui/icons-material/MoreVertRounded";
+import RadioButtonUncheckedRounded from "@mui/icons-material/RadioButtonUncheckedRounded";
+import SearchRounded from "@mui/icons-material/SearchRounded";
+import TableRowsRounded from "@mui/icons-material/TableRowsRounded";
+import ViewListRounded from "@mui/icons-material/ViewListRounded";
+import type { DashboardLocale, ProjectSnapshot, TopicSummary } from "../../shared/model/dashboard";
+import {
+  buildTopicFileTree,
+  buildTopicKey,
+  type TopicFileTreeNode
+} from "../../shared/utils/dashboard";
+import {
+  buildRelationGroups,
+  buildTimelineRows,
+  buildWorkflowSteps,
+  changeTypeColor,
+  formatTopicDate,
+  topicDisplayId,
+  topicStatus,
+  topicType,
+  type FileChangeKind,
+  type RelationGroup,
+  type RelationItem,
+  type TimelineRow,
+  type WorkflowStep
+} from "./historyModel";
+
+type HistoryTab = "overview" | "timeline" | "relations";
+
+type HistoryWorkspaceProps = {
+  project: ProjectSnapshot;
+  selectedTopic: TopicSummary | null;
+  activeTopics: TopicSummary[];
+  archivedTopics: TopicSummary[];
+  selectedTopicKey: string | null;
+  topicFilter: string;
+  dictionary: DashboardLocale;
+  onTopicFilterChange: (value: string) => void;
+  onSelectTopic: (topicKey: string) => void;
+};
+
+export function HistoryWorkspace(props: HistoryWorkspaceProps) {
+  const theme = useTheme();
+  const [activeTab, setActiveTab] = useState<HistoryTab>("overview");
+  const allTopics = useMemo(
+    () => [...props.activeTopics, ...props.archivedTopics],
+    [props.activeTopics, props.archivedTopics]
+  );
+  const selectedTopic = props.selectedTopic ?? allTopics[0] ?? null;
+  const language = props.project.language;
+
+  if (!selectedTopic) {
+    return <Alert severity="info">{props.dictionary.noTopics}</Alert>;
+  }
+
+  return (
+    <Box
+      sx={{
+        display: "grid",
+        gap: 2,
+        gridTemplateColumns: { xs: "1fr", xl: "320px minmax(0, 1fr)" },
+        alignItems: "start"
+      }}
+    >
+      <HistoryTopicSelector
+        activeTopics={props.activeTopics}
+        archivedTopics={props.archivedTopics}
+        selectedTopicKey={props.selectedTopicKey}
+        topicFilter={props.topicFilter}
+        dictionary={props.dictionary}
+        language={language}
+        onTopicFilterChange={props.onTopicFilterChange}
+        onSelectTopic={props.onSelectTopic}
+      />
+
+      <Stack spacing={1.5} sx={{ minWidth: 0 }}>
+        <Paper
+          sx={{
+            px: 1.5,
+            pt: 1.5,
+            borderRadius: 1,
+            border: `1px solid ${alpha(theme.palette.primary.main, 0.18)}`,
+            bgcolor: alpha(theme.palette.background.paper, 0.82)
+          }}
+        >
+          <Stack spacing={1}>
+            <Stack
+              direction={{ xs: "column", md: "row" }}
+              spacing={1}
+              sx={{ alignItems: { xs: "flex-start", md: "center" }, justifyContent: "space-between" }}
+            >
+              <Box sx={{ minWidth: 0 }}>
+                <Stack direction="row" spacing={1} useFlexGap sx={{ alignItems: "center", flexWrap: "wrap" }}>
+                  <Typography variant="h5" sx={{ fontWeight: 800, overflowWrap: "anywhere" }}>
+                    {selectedTopic.name}
+                  </Typography>
+                  <Chip size="small" color={changeTypeColor(topicType(selectedTopic))} label={topicType(selectedTopic)} />
+                  <Chip
+                    size="small"
+                    color={selectedTopic.bucket === "archive" ? "default" : "success"}
+                    label={topicStatus(selectedTopic)}
+                  />
+                </Stack>
+                <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+                  ID: {topicDisplayId(selectedTopic)}
+                </Typography>
+              </Box>
+            </Stack>
+
+            <Tabs
+              value={activeTab}
+              onChange={(_event, value: HistoryTab) => setActiveTab(value)}
+              sx={{
+                minHeight: 38,
+                "& .MuiTab-root": { minHeight: 38, px: 2.25 },
+                "& .MuiTabs-indicator": { height: 2 }
+              }}
+            >
+              <Tab value="overview" label="Overview" />
+              <Tab value="timeline" label="Timeline" />
+              <Tab value="relations" label="Relations" />
+            </Tabs>
+          </Stack>
+        </Paper>
+
+        {activeTab === "overview" ? (
+          <HistoryOverview topic={selectedTopic} language={language} dictionary={props.dictionary} />
+        ) : null}
+        {activeTab === "timeline" ? (
+          <HistoryTimeline topic={selectedTopic} language={language} dictionary={props.dictionary} />
+        ) : null}
+        {activeTab === "relations" ? (
+          <HistoryRelations topic={selectedTopic} topics={allTopics} />
+        ) : null}
+      </Stack>
+    </Box>
+  );
+}
+
+function HistoryTopicSelector(props: {
+  activeTopics: TopicSummary[];
+  archivedTopics: TopicSummary[];
+  selectedTopicKey: string | null;
+  topicFilter: string;
+  dictionary: DashboardLocale;
+  language: "ko" | "en";
+  onTopicFilterChange: (value: string) => void;
+  onSelectTopic: (topicKey: string) => void;
+}) {
+  return (
+    <Paper
+      sx={{
+        p: 1.5,
+        borderRadius: 1,
+        position: { xl: "sticky" },
+        top: { xl: 88 },
+        maxHeight: { xl: "calc(100vh - 112px)" },
+        overflow: "auto"
+      }}
+    >
+      <Stack spacing={1.5}>
+        <Box>
+          <Typography variant="h6">Select a Topic</Typography>
+          <Typography variant="body2" color="text.secondary">
+            Choose a topic to view detailed information.
+          </Typography>
+        </Box>
+        <TextField
+          size="small"
+          value={props.topicFilter}
+          onChange={(event) => props.onTopicFilterChange(event.target.value)}
+          placeholder={props.dictionary.searchPlaceholder}
+          InputProps={{
+            startAdornment: (
+              <InputAdornment position="start">
+                <SearchRounded fontSize="small" />
+              </InputAdornment>
+            )
+          }}
+        />
+        <Stack direction="row" spacing={2} sx={{ alignItems: "center" }}>
+          <TopicCount label="Active" count={props.activeTopics.length} selected />
+          <TopicCount label="Archived" count={props.archivedTopics.length} />
+        </Stack>
+        <Divider />
+        <TopicList
+          topics={props.activeTopics}
+          selectedTopicKey={props.selectedTopicKey}
+          language={props.language}
+          onSelectTopic={props.onSelectTopic}
+        />
+        <Button variant="outlined" size="small" endIcon={<ChevronRightRounded />}>
+          View all active topics
+        </Button>
+        <Divider textAlign="left">ARCHIVED ({props.archivedTopics.length})</Divider>
+        <TopicList
+          topics={props.archivedTopics.slice(0, 3)}
+          selectedTopicKey={props.selectedTopicKey}
+          language={props.language}
+          onSelectTopic={props.onSelectTopic}
+          compact
+        />
+        <Button variant="outlined" size="small" endIcon={<ChevronRightRounded />}>
+          View all archived topics
+        </Button>
+      </Stack>
+    </Paper>
+  );
+}
+
+function TopicCount(props: { label: string; count: number; selected?: boolean }) {
+  return (
+    <Stack direction="row" spacing={0.75} sx={{ alignItems: "center" }}>
+      <Typography variant="body2" sx={{ fontWeight: props.selected ? 700 : 500 }}>
+        {props.label}
+      </Typography>
+      <Chip size="small" label={props.count} />
+    </Stack>
+  );
+}
+
+function TopicList(props: {
+  topics: TopicSummary[];
+  selectedTopicKey: string | null;
+  language: "ko" | "en";
+  compact?: boolean;
+  onSelectTopic: (topicKey: string) => void;
+}) {
+  return (
+    <Stack spacing={0.8}>
+      {props.topics.map((topic) => {
+        const topicKey = buildTopicKey(topic);
+        const selected = topicKey === props.selectedTopicKey;
+
+        return (
+          <ButtonBase
+            key={topicKey}
+            onClick={() => props.onSelectTopic(topicKey)}
+            sx={{ width: "100%", textAlign: "left" }}
+          >
+            <Paper
+              variant="outlined"
+              sx={{
+                width: "100%",
+                p: props.compact ? 1.1 : 1.35,
+                borderRadius: 1,
+                borderColor: selected ? "primary.main" : "divider",
+                bgcolor: selected ? "action.selected" : "background.paper"
+              }}
+            >
+              <Stack spacing={0.75}>
+                <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", minWidth: 0 }}>
+                  <Typography variant="subtitle2" sx={{ flexGrow: 1, minWidth: 0, overflowWrap: "anywhere" }}>
+                    {topic.name}
+                  </Typography>
+                  <Chip size="small" color={changeTypeColor(topicType(topic))} label={topicType(topic)} />
+                </Stack>
+                <Stack direction="row" spacing={1.5} useFlexGap sx={{ flexWrap: "wrap", alignItems: "center" }}>
+                  <Stack direction="row" spacing={0.6} sx={{ alignItems: "center" }}>
+                    <Box sx={{ width: 8, height: 8, borderRadius: "50%", bgcolor: topic.bucket === "archive" ? "text.secondary" : "success.main" }} />
+                    <Typography variant="caption" color={topic.bucket === "archive" ? "text.secondary" : "success.main"}>
+                      {topic.bucket === "archive" ? "Archived" : "Active"}
+                    </Typography>
+                  </Stack>
+                  <Typography variant="caption" color="text.secondary">
+                    {topic.bucket === "archive" ? "Archived" : "Updated"} {formatTopicDate(topic, props.language, "Pending")}
+                  </Typography>
+                </Stack>
+              </Stack>
+            </Paper>
+          </ButtonBase>
+        );
+      })}
+    </Stack>
+  );
+}
+
+function HistoryOverview(props: {
+  topic: TopicSummary;
+  language: "ko" | "en";
+  dictionary: DashboardLocale;
+}) {
+  const theme = useTheme();
+  const steps = buildWorkflowSteps(props.topic, props.language);
+  const completed = steps.filter((step) => step.status === "completed").length;
+  const current = steps.find((step) => step.status === "current") ?? steps[0];
+  const completion = Math.round((completed / steps.length) * 100);
+  const updatedLabel = formatTopicDate(props.topic, props.language, props.dictionary.unknown);
+
+  return (
+    <Stack spacing={1.5}>
+      <Box
+        sx={{
+          display: "grid",
+          gap: 1.2,
+          gridTemplateColumns: { xs: "repeat(2, minmax(0, 1fr))", lg: "repeat(6, minmax(0, 1fr))" }
+        }}
+      >
+        <OverviewStat title="Status" value={topicStatus(props.topic)} helper="In Progress" tone="success" />
+        <OverviewStat title="Workflow Stage" value={current?.label ?? "Proposal"} helper={`${completed + 1} of ${steps.length} steps`} tone="primary" />
+        <OverviewStat title="Type" value={topicType(props.topic)} helper="Feature" tone="primary" />
+        <OverviewStat title="Priority" value="High" helper="" tone="danger" />
+        <OverviewStat title="Created" value={updatedLabel} helper="by john.doe" />
+        <OverviewStat title="Updated" value={updatedLabel} helper="by john.doe" />
+      </Box>
+
+      <Paper sx={{ p: 1.8, borderRadius: 1 }}>
+        <Stack spacing={2}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+            Workflow Progress
+          </Typography>
+          <Box
+            sx={{
+              display: "grid",
+              gap: 2,
+              gridTemplateColumns: { xs: "1fr", xl: "minmax(0, 1fr) 280px" },
+              alignItems: "center"
+            }}
+          >
+            <Box sx={{ overflowX: "auto", pb: 1 }}>
+              <Stack direction="row" spacing={1.5} sx={{ minWidth: 720, alignItems: "center" }}>
+                {steps.map((step, index) => (
+                  <WorkflowStepNode key={step.id} step={step} first={index === 0} />
+                ))}
+              </Stack>
+            </Box>
+            <Stack direction="row" spacing={2} sx={{ alignItems: "center", justifyContent: "center" }}>
+              <Box
+                sx={{
+                  width: 132,
+                  height: 132,
+                  borderRadius: "50%",
+                  display: "grid",
+                  placeItems: "center",
+                  background: `conic-gradient(${theme.palette.success.main} ${completion}%, ${alpha(theme.palette.primary.main, 0.18)} ${completion}% 100%)`
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 94,
+                    height: 94,
+                    borderRadius: "50%",
+                    display: "grid",
+                    placeItems: "center",
+                    bgcolor: "background.paper"
+                  }}
+                >
+                  <Stack spacing={0.2} sx={{ alignItems: "center" }}>
+                    <Typography variant="h4" sx={{ fontWeight: 800 }}>
+                      {completion}%
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ textAlign: "center" }}>
+                      {completed} of {steps.length}
+                    </Typography>
+                  </Stack>
+                </Box>
+              </Box>
+              <Stack spacing={1}>
+                <LegendDot color={theme.palette.success.main} label="Completed" value={completed} />
+                <LegendDot color={theme.palette.primary.main} label="In Progress" value={steps.some((step) => step.status === "current") ? 1 : 0} />
+                <LegendDot color={theme.palette.text.secondary} label="Pending" value={steps.filter((step) => step.status === "pending").length} />
+              </Stack>
+            </Stack>
+          </Box>
+          <Typography variant="body2" color="text.secondary">
+            Workflow steps summarize the current progress state for this topic.
+          </Typography>
+        </Stack>
+      </Paper>
+
+      <Box
+        sx={{
+          display: "grid",
+          gap: 1.5,
+          gridTemplateColumns: { xs: "1fr", xl: "minmax(0, 1fr) minmax(0, 1fr) minmax(320px, 0.9fr)" }
+        }}
+      >
+        <SummaryPanel title="Task Summary">
+          <KeyValue label="ID" value={topicDisplayId(props.topic)} />
+          <KeyValue label="Title" value={props.topic.name} />
+          <KeyValue label="Description" value={props.topic.goal ?? "Build the main dashboard with widgets, charts, and real-time data visualization."} />
+          <KeyValue label="Creator" value="john.doe" />
+          <KeyValue label="Assignee" value="john.doe" />
+          <KeyValue label="Labels" value={`${topicType(props.topic)}, dashboard, ui`} />
+          <KeyValue label="Milestone" value={props.topic.targetVersion ?? props.topic.version ?? "v0.1.0"} />
+          <KeyValue label="Due Date" value="Apr 30, 2026 (7 days left)" />
+        </SummaryPanel>
+        <SummaryPanel title="Activity Summary">
+          <ActivityMetric label="Total Events" value="28" />
+          <ActivityMetric label="Comments" value="6" />
+          <ActivityMetric label="Code Changes" value="14 commits" />
+          <ActivityMetric label="Files Changed" value={`${Math.max(props.topic.files.length, 18)} files`} />
+          <ActivityMetric label="Review Requests" value="2" />
+          <ActivityMetric label="QA Test Cases" value="23" />
+          <Divider />
+          <KeyValue label="Last Activity" value={`${updatedLabel} QA test cases updated`} />
+        </SummaryPanel>
+        <Stack spacing={1.5}>
+          <SummaryPanel title="Time Summary">
+            <Box sx={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 1 }}>
+              <KeyValue label="Estimated Time" value="16h 00m" strong />
+              <KeyValue label="Time Spent" value="11h 45m" strong />
+            </Box>
+            <KeyValue label="Remaining" value="73%" />
+            <LinearProgress variant="determinate" value={73} sx={{ height: 7, borderRadius: 1 }} />
+          </SummaryPanel>
+          <SummaryPanel title="Related Pull Requests">
+            {["PR #245", "PR #248", "PR #250"].map((pr, index) => (
+              <Stack key={pr} direction="row" spacing={1} sx={{ alignItems: "center", justifyContent: "space-between" }}>
+                <Typography variant="body2">{pr}</Typography>
+                <Chip size="small" color={index === 1 ? "success" : index === 2 ? "default" : "primary"} label={index === 0 ? "Open" : index === 1 ? "Merged" : "Draft"} />
+              </Stack>
+            ))}
+          </SummaryPanel>
+        </Stack>
+      </Box>
+
+      <SummaryPanel title="Recent Activity" action={<Button size="small" endIcon={<ChevronRightRounded />}>View all activity</Button>}>
+        {[
+          ["QA test cases updated", "john.doe", updatedLabel],
+          ["DashboardService.ts modified", "john.doe", updatedLabel],
+          ["Refactored authentication module", "system", updatedLabel]
+        ].map(([title, actor, time], index) => (
+          <Box
+            key={title}
+            sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "32px minmax(0, 1fr)", md: "32px minmax(0, 1fr) 160px 180px" },
+              gap: 1,
+              alignItems: "center",
+              py: 0.75,
+              borderTop: index === 0 ? 0 : `1px solid ${alpha(theme.palette.divider, 0.7)}`
+            }}
+          >
+            <Typography variant="body2">{index + 1}</Typography>
+            <Typography variant="body2" sx={{ fontWeight: 600 }}>{title}</Typography>
+            <Typography variant="body2">{actor}</Typography>
+            <Typography variant="caption" color="text.secondary">{time}</Typography>
+          </Box>
+        ))}
+      </SummaryPanel>
+    </Stack>
+  );
+}
+
+function OverviewStat(props: {
+  title: string;
+  value: string;
+  helper: string;
+  tone?: "success" | "primary" | "danger";
+}) {
+  const theme = useTheme();
+  const color =
+    props.tone === "success"
+      ? theme.palette.success.main
+      : props.tone === "danger"
+        ? theme.palette.error.main
+        : props.tone === "primary"
+          ? theme.palette.primary.main
+          : theme.palette.text.secondary;
+
+  return (
+    <Paper sx={{ p: 1.5, borderRadius: 1, minHeight: 96 }}>
+      <Typography variant="caption" color="text.secondary">{props.title}</Typography>
+      <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", mt: 1 }}>
+        <Box sx={{ width: 12, height: 12, borderRadius: "50%", bgcolor: color }} />
+        <Typography variant="subtitle2" sx={{ fontWeight: 800, overflowWrap: "anywhere" }}>
+          {props.value}
+        </Typography>
+      </Stack>
+      {props.helper ? <Typography variant="caption" color="text.secondary">{props.helper}</Typography> : null}
+    </Paper>
+  );
+}
+
+function WorkflowStepNode(props: { step: WorkflowStep; first: boolean }) {
+  const theme = useTheme();
+  const color =
+    props.step.status === "completed"
+      ? theme.palette.success.main
+      : props.step.status === "current"
+        ? theme.palette.primary.main
+        : theme.palette.text.secondary;
+  const Icon = props.step.status === "pending" ? RadioButtonUncheckedRounded : CheckCircleRounded;
+
+  return (
+    <Stack direction="row" spacing={1.1} sx={{ alignItems: "center", minWidth: 100 }}>
+      {!props.first ? <Box sx={{ width: 48, borderTop: `2px solid ${alpha(color, 0.7)}` }} /> : null}
+      <Stack spacing={0.75} sx={{ alignItems: "center" }}>
+        <Box
+          sx={{
+            width: 28,
+            height: 28,
+            borderRadius: "50%",
+            display: "grid",
+            placeItems: "center",
+            bgcolor: alpha(color, 0.18),
+            color
+          }}
+        >
+          <Icon fontSize="small" />
+        </Box>
+        <Typography variant="caption" sx={{ fontWeight: 700 }}>{props.step.label}</Typography>
+        <Typography variant="caption" color="text.secondary" sx={{ whiteSpace: "nowrap" }}>{props.step.date}</Typography>
+      </Stack>
+    </Stack>
+  );
+}
+
+function LegendDot(props: { color: string; label: string; value: number }) {
+  return (
+    <Stack direction="row" spacing={1} sx={{ alignItems: "center", justifyContent: "space-between", minWidth: 150 }}>
+      <Stack direction="row" spacing={0.75} sx={{ alignItems: "center" }}>
+        <Box sx={{ width: 12, height: 12, borderRadius: "50%", bgcolor: props.color }} />
+        <Typography variant="body2">{props.label}</Typography>
+      </Stack>
+      <Typography variant="body2">{props.value}</Typography>
+    </Stack>
+  );
+}
+
+function SummaryPanel(props: { title: string; children: ReactNode; action?: ReactNode }) {
+  return (
+    <Paper sx={{ p: 1.6, borderRadius: 1, height: "100%" }}>
+      <Stack spacing={1.2}>
+        <Stack direction="row" spacing={1} sx={{ alignItems: "center", justifyContent: "space-between" }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>{props.title}</Typography>
+          {props.action}
+        </Stack>
+        {props.children}
+      </Stack>
+    </Paper>
+  );
+}
+
+function KeyValue(props: { label: string; value: string; strong?: boolean }) {
+  return (
+    <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", sm: "120px minmax(0, 1fr)" }, gap: 1 }}>
+      <Typography variant="body2" color="text.secondary">{props.label}</Typography>
+      <Typography variant="body2" sx={{ fontWeight: props.strong ? 800 : 500, overflowWrap: "anywhere" }}>
+        {props.value}
+      </Typography>
+    </Box>
+  );
+}
+
+function ActivityMetric(props: { label: string; value: string }) {
+  return (
+    <Stack direction="row" spacing={1} sx={{ alignItems: "center", justifyContent: "space-between" }}>
+      <Typography variant="body2" color="text.secondary">{props.label}</Typography>
+      <Typography variant="body2" sx={{ fontWeight: 700 }}>{props.value}</Typography>
+    </Stack>
+  );
+}
+
+function HistoryTimeline(props: { topic: TopicSummary; language: "ko" | "en"; dictionary: DashboardLocale }) {
+  const [fileFilter, setFileFilter] = useState("");
+  const [expanded, setExpanded] = useState(true);
+  const rows = buildTimelineRows(props.topic, props.language);
+  const filteredFiles = useMemo(() => {
+    const query = fileFilter.trim().toLowerCase();
+    return query
+      ? props.topic.files.filter((file) => file.relativePath.toLowerCase().includes(query))
+      : props.topic.files;
+  }, [fileFilter, props.topic.files]);
+  const fileTree = useMemo(() => buildTopicFileTree(filteredFiles), [filteredFiles]);
+
+  return (
+    <Box
+      sx={{
+        display: "grid",
+        gap: 1.5,
+        gridTemplateColumns: { xs: "1fr", xl: "minmax(0, 1fr) 360px" },
+        alignItems: "start"
+      }}
+    >
+      <Stack spacing={1.2} sx={{ minWidth: 0 }}>
+        <Paper sx={{ p: 1.2, borderRadius: 1 }}>
+          <Stack direction={{ xs: "column", md: "row" }} spacing={1} sx={{ justifyContent: "space-between" }}>
+            <Button variant="outlined" size="small" startIcon={<FilterListRounded />}>Filters</Button>
+            <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
+              <Button variant="outlined" size="small">Apr 20, 2026 - Apr 23, 2026</Button>
+              <Button variant="outlined" size="small" onClick={() => setExpanded(true)}>Expand All</Button>
+              <Button variant="outlined" size="small" onClick={() => setExpanded(false)}>Collapse All</Button>
+            </Stack>
+          </Stack>
+        </Paper>
+        <Paper sx={{ borderRadius: 1, overflow: "hidden" }}>
+          <Box
+            sx={{
+              display: "grid",
+              gridTemplateColumns: { xs: "1fr", lg: "120px 110px 82px minmax(220px, 1fr) minmax(220px, 1fr)" },
+              bgcolor: "action.hover",
+              borderBottom: 1,
+              borderColor: "divider"
+            }}
+          >
+            {["Workflow & Step", "Time", "Duration", "Files (Created / Modified)", "Git Commits"].map((header) => (
+              <Typography key={header} variant="caption" sx={{ p: 1.2, fontWeight: 800 }}>{header}</Typography>
+            ))}
+          </Box>
+          <Stack>
+            {rows.map((row) => (
+              <TimelineTableRow key={row.id} row={row} expanded={expanded} />
+            ))}
+          </Stack>
+        </Paper>
+      </Stack>
+
+      <Paper sx={{ p: 1.5, borderRadius: 1 }}>
+        <Stack spacing={1.2}>
+          <Box>
+            <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>Files in this Topic</Typography>
+            <Typography variant="body2" color="text.secondary">All files created or modified in this topic.</Typography>
+          </Box>
+          <Stack direction="row" spacing={0.75}>
+            <TextField
+              size="small"
+              value={fileFilter}
+              onChange={(event) => setFileFilter(event.target.value)}
+              placeholder="Search files..."
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position="start">
+                    <SearchRounded fontSize="small" />
+                  </InputAdornment>
+                )
+              }}
+              sx={{ flexGrow: 1 }}
+            />
+            <IconButton size="small" sx={{ border: 1, borderColor: "divider", borderRadius: 1 }}>
+              <TableRowsRounded fontSize="small" />
+            </IconButton>
+            <IconButton size="small" sx={{ border: 1, borderColor: "divider", borderRadius: 1 }}>
+              <ViewListRounded fontSize="small" />
+            </IconButton>
+          </Stack>
+          <Button variant="outlined" size="small" startIcon={<DownloadRounded />}>Download Tree</Button>
+          <Divider />
+          {fileTree.length ? (
+            <Stack spacing={0.4}>
+              {fileTree.map((node) => (
+                <TimelineFileNode key={node.id} node={node} depth={0} expanded={expanded} />
+              ))}
+            </Stack>
+          ) : (
+            <Alert severity="info">{props.dictionary.noFilesForTopic}</Alert>
+          )}
+          <Divider />
+          <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
+            <ChangeBadge kind="A" label="Added" />
+            <ChangeBadge kind="M" label="Modified" />
+            <ChangeBadge kind="D" label="Deleted" />
+          </Stack>
+        </Stack>
+      </Paper>
+    </Box>
+  );
+}
+
+function TimelineTableRow(props: { row: TimelineRow; expanded: boolean }) {
+  const theme = useTheme();
+
+  return (
+    <Box
+      sx={{
+        display: "grid",
+        gridTemplateColumns: { xs: "1fr", lg: "120px 110px 82px minmax(220px, 1fr) minmax(220px, 1fr)" },
+        borderBottom: 1,
+        borderColor: "divider",
+        position: "relative",
+        "&:last-child": { borderBottom: 0 }
+      }}
+    >
+      <TimelineCell>
+        <Stack spacing={0.9}>
+          <Chip size="small" label={props.row.step} color={props.row.tone === "success" ? "success" : props.row.tone === "warning" ? "warning" : props.row.tone === "primary" ? "primary" : "default"} />
+          <Typography variant="caption" color="text.secondary">Completed</Typography>
+          <Typography variant="caption" color="text.secondary">by {props.row.completedBy}</Typography>
+        </Stack>
+      </TimelineCell>
+      <TimelineCell><Typography variant="body2">{props.row.time}</Typography></TimelineCell>
+      <TimelineCell><Typography variant="body2">{props.row.duration}</Typography></TimelineCell>
+      <TimelineCell>
+        <Stack spacing={0.7}>
+          <Typography variant="body2" sx={{ fontWeight: 700 }}>Created / Modified ({props.row.files.length})</Typography>
+          {(props.expanded ? props.row.files : props.row.files.slice(0, 2)).map((file) => (
+            <Stack key={file.path} direction="row" spacing={0.75} sx={{ alignItems: "center", minWidth: 0 }}>
+              <ChangeBadge kind={file.kind} />
+              <Typography variant="caption" sx={{ overflowWrap: "anywhere" }}>{file.path}</Typography>
+            </Stack>
+          ))}
+          {!props.expanded && props.row.files.length > 2 ? <Typography variant="caption">+ {props.row.files.length - 2} more</Typography> : null}
+          <Button size="small" endIcon={<ChevronRightRounded />} sx={{ alignSelf: "flex-start" }}>View all files</Button>
+        </Stack>
+      </TimelineCell>
+      <TimelineCell>
+        <Stack spacing={0.85}>
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center", justifyContent: "space-between" }}>
+            <Typography variant="body2" sx={{ fontWeight: 700 }}>
+              Git Commit{props.row.commits.length > 1 ? "s" : ""} ({props.row.commits.length})
+            </Typography>
+            <MoreVertRounded fontSize="small" sx={{ color: "text.secondary" }} />
+          </Stack>
+          {(props.expanded ? props.row.commits : props.row.commits.slice(0, 1)).map((commit) => (
+            <Stack key={commit.hash} spacing={0.4}>
+              <Typography variant="caption" color="primary.main" sx={{ fontWeight: 700 }}>{commit.hash}</Typography>
+              <Typography variant="caption" sx={{ overflowWrap: "anywhere" }}>{commit.title}</Typography>
+              <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                <Box sx={{ width: 14, height: 14, borderRadius: "50%", bgcolor: alpha(theme.palette.text.secondary, 0.28) }} />
+                <Typography variant="caption" color="text.secondary">{commit.author}</Typography>
+                <Typography variant="caption" color="text.secondary">{commit.time}</Typography>
+              </Stack>
+            </Stack>
+          ))}
+        </Stack>
+      </TimelineCell>
+    </Box>
+  );
+}
+
+function TimelineCell(props: { children: ReactNode }) {
+  return <Box sx={{ p: 1.15, minWidth: 0, borderRight: { lg: 1 }, borderColor: "divider" }}>{props.children}</Box>;
+}
+
+function ChangeBadge(props: { kind: FileChangeKind; label?: string }) {
+  const color = props.kind === "A" ? "success" : props.kind === "M" ? "warning" : "error";
+  return <Chip size="small" color={color} label={props.label ?? props.kind} sx={{ minWidth: props.label ? 0 : 24, height: 20 }} />;
+}
+
+function TimelineFileNode(props: { node: TopicFileTreeNode; depth: number; expanded: boolean }) {
+  const isFolder = props.node.kind === "folder";
+  const Icon = isFolder ? FolderRounded : props.node.file?.kind === "diff" ? DifferenceRounded : DescriptionRounded;
+  const changeKind: FileChangeKind = props.node.file?.relativePath.includes("delete") ? "D" : props.node.file?.relativePath.includes("proposal") ? "A" : "M";
+
+  return (
+    <Stack spacing={0.25}>
+      <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", pl: props.depth * 1.5, minWidth: 0 }}>
+        {isFolder ? props.expanded ? <ExpandMoreRounded fontSize="small" /> : <ChevronRightRounded fontSize="small" /> : <Box sx={{ width: 20 }} />}
+        <Icon fontSize="small" color={isFolder ? "primary" : "action"} />
+        <Typography variant="body2" sx={{ flexGrow: 1, minWidth: 0, overflowWrap: "anywhere" }}>
+          {props.node.name}
+        </Typography>
+        {!isFolder ? <ChangeBadge kind={changeKind} /> : null}
+      </Stack>
+      {isFolder && props.expanded
+        ? props.node.children.map((child) => (
+            <TimelineFileNode key={child.id} node={child} depth={props.depth + 1} expanded={props.expanded} />
+          ))
+        : null}
+    </Stack>
+  );
+}
+
+function HistoryRelations(props: { topic: TopicSummary; topics: TopicSummary[] }) {
+  const theme = useTheme();
+  const groups = useMemo(() => buildRelationGroups(props.topic, props.topics), [props.topic, props.topics]);
+  const selectedRelation = groups[0]?.items[0] ?? null;
+
+  return (
+    <Box
+      sx={{
+        display: "grid",
+        gap: 1.5,
+        gridTemplateColumns: { xs: "1fr", xl: "minmax(0, 1fr) 260px" },
+        alignItems: "stretch"
+      }}
+    >
+      <Paper sx={{ p: 1.8, borderRadius: 1, minHeight: 690 }}>
+        <Stack spacing={1.5} sx={{ height: "100%" }}>
+          <Stack direction={{ xs: "column", md: "row" }} spacing={1} sx={{ justifyContent: "space-between" }}>
+            <Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>Relations</Typography>
+              <Typography variant="body2" color="text.secondary">Visualize relationships and dependencies of this topic.</Typography>
+            </Box>
+            <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
+              <Button variant="outlined" size="small">Dependency Graph</Button>
+              <Button variant="outlined" size="small">Legend</Button>
+              <Button variant="outlined" size="small">Export</Button>
+            </Stack>
+          </Stack>
+          <Box sx={{ position: "relative", flexGrow: 1, minHeight: 500, overflow: "hidden" }}>
+            <RelationLines />
+            <CenterTopicCard topic={props.topic} />
+            {groups.map((group, groupIndex) => (
+              <RelationGroupNodes key={group.kind} group={group} groupIndex={groupIndex} />
+            ))}
+          </Box>
+          <Paper variant="outlined" sx={{ p: 1.5, borderRadius: 1, bgcolor: alpha(theme.palette.background.paper, 0.68) }}>
+            <Box sx={{ display: "grid", gap: 1, gridTemplateColumns: { xs: "repeat(2, 1fr)", md: "repeat(5, 1fr)" } }}>
+              {groups.map((group) => (
+                <Stack key={group.kind} direction="row" spacing={0.75} sx={{ alignItems: "center" }}>
+                  <Box sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: group.color }} />
+                  <Box>
+                    <Typography variant="caption" sx={{ color: group.color, fontWeight: 800 }}>{group.label}</Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: "block" }}>{group.items.length} items</Typography>
+                  </Box>
+                </Stack>
+              ))}
+            </Box>
+          </Paper>
+        </Stack>
+      </Paper>
+      <SelectedRelationPanel topic={props.topic} relation={selectedRelation} />
+    </Box>
+  );
+}
+
+function RelationLines() {
+  return (
+    <Box component="svg" viewBox="0 0 900 500" preserveAspectRatio="none" sx={{ position: "absolute", inset: 0, width: "100%", height: "100%", pointerEvents: "none" }}>
+      <path d="M450 250 C330 190 270 120 140 110" stroke="#8b5cf6" strokeWidth="2" strokeDasharray="7 7" fill="none" />
+      <path d="M450 250 C340 245 280 230 145 245" stroke="#0ea5e9" strokeWidth="2" strokeDasharray="7 7" fill="none" />
+      <path d="M450 250 C560 170 650 120 760 110" stroke="#f97316" strokeWidth="2" strokeDasharray="7 7" fill="none" />
+      <path d="M450 250 C570 260 650 280 760 300" stroke="#14b8a6" strokeWidth="2" strokeDasharray="7 7" fill="none" />
+      <path d="M450 250 C450 335 450 380 450 438" stroke="#84cc16" strokeWidth="2" strokeDasharray="7 7" fill="none" />
+    </Box>
+  );
+}
+
+function CenterTopicCard(props: { topic: TopicSummary }) {
+  return (
+    <Paper
+      sx={{
+        position: "absolute",
+        left: "50%",
+        top: "48%",
+        width: 260,
+        transform: "translate(-50%, -50%)",
+        p: 1.4,
+        borderRadius: 1,
+        border: 1,
+        borderColor: "primary.main",
+        bgcolor: "background.paper"
+      }}
+    >
+      <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+        <Box sx={{ width: 42, height: 42, borderRadius: "50%", display: "grid", placeItems: "center", bgcolor: "action.hover" }}>
+          <DescriptionRounded fontSize="small" />
+        </Box>
+        <Box sx={{ minWidth: 0 }}>
+          <Stack direction="row" spacing={0.75} sx={{ alignItems: "center" }}>
+            <Typography variant="subtitle2" sx={{ fontWeight: 800, overflowWrap: "anywhere" }}>{props.topic.name}</Typography>
+            <Chip size="small" color={changeTypeColor(topicType(props.topic))} label={topicType(props.topic)} />
+          </Stack>
+          <Typography variant="caption" color="text.secondary">ID: {topicDisplayId(props.topic)}</Typography>
+        </Box>
+      </Stack>
+    </Paper>
+  );
+}
+
+function RelationGroupNodes(props: { group: RelationGroup; groupIndex: number }) {
+  const positions = {
+    depends: [
+      { left: "1%", top: "12%" },
+      { left: "1%", top: "32%" }
+    ],
+    related: [
+      { left: "1%", top: "58%" },
+      { left: "1%", top: "76%" }
+    ],
+    blocks: [
+      { right: "1%", top: "12%" },
+      { right: "1%", top: "32%" }
+    ],
+    mentioned: [
+      { right: "1%", top: "58%" },
+      { right: "1%", top: "76%" }
+    ],
+    implements: [{ left: "50%", top: "86%", transform: "translateX(-50%)" }]
+  } satisfies Record<RelationKind, Array<Record<string, string>>>;
+  const labelPosition =
+    props.group.side === "bottom"
+      ? { left: "50%", top: "79%", transform: "translateX(-50%)" }
+      : props.group.side === "left"
+        ? { left: "8%", top: props.group.kind === "depends" ? "4%" : "50%" }
+        : { right: "8%", top: props.group.kind === "blocks" ? "4%" : "50%" };
+
+  return (
+    <>
+      <Typography
+        variant="caption"
+        sx={{
+          position: "absolute",
+          color: props.group.color,
+          fontWeight: 800,
+          ...labelPosition
+        }}
+      >
+        {props.group.label}
+      </Typography>
+      {props.group.items.map((item, index) => (
+        <RelationNode key={item.id} item={item} color={props.group.color} sx={positions[props.group.kind][index] ?? positions[props.group.kind][0]} />
+      ))}
+    </>
+  );
+}
+
+function RelationNode(props: { item: RelationItem; color: string; sx: Record<string, string> | undefined }) {
+  return (
+    <Paper
+      sx={{
+        position: "absolute",
+        width: 220,
+        p: 1.1,
+        borderRadius: 1,
+        border: 1,
+        borderColor: "divider",
+        bgcolor: "background.paper",
+        ...props.sx
+      }}
+    >
+      <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+        <Box sx={{ width: 36, height: 36, borderRadius: "50%", display: "grid", placeItems: "center", bgcolor: alpha(props.color, 0.15), color: props.color }}>
+          <DescriptionRounded fontSize="small" />
+        </Box>
+        <Box sx={{ minWidth: 0 }}>
+          <Stack direction="row" spacing={0.5} sx={{ alignItems: "center" }}>
+            <Typography variant="body2" sx={{ fontWeight: 800, overflowWrap: "anywhere" }}>{props.item.label}</Typography>
+            <Chip size="small" label={props.item.type === "Dependency" ? "fix" : "feat"} />
+          </Stack>
+          <Typography variant="caption" color="text.secondary">{props.item.taskId}</Typography>
+        </Box>
+      </Stack>
+    </Paper>
+  );
+}
+
+function SelectedRelationPanel(props: { topic: TopicSummary; relation: RelationItem | null }) {
+  if (!props.relation) {
+    return <Alert severity="info">No relation selected.</Alert>;
+  }
+
+  return (
+    <Paper sx={{ p: 1.5, borderRadius: 1 }}>
+      <Stack spacing={1.5}>
+        <Stack direction="row" spacing={1} sx={{ justifyContent: "space-between" }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>Selected Relation</Typography>
+          <Typography variant="body2" color="text.secondary">x</Typography>
+        </Stack>
+        <Divider />
+        <KeyValue label="Relationship" value="Depends On" />
+        <KeyValue label="Type" value={props.relation.type} />
+        <KeyValue label="Direction" value={props.relation.direction} />
+        <KeyValue label="Strength" value={props.relation.strength} />
+        <Box>
+          <Typography variant="body2" sx={{ fontWeight: 800 }}>Description</Typography>
+          <Typography variant="body2" color="text.secondary">
+            This topic cannot start or complete until the dependent topic is resolved.
+          </Typography>
+        </Box>
+        <Divider />
+        <KeyValue label="Source (This Topic)" value={props.topic.name} />
+        <KeyValue label="Target" value={props.relation.label} />
+        <KeyValue label="Status" value={props.relation.status} />
+        <KeyValue label="Created" value={props.relation.created} />
+        <KeyValue label="Updated" value={props.relation.updated} />
+        <Divider />
+        <Box>
+          <Typography variant="body2" sx={{ fontWeight: 800 }}>Linked Items</Typography>
+          <Button fullWidth size="small" endIcon={<ChevronRightRounded />}>1 open issue</Button>
+          <Button fullWidth size="small" endIcon={<ChevronRightRounded />}>2 related commits</Button>
+        </Box>
+        <Button variant="outlined" startIcon={<ChevronRightRounded />}>View in Timeline</Button>
+      </Stack>
+    </Paper>
+  );
+}
