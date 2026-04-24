@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T23:01:35Z"
+  updated_at: "2026-04-24T23:05:27Z"
 ---
 
 # code.review
@@ -48,6 +48,7 @@ pgg:
 | 워크플로우 계약 리뷰어 | 96 | `pgg update`의 source of truth인 `packages/core/src/templates.ts` ko/en WOKR-FLOW template에 global workflow 3줄을 넣어 generated markdown만 수정되던 문제를 해소했다. | none |
 | 상태 모델 리뷰어 | 96 | `stage-started`/`stage-progress` 또는 current/generated node evidence가 completion 이후 최신이면 해당 flow를 `생성 중`으로 계산하고, 현재 flow는 `reviewed`만으로 완료되지 않게 했다. | none |
 | 워크플로우 계약 리뷰어 | 96 | 모든 flow의 `시작 전`/`진행 중`/`추가 진행`/`완료` evidence 규격을 AGENTS, WOKR-FLOW, STATE-CONTRACT generator에 넣어 `pgg init/update`가 같은 계약을 배포하게 했다. | none |
+| UI 상태 리뷰어 | 96 | Workflow Progress의 label/color/icon/connector/chart/count가 모두 `step.status`에서 파생되는 것을 확인했고, active label을 `진행 중`/`In progress`로 맞췄다. | none |
 
 ## Findings
 
@@ -72,6 +73,8 @@ pgg:
 - source check for runtime active flow status from `stage-started`/`stage-progress`: pass
 - source check for current flow completion requiring completion evidence instead of `reviewed` alone: pass
 - source check for generated four-status flow contract in AGENTS/WOKR-FLOW/STATE-CONTRACT and ko/en templates: pass
+- source check for Workflow Progress UI status consumers using `step.status`: pass
+- source check for visible `진행 중` / `In progress` active labels: pass
 - source check for edge-to-edge connector geometry and removed internal connector: pass
 - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
 - source check for connector gap-inclusive end offset and circle-radius top alignment: pass

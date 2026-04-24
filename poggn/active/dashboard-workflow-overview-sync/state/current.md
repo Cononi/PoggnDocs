@@ -14,6 +14,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 추가로 global workflow 규칙 3줄이 `pgg update` 후에도 유지되도록 generator template에 반영했다.
 추가로 `stage-started`/`stage-progress`가 들어온 flow가 실제 `진행 중`으로 표시되고, 현재 flow는 `stage-commit` 또는 verified/final completion evidence가 있어야 `완료`로 표시되도록 상태 계산을 보강했다.
 추가로 4상태 flow 규격을 `pgg init/update` 생성물인 AGENTS, WOKR-FLOW, STATE-CONTRACT에 배포했다.
+추가로 dashboard 화면의 active flow label을 전역 계약과 맞춰 `진행 중`으로 표시하도록 정리했다.
 
 ## Document Refs
 
@@ -123,6 +124,8 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - Flow runtime telemetry now drives the active flow: `stage-started` and `stage-progress` evidence after the latest completion moves that flow from `시작 전` to `생성 중`.
 - Current-flow completion no longer relies on `status: reviewed` alone; it needs `stage-commit`, verified/final `stage-completed`, trusted node `completedAt`, archive completion, or advancement to a later flow.
 - The four flow statuses are now global generated contracts: `AGENTS.md`, `.codex/add/WOKR-FLOW.md`, and `.codex/add/STATE-CONTRACT.md` describe the same status evidence rules through `pgg init/update`.
+- Workflow Progress UI uses the shared status model for all rendered flows: label, color, icon, connector, chart, and count all read from each step's `status`.
+- The active/current status label now displays `진행 중` / `In progress` instead of the older generation wording.
 
 ## User Question Record
 
@@ -155,6 +158,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - `global workflow 규칙 3줄이 pgg update를 통해 반영되지 않는거 같습니다.`
 - `각 플로우 단계가 시작전 상태인데 시작하게 되면 진행 중으로 현재 바뀌지 않는거 같습니다. 완료되면 완료 상태로도 변경 되도록 되어 잇죠?`
 - `모든 플로우 절차에서 각 상황에 맞게 시작 전, 진행중, 추가 진행, 완료가 전부 적용되는 원칙인거죠? 다 제대로 되어 있다면 pgg update나 init을 통해 다른 프로젝트에서도 같은 규격으로 볼 수 있게 업데이트 바랍니다.`
+- `화면에도 해당 기능이 정상적으로 모든 플로우에 반영되도록 되어 있나요?`
 
 ## Audit Applicability
 
@@ -198,6 +202,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 | UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/003_UPDATE_dashboard_core_workflow_telemetry_shared.diff` |
 | UPDATE | `apps/dashboard/src/app/DashboardApp.tsx` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/006_UPDATE_apps_dashboard_src_app_DashboardApp_tsx.diff` |
 | UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/001_UPDATE_apps_dashboard_src_features_history_historyModel_ts.diff` |
+| UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/010_UPDATE_dashboard_flow_status_labels.diff` |
 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/002_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.diff` |
 | UPDATE | `.codex/add/WOKR-FLOW.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/007_UPDATE_pgg_workflow_contracts.diff` |
 | UPDATE | `.pgg/project.json` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/008_UPDATE_pgg_update_workflow_template.diff` |
@@ -265,6 +270,8 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - source check for current flow completion requiring completion evidence instead of `reviewed` alone: pass
 - `node packages/cli/dist/index.js update`: pass; AGENTS, WOKR-FLOW, STATE-CONTRACT, manifest updated from generator
 - source check for generated four-status flow contract in AGENTS/WOKR-FLOW/STATE-CONTRACT and ko/en templates: pass
+- source check for Workflow Progress UI status consumers using `step.status`: pass
+- source check for visible `진행 중` / `In progress` active labels: pass
 - source check for edge-to-edge connector geometry and removed internal connector: pass
 - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
 - source check for connector gap-inclusive end offset and circle-radius top alignment: pass
