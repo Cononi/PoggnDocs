@@ -26,6 +26,9 @@ AI/pgg 작업 진행이 dashboard Workflow Progress와 Workflow/React Flow surfa
   - fields: `ts`, `stage`, `event`, optional `flow`, `task`, `summary`, `source`, `commitTitle`
 - `stage-revised` 또는 stage-specific update event
   - fields: `ts`, `stage`, `event`, optional `summary`, `source`
+- `requirements-added`
+  - fields: `ts`, `stage`, `event`, optional `summary`, `source`, `next`
+  - 새 사용자 요구가 접수되면 completion evidence보다 먼저 append되어 dashboard refresh 시 해당 flow가 `추가 진행`으로 바뀔 수 있어야 한다.
 
 기존 event인 `topic-created`, `proposal-reviewed`, `proposal-updated`는 backward-compatible하게 유지한다.
 
@@ -57,4 +60,5 @@ AI/pgg 작업 진행이 dashboard Workflow Progress와 Workflow/React Flow surfa
 
 - `stage-started`, `stage-progress`, `stage-completed`, `stage-commit` event가 있으면 Overview Progress에 시작/진행/완료 상태와 시간이 반영된다.
 - `proposal-updated`, `requirements-added`, 또는 `stage-revised` event가 있으면 update status source가 될 수 있다.
+- 새 대화/요구가 들어온 시점에는 `requirements-added`가 먼저 기록되고, 작업 완료 시점의 `stage-completed` 또는 `stage-commit`이 그 update status를 해소한다.
 - Workflow/React Flow surface와 Overview Progress가 서로 다른 status를 보여 주지 않는다.

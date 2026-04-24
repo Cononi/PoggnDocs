@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T18:49:10Z"
+  updated_at: "2026-04-24T18:58:45Z"
 ---
 
 # code.review
@@ -31,7 +31,8 @@ pgg:
 | 상태 모델 리뷰어 | 96 | `effectiveCurrentIndex`가 다른 완료 flow를 pending으로 되돌리던 회귀를 막기 위해 완료 evidence와 current stage 이전 완료 이력을 별도로 보존했다. current 표시는 effective current에만 붙는다. | none |
 | UI 통합 리뷰어 | 96 | 탭 그룹 전체가 아니라 선택 탭과 content panel만 같은 border/background surface를 공유하게 했다. 비선택 탭은 transparent text-only 상태로 유지된다. | none |
 | 상태 모델 리뷰어 | 96 | Add의 과거 `proposal-updated`처럼 이미 후속 flow 진행/완료로 해소된 revision 후보는 `추가 진행`으로 유지하지 않도록 later flow evidence 비교를 추가했다. | none |
-| UI 통합 리뷰어 | 96 | content panel의 top border는 유지하고 선택 탭 아래 segment만 panel 배경 pseudo-element로 가렸다. 선택 탭 자체의 background/border/shadow/text-color 효과는 제거했다. | none |
+| UI 통합 리뷰어 | 96 | `add-img/9.png` 기준으로 선택 탭에 rounded top, top/side border, panel fill, bottom-line gap을 적용했다. 비선택 탭은 박스 없이 유지된다. | none |
+| 상태 모델 리뷰어 | 96 | 이번 대화의 `requirements-added`를 완료 evidence보다 먼저 기록해 dashboard refresh 시 Code flow가 즉시 `추가 진행`으로 바뀔 수 있게 했다. 완료 시에는 `stage-completed`/`stage-commit`이 상태를 해소한다. | none |
 
 ## Findings
 
@@ -46,7 +47,8 @@ pgg:
 - source check for completed-flow preservation while unresolved revision is active: pass
 - source check for stale earlier-flow revision resolution by later flow evidence: pass
 - source check for selected-tab-only frame with unboxed inactive tabs: pass
-- source check for selected-tab top-border segment masking without selected-tab visual effects: pass
+- source check for add-img/9 selected-tab shape and top-border segment masking: pass
+- source check for immediate `requirements-added` live workflow status evidence: pass
 - source check for edge-to-edge connector geometry and removed internal connector: pass
 - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
 - source check for connector gap-inclusive end offset and circle-radius top alignment: pass

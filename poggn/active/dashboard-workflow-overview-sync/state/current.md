@@ -92,8 +92,9 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - Tab group should not have its own border/background, inactive tabs should not look boxed, and selected tab should visually continue into the tab panel.
 - The active tab should cover the panel edge directly beneath it so no line appears under the selected tab.
 - Only the selected tab and its content panel are framed together; inactive tabs remain unboxed text controls.
-- Content panel top border remains visible except under the selected tab segment, which is masked by the panel background.
-- Selected tab should not have a separate selected background, border, shadow, or text-color effect.
+- Selected tab should match `add-img/9.png`: rounded top corners, visible top/side border, matching panel fill, and no bottom border.
+- Content panel top border remains visible except under the selected tab segment, where the selected tab connects to the panel.
+- New dialogue requirements should append `requirements-added` before completion evidence so live dashboard refresh can show the current flow as `추가 진행`.
 - Workflow Progress compact UI removes the bordered time/status box and uses caption typography.
 - Flow nodes expose hover/focus tooltip copy through locale keys.
 - Active/revision rail uses visible overflow and fixed visual sizing to avoid clipping while preserving click target.
@@ -116,6 +117,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - `오버플로우 메뉴에서 탭이 클릭되면 다른 탭은 감싸지말고 하위 컨텐츠까지 감싸서 영역 분리되는 디자인을 원햇는데 그 방식은 어려운가요? 그리고 플로우 에서 추가중에서 완료 했는데 불구하고 추가중 상태이며 이전에 완료된 작업들 상태들도 바꿔버려서 이상한 상태가 되었습니다. add 추가 진행 - plan 시작전 - code 생성중 이런 상태가 맞나요?`
 - `탭과 컨텐츠사이에 영역에서 선이 있어서 하나로 분리된 영역처럼 안보입니다. 그리고 여전히 수정된 부분은 code쪽인데 add 추가 진행 - plan 완료 - code 완료 상태입니다. 그리고 분명히 진행이 전부 완료 되었는데 add가 설령 현 작업이 아니여도 완료로 나왔어야 합니다. 제대로된 실시간 플로우 상태 관리로 만들어주세요.`
 - `탭에 대해서 잘못되었습니다. 제가 원한건 선택한 탭의 border bottom 라인이 없고 선택 효과도 없는 상태이고 컨텐츠의 top 라인은 탭 영역과 이어지는 부분 제외하고 다른 라인은 있어야 합니다.`
+- `죄송합니다. tap 모양이 전혀 아닙니다. add-img의 9.png 처럼 수정해야합니다. 그리고 실시간으로 플로우 보여주는 기능이 있다면 분명 이 대화로 인해 flow의 상태가 변해야 합니다.`
 
 ## Audit Applicability
 
@@ -201,7 +203,8 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - source check for completed-flow preservation while unresolved revision is active: pass
 - source check for stale earlier-flow revision resolution by later flow evidence: pass
 - source check for selected-tab-only frame with unboxed inactive tabs: pass
-- source check for selected-tab top-border segment masking without selected-tab visual effects: pass
+- source check for add-img/9 selected-tab shape and top-border segment masking: pass
+- source check for immediate `requirements-added` live workflow status evidence: pass
 - source check for edge-to-edge connector geometry and removed internal connector: pass
 - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
 - source check for connector gap-inclusive end offset and circle-radius top alignment: pass

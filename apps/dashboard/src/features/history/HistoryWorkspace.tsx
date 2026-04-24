@@ -99,15 +99,16 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
       <HistoryRelations topic={selectedTopic} topics={allTopics} />
     );
   const historyTabIndex = activeTab === "overview" ? 0 : activeTab === "timeline" ? 1 : 2;
-  const historyTabWidth = { xs: 92, sm: 104 };
+  const historyTabWidth = { xs: 98, sm: 128 };
+  const historyTabHeight = { xs: 42, sm: 50 };
   const historyTabGap = 2;
   const historyTabInset = 12;
   const historyTabMaskLeft = {
-    xs: `${historyTabInset + historyTabIndex * (92 + historyTabGap)}px`,
-    sm: `${historyTabInset + historyTabIndex * (104 + historyTabGap)}px`
+    xs: `${historyTabInset + historyTabIndex * (98 + historyTabGap)}px`,
+    sm: `${historyTabInset + historyTabIndex * (128 + historyTabGap)}px`
   };
   const historyPanelBg = alpha(theme.palette.background.default, theme.palette.mode === "dark" ? 0.18 : 0.34);
-  const historyPanelBorder = alpha(theme.palette.divider, 0.72);
+  const historyPanelBorder = alpha(theme.palette.primary.light, theme.palette.mode === "dark" ? 0.62 : 0.42);
 
   return (
     <Box
@@ -174,26 +175,30 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
               TabIndicatorProps={{ sx: { display: "none" } }}
               sx={{
                 alignSelf: "flex-start",
-                minHeight: 36,
-                mt: 0.2,
-                mb: -0.12,
+                minHeight: historyTabHeight,
+                mt: 0.4,
+                mb: "-1px",
                 overflow: "visible",
                 "& .MuiTabs-flexContainer": { gap: 0.25 },
                 "& .MuiTab-root": {
-                  minHeight: 36,
+                  minHeight: historyTabHeight,
                   width: historyTabWidth,
                   minWidth: historyTabWidth,
                   px: 0,
                   color: "text.secondary",
-                  fontWeight: 700,
-                  bgcolor: "transparent"
+                  fontWeight: 760,
+                  bgcolor: "transparent",
+                  letterSpacing: 0
                 },
                 "& .Mui-selected": {
                   position: "relative",
                   zIndex: 1,
-                  mb: "-1px",
-                  color: "text.secondary",
-                  bgcolor: "transparent"
+                  color: "text.primary",
+                  border: `2px solid ${historyPanelBorder}`,
+                  borderBottomColor: historyPanelBg,
+                  borderTopLeftRadius: { xs: 2, sm: 2.5 },
+                  borderTopRightRadius: { xs: 2, sm: 2.5 },
+                  bgcolor: historyPanelBg
                 }
               }}
             >
@@ -218,10 +223,10 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
               "&::before": {
                 content: '""',
                 position: "absolute",
-                top: -1,
+                top: -2,
                 left: historyTabMaskLeft,
                 width: historyTabWidth,
-                height: 1,
+                height: 2,
                 bgcolor: historyPanelBg,
                 pointerEvents: "none"
               }
