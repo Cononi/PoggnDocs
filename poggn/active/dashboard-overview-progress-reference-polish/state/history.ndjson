@@ -1,3 +1,0 @@
-{"ts":"2026-04-24T12:30:13Z","stage":"proposal","event":"topic-created"}
-{"ts":"2026-04-24T12:30:20Z","stage":"proposal","event":"proposal-reviewed","score":95,"next":"pgg-plan"}
-{"ts":"2026-04-24T12:44:00Z","stage":"plan","event":"plan-task-reviewed","score":96,"next":"pgg-code"}
