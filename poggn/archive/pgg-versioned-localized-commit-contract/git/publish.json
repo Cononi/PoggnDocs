@@ -1,0 +1,32 @@
+{
+  "topic": "pgg-versioned-localized-commit-contract",
+  "version": "1.0.0",
+  "targetVersion": "1.0.0",
+  "changeType": "feat",
+  "versionBump": "major",
+  "commitTitle": "feat: [1.0.0]versioned commit contract",
+  "commitSha": "1034cb342315a5a0eecc45a14d032c0fb20693b0",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/1.0.0-commit-contract",
+  "workingBranch": "ai/feat/1.0.0-commit-contract",
+  "releaseBranch": "release/1.0.0-commit-contract",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-24T04:02:03Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/1.0.0-commit-contract'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/pgg-versioned-localized-commit-contract",
+    "versionFile": "poggn/archive/pgg-versioned-localized-commit-contract/version.json"
+  }
+}
