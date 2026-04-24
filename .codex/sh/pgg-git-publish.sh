@@ -131,11 +131,12 @@ publish_message_field() {
 }
 
 validate_commit_message() {
-  ARCHIVE_TYPE_VALUE="$1" TARGET_VERSION_VALUE="$2" PROJECT_LANGUAGE_VALUE="$3" COMMIT_TITLE_VALUE="$4" WHY_SUMMARY_VALUE="$5" FOOTER_VALUE="$6" node - <<'NODE'
+  ARCHIVE_TYPE_VALUE="$1" TARGET_VERSION_VALUE="$2" PROJECT_LANGUAGE_VALUE="$3" COMMIT_TITLE_VALUE="$4" SUMMARY_VALUE="$5" WHY_SUMMARY_VALUE="$6" FOOTER_VALUE="$7" node - <<'NODE'
 const archiveType = (process.env.ARCHIVE_TYPE_VALUE ?? "").trim();
 const targetVersion = (process.env.TARGET_VERSION_VALUE ?? "").trim();
 const projectLanguage = (process.env.PROJECT_LANGUAGE_VALUE ?? "ko").trim();
 const title = (process.env.COMMIT_TITLE_VALUE ?? "").trim();
+const summary = (process.env.SUMMARY_VALUE ?? "").trim();
 const why = (process.env.WHY_SUMMARY_VALUE ?? "").trim();
 const footer = (process.env.FOOTER_VALUE ?? "").trim();
 const errors = [];
@@ -176,8 +177,12 @@ if (!why) {
 } else if (Array.from(why).length < 15) {
   errors.push("Why summary must explain the reason for the change.");
 }
-const titleSummary = title.startsWith(prefix) ? title.slice(prefix.length).trim() : title;
-const languageSample = `${titleSummary}\n${why}`.trim();
+if (!summary) {
+  errors.push("Change summary is required for commit body details.");
+} else if (Array.from(summary).length < 8) {
+  errors.push("Change summary must describe the changed content.");
+}
+const languageSample = `${summary}\n${why}`.trim();
 if (projectLanguage === "ko" && !hasHangul(languageSample)) {
   errors.push("Commit message text must be Korean when pgg language is ko.");
 }
@@ -193,14 +198,11 @@ NODE
 
 write_commit_message_file() {
   local output_file="$1"
-  ARCHIVE_TYPE_VALUE="$ARCHIVE_TYPE" TARGET_VERSION_VALUE="$TARGET_VERSION" COMMIT_TITLE_VALUE="$COMMIT_TITLE" WHY_SUMMARY_VALUE="$WHY_SUMMARY" ISSUE_FOOTER_VALUE="$ISSUE_FOOTER" node - <<'NODE' > "$output_file"
-const archiveType = (process.env.ARCHIVE_TYPE_VALUE ?? "").trim();
-const targetVersion = (process.env.TARGET_VERSION_VALUE ?? "").trim();
+  COMMIT_TITLE_VALUE="$COMMIT_TITLE" WHY_SUMMARY_VALUE="$WHY_SUMMARY" SUMMARY_VALUE="$SUMMARY" ISSUE_FOOTER_VALUE="$ISSUE_FOOTER" node - <<'NODE' > "$output_file"
 const title = (process.env.COMMIT_TITLE_VALUE ?? "").trim();
 const why = (process.env.WHY_SUMMARY_VALUE ?? "").trim();
+const summary = (process.env.SUMMARY_VALUE ?? "").trim();
 const footer = (process.env.ISSUE_FOOTER_VALUE ?? "").trim();
-const prefix = `${archiveType}: [${targetVersion}]`;
-const summary = title.startsWith(prefix) ? title.slice(prefix.length).trim() : title;
 process.stdout.write([title, "", `Why: ${why}`, "", `Changes: ${summary}`, "", footer, ""].join("\n"));
 NODE
 }
@@ -564,7 +566,15 @@ if [[ -z "$ISSUE_FOOTER" ]]; then
 fi
 
 COMMIT_TITLE="$PUBLISH_TITLE"
-COMMIT_MESSAGE_ERROR="$(validate_commit_message "$ARCHIVE_TYPE" "$TARGET_VERSION" "$PROJECT_LANGUAGE" "$COMMIT_TITLE" "$WHY_SUMMARY" "$ISSUE_FOOTER")"
+SUMMARY="$(ARCHIVE_TYPE_VALUE="$ARCHIVE_TYPE" TARGET_VERSION_VALUE="$TARGET_VERSION" COMMIT_TITLE_VALUE="$COMMIT_TITLE" node - <<'NODE'
+const archiveType = (process.env.ARCHIVE_TYPE_VALUE ?? "").trim();
+const targetVersion = (process.env.TARGET_VERSION_VALUE ?? "").trim();
+const title = (process.env.COMMIT_TITLE_VALUE ?? "").trim();
+const prefix = `${archiveType}: [${targetVersion}]`;
+process.stdout.write(title.startsWith(prefix) ? title.slice(prefix.length).trim() : title);
+NODE
+)"
+COMMIT_MESSAGE_ERROR="$(validate_commit_message "$ARCHIVE_TYPE" "$TARGET_VERSION" "$PROJECT_LANGUAGE" "$COMMIT_TITLE" "$SUMMARY" "$WHY_SUMMARY" "$ISSUE_FOOTER")"
 
 blocked_result() {
   local result_type="$1"

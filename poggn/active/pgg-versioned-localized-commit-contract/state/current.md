@@ -6,7 +6,7 @@ pgg-versioned-localized-commit-contract
 
 ## Current Stage
 
-implementation
+refactor
 
 ## Goal
 
@@ -22,6 +22,7 @@ Implement versioned, localized commit message governance across pgg task commits
 - task review: `poggn/active/pgg-versioned-localized-commit-contract/reviews/task.review.md`
 - implementation index: `poggn/active/pgg-versioned-localized-commit-contract/implementation/index.md`
 - code review: `poggn/active/pgg-versioned-localized-commit-contract/reviews/code.review.md`
+- refactor review: `poggn/active/pgg-versioned-localized-commit-contract/reviews/refactor.review.md`
 - spec:
   - `poggn/active/pgg-versioned-localized-commit-contract/spec/git/versioned-commit-subject-and-body.md`
   - `poggn/active/pgg-versioned-localized-commit-contract/spec/i18n/commit-message-language-contract.md`
@@ -51,6 +52,7 @@ Implement versioned, localized commit message governance across pgg task commits
 - detailed commit bodies are required
 - major version bump is required when existing user behavior is broken
 - implementation status: runtime helpers, generated templates/docs, README, and regression tests are complete
+- refactor status: checked-in publish helper summary extraction now matches the generated template pipeline
 
 ## User Question Record
 
@@ -100,6 +102,7 @@ Implement versioned, localized commit message governance across pgg task commits
 | CREATE | `poggn/active/pgg-versioned-localized-commit-contract/implementation/diffs/013_UPDATE_packages_core_dist_templates_js_map.diff` | 없음 |
 | CREATE | `poggn/active/pgg-versioned-localized-commit-contract/implementation/diffs/014_UPDATE_packages_core_dist_readme_js.diff` | 없음 |
 | CREATE | `poggn/active/pgg-versioned-localized-commit-contract/implementation/diffs/015_UPDATE_packages_core_dist_readme_js_map.diff` | 없음 |
+| CREATE | `poggn/active/pgg-versioned-localized-commit-contract/implementation/diffs/016_UPDATE__codex_sh_pgg-git-publish_sh__refactor.diff` | 없음 |
 | CREATE | `poggn/active/pgg-versioned-localized-commit-contract/state/current.md` | 없음 |
 | CREATE | `poggn/active/pgg-versioned-localized-commit-contract/state/history.ndjson` | 없음 |
 | CREATE | `poggn/active/pgg-versioned-localized-commit-contract/state/dirty-worktree-baseline.txt` | 없음 |
@@ -119,10 +122,11 @@ Implement versioned, localized commit message governance across pgg task commits
 | UPDATE | `packages/core/dist/templates.js.map` | `implementation/diffs/013_UPDATE_packages_core_dist_templates_js_map.diff` |
 | UPDATE | `packages/core/dist/readme.js` | `implementation/diffs/014_UPDATE_packages_core_dist_readme_js.diff` |
 | UPDATE | `packages/core/dist/readme.js.map` | `implementation/diffs/015_UPDATE_packages_core_dist_readme_js_map.diff` |
+| UPDATE | `.codex/sh/pgg-git-publish.sh` | `implementation/diffs/016_UPDATE__codex_sh_pgg-git-publish_sh__refactor.diff` |
 
 ## Last Expert Score
 
-- phase: implementation
+- phase: refactor
 - score: 97
 - blocking issues: none
 
@@ -134,10 +138,12 @@ Implement versioned, localized commit message governance across pgg task commits
 
 - `pnpm build`: pass
 - `pnpm test`: pass
+- `bash -n .codex/sh/pgg-git-publish.sh`: pass
+- `bash -n .codex/sh/pgg-stage-commit.sh`: pass
 
 ## Next Action
 
-`pgg-refactor`
+`pgg-qa`
 
 ## Git Publish Message
 

@@ -27,11 +27,14 @@ pgg:
 | 013 | UPDATE | `packages/core/dist/templates.js.map` | `implementation/diffs/013_UPDATE_packages_core_dist_templates_js_map.diff` | `T1,T2,T3,T4` | source map updated by build |
 | 014 | UPDATE | `packages/core/dist/readme.js` | `implementation/diffs/014_UPDATE_packages_core_dist_readme_js.diff` | `T3,T4` | built README generator output updated from source changes |
 | 015 | UPDATE | `packages/core/dist/readme.js.map` | `implementation/diffs/015_UPDATE_packages_core_dist_readme_js_map.diff` | `T3,T4` | source map updated by build |
+| 016 | UPDATE | `.codex/sh/pgg-git-publish.sh` | `implementation/diffs/016_UPDATE__codex_sh_pgg-git-publish_sh__refactor.diff` | `T1,T2` | refactor: checked-in publish helper now uses the same extracted `SUMMARY` pipeline as generated templates for validation and body writing |
 
 ## Verification
 
 - `pnpm build`: pass
 - `pnpm test`: pass
+- `bash -n .codex/sh/pgg-git-publish.sh`: pass
+- `bash -n .codex/sh/pgg-stage-commit.sh`: pass
 
 ## Notes
 
