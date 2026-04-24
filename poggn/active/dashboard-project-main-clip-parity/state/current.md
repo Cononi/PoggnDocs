@@ -6,11 +6,11 @@ dashboard-project-main-clip-parity
 
 ## Current Stage
 
-implementation
+refactor
 
 ## Goal
 
-Project 기본 화면을 `Main`으로 정리하고 `Project workspace` banner, Project Board 화면, 별도 Workflow page를 제거하며, 기존 History/이력 기능은 `Workflow` 이름으로 노출한다. Dashboard Clip/Chip 계열 디자인은 `add-img/1.png` 기준으로 맞추는 구현을 완료했다.
+Project 기본 화면을 `Main`으로 정리하고 `Project workspace` banner, Project Board 화면, 별도 Workflow page를 제거하며, 기존 History/이력 기능은 `Workflow` 이름으로 노출한다. Dashboard Clip/Chip 계열 디자인은 `add-img/1.png` 기준으로 맞추는 구현과 구조 정리를 완료했다.
 
 ## Constraints
 
@@ -41,6 +41,8 @@ Project 기본 화면을 `Main`으로 정리하고 `Project workspace` banner, P
 - Implementation normalizes persisted dashboard UI state to `Main`, removes the Project Board render path and `ProjectListBoard.tsx`, removes the separate Workflow section, and exposes the existing HistoryWorkspace under the `Workflow` label.
 - Project Main no longer renders the `Project workspace` banner; it keeps project name, root path, provider/language/version/status as compact metadata.
 - Chip parity is applied through `MuiChip` defaults and local chip wrapper alignment.
+- Refactor extracts duplicate `ProjectDetailWorkspace` rendering in `DashboardApp.tsx` into a single helper and centralizes artifact/file topic-key resolution.
+- Refactor removes unused `ProjectContextSidebar` props for sidebar item callbacks while leaving category management state untouched.
 
 ## Scope
 
@@ -89,6 +91,7 @@ Project 기본 화면을 `Main`으로 정리하고 `Project workspace` banner, P
 - reason: `.pgg/project.json` verification mode is `manual` and no commands are declared.
 - evidence: `pnpm --filter @pgg/dashboard build` passed
 - evidence: Vite reported a non-blocking large JS chunk warning after minification.
+- evidence: refactor `pnpm --filter @pgg/dashboard build` passed with the same large JS chunk warning.
 
 ## Changed Files
 
@@ -120,6 +123,8 @@ Project 기본 화면을 `Main`으로 정리하고 `Project workspace` banner, P
 | UPDATE | `apps/dashboard/src/features/backlog/BacklogWorkspace.tsx` | `implementation/diffs/008_UPDATE_apps_dashboard_src_features_backlog_BacklogWorkspace_tsx.diff` |
 | UPDATE | `apps/dashboard/src/features/backlog/InsightsRail.tsx` | `implementation/diffs/009_UPDATE_apps_dashboard_src_features_backlog_InsightsRail_tsx.diff` |
 | DELETE | `apps/dashboard/src/features/project-list/ProjectListBoard.tsx` | `implementation/diffs/010_DELETE_apps_dashboard_src_features_project-list_ProjectListBoard_tsx.diff` |
+| UPDATE | `apps/dashboard/src/app/DashboardApp.tsx` | `implementation/diffs/011_UPDATE_apps_dashboard_src_app_DashboardApp_tsx.refactor.diff` |
+| UPDATE | `apps/dashboard/src/app/DashboardShellChrome.tsx` | `implementation/diffs/012_UPDATE_apps_dashboard_src_app_DashboardShellChrome_tsx.refactor.diff` |
 
 ## Dirty Worktree Baseline
 
@@ -129,7 +134,7 @@ Project 기본 화면을 `Main`으로 정리하고 `Project workspace` banner, P
 
 - score: `96`
 - blocking issue: `none`
-- review refs: `reviews/proposal.review.md`, `reviews/plan.review.md`, `reviews/task.review.md`, `reviews/code.review.md`
+- review refs: `reviews/proposal.review.md`, `reviews/plan.review.md`, `reviews/task.review.md`, `reviews/code.review.md`, `reviews/refactor.review.md`
 
 ## Git Publish Message
 
@@ -139,8 +144,8 @@ Project 기본 화면을 `Main`으로 정리하고 `Project workspace` banner, P
 
 ## Next
 
-`pgg-refactor`
+`pgg-qa`
 
 ## Next Action
 
-Run `pgg-refactor` for `dashboard-project-main-clip-parity`.
+Run `pgg-qa` for `dashboard-project-main-clip-parity`.

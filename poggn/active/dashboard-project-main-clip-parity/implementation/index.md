@@ -36,9 +36,12 @@ Project 진입 기본값을 Main으로 고정하고 Project Board 화면 및 별
 | 008 | UPDATE | `apps/dashboard/src/features/backlog/BacklogWorkspace.tsx` | `implementation/diffs/008_UPDATE_apps_dashboard_src_features_backlog_BacklogWorkspace_tsx.diff` | T5 | Aligns backlog tone chips with the compact chip token. |
 | 009 | UPDATE | `apps/dashboard/src/features/backlog/InsightsRail.tsx` | `implementation/diffs/009_UPDATE_apps_dashboard_src_features_backlog_InsightsRail_tsx.diff` | T5 | Aligns rail chips with the compact chip token. |
 | 010 | DELETE | `apps/dashboard/src/features/project-list/ProjectListBoard.tsx` | `implementation/diffs/010_DELETE_apps_dashboard_src_features_project-list_ProjectListBoard_tsx.diff` | T2 | Removes the Project Board screen component. |
+| 011 | UPDATE | `apps/dashboard/src/app/DashboardApp.tsx` | `implementation/diffs/011_UPDATE_apps_dashboard_src_app_DashboardApp_tsx.refactor.diff` | refactor | Extracts the repeated Project detail renderer and shared topic-key resolution. |
+| 012 | UPDATE | `apps/dashboard/src/app/DashboardShellChrome.tsx` | `implementation/diffs/012_UPDATE_apps_dashboard_src_app_DashboardShellChrome_tsx.refactor.diff` | refactor | Removes unused sidebar item props from the shell component contract. |
 
 ## Notes
 
 - `apps/dashboard/src/features/project-list/projectBoard.ts` remains because the project selector dialog still uses the grouping helper.
 - The internal component name `HistoryWorkspace` remains intentionally; only the user-facing section name changed to `Workflow`.
+- Refactor keeps `DashboardSidebarItem` state in the store because category management state remains outside this topic's deletion scope.
 - `.pgg/project.json` was pre-existing dirty baseline and was not modified by this implementation.

@@ -40,7 +40,7 @@
         "label": "state/current.md",
         "stage": "handoff",
         "status": "ready",
-        "next": "pgg-refactor"
+        "next": "pgg-qa"
       }
     },
     {
@@ -112,6 +112,20 @@
         "status": "reviewed",
         "score": 95
       }
+    },
+    {
+      "id": "refactor",
+      "type": "refactor",
+      "position": {
+        "x": 560,
+        "y": 340
+      },
+      "data": {
+        "label": "refactor.review.md",
+        "stage": "refactor",
+        "status": "reviewed",
+        "score": 96
+      }
     }
   ],
   "edges": [
@@ -158,6 +172,16 @@
     {
       "id": "code-review-state",
       "source": "code-review",
+      "target": "state"
+    },
+    {
+      "id": "code-review-refactor",
+      "source": "code-review",
+      "target": "refactor"
+    },
+    {
+      "id": "refactor-state",
+      "source": "refactor",
       "target": "state"
     }
   ]
