@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T16:59:44Z"
+  updated_at: "2026-04-24T17:18:16Z"
   auto_mode: "on"
   archive_type: "fix"
   version_bump: "patch"
@@ -19,7 +19,7 @@ reactflow:
   node_type: "doc"
   label: "implementation/index.md"
 state:
-  summary: "Workflow Progress timestamp source, revision status, telemetry ingestion, compact caption UI, tooltip, i18n을 구현했다."
+  summary: "Workflow Progress connector geometry, five-state status model, stage-specific timestamp fallback, compact caption UI, tooltip, i18n을 보강했다."
   next: "pgg-refactor"
 ---
 
@@ -29,11 +29,14 @@ state:
 
 - `state/history.ndjson` events are now parsed into dashboard topic summaries as `historyEvents`.
 - Workflow node detail metadata preserves `startedAt`, `updatedAt`, `completedAt`, `summary`, and `status` when core hydrates artifact content.
-- Workflow Progress model now separates start, update, and completion timestamps with confidence/source metadata.
-- `추가 요소 반영 중` / `Applying updates` is modeled as a distinct `revising` workflow status.
-- Workflow/React Flow nodes can also surface `revising` status from node metadata.
+- Workflow Progress model separates start, update, and completion timestamps with confidence/source metadata.
+- Broad artifacts such as `state/`, `workflow.reactflow.json`, and shared implementation index files are no longer promoted into per-flow start/completion times.
+- Stage-specific telemetry and node timestamps now take priority over file updatedAt fallback for flow updated time, preventing later Add/Code/Refactor file churn from sharing one timestamp.
+- `시작 전`, `생성 중`, `마무리 중`, `완료`, `추가 진행` are modeled as distinct user-facing statuses.
+- Workflow/React Flow nodes can also surface `finishing` and `updating` status from node metadata.
 - Workflow Progress UI is more compact, removes the bordered time/status box, shows small caption text, prevents active clipping with visible rail overflow, and adds flow tooltip affordance.
-- ko/en locale copy was updated for generated/current, revision, count, and tooltip labels.
+- Connector geometry now draws center-to-center behind circle visuals so the line touches the next flow without a visible gap.
+- ko/en locale copy was updated for generated/current, finishing/update, count, and tooltip labels.
 
 ## Changed Files
 
@@ -48,27 +51,41 @@ state:
 | UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | `implementation/diffs/003_UPDATE_dashboard_core_workflow_telemetry_shared.diff` |
 | UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | `implementation/diffs/001_UPDATE_apps_dashboard_src_features_history_historyModel_ts.diff` |
 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `implementation/diffs/002_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.diff` |
+| UPDATE | `poggn/active/dashboard-workflow-overview-sync/plan.md` | `implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
+| UPDATE | `poggn/active/dashboard-workflow-overview-sync/task.md` | `implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
+| UPDATE | `poggn/active/dashboard-workflow-overview-sync/spec/model/flow-timestamp-and-status-source.md` | `implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
+| UPDATE | `poggn/active/dashboard-workflow-overview-sync/spec/model/revision-status-model.md` | `implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
+| UPDATE | `poggn/active/dashboard-workflow-overview-sync/spec/telemetry/stage-progress-contract.md` | `implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
+| UPDATE | `poggn/active/dashboard-workflow-overview-sync/spec/ui/compact-workflow-progress-surface.md` | `implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
+| UPDATE | `poggn/active/dashboard-workflow-overview-sync/spec/i18n/workflow-progress-copy-and-tooltip.md` | `implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
+| UPDATE | `poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md` | `implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
+| UPDATE | `poggn/active/dashboard-workflow-overview-sync/state/dirty-worktree-baseline.txt` | `implementation/diffs/005_UPDATE_poggn_active_dashboard_workflow_overview_sync_topic_state.diff` |
+| UPDATE | `poggn/active/dashboard-workflow-overview-sync/state/history.ndjson` | `implementation/diffs/005_UPDATE_poggn_active_dashboard_workflow_overview_sync_topic_state.diff` |
+| UPDATE | `poggn/active/dashboard-workflow-overview-sync/workflow.reactflow.json` | `implementation/diffs/005_UPDATE_poggn_active_dashboard_workflow_overview_sync_topic_state.diff` |
 | CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/index.md` | |
 | CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/001_UPDATE_apps_dashboard_src_features_history_historyModel_ts.diff` | |
 | CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/002_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.diff` | |
 | CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/003_UPDATE_dashboard_core_workflow_telemetry_shared.diff` | |
+| CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` | |
+| CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/005_UPDATE_poggn_active_dashboard_workflow_overview_sync_topic_state.diff` | |
 
 ## Task Coverage
 
 | Task | Status | Evidence |
 |---|---|---|
-| T1 timestamp/status source | done | `historyModel.ts` timestamp evidence bundle and `WorkflowStep` source/confidence fields |
-| T2 revision status | done | `WorkflowStatus = revising`, revision event detection, secondary accent UI |
-| T3 telemetry contract | done | core `historyEvents` parsing and workflow detail timestamp preservation |
-| T4 i18n | done | ko/en status, revision, count, and tooltip locale keys |
-| T5 compact UI | done | compact rail, caption text, tooltip, visible overflow, smaller chart/counts |
+| T1 timestamp/status source | done | strict timestamp evidence bundle, `stage-commit` completion support, and stage-specific fallback filtering |
+| T2 revision status | done | five-state `WorkflowStatus`, finishing/update event detection, warning/secondary accent UI |
+| T3 telemetry contract | done | core `historyEvents` parsing, workflow detail timestamp preservation, and spec update for `stage-finishing`/`stage-commit` |
+| T4 i18n | done | ko/en 시작 전/생성 중/마무리 중/완료/추가 진행 status, count, and tooltip locale keys |
+| T5 compact UI | done | center-to-center connector behind circles, compact rail, caption text, tooltip, visible overflow, smaller chart/counts |
 | T6 evidence | done | dashboard build, core build, source checks, diff records |
 
 ## Verification
 
-- `pnpm --filter @pgg/dashboard build`: pass
-- `pnpm --filter @pgg/core build`: pass
-- source check for `workflowProgressStatusRevising`, `workflowProgressTooltip`, `historyEvents`, `stage-started`, `stage-completed`: pass
+- `pnpm build`: pass
+- `./.codex/sh/pgg-gate.sh pgg-code dashboard-workflow-overview-sync`: pass
+- source check for removed `revising` status and added `workflowProgressStatusFinishing` / `workflowProgressStatusUpdating`: pass
+- source check for `workflowProgressTooltip`, `historyEvents`, `stage-started`, `stage-commit`: pass
 - source check for removed `minHeight: 48` bordered time/status box pattern: pass
 
 ## Notes

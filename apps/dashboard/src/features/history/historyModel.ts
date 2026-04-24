@@ -2,7 +2,7 @@ import type { TopicSummary } from "../../shared/model/dashboard";
 import { buildTopicKey, formatDate } from "../../shared/utils/dashboard";
 
 export type HistoryLanguage = "ko" | "en";
-export type WorkflowStatus = "completed" | "current" | "revising" | "pending";
+export type WorkflowStatus = "completed" | "current" | "finishing" | "updating" | "pending";
 export type WorkflowTimestampConfidence = "high" | "medium" | "low" | "none";
 export type FileChangeKind = "A" | "M" | "D";
 export type RelationKind = "depends" | "blocks" | "related" | "implements" | "mentioned";
@@ -371,6 +371,10 @@ function isRevisionEvent(event: TopicHistoryEventEntry): boolean {
   return eventNameMatches(event, [/updated$/i, /revised$/i, /requirements-added/i]);
 }
 
+function isFinishingEvent(event: TopicHistoryEventEntry): boolean {
+  return eventNameMatches(event, [/stage-finishing/i, /stage-finalizing/i, /finishing/i, /finalizing/i]);
+}
+
 function flowRevisionEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition): TimestampEvidence[] {
   const eventEvidence = flowHistoryEvents(topic, flow)
     .filter((event) => event.ts && isRevisionEvent(event))
@@ -380,7 +384,7 @@ function flowRevisionEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition)
       source: `state/history.ndjson:${event.event ?? "revision"}`
     }));
   const nodeEvidence = flowNodes(topic, flow)
-    .filter((node) => /revis|updated|revision/i.test(node.data.status ?? node.data.detail?.status ?? ""))
+    .filter((node) => /revis|updated|revision|additional|updat(e|ing)|추가/i.test(node.data.status ?? node.data.detail?.status ?? ""))
     .map((node) => ({
       value: node.data.detail?.updatedAt ?? null,
       confidence: "high" as const,
@@ -390,7 +394,7 @@ function flowRevisionEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition)
   return [...eventEvidence, ...nodeEvidence];
 }
 
-function flowHasRevisionStatus(topic: TopicSummary, flow: WorkflowFlowDefinition, completedAt: string | null): boolean {
+function flowHasUpdatingStatus(topic: TopicSummary, flow: WorkflowFlowDefinition, completedAt: string | null): boolean {
   if (topic.bucket === "archive") {
     return false;
   }
@@ -403,6 +407,33 @@ function flowHasRevisionStatus(topic: TopicSummary, flow: WorkflowFlowDefinition
     return true;
   }
   return new Date(latestRevision).getTime() > new Date(completedAt).getTime();
+}
+
+function flowFinishingEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition): TimestampEvidence[] {
+  const eventEvidence = flowHistoryEvents(topic, flow)
+    .filter((event) => event.ts && isFinishingEvent(event))
+    .map((event) => ({
+      value: event.ts,
+      confidence: "high" as const,
+      source: `state/history.ndjson:${event.event ?? "finishing"}`
+    }));
+  const nodeEvidence = flowNodes(topic, flow)
+    .filter((node) => /finish|finaliz|closing|wrap|마무리/i.test(node.data.status ?? node.data.detail?.status ?? ""))
+    .map((node) => ({
+      value: node.data.detail?.updatedAt ?? null,
+      confidence: "high" as const,
+      source: sourcePathForNode(node)
+    }));
+
+  return [...eventEvidence, ...nodeEvidence];
+}
+
+function flowHasFinishingStatus(topic: TopicSummary, flow: WorkflowFlowDefinition): boolean {
+  if (topic.bucket === "archive") {
+    return false;
+  }
+
+  return Boolean(latestEvidence(flowFinishingEvidence(topic, flow)).value);
 }
 
 function nodeTimestampEvidence(
@@ -424,40 +455,55 @@ function fileTimestampEvidence(files: TopicFileEntry[]): TimestampEvidence[] {
   }));
 }
 
+function timestampFilesForFlow(topic: TopicSummary, flow: WorkflowFlowDefinition): TopicFileEntry[] {
+  const ignoredBroadArtifacts = [/^state\//, /^workflow\.reactflow\.json$/, /^implementation\/index\.md$/];
+  const files = flowFiles(topic, flow).filter((file) => {
+    const path = file.relativePath;
+    return !ignoredBroadArtifacts.some((pattern) => pattern.test(path));
+  });
+
+  if (flow.id === "code") {
+    return files.filter((file) => /^implementation\/diffs\//.test(file.relativePath) || /^reviews\/code\.review\.md$/.test(file.relativePath));
+  }
+
+  return files;
+}
+
 function flowTimestampBundle(topic: TopicSummary, flow: WorkflowFlowDefinition): FlowTimestampBundle {
-  const files = flowFiles(topic, flow);
+  const files = timestampFilesForFlow(topic, flow);
   const nodes = flowNodes(topic, flow);
   const events = flowHistoryEvents(topic, flow);
   const startEvents = timestampEvidenceFromEvents(events, [/stage-started/i, /topic-created/i], "state/history.ndjson");
   const progressEvents = timestampEvidenceFromEvents(events, [/stage-progress/i, /stage-revised/i, /updated$/i, /requirements-added/i], "state/history.ndjson");
-  const completeEvents = timestampEvidenceFromEvents(events, [/stage-completed/i, /reviewed$/i, /archived$/i], "state/history.ndjson");
+  const completeEvents = timestampEvidenceFromEvents(events, [/stage-completed/i, /stage-commit/i, /reviewed$/i, /archived$/i], "state/history.ndjson");
   const fileEvidence = fileTimestampEvidence(files);
   const doneEvidence = flow.id === "done" ? [{ value: topic.archivedAt, confidence: "high" as const, source: "archive" }] : [];
   const topicFallback =
     flow.id === normalizeFlowId(topic.stage)
       ? [{ value: topic.updatedAt, confidence: "low" as const, source: "topic.updatedAt" }]
       : [];
+  const trustedUpdatedEvidence = [
+    ...progressEvents,
+    ...completeEvents,
+    ...nodeTimestampEvidence(nodes, "updatedAt"),
+    ...doneEvidence,
+    ...topicFallback
+  ];
+  const updatedEvidence = trustedUpdatedEvidence.some((entry) => entry.value)
+    ? trustedUpdatedEvidence
+    : fileEvidence;
 
   return {
     startedAt: earliestEvidence([
       ...startEvents,
       ...nodeTimestampEvidence(nodes, "startedAt"),
-      ...fileEvidence,
       ...topicFallback
     ]),
-    updatedAt: latestEvidence([
-      ...progressEvents,
-      ...completeEvents,
-      ...nodeTimestampEvidence(nodes, "updatedAt"),
-      ...fileEvidence,
-      ...doneEvidence,
-      ...topicFallback
-    ]),
+    updatedAt: latestEvidence(updatedEvidence),
     completedAt: latestEvidence([
       ...completeEvents,
       ...nodeTimestampEvidence(nodes, "completedAt"),
-      ...doneEvidence,
-      ...fileEvidence
+      ...doneEvidence
     ])
   };
 }
@@ -513,8 +559,20 @@ export function buildWorkflowSteps(topic: TopicSummary, language: HistoryLanguag
     const currentFlowIsComplete = stageComplete && activeTaskIds.length === 0;
     const isComplete = topic.bucket === "archive" || index < currentIndex || (index === currentIndex && currentFlowIsComplete);
     const timestamps = flowTimestampBundle(topic, flow);
-    const revising = flowHasRevisionStatus(topic, flow, timestamps.completedAt.value) && index <= currentIndex;
-    const status: WorkflowStatus = revising ? "revising" : isComplete ? "completed" : index === currentIndex ? "current" : "pending";
+    const updating = flowHasUpdatingStatus(topic, flow, timestamps.completedAt.value) && index <= currentIndex;
+    const finishing =
+      !updating &&
+      index === currentIndex &&
+      (flowHasFinishingStatus(topic, flow) || (currentFlowIsComplete && timestamps.completedAt.confidence === "none"));
+    const status: WorkflowStatus = updating
+      ? "updating"
+      : finishing
+        ? "finishing"
+        : isComplete
+          ? "completed"
+          : index === currentIndex
+            ? "current"
+            : "pending";
     const displayedCompletedAt = status === "completed" && timestamps.completedAt.confidence !== "low" ? timestamps.completedAt.value : null;
 
     return {

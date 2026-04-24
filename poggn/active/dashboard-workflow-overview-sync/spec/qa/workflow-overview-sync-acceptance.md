@@ -15,9 +15,9 @@ Workflow Overview sync 변경의 visual, model, telemetry, i18n, accessibility a
 
 ## Visual Acceptance
 
-- `add-img/5.png`처럼 completed circle과 connector가 정확히 이어진다.
+- `add-img/5.png`/`add-img/6.png`처럼 completed circle과 connector가 정확히 이어진다.
 - completed connector는 solid green, pending connector는 muted dotted line이다.
-- active/revision glow, pulse, focus outline은 상단/좌우에서 잘리지 않는다.
+- active/finishing/update glow, pulse, focus outline은 상단/좌우에서 잘리지 않는다.
 - `add-img/1.png`보다 살짝 큰 compact density로 보인다.
 - flow 이름 아래 bordered time/status box가 없다.
 - time/status는 small caption으로 표시된다.
@@ -28,12 +28,12 @@ Workflow Overview sync 변경의 visual, model, telemetry, i18n, accessibility a
 - `startedAt`, `updatedAt`, `completedAt`은 model에서 구분된다.
 - topic-wide `updatedAt`이 여러 flow completed time으로 반복 표시되지 않는다.
 - stage-specific completion source가 없으면 완료 시각을 확정값처럼 표시하지 않는다.
-- `추가 요소 반영 중`은 generated/current/completed/pending과 구분되는 status로 표현 가능하다.
+- `마무리 중`과 `추가 진행`은 generated/current/completed/pending과 구분되는 status로 표현 가능하다.
 
 ## Telemetry Acceptance
 
-- `stage-started`, `stage-progress`, `stage-completed` event를 dashboard model source로 사용할 수 있다.
-- `proposal-updated`, `plan-updated`, `task-updated`, `stage-revised` 계열 event는 revision status source가 될 수 있다.
+- `stage-started`, `stage-progress`, `stage-finishing`, `stage-completed`, `stage-commit` event를 dashboard model source로 사용할 수 있다.
+- `proposal-updated`, `plan-updated`, `task-updated`, `stage-revised`, `requirements-added` 계열 event는 update status source가 될 수 있다.
 - `workflow.reactflow.json` node detail timestamps는 broad fallback보다 우선한다.
 - telemetry가 없는 과거 topic은 dashboard가 깨지지 않고 conservative fallback을 사용한다.
 

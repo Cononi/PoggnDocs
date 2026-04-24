@@ -35,7 +35,7 @@ state:
 | Task ID | Spec Ref | 작업 요약 | 선행 조건 | 완료 기준 |
 |---|---|---|---|---|
 | T1 | S1 | WorkflowStep timestamp/status source를 `startedAt`, `completedAt`, `updatedAt`, confidence 중심으로 보강한다. | proposal, S1 | topic-wide updatedAt이 여러 flow completed time으로 반복되지 않고 낮은 confidence time은 확정값처럼 표시되지 않는다 |
-| T2 | S2 | `추가 요소 반영 중` revision/update status를 model에 추가한다. | T1, S2 | `proposal-updated` 등 추가 요구 event가 있는 started flow를 distinct status/accent로 표시할 수 있다 |
+| T2 | S2 | `마무리 중` finishing status와 `추가 진행` update status를 model에 추가한다. | T1, S2 | `stage-finishing`/`requirements-added` 등 event가 있는 started flow를 distinct status/accent로 표시할 수 있다 |
 | T3 | S3 | stage telemetry event와 workflow node detail timestamp contract를 dashboard ingestion 기준으로 연결한다. | T1-T2, S3 | `stage-started`, `stage-progress`, `stage-completed`, `stage-revised` 계열 event와 node timestamps가 model source priority에 반영된다 |
 | T4 | S5 | status, count, tooltip, revision copy를 ko/en i18n dictionary로 정리한다. | T1-T3, S5 | visible Workflow Progress surface에 새 status/tooltip 문구가 hardcoded로 남지 않는다 |
 | T5 | S4 | Workflow Progress UI를 compact caption surface로 조정하고 connector/clipping/tooltip을 구현한다. | T1-T4, S4 | circle connector가 맞고, active glow가 잘리지 않으며, flow 아래 box 없이 caption과 tooltip이 보인다 |
@@ -56,17 +56,17 @@ state:
 ## 4. 검증 체크리스트
 
 - add-img/5처럼 완료 circle과 connector가 정확히 이어진다.
-- add-img/5처럼 완료 connector는 solid green, 진행 전 connector는 muted dotted line이다.
+- add-img/5/add-img/6처럼 완료 connector는 solid green, 시작 전 connector는 muted dotted line이고 circle과 선 사이 gap이 보이지 않는다.
 - 진행 중 active ring, glow, focus outline이 상단/좌우에서 잘리지 않는다.
 - Workflow Progress 전체 크기는 add-img/1 Workflow Progress보다 살짝 큰 정도로 compact하다.
 - flow label 아래 bordered status/time box가 없다.
 - 완료 flow는 small caption으로 완료 시각을 표시한다.
-- 진행 전/생성 중/추가 요소 반영 중 flow는 small caption으로 상태를 표시한다.
+- 시작 전/생성 중/마무리 중/추가 진행 flow는 small caption으로 상태를 표시한다.
 - Plan hover/focus 시 `Plan 진행 상태 확인 가능` 또는 locale equivalent tooltip이 보인다.
 - flow click 시 기존 log modal interaction이 유지된다.
 - add/plan/code completed time이 같은 fallback timestamp로 반복되지 않는다.
 - telemetry event가 있으면 start/progress/complete/revision status가 log modal과 Overview Progress에 반영된다.
-- `추가 요소 반영 중`은 생성 중/완료/진행 전과 다른 색과 badge/pulse로 구분된다.
+- `마무리 중`과 `추가 진행`은 생성 중/완료/시작 전과 다른 색과 badge/pulse로 구분된다.
 - 상태/tooltip/count 문구는 ko/en dictionary를 통과한다.
 - `prefers-reduced-motion`에서도 상태 구분이 색/형태로 유지된다.
 - `pnpm --filter @pgg/dashboard build`는 구현 단계 evidence 후보이며, 공식 contract는 `manual verification required`다.

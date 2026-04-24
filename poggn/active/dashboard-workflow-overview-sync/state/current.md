@@ -10,7 +10,7 @@ implementation
 
 ## Goal
 
-Project Workflow Overview의 progress rail 연결, compact density, caption style, flow tooltip, 진행 중 clipping 방지, 추가 요소 반영 중 상태, flow별 시간 독립성, stage telemetry 반영, 상태별 색 구분을 구현했다.
+Project Workflow Overview의 progress rail 연결, compact density, caption style, flow tooltip, 진행 중 clipping 방지, `마무리 중`/`추가 진행` 상태, flow별 시간 독립성, stage telemetry 반영, 상태별 색 구분을 보강 구현했다.
 
 ## Document Refs
 
@@ -32,6 +32,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - workflow: `poggn/active/dashboard-workflow-overview-sync/workflow.reactflow.json`
 - dirty baseline: `poggn/active/dashboard-workflow-overview-sync/state/dirty-worktree-baseline.txt`
 - visual reference: `add-img/5.png`
+- follow-up connector reference: `add-img/6.png`
 - density reference: `add-img/1.png`
 
 ## Constraints
@@ -46,8 +47,8 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 
 ## Decisions
 
-- `add-img/5.png` is the visual acceptance reference for connector alignment, flow time labels, and status color separation.
-- Connector geometry must be calculated from the actual circle size so the line touches the circle edge on desktop and mobile.
+- `add-img/5.png` and `add-img/6.png` are the visual acceptance references for connector alignment, flow time labels, and status color separation.
+- Connector geometry must draw the rail center-to-center behind circle visuals so it touches the next flow without a visible gap on desktop and mobile.
 - Completed connectors use solid green. Not-started connectors use muted dotted styling. Active/generated flow uses a distinct active color and emphasis.
 - Flow time must be modeled as separate `startedAt`, `completedAt`, and `updatedAt` values.
 - Dashboard must not reuse the topic-wide `updatedAt` as the completed time for multiple different flows.
@@ -55,12 +56,13 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - pgg stages should record `stage-started`, `stage-progress`, and `stage-completed` events in `state/history.ndjson`.
 - `workflow.reactflow.json` node detail/status should expose stage status and timestamps where available.
 - Dashboard Overview Progress should prefer telemetry events and workflow node detail timestamps over broad artifact fallback.
-- User-facing statuses are `진행 전`, `생성 중`, `추가 요소 반영 중`, `완료`, rendered via locale keys.
+- User-facing statuses are `시작 전`, `생성 중`, `마무리 중`, `완료`, `추가 진행`, rendered via locale keys.
 - Internal stage names stay unchanged: `Add` maps to proposal and `Code` maps to implementation.
 - Active/generated step pulse, glow, and focus outline must not be clipped at the top or sides.
 - Progress rail should reserve active-state safe area and avoid clipping the active visual effect while keeping the layout box stable.
-- `추가 요소 반영 중` is a transient revision/update status for already-started workflow stages receiving additional user requirements.
-- Revision/update status must use a distinct accent color from not-started, generated/current, and completed states.
+- `추가 진행` is a transient update status for already-started workflow stages receiving additional user requirements after prior completion/progress.
+- `마무리 중` is a transient finishing/finalizing status for an active stage before completion.
+- Finishing/update status must use distinct accent colors from not-started, generated/current, and completed states.
 - Revision events should be recorded with telemetry such as `proposal-updated`, `plan-updated`, `task-updated`, or `stage-revised`.
 - Flow time/status must be shown as small caption typography under the flow name, not as a bordered box.
 - Workflow Progress density should be only slightly larger than `add-img/1.png`.
@@ -70,7 +72,9 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - Core dashboard snapshot now parses `state/history.ndjson` into `TopicSummary.historyEvents`.
 - Core workflow detail hydration preserves node metadata timestamps and status while loading artifact content.
 - Workflow Progress model separates `startedAt`, `updatedAt`, `completedAt`, timestamp confidence, and source.
-- `추가 요소 반영 중` is implemented as `revising` status in Overview Progress and React Flow model.
+- Broad artifacts such as `state/`, `workflow.reactflow.json`, and shared implementation index files are not promoted into per-flow start/completion times.
+- `stage-commit` is treated as governed completion evidence for implementation/refactor/qa stage-local commits.
+- `마무리 중` and `추가 진행` are implemented as `finishing` and `updating` statuses in Overview Progress and React Flow model.
 - Workflow Progress compact UI removes the bordered time/status box and uses caption typography.
 - Flow nodes expose hover/focus tooltip copy through locale keys.
 - Active/revision rail uses visible overflow and fixed visual sizing to avoid clipping while preserving click target.
@@ -115,6 +119,8 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 | CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/001_UPDATE_apps_dashboard_src_features_history_historyModel_ts.diff` | |
 | CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/002_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.diff` | |
 | CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/003_UPDATE_dashboard_core_workflow_telemetry_shared.diff` | |
+| CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` | |
+| CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/005_UPDATE_poggn_active_dashboard_workflow_overview_sync_topic_state.diff` | |
 | CREATE | `poggn/active/dashboard-workflow-overview-sync/reviews/code.review.md` | |
 | UPDATE | `packages/core/src/index.ts` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/003_UPDATE_dashboard_core_workflow_telemetry_shared.diff` |
 | UPDATE | `packages/core/dist/index.d.ts` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/003_UPDATE_dashboard_core_workflow_telemetry_shared.diff` |
@@ -125,9 +131,18 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 | UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/003_UPDATE_dashboard_core_workflow_telemetry_shared.diff` |
 | UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/001_UPDATE_apps_dashboard_src_features_history_historyModel_ts.diff` |
 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/002_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.diff` |
+| UPDATE | `poggn/active/dashboard-workflow-overview-sync/plan.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
+| UPDATE | `poggn/active/dashboard-workflow-overview-sync/task.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
+| UPDATE | `poggn/active/dashboard-workflow-overview-sync/spec/model/flow-timestamp-and-status-source.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
+| UPDATE | `poggn/active/dashboard-workflow-overview-sync/spec/model/revision-status-model.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
+| UPDATE | `poggn/active/dashboard-workflow-overview-sync/spec/telemetry/stage-progress-contract.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
+| UPDATE | `poggn/active/dashboard-workflow-overview-sync/spec/ui/compact-workflow-progress-surface.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
+| UPDATE | `poggn/active/dashboard-workflow-overview-sync/spec/i18n/workflow-progress-copy-and-tooltip.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
+| UPDATE | `poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
 | UPDATE | `poggn/active/dashboard-workflow-overview-sync/state/current.md` | |
-| UPDATE | `poggn/active/dashboard-workflow-overview-sync/state/history.ndjson` | |
-| UPDATE | `poggn/active/dashboard-workflow-overview-sync/workflow.reactflow.json` | |
+| UPDATE | `poggn/active/dashboard-workflow-overview-sync/state/dirty-worktree-baseline.txt` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/005_UPDATE_poggn_active_dashboard_workflow_overview_sync_topic_state.diff` |
+| UPDATE | `poggn/active/dashboard-workflow-overview-sync/state/history.ndjson` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/005_UPDATE_poggn_active_dashboard_workflow_overview_sync_topic_state.diff` |
+| UPDATE | `poggn/active/dashboard-workflow-overview-sync/workflow.reactflow.json` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/005_UPDATE_poggn_active_dashboard_workflow_overview_sync_topic_state.diff` |
 
 ## Last Expert Score
 
@@ -146,14 +161,14 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - additional clipping requirement captured: pass
 - additional revision status requirement captured: pass
 - compact caption and tooltip requirement captured: pass
-- reference image checked: `add-img/5.png`
+- reference image checked: `add-img/5.png`, `add-img/6.png`
 - density reference image checked: `add-img/1.png`
 - plan document review: pass
 - task document review: pass
 - spec files created: pass
-- `pnpm --filter @pgg/dashboard build`: pass
-- `pnpm --filter @pgg/core build`: pass
-- source check for telemetry/status/tooltip keys: pass
+- `pnpm build`: pass
+- `./.codex/sh/pgg-gate.sh pgg-code dashboard-workflow-overview-sync`: pass
+- source check for finishing/updating telemetry/status/tooltip keys: pass
 - source check for removed bordered time/status box pattern: pass
 
 ## Next Action

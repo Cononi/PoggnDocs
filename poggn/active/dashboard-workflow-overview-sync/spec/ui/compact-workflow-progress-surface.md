@@ -11,22 +11,22 @@ Workflow Progress를 `add-img/5.png`의 connector/status 정확도와 `add-img/1
 
 ## Reference Contract
 
-- connector/status reference: `add-img/5.png`
+- connector/status reference: `add-img/5.png`, follow-up gap reference: `add-img/6.png`
 - density reference: `add-img/1.png`
 - component는 기존 Overview 안의 Workflow Progress surface에 한정해 변경한다.
 
 ## Geometry Contract
 
 - circle visual size, connector offset, connector top을 단일 token 또는 계산식으로 맞춘다.
-- connector는 circle centerline에 놓이고 양쪽 circle edge에 자연스럽게 닿아야 한다.
+- connector는 circle centerline에 놓이고 양쪽 circle 중심 사이를 잇되 circle visual 뒤에 배치되어 edge에 빈틈 없이 닿아야 한다.
 - completed-to-completed connector는 solid green이다.
 - completed-to-pending connector는 muted dotted line이다.
-- active/revision connector는 각 상태 accent를 따른다.
+- active/finishing/update connector는 각 상태 accent를 따른다.
 - connector가 circle 위를 덮거나 circle에서 떨어져 보이지 않아야 한다.
 
 ## Active Safe Area Contract
 
-- active/generated/revision circle의 glow, pulse, focus outline은 상단이나 좌우에서 clipping되지 않아야 한다.
+- active/generated/finishing/update circle의 glow, pulse, focus outline은 상단이나 좌우에서 clipping되지 않아야 한다.
 - progress rail은 필요한 축에서 `overflow: visible` 또는 equivalent safe area를 둔다.
 - active animation은 layout box 크기를 바꾸지 않는다.
 - `prefers-reduced-motion`에서는 animation을 제거해도 상태 색/형태 구분이 유지된다.

@@ -483,8 +483,11 @@ function stageWeight(stage: string | null): number {
 
 function inferNodeStatus(node: WorkflowNode, topicStage: string | null): FlowStatus {
   const explicitStatus = node.data.status ?? node.data.detail?.status ?? "";
-  if (/revis|updated|revision/i.test(explicitStatus)) {
-    return "revising";
+  if (/revis|updated|revision|additional|updat(e|ing)|추가/i.test(explicitStatus)) {
+    return "updating";
+  }
+  if (/finish|finaliz|closing|wrap|마무리/i.test(explicitStatus)) {
+    return "finishing";
   }
   if (/done|complete|completed|reviewed|approved/i.test(explicitStatus)) {
     return "done";
@@ -640,8 +643,11 @@ export function getStatusColor(status: FlowStatus, theme: Theme): string {
   if (status === "done") {
     return theme.palette.success.main;
   }
-  if (status === "revising") {
+  if (status === "updating") {
     return theme.palette.secondary.main;
+  }
+  if (status === "finishing") {
+    return theme.palette.warning.main;
   }
   if (status === "current") {
     return theme.palette.primary.main;

@@ -112,9 +112,9 @@
         "detail": {
           "title": "Workflow Overview sync implementation",
           "sourcePath": "poggn/active/dashboard-workflow-overview-sync/implementation/index.md",
-          "updatedAt": "2026-04-24T16:59:44Z",
-          "completedAt": "2026-04-24T16:59:44Z",
-          "summary": "Implemented telemetry source, revision status, compact caption UI, tooltip, and i18n updates.",
+          "updatedAt": "2026-04-24T17:18:16Z",
+          "completedAt": "2026-04-24T17:18:16Z",
+          "summary": "Tightened connector geometry, split finishing/updating status, and constrained per-flow timestamp fallback.",
           "status": "completed"
         }
       },
@@ -131,8 +131,8 @@
         "detail": {
           "title": "Code expert review",
           "sourcePath": "poggn/active/dashboard-workflow-overview-sync/reviews/code.review.md",
-          "updatedAt": "2026-04-24T16:59:44Z",
-          "completedAt": "2026-04-24T16:59:44Z",
+          "updatedAt": "2026-04-24T17:18:16Z",
+          "completedAt": "2026-04-24T17:18:16Z",
           "status": "completed"
         }
       },

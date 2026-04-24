@@ -406,12 +406,20 @@ function HistoryOverview(props: {
               <WorkflowProgressChart
                 completed={progress.completed}
                 active={progress.active}
+                finishing={progress.finishing}
+                updating={progress.updating}
                 pending={progress.pending}
-                revising={progress.revising}
                 completion={progress.completion}
                 dictionary={props.dictionary}
               />
-              <WorkflowProgressCounts completed={progress.completed} active={progress.active} revising={progress.revising} pending={progress.pending} dictionary={props.dictionary} />
+              <WorkflowProgressCounts
+                completed={progress.completed}
+                active={progress.active}
+                finishing={progress.finishing}
+                updating={progress.updating}
+                pending={progress.pending}
+                dictionary={props.dictionary}
+              />
             </Stack>
           </Box>
         </Stack>
@@ -487,25 +495,31 @@ function workflowProgressTrackSx(stepCount: number) {
     minWidth: 0,
     px: { xs: 0, md: 0.4 },
     pt: { xs: 0.8, md: 1 },
-    overflow: "visible"
+    overflow: "visible",
+    isolation: "isolate"
   };
 }
 
 function buildProgressOverview(steps: WorkflowStep[]) {
   const completed = steps.filter((step) => step.status === "completed").length;
   const active = steps.filter(isActiveWorkflowStep).length;
-  const revising = steps.filter(isRevisingWorkflowStep).length;
+  const finishing = steps.filter(isFinishingWorkflowStep).length;
+  const updating = steps.filter(isUpdatingWorkflowStep).length;
   const pending = steps.filter((step) => step.status === "pending").length;
-  const current = steps.find((step) => step.status === "current" || step.status === "revising") ?? steps[0] ?? null;
+  const current =
+    steps.find((step) => step.status === "current" || step.status === "finishing" || step.status === "updating") ??
+    steps[0] ??
+    null;
 
   return {
     completed,
     active,
-    revising,
+    finishing,
+    updating,
     pending,
     current,
     completion: Math.round((completed / Math.max(steps.length, 1)) * 100),
-    position: Math.min(completed + active + revising, steps.length)
+    position: Math.min(completed + active + finishing + updating, steps.length)
   };
 }
 
@@ -556,8 +570,11 @@ function workflowStatusLabel(step: WorkflowStep, dictionary: DashboardLocale): s
   if (step.status === "completed") {
     return dictionary.workflowProgressStatusCompleted;
   }
-  if (isRevisingWorkflowStep(step)) {
-    return dictionary.workflowProgressStatusRevising;
+  if (isUpdatingWorkflowStep(step)) {
+    return dictionary.workflowProgressStatusUpdating;
+  }
+  if (isFinishingWorkflowStep(step)) {
+    return dictionary.workflowProgressStatusFinishing;
   }
   if (isActiveWorkflowStep(step)) {
     return dictionary.workflowProgressStatusCurrent;
@@ -567,7 +584,7 @@ function workflowStatusLabel(step: WorkflowStep, dictionary: DashboardLocale): s
 
 function workflowStepSurfaceLabel(step: WorkflowStep, dictionary: DashboardLocale): string {
   const status = workflowStatusLabel(step, dictionary);
-  if ((isActiveWorkflowStep(step) || isRevisingWorkflowStep(step)) && step.activeTaskIds.length) {
+  if ((isActiveWorkflowStep(step) || isFinishingWorkflowStep(step) || isUpdatingWorkflowStep(step)) && step.activeTaskIds.length) {
     return `${workflowFlowLabel(step.id, dictionary)} ${step.activeTaskIds.join(",")} ${status}`;
   }
   return status;
@@ -582,12 +599,20 @@ function workflowStepColors(theme: Theme, step: WorkflowStep) {
       shadow: alpha(theme.palette.success.main, 0.46)
     };
   }
-  if (isRevisingWorkflowStep(step)) {
+  if (isUpdatingWorkflowStep(step)) {
     return {
       main: theme.palette.secondary.main,
       soft: alpha(theme.palette.secondary.main, 0.24),
       border: alpha(theme.palette.secondary.light, 0.94),
       shadow: alpha(theme.palette.secondary.main, 0.56)
+    };
+  }
+  if (isFinishingWorkflowStep(step)) {
+    return {
+      main: theme.palette.warning.main,
+      soft: alpha(theme.palette.warning.main, 0.2),
+      border: alpha(theme.palette.warning.light, 0.9),
+      shadow: alpha(theme.palette.warning.main, 0.5)
     };
   }
   if (isActiveWorkflowStep(step)) {
@@ -612,9 +637,13 @@ function connectorSx(theme: Theme, step: WorkflowStep, nextStep: WorkflowStep | 
   }
 
   const nextIsActive = isActiveWorkflowStep(nextStep);
-  const nextIsRevising = isRevisingWorkflowStep(nextStep);
-  const color = nextIsRevising
+  const nextIsUpdating = isUpdatingWorkflowStep(nextStep);
+  const nextIsFinishing = isFinishingWorkflowStep(nextStep);
+  const nextIsLive = nextIsActive || nextIsFinishing || nextIsUpdating;
+  const color = nextIsUpdating
     ? theme.palette.secondary.main
+    : nextIsFinishing
+      ? theme.palette.warning.main
     : nextIsActive
     ? theme.palette.primary.main
     : step.status === "completed" && nextStep.status === "completed"
@@ -624,14 +653,16 @@ function connectorSx(theme: Theme, step: WorkflowStep, nextStep: WorkflowStep | 
   return {
     content: "\"\"",
     position: "absolute",
-    left: { xs: "calc(50% + 26px)", sm: "calc(50% + 28px)", md: "calc(50% + 30px)" },
-    right: { xs: "calc(-50% + 26px)", sm: "calc(-50% + 28px)", md: "calc(-50% + 30px)" },
-    top: { xs: 26, sm: 28, md: 30 },
+    left: "50%",
+    right: "-50%",
+    top: { xs: 32, sm: 34, md: 38 },
     height: 3,
     borderRadius: 999,
-    bgcolor: nextStep.status === "pending" && !nextIsActive && !nextIsRevising ? "transparent" : color,
-    borderTop: nextStep.status === "pending" && !nextIsActive && !nextIsRevising ? `3px dotted ${color}` : 0,
-    boxShadow: nextIsActive || nextIsRevising || step.status === "completed" ? `0 0 12px ${alpha(color, 0.42)}` : "none"
+    bgcolor: nextStep.status === "pending" && !nextIsLive ? "transparent" : color,
+    borderTop: nextStep.status === "pending" && !nextIsLive ? `3px dotted ${color}` : 0,
+    boxShadow: nextIsLive || step.status === "completed" ? `0 0 12px ${alpha(color, 0.42)}` : "none",
+    zIndex: 0,
+    pointerEvents: "none"
   };
 }
 
@@ -670,15 +701,15 @@ function WorkflowStepNode(props: {
             border: `2px solid ${colors.border}`,
             bgcolor: props.step.status === "pending" ? "#0b1729" : colors.soft,
             boxShadow: [
-              `0 0 0 4px ${alpha(colors.main, isActiveWorkflowStep(props.step) || isRevisingWorkflowStep(props.step) ? 0.2 : 0.1)}`,
+              `0 0 0 4px ${alpha(colors.main, isActiveWorkflowStep(props.step) || isFinishingWorkflowStep(props.step) || isUpdatingWorkflowStep(props.step) ? 0.2 : 0.1)}`,
               `0 0 22px ${colors.shadow}`,
-              isActiveWorkflowStep(props.step) || isRevisingWorkflowStep(props.step) ? `inset 0 0 16px ${alpha(colors.main, 0.32)}` : "none"
+              isActiveWorkflowStep(props.step) || isFinishingWorkflowStep(props.step) || isUpdatingWorkflowStep(props.step) ? `inset 0 0 16px ${alpha(colors.main, 0.32)}` : "none"
             ].join(", "),
             color: colors.main,
             textAlign: "center",
             position: "relative",
             zIndex: 2,
-            animation: isActiveWorkflowStep(props.step) || isRevisingWorkflowStep(props.step) ? "workflowPulse 1.9s ease-in-out infinite" : "none",
+            animation: isActiveWorkflowStep(props.step) || isFinishingWorkflowStep(props.step) || isUpdatingWorkflowStep(props.step) ? "workflowPulse 1.9s ease-in-out infinite" : "none",
             "&:focus-visible": {
               outline: `2px solid ${alpha(colors.main, 0.72)}`,
               outlineOffset: 3
@@ -694,8 +725,10 @@ function WorkflowStepNode(props: {
         >
           {props.step.status === "completed" ? (
             <CheckRounded sx={{ fontSize: { xs: 24, md: 28 } }} />
-          ) : isRevisingWorkflowStep(props.step) ? (
+          ) : isUpdatingWorkflowStep(props.step) ? (
             <DifferenceRounded sx={{ fontSize: { xs: 23, md: 27 } }} />
+          ) : isFinishingWorkflowStep(props.step) ? (
+            <AutoGraphRounded sx={{ fontSize: { xs: 23, md: 27 } }} />
           ) : isActiveWorkflowStep(props.step) ? (
             <CodeRounded sx={{ fontSize: { xs: 23, md: 27 } }} />
           ) : (
@@ -712,7 +745,7 @@ function WorkflowStepNode(props: {
           minHeight: 30,
           maxWidth: 116,
           color: props.step.status === "completed" ? alpha("#f8fbff", 0.78) : props.step.status === "pending" ? alpha("#d7deea", 0.74) : colors.main,
-          fontWeight: isActiveWorkflowStep(props.step) || isRevisingWorkflowStep(props.step) ? 800 : 650,
+          fontWeight: isActiveWorkflowStep(props.step) || isFinishingWorkflowStep(props.step) || isUpdatingWorkflowStep(props.step) ? 800 : 650,
           lineHeight: 1.18,
           textAlign: "center",
           overflowWrap: "anywhere"
@@ -728,20 +761,25 @@ function isActiveWorkflowStep(step: WorkflowStep): boolean {
   return step.status === "current";
 }
 
-function isRevisingWorkflowStep(step: WorkflowStep): boolean {
-  return step.status === "revising";
+function isFinishingWorkflowStep(step: WorkflowStep): boolean {
+  return step.status === "finishing";
 }
 
-function buildProgressChartData(theme: Theme, dictionary: DashboardLocale, counts: { completed: number; active: number; revising: number; pending: number }) {
+function isUpdatingWorkflowStep(step: WorkflowStep): boolean {
+  return step.status === "updating";
+}
+
+function buildProgressChartData(theme: Theme, dictionary: DashboardLocale, counts: { completed: number; active: number; finishing: number; updating: number; pending: number }) {
   return [
     { id: "completed", value: counts.completed, label: dictionary.workflowProgressStatusCompleted, color: theme.palette.success.main },
     { id: "active", value: counts.active, label: dictionary.workflowProgressStatusCurrent, color: theme.palette.primary.main },
-    { id: "revising", value: counts.revising, label: dictionary.workflowProgressStatusRevising, color: theme.palette.secondary.main },
+    { id: "finishing", value: counts.finishing, label: dictionary.workflowProgressStatusFinishing, color: theme.palette.warning.main },
+    { id: "updating", value: counts.updating, label: dictionary.workflowProgressStatusUpdating, color: theme.palette.secondary.main },
     { id: "pending", value: counts.pending, label: dictionary.workflowProgressStatusPending, color: alpha("#94a3b8", 0.72) }
   ].filter((item) => item.value > 0);
 }
 
-function WorkflowProgressChart(props: { completed: number; active: number; revising: number; pending: number; completion: number; dictionary: DashboardLocale }) {
+function WorkflowProgressChart(props: { completed: number; active: number; finishing: number; updating: number; pending: number; completion: number; dictionary: DashboardLocale }) {
   const theme = useTheme();
   const data = buildProgressChartData(theme, props.dictionary, props);
 
@@ -776,16 +814,17 @@ function WorkflowProgressChart(props: { completed: number; active: number; revis
   );
 }
 
-function buildProgressCountItems(theme: Theme, dictionary: DashboardLocale, counts: { completed: number; active: number; revising: number; pending: number }) {
+function buildProgressCountItems(theme: Theme, dictionary: DashboardLocale, counts: { completed: number; active: number; finishing: number; updating: number; pending: number }) {
   return [
     { id: "done", color: theme.palette.success.main, value: counts.completed, label: dictionary.workflowProgressCountCompleted },
     { id: "active", color: theme.palette.primary.main, value: counts.active, label: dictionary.workflowProgressCountCurrent },
-    { id: "revising", color: theme.palette.secondary.main, value: counts.revising, label: dictionary.workflowProgressCountRevising },
+    { id: "finishing", color: theme.palette.warning.main, value: counts.finishing, label: dictionary.workflowProgressCountFinishing },
+    { id: "updating", color: theme.palette.secondary.main, value: counts.updating, label: dictionary.workflowProgressCountUpdating },
     { id: "waiting", color: alpha("#94a3b8", 0.9), value: counts.pending, label: dictionary.workflowProgressCountPending }
-  ].filter((item) => item.value > 0 || item.id !== "revising");
+  ].filter((item) => item.value > 0 || (item.id !== "finishing" && item.id !== "updating"));
 }
 
-function WorkflowProgressCounts(props: { completed: number; active: number; revising: number; pending: number; dictionary: DashboardLocale }) {
+function WorkflowProgressCounts(props: { completed: number; active: number; finishing: number; updating: number; pending: number; dictionary: DashboardLocale }) {
   const theme = useTheme();
   const counts = buildProgressCountItems(theme, props.dictionary, props);
 

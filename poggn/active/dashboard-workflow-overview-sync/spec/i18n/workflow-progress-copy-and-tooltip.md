@@ -2,7 +2,7 @@
 
 ## 목적
 
-Workflow Progress의 status, count/legend, revision state, tooltip 문구를 locale dictionary로 관리한다.
+Workflow Progress의 status, count/legend, finishing/update state, tooltip 문구를 locale dictionary로 관리한다.
 
 ## 대상
 
@@ -13,18 +13,20 @@ Workflow Progress의 status, count/legend, revision state, tooltip 문구를 loc
 
 한국어 visible copy:
 
-- `진행 전`
+- `시작 전`
 - `생성 중`
-- `추가 요소 반영 중`
+- `마무리 중`
 - `완료`
+- `추가 진행`
 - `<Flow> 진행 상태 확인 가능`
 
 영어 fallback:
 
 - `Not started`
 - `Generating`
-- `Applying updates`
+- `Finishing`
 - `Completed`
+- `Additional updates`
 - `<Flow> status details available`
 
 ## Dictionary Contract
@@ -36,13 +38,13 @@ Workflow Progress의 status, count/legend, revision state, tooltip 문구를 loc
 
 ## 금지
 
-- `Pending`, `In Progress`, `Completed`, `Done`, `Active`, `Waiting`, `Applying updates` 같은 visible surface copy를 component에 hardcode하지 않는다.
+- `Pending`, `In Progress`, `Completed`, `Done`, `Active`, `Waiting`, `Finishing`, `Additional updates` 같은 visible surface copy를 component에 hardcode하지 않는다.
 - 한국어/영어 중 한쪽 locale만 추가하지 않는다.
 - status copy와 pgg internal stage name을 혼동하지 않는다.
 
 ## Acceptance
 
-- 한국어 UI에서 status는 `진행 전`, `생성 중`, `추가 요소 반영 중`, `완료`로 보인다.
+- 한국어 UI에서 status는 `시작 전`, `생성 중`, `마무리 중`, `완료`, `추가 진행`으로 보인다.
 - Plan tooltip은 `Plan 진행 상태 확인 가능` 또는 flow label locale을 반영한 equivalent로 보인다.
 - 영어 UI fallback도 깨지지 않는다.
 - source search로 Workflow Progress visible copy hardcoding이 남지 않았음을 확인할 수 있다.

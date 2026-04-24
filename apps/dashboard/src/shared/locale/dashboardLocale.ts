@@ -22,14 +22,17 @@ export function resolveDashboardStageLabel(stage: string | null, dictionary: Rec
 }
 
 export function resolveDashboardFlowStatusLabel(
-  status: "done" | "current" | "revising" | "upcoming",
+  status: "done" | "current" | "finishing" | "updating" | "upcoming",
   dictionary: Record<string, string>
 ): string {
   if (status === "done") {
     return dictionary.flowDone;
   }
-  if (status === "revising") {
-    return dictionary.flowRevising;
+  if (status === "finishing") {
+    return dictionary.flowFinishing;
+  }
+  if (status === "updating") {
+    return dictionary.flowUpdating;
   }
   if (status === "current") {
     return dictionary.flowCurrent;
@@ -292,16 +295,19 @@ export const dashboardLocale = {
     statusDone: "완료",
     flowDone: "완료",
     flowCurrent: "현재",
-    flowRevising: "추가 반영",
+    flowFinishing: "마무리 중",
+    flowUpdating: "추가 진행",
     flowUpcoming: "예정",
-    workflowProgressStatusPending: "진행 전",
+    workflowProgressStatusPending: "시작 전",
     workflowProgressStatusCurrent: "생성 중",
-    workflowProgressStatusRevising: "추가 요소 반영 중",
+    workflowProgressStatusFinishing: "마무리 중",
+    workflowProgressStatusUpdating: "추가 진행",
     workflowProgressStatusCompleted: "완료",
     workflowProgressCountCompleted: "완료",
     workflowProgressCountCurrent: "생성 중",
-    workflowProgressCountRevising: "추가 반영",
-    workflowProgressCountPending: "진행 전",
+    workflowProgressCountFinishing: "마무리 중",
+    workflowProgressCountUpdating: "추가 진행",
+    workflowProgressCountPending: "시작 전",
     workflowProgressCompletedSummary: "완료",
     workflowProgressTooltip: "진행 상태 확인 가능",
     workflowProgressFlowAdd: "Add",
@@ -618,15 +624,18 @@ export const dashboardLocale = {
     statusDone: "DONE",
     flowDone: "done",
     flowCurrent: "current",
-    flowRevising: "updating",
+    flowFinishing: "finishing",
+    flowUpdating: "updating",
     flowUpcoming: "upcoming",
     workflowProgressStatusPending: "Not started",
     workflowProgressStatusCurrent: "Generating",
-    workflowProgressStatusRevising: "Applying updates",
+    workflowProgressStatusFinishing: "Finishing",
+    workflowProgressStatusUpdating: "Additional updates",
     workflowProgressStatusCompleted: "Completed",
     workflowProgressCountCompleted: "Completed",
     workflowProgressCountCurrent: "Generating",
-    workflowProgressCountRevising: "Updating",
+    workflowProgressCountFinishing: "Finishing",
+    workflowProgressCountUpdating: "Additional updates",
     workflowProgressCountPending: "Not started",
     workflowProgressCompletedSummary: "completed",
     workflowProgressTooltip: "status details available",
