@@ -6,7 +6,7 @@ dashboard-workflow-overview-sync
 
 ## Current Stage
 
-refactor
+qa
 
 ## Goal
 
@@ -16,6 +16,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 추가로 4상태 flow 규격을 `pgg init/update` 생성물인 AGENTS, WOKR-FLOW, STATE-CONTRACT에 배포했다.
 추가로 dashboard 화면의 active flow label을 전역 계약과 맞춰 `진행 중`으로 표시하도록 정리했다.
 리팩터링으로 unresolved flow index 계산과 generated flow status contract 문자열을 공통 helper로 정리했다.
+QA에서 gate, build, source-level acceptance review를 통과했고, declared current-project verification contract가 없어 browser/screenshot check는 manual verification required로 기록했다.
 
 ## Document Refs
 
@@ -28,6 +29,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - implementation index: `poggn/active/dashboard-workflow-overview-sync/implementation/index.md`
 - code review: `poggn/active/dashboard-workflow-overview-sync/reviews/code.review.md`
 - refactor review: `poggn/active/dashboard-workflow-overview-sync/reviews/refactor.review.md`
+- qa report: `poggn/active/dashboard-workflow-overview-sync/qa/report.md`
 - spec:
   - `poggn/active/dashboard-workflow-overview-sync/spec/model/flow-timestamp-and-status-source.md`
   - `poggn/active/dashboard-workflow-overview-sync/spec/model/revision-status-model.md`
@@ -129,6 +131,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - The active/current status label now displays `진행 중` / `In progress` instead of the older generation wording.
 - Refactor keeps behavior unchanged while centralizing repeated unresolved active/updating flow selection in `historyModel.ts`.
 - Refactor keeps generated file output unchanged while centralizing ko/en flow status contract strings in `packages/core/src/templates.ts`.
+- QA pass is based on pgg gate, latest workspace build, source-level visual/model/telemetry/i18n checks, and required audit applicability; pixel-level browser comparison remains manual because no automated verification contract is declared.
 
 ## User Question Record
 
@@ -237,16 +240,19 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 | UPDATE | `poggn/active/dashboard-workflow-overview-sync/state/dirty-worktree-baseline.txt` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/005_UPDATE_poggn_active_dashboard_workflow_overview_sync_topic_state.diff` |
 | UPDATE | `poggn/active/dashboard-workflow-overview-sync/state/history.ndjson` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/005_UPDATE_poggn_active_dashboard_workflow_overview_sync_topic_state.diff` |
 | UPDATE | `poggn/active/dashboard-workflow-overview-sync/workflow.reactflow.json` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/005_UPDATE_poggn_active_dashboard_workflow_overview_sync_topic_state.diff` |
+| CREATE | `poggn/active/dashboard-workflow-overview-sync/qa/report.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/013_CREATE_qa_report_and_archive_records.diff` |
+| UPDATE | `poggn/active/dashboard-workflow-overview-sync/state/current.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/013_CREATE_qa_report_and_archive_records.diff` |
+| UPDATE | `poggn/active/dashboard-workflow-overview-sync/state/history.ndjson` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/013_CREATE_qa_report_and_archive_records.diff` |
 
 ## Last Expert Score
 
-- phase: refactor
+- phase: qa
 - score: 96
 - blocking issues: none
 
 ## Open Items
 
-- status: ready_for_qa
+- status: ready_for_archive
 
 ## Verification
 
@@ -284,6 +290,11 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - `node packages/cli/dist/index.js update`: pass; unchanged after template helper refactor
 - `./.codex/sh/pgg-gate.sh pgg-refactor dashboard-workflow-overview-sync`: pass
 - source check for shared unresolved flow index helper and generated flow status rule helpers: pass
+- `./.codex/sh/pgg-gate.sh pgg-qa dashboard-workflow-overview-sync`: pass
+- `pnpm build`: pass
+- QA source review for status model, connector geometry, compact caption, tab shape, metadata row, locale keys, and generated workflow contract: pass
+- required audit applicability: pass; `pgg-token` and `pgg-performance` are `not_required`
+- browser/screenshot visual verification: manual verification required; no declared automated current-project verification contract
 - source check for edge-to-edge connector geometry and removed internal connector: pass
 - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
 - source check for connector gap-inclusive end offset and circle-radius top alignment: pass
@@ -305,7 +316,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 
 ## Next Action
 
-`pgg-qa`
+`pgg-archive`
 
 ## Git Publish Message
 
