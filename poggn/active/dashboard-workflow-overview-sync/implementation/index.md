@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T19:16:53Z"
+  updated_at: "2026-04-24T19:22:20Z"
   auto_mode: "on"
   archive_type: "fix"
   version_bump: "patch"
@@ -48,7 +48,7 @@ state:
 - Priority ignores non-blocking placeholder values such as `none` and uses score/workflow context as helper copy.
 - Overview, Timeline, and Relations content now renders inside the same tab panel surface as the topic header/tabs instead of detached sibling cards.
 - Overview tabs now remove the tab-group box and header/content divider; inactive tabs are text-only and the selected tab blends into the content panel.
-- Selected tab now sits flush with the panel edge, and the panel top-line segments overlap the selected tab side borders by 2px so the outline does not break.
+- Selected tab now sits flush with the panel edge, and the panel top-line segments overlap the selected tab side borders by 4px so the outline does not break or sit too far right.
 - Selected tab and its content panel now share one framed surface while inactive tabs remain unboxed text controls.
 - Selected tabs now use the `add-img/9.png` tab shape with rounded top corners, top/side border, matching panel fill, and no bottom border.
 - History tabs now use a custom `ButtonBase` tablist instead of MUI `Tabs`/`Tab`, removing the built-in selected underline entirely.
@@ -56,6 +56,8 @@ state:
 - Content panel top border is retained except for the selected-tab segment, which is masked by the selected tab/panel fill.
 - New follow-up requests now append `requirements-added` before completion evidence so a live dashboard refresh can show Code as `추가 진행` during the conversation.
 - `.codex/add/WOKR-FLOW.md` now requires this `requirements-added` first rule for future topics, not only this topic.
+- Dashboard completion evidence now ignores unverified `stage-completed`; actual completion requires governed `stage-commit` or verified/final `stage-completed` so work-in-progress follow-ups do not flip to `완료` too early.
+- `.codex/add/WOKR-FLOW.md` now requires in-progress work to use `stage-progress` and reserves `stage-completed` for verified final completion.
 - Status/Workflow Stage/Priority/Created/Updated metadata card bar now sits under the workflow rail inside Workflow Progress.
 - ko/en locale copy was updated for generated/current, update, count, and tooltip labels.
 - Restored the Workflow Progress header icon import and migrated compact Drawer paper styling from `PaperProps` to `slotProps.paper` to remove runtime console errors.
@@ -129,6 +131,7 @@ state:
 - source check for unified tab panel surface wrapping Overview, Timeline, and Relations content: pass
 - source check for borderless text-only inactive tabs and selected-tab panel blending: pass
 - source check for selected-tab flush edge alignment and no active-tab bottom line: pass
+- source check for 4px selected-tab line overlap and verified/final completion evidence gating: pass
 - source check for metadata card bar under the workflow rail: pass
 - source check for `workflowProgressTooltip`, `historyEvents`, `stage-started`, `stage-commit`: pass
 - source check for removed `minHeight: 48` bordered time/status box pattern: pass

@@ -1,31 +1,38 @@
 diff --git a/apps/dashboard/src/features/history/historyModel.ts b/apps/dashboard/src/features/history/historyModel.ts
-index 348f1dc..da99ea9 100644
+index da99ea9..da3ef4f 100644
 --- a/apps/dashboard/src/features/history/historyModel.ts
 +++ b/apps/dashboard/src/features/history/historyModel.ts
-@@ -679,8 +679,25 @@ export function buildWorkflowSteps(topic: TopicSummary, language: HistoryLanguag
-       updatingAt: flowUpdatingTimestamp(topic, flow, timestamps.completedAt.value)
-     };
-   });
-+  const unresolvedRevisionEntries = entries.filter((entry) => {
-+    if (!entry.updatingAt) {
-+      return false;
-+    }
+@@ -494,6 +494,18 @@ function isRevisionEvent(event: TopicHistoryEventEntry): boolean {
+   return eventNameMatches(event, [/updated$/i, /revised$/i, /requirements-added/i]);
+ }
+ 
++function isCompletionEvent(event: TopicHistoryEventEntry): boolean {
++  if (eventNameMatches(event, [/stage-commit/i, /reviewed$/i, /archived$/i])) {
++    return true;
++  }
 +
-+    return !entries.some((candidate) => {
-+      if (candidate.index <= entry.index) {
-+        return false;
-+      }
-+      const laterEvidence = latestEvidence([
-+        candidate.timestamps.startedAt,
-+        candidate.timestamps.updatedAt,
-+        candidate.timestamps.completedAt
-+      ]).value;
-+      return compareTimestamps(laterEvidence, entry.updatingAt) > 0;
-+    });
-+  });
-   const updatingIndex = entries
--    .filter((entry) => entry.updatingAt)
-+    .filter((entry) => unresolvedRevisionEntries.includes(entry))
-     .sort((left, right) => compareTimestamps(left.updatingAt, right.updatingAt) || left.index - right.index)
-     .at(-1)?.index;
-   const effectiveCurrentIndex = updatingIndex ?? currentIndex;
++  if (!eventNameMatches(event, [/stage-completed/i])) {
++    return false;
++  }
++
++  return /verified|final|gate|qa|검증|최종/i.test(event.source ?? "");
++}
++
+ function flowRevisionEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition): TimestampEvidence[] {
+   const eventEvidence = flowHistoryEvents(topic, flow)
+     .filter((event) => event.ts && isRevisionEvent(event))
+@@ -590,7 +602,13 @@ function flowTimestampBundle(topic: TopicSummary, flow: WorkflowFlowDefinition):
+   const events = flowHistoryEvents(topic, flow);
+   const startEvents = timestampEvidenceFromEvents(events, [/stage-started/i, /topic-created/i], "state/history.ndjson");
+   const progressEvents = timestampEvidenceFromEvents(events, [/stage-progress/i, /stage-revised/i, /updated$/i, /requirements-added/i], "state/history.ndjson");
+-  const completeEvents = timestampEvidenceFromEvents(events, [/stage-completed/i, /stage-commit/i, /reviewed$/i, /archived$/i], "state/history.ndjson");
++  const completeEvents = events
++    .filter((event) => event.ts && isCompletionEvent(event))
++    .map((event) => ({
++      value: event.ts,
++      confidence: "high" as const,
++      source: `state/history.ndjson:${event.event ?? "event"}`
++    }));
+   const fileEvidence = fileTimestampEvidence(files);
+   const doneEvidence = flow.id === "done" ? [{ value: topic.archivedAt, confidence: "high" as const, source: "archive" }] : [];
+   const topicFallback =

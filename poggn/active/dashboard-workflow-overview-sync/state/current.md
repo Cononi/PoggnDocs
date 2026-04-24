@@ -55,7 +55,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - Flow time must be modeled as separate `startedAt`, `completedAt`, and `updatedAt` values.
 - Dashboard must not reuse the topic-wide `updatedAt` as the completed time for multiple different flows.
 - Stage-specific telemetry is required for accurate AI progress reflection. UI-only changes cannot guarantee mid-stage dashboard recognition.
-- pgg stages should record `stage-started`, `stage-progress`, and `stage-completed` events in `state/history.ndjson`.
+- pgg stages should record `stage-started`, `stage-progress`, and only verified/final `stage-completed` events in `state/history.ndjson`.
 - `workflow.reactflow.json` node detail/status should expose stage status and timestamps where available.
 - Dashboard Overview Progress should prefer telemetry events and workflow node detail timestamps over broad artifact fallback.
 - User-facing statuses are `시작 전`, `생성 중`, `완료`, `추가 진행`, rendered via locale keys.
@@ -96,10 +96,12 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - Selected tab should match `add-img/9.png`: rounded top corners, visible top/side border, matching panel fill, and no bottom border.
 - History tabs use custom `ButtonBase` tabs instead of MUI `Tabs`/`Tab`, so no built-in selected underline can appear.
 - Selected tab and content panel outline must use the same thickness/color and read as one continuous path.
-- Selected tab sits flush with the content panel edge, and panel top-line segments overlap the selected tab side borders by 2px to prevent visible connection gaps.
+- Selected tab sits flush with the content panel edge, and panel top-line segments overlap the selected tab side borders by 4px to prevent visible connection gaps or right-shifted line starts.
 - Content panel top border remains visible except under the selected tab segment, where the selected tab connects to the panel.
 - New dialogue requirements should append `requirements-added` before completion evidence so live dashboard refresh can show the current flow as `추가 진행`.
 - This `requirements-added` first rule is a global pgg workflow rule for future active topics, not a one-off behavior for this topic.
+- During implementation, unverified `stage-completed` must not resolve `추가 진행`; dashboard completion requires `stage-commit` or verified/final `stage-completed`.
+- Work-in-progress follow-ups should be recorded as `stage-progress`, not `stage-completed`, until verification and commit are done.
 - Workflow Progress compact UI removes the bordered time/status box and uses caption typography.
 - Flow nodes expose hover/focus tooltip copy through locale keys.
 - Active/revision rail uses visible overflow and fixed visual sizing to avoid clipping while preserving click target.
@@ -125,6 +127,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - `죄송합니다. tap 모양이 전혀 아닙니다. add-img의 9.png 처럼 수정해야합니다. 그리고 실시간으로 플로우 보여주는 기능이 있다면 분명 이 대화로 인해 flow의 상태가 변해야 합니다.`
 - `앞으로 플로우 처리는 다른 토픽 도 마찬가지고 전부 이렇게 되야 합니다. 그리고 add-img의 9.png 이미지 다시 보세요 경계선이 있나요? 전혀 다른 디자인입니다. 다시 해주세요.`
 - `탭 기능을 보세요. 9.png와 전혀 다릅니다. 라인 자체도 여전히 이어지지 않았고 탭의 하단에 셀렉트로 인한 라인도 살아 있습니다. 모습이 같습니까?`
+- `탭의 선이 완벽하게 이어지지 않고 있습니다. 왼쪽으로 조금 더 가야 딱 맞을거 같습니다. 그리고 워크플로우에서 추가 사항은 좋으나, 작업이 끝나기 전인에 너무 빨리 작업 완료 처리로 상태를 바꾸는거 같습니다.`
 
 ## Audit Applicability
 
@@ -226,6 +229,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - source check for unified tab panel surface wrapping Overview, Timeline, and Relations content: pass
 - source check for borderless text-only inactive tabs and selected-tab panel blending: pass
 - source check for selected-tab flush edge alignment and no active-tab bottom line: pass
+- source check for 4px selected-tab line overlap and verified/final completion evidence gating: pass
 - source check for metadata card bar under the workflow rail: pass
 
 ## Next Action

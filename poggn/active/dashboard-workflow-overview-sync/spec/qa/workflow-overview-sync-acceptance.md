@@ -46,7 +46,8 @@ Workflow Overview sync 변경의 visual, model, telemetry, i18n, accessibility a
 
 ## Telemetry Acceptance
 
-- `stage-started`, `stage-progress`, `stage-completed`, `stage-commit` event를 dashboard model source로 사용할 수 있다.
+- `stage-started`, `stage-progress`, verified/final `stage-completed`, `stage-commit` event를 dashboard model source로 사용할 수 있다.
+- 검증 전 `stage-completed`는 완료 처리하지 않고 `stage-commit` 또는 verified/final completion evidence가 들어오기 전까지 `추가 진행`/`생성 중` 계열 상태를 유지한다.
 - `proposal-updated`, `plan-updated`, `task-updated`, `stage-revised`, `requirements-added` 계열 event는 update status source가 될 수 있다.
 - `workflow.reactflow.json` node detail timestamps는 broad fallback보다 우선한다.
 - telemetry가 없는 과거 topic은 dashboard가 깨지지 않고 conservative fallback을 사용한다.

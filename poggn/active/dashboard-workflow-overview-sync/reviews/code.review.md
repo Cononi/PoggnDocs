@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T19:16:53Z"
+  updated_at: "2026-04-24T19:22:20Z"
 ---
 
 # code.review
@@ -32,9 +32,11 @@ pgg:
 | UI 통합 리뷰어 | 96 | 탭 그룹 전체가 아니라 선택 탭과 content panel만 같은 border/background surface를 공유하게 했다. 비선택 탭은 transparent text-only 상태로 유지된다. | none |
 | 상태 모델 리뷰어 | 96 | Add의 과거 `proposal-updated`처럼 이미 후속 flow 진행/완료로 해소된 revision 후보는 `추가 진행`으로 유지하지 않도록 later flow evidence 비교를 추가했다. | none |
 | UI 통합 리뷰어 | 96 | `add-img/9.png` 기준으로 선택 탭에 rounded top, top/side border, panel fill, bottom-line gap을 적용했다. 비선택 탭은 박스 없이 유지된다. | none |
-| 상태 모델 리뷰어 | 96 | 이번 대화의 `requirements-added`를 완료 evidence보다 먼저 기록해 dashboard refresh 시 Code flow가 즉시 `추가 진행`으로 바뀔 수 있게 했다. 완료 시에는 `stage-completed`/`stage-commit`이 상태를 해소한다. | none |
+| 상태 모델 리뷰어 | 96 | 이번 대화의 `requirements-added`를 완료 evidence보다 먼저 기록해 dashboard refresh 시 Code flow가 즉시 `추가 진행`으로 바뀔 수 있게 했다. 완료 시에는 verified/final `stage-completed` 또는 `stage-commit`이 상태를 해소한다. | none |
 | 워크플로우 계약 리뷰어 | 96 | 모든 active topic에서 follow-up 요구가 들어오면 stage 작업 전 `requirements-added`를 먼저 append하도록 `.codex/add/WOKR-FLOW.md` 규칙을 보강했다. | none |
 | UI 통합 리뷰어 | 96 | MUI `Tabs`/`Tab`을 제거하고 `ButtonBase` 기반 `tablist`로 교체해 built-in selected underline을 없앴다. 선택 탭과 panel은 같은 2px outline으로 이어진다. | none |
+| UI 정렬 리뷰어 | 96 | 선택 탭과 panel top-line segment의 겹침을 4px로 늘려 오른쪽에 남는 미세한 끊김을 왼쪽으로 보정했다. | none |
+| 상태 모델 리뷰어 | 96 | unverified `stage-completed`를 completion evidence에서 제외하고, governed `stage-commit` 또는 verified/final `stage-completed`만 완료로 계산하게 해 작업 중 추가 요구가 너무 빨리 `완료`로 바뀌지 않게 했다. | none |
 
 ## Findings
 
@@ -64,6 +66,7 @@ pgg:
 - source check for unified tab panel surface wrapping Overview, Timeline, and Relations content: pass
 - source check for borderless text-only inactive tabs and selected-tab panel blending: pass
 - source check for selected-tab flush edge alignment and no active-tab bottom line: pass
+- source check for 4px selected-tab line overlap and verified/final completion evidence gating: pass
 - source check for metadata card bar under the workflow rail: pass
 
 ## Residual Risks

@@ -101,6 +101,7 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
   const historyTabHeight = { xs: 42, sm: 50 };
   const historyTabGap = 2;
   const historyTabInset = 12;
+  const historyTabLineOverlap = 4;
   const historyTabMaskLeft = {
     xs: `${historyTabInset + historyTabIndex * (98 + historyTabGap)}px`,
     sm: `${historyTabInset + historyTabIndex * (128 + historyTabGap)}px`
@@ -251,8 +252,8 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
                 top: 0,
                 left: 0,
                 width: {
-                  xs: `calc(${historyTabMaskLeft.xs} + 2px)`,
-                  sm: `calc(${historyTabMaskLeft.sm} + 2px)`
+                  xs: `calc(${historyTabMaskLeft.xs} + ${historyTabLineOverlap}px)`,
+                  sm: `calc(${historyTabMaskLeft.sm} + ${historyTabLineOverlap}px)`
                 },
                 height: 2,
                 bgcolor: historyPanelBorder,
@@ -263,8 +264,8 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
                 position: "absolute",
                 top: 0,
                 left: {
-                  xs: `calc(${historyTabMaskRight.xs} - 2px)`,
-                  sm: `calc(${historyTabMaskRight.sm} - 2px)`
+                  xs: `calc(${historyTabMaskRight.xs} - ${historyTabLineOverlap}px)`,
+                  sm: `calc(${historyTabMaskRight.sm} - ${historyTabLineOverlap}px)`
                 },
                 right: 0,
                 height: 2,

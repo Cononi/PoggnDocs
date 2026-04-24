@@ -22,6 +22,8 @@ AI/pgg 작업 진행이 dashboard Workflow Progress와 Workflow/React Flow surfa
   - fields: `ts`, `stage`, `event`, optional `flow`, `task`, `summary`, `source`
 - `stage-completed`
   - fields: `ts`, `stage`, `event`, optional `flow`, `task`, `summary`, `source`
+  - 검증 전 중간 완료처럼 보이는 작업 정리 이벤트에는 사용하지 않는다.
+  - `stage-completed`가 completion evidence로 쓰이려면 `source`가 `verified`, `final`, `gate`, `qa`, `검증`, `최종` 계열이어야 한다.
 - `stage-commit`
   - fields: `ts`, `stage`, `event`, optional `flow`, `task`, `summary`, `source`, `commitTitle`
 - `stage-revised` 또는 stage-specific update event
@@ -58,7 +60,7 @@ AI/pgg 작업 진행이 dashboard Workflow Progress와 Workflow/React Flow surfa
 
 ## Acceptance
 
-- `stage-started`, `stage-progress`, `stage-completed`, `stage-commit` event가 있으면 Overview Progress에 시작/진행/완료 상태와 시간이 반영된다.
+- `stage-started`, `stage-progress`, verified/final `stage-completed`, `stage-commit` event가 있으면 Overview Progress에 시작/진행/완료 상태와 시간이 반영된다.
 - `proposal-updated`, `requirements-added`, 또는 `stage-revised` event가 있으면 update status source가 될 수 있다.
-- 새 대화/요구가 들어온 시점에는 `requirements-added`가 먼저 기록되고, 작업 완료 시점의 `stage-completed` 또는 `stage-commit`이 그 update status를 해소한다.
+- 새 대화/요구가 들어온 시점에는 `requirements-added`가 먼저 기록되고, 검증 완료 시점의 verified/final `stage-completed` 또는 governed `stage-commit`이 그 update status를 해소한다.
 - Workflow/React Flow surface와 Overview Progress가 서로 다른 status를 보여 주지 않는다.
