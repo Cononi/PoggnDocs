@@ -6,11 +6,11 @@ dashboard-overview-workflow-progress
 
 ## Current Stage
 
-implementation
+refactor
 
 ## Goal
 
-Project Workflow Overview 탭의 Status, Workflow Progress, Activity Summary 개선을 구현하고 implementation diff와 code review를 기록했다.
+Project Workflow Overview 탭 구현의 helper 구조와 render 책임을 정리하고 refactor review를 기록했다.
 
 ## Document Refs
 
@@ -22,6 +22,7 @@ Project Workflow Overview 탭의 Status, Workflow Progress, Activity Summary 개
 - task review: `poggn/active/dashboard-overview-workflow-progress/reviews/task.review.md`
 - implementation index: `poggn/active/dashboard-overview-workflow-progress/implementation/index.md`
 - code review: `poggn/active/dashboard-overview-workflow-progress/reviews/code.review.md`
+- refactor review: `poggn/active/dashboard-overview-workflow-progress/reviews/refactor.review.md`
 - spec:
   - `poggn/active/dashboard-overview-workflow-progress/spec/model/overview-flow-model.md`
   - `poggn/active/dashboard-overview-workflow-progress/spec/model/flow-completion-and-detail.md`
@@ -54,6 +55,7 @@ Project Workflow Overview 탭의 Status, Workflow Progress, Activity Summary 개
 - Activity Summary는 선택된 topic의 실제 artifact/file/review/qa/workflow 정보에서 계산한다.
 - spec boundary는 flow model, completion/detail derivation, Progress UI/modal, Mui Chart, Activity Summary, visual/regression QA 여섯 축으로 고정한다.
 - implementation은 `historyModel.ts`에 flow/status/detail/activity 계산을 모으고 `HistoryWorkspace.tsx`는 렌더링과 Dialog/Mui Chart만 담당하도록 분리했다.
+- refactor는 `historyModel.ts`의 긴 indexed access 타입, 날짜 정렬, file count formatting을 helper로 빼고, `HistoryWorkspace.tsx`의 progress count와 step color 계산을 helper로 분리했다.
 - build verification은 `pnpm --filter @pgg/dashboard build`로 통과했다.
 
 ## User Question Record
@@ -91,23 +93,27 @@ Project Workflow Overview 탭의 Status, Workflow Progress, Activity Summary 개
 - CREATE `poggn/active/dashboard-overview-workflow-progress/implementation/index.md`
 - CREATE `poggn/active/dashboard-overview-workflow-progress/implementation/diffs/001_UPDATE_apps_dashboard_src_features_history_historyModel_ts.diff`
 - CREATE `poggn/active/dashboard-overview-workflow-progress/implementation/diffs/002_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.diff`
+- CREATE `poggn/active/dashboard-overview-workflow-progress/implementation/diffs/003_UPDATE_apps_dashboard_src_features_history_historyModel_ts_refactor.diff`
+- CREATE `poggn/active/dashboard-overview-workflow-progress/implementation/diffs/004_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx_refactor.diff`
 - CREATE `poggn/active/dashboard-overview-workflow-progress/reviews/code.review.md`
+- CREATE `poggn/active/dashboard-overview-workflow-progress/reviews/refactor.review.md`
 - CREATE `poggn/active/dashboard-overview-workflow-progress/state/current.md`
 - CREATE `poggn/active/dashboard-overview-workflow-progress/state/history.ndjson`
 - CREATE `poggn/active/dashboard-overview-workflow-progress/state/dirty-worktree-baseline.txt`
 - UPDATE `poggn/active/dashboard-overview-workflow-progress/workflow.reactflow.json`
+- UPDATE `poggn/active/dashboard-overview-workflow-progress/implementation/index.md`
 - UPDATE `apps/dashboard/src/features/history/historyModel.ts`
 - UPDATE `apps/dashboard/src/features/history/HistoryWorkspace.tsx`
 
 ## Last Expert Score
 
-- phase: implementation
+- phase: refactor
 - score: 96
 - blocking issues: none
 
 ## Open Items
 
-- status: ready_for_refactor
+- status: ready_for_qa
 
 ## Verification
 
@@ -117,7 +123,7 @@ Project Workflow Overview 탭의 Status, Workflow Progress, Activity Summary 개
 
 ## Next Action
 
-Run `pgg-refactor dashboard-overview-workflow-progress`.
+Run `pgg-qa dashboard-overview-workflow-progress`.
 
 ## Git Publish Message
 
