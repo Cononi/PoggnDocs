@@ -31,6 +31,7 @@ Workflow Overview sync 변경의 visual, model, telemetry, i18n, accessibility a
 - The selected tab border and content panel border use the same thickness/color so their outline appears continuous.
 - The content panel top border is one continuous line, and the selected tab masks only the inner bottom segment so both tab side borders connect cleanly to the panel line.
 - No panel top line is visible between the selected tab and content; the remaining top border outside the selected tab stays connected.
+- The selected-tab inner mask must remain visible outside the tab bounds so the result matches `add-img/10.png`, not the clipped `add-img/12.png` shape.
 - Only the selected tab and its content panel are framed together; inactive tabs are not boxed.
 - The content panel keeps its top border except for the segment directly under the selected tab.
 - Status, Workflow Stage, Progress, Priority, Created, and Updated appear as a compact six-card row under the workflow rail inside Workflow Progress.

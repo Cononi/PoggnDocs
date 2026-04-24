@@ -1,33 +1,12 @@
 diff --git a/poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md b/poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md
-index a7f45b6..b1da8f3 100644
+index b1da8f3..585e0d8 100644
 --- a/poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md
 +++ b/poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md
-@@ -29,10 +29,12 @@ Workflow Overview sync 변경의 visual, model, telemetry, i18n, accessibility a
- - The selected tab follows the `add-img/9.png` shape: rounded top corners, visible top/side border, no bottom border, and a fill that matches the content panel.
- - The selected tab shape is implemented without MUI `Tabs`/`Tab` indicator styling; there must be no selected underline or extra bottom line.
+@@ -31,6 +31,7 @@ Workflow Overview sync 변경의 visual, model, telemetry, i18n, accessibility a
  - The selected tab border and content panel border use the same thickness/color so their outline appears continuous.
--- The selected tab sits flush with the content panel edge, and panel top-line segments overlap the selected tab side borders enough to avoid visible gaps.
-+- The content panel top border is one continuous line, and the selected tab masks only the inner bottom segment so both tab side borders connect cleanly to the panel line.
-+- No panel top line is visible between the selected tab and content; the remaining top border outside the selected tab stays connected.
+ - The content panel top border is one continuous line, and the selected tab masks only the inner bottom segment so both tab side borders connect cleanly to the panel line.
+ - No panel top line is visible between the selected tab and content; the remaining top border outside the selected tab stays connected.
++- The selected-tab inner mask must remain visible outside the tab bounds so the result matches `add-img/10.png`, not the clipped `add-img/12.png` shape.
  - Only the selected tab and its content panel are framed together; inactive tabs are not boxed.
  - The content panel keeps its top border except for the segment directly under the selected tab.
--- Status, Workflow Stage, Priority, Created, and Updated appear as a compact card bar under the workflow rail inside Workflow Progress.
-+- Status, Workflow Stage, Progress, Priority, Created, and Updated appear as a compact six-card row under the workflow rail inside Workflow Progress.
-+- The Workflow Progress metadata cards stay in one row instead of wrapping or visually overlapping; compact text truncation is preferred over row wrapping.
- 
- ## Model Acceptance
- 
-diff --git a/poggn/active/dashboard-workflow-overview-sync/spec/ui/compact-workflow-progress-surface.md b/poggn/active/dashboard-workflow-overview-sync/spec/ui/compact-workflow-progress-surface.md
-index a14ff0c..b52e9de 100644
---- a/poggn/active/dashboard-workflow-overview-sync/spec/ui/compact-workflow-progress-surface.md
-+++ b/poggn/active/dashboard-workflow-overview-sync/spec/ui/compact-workflow-progress-surface.md
-@@ -43,7 +43,8 @@ Workflow Progress를 `add-img/5.png`의 connector/status 정확도와 `add-img/1
- - flow 이름 아래 bordered box는 제거한다.
- - 완료 time 또는 status는 small caption typography로 표시한다.
- - caption은 1-2줄 안에서 줄바꿈하고 circle/connector와 겹치지 않아야 한다.
--- Status, Workflow Stage, Priority, Created, Updated metadata card bar is placed under the workflow rail inside the Workflow Progress surface, not beside the title.
-+- Status, Workflow Stage, Progress, Priority, Created, and Updated metadata cards are placed under the workflow rail inside the Workflow Progress surface, not beside the title.
-+- The metadata card bar uses a single six-column row that does not wrap into a second line or visually overlap; card widths shrink within the row and text truncates cleanly when space is tight.
- 
- ## Tooltip Contract
- 
+ - Status, Workflow Stage, Progress, Priority, Created, and Updated appear as a compact six-card row under the workflow rail inside Workflow Progress.

@@ -201,6 +201,7 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
                       borderTopLeftRadius: selected ? { xs: 2, sm: 2.5 } : 0,
                       borderTopRightRadius: selected ? { xs: 2, sm: 2.5 } : 0,
                       position: "relative",
+                      overflow: "visible",
                       zIndex: selected ? 3 : 1,
                       boxShadow: selected ? `0 3px 0 ${historyPanelBg}` : "none",
                       "&::after": selected
@@ -212,6 +213,7 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
                             bottom: "-4px",
                             height: "4px",
                             bgcolor: historyPanelBg,
+                            zIndex: 1,
                             pointerEvents: "none"
                           }
                         : undefined,
