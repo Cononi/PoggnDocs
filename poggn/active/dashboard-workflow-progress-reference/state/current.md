@@ -56,6 +56,7 @@ Project Workflow Overview 탭의 Workflow Progress를 `add-img/4.png` reference�
 - T2 implemented ko/en Workflow Progress status, count, completed summary, and flow label locale keys.
 - T3 implemented the dark reference-style panel with header icon, flow rail, status circles, connectors, right donut, count cards, active pulse, and reduced-motion fallback.
 - T4 verification evidence includes dashboard build and source checks. Manual visual parity remains a QA browser check.
+- Runtime follow-up fixed two reported issues: TextField `InputProps` DOM forwarding warning and missing `theme` binding in `HistoryOverview`.
 
 ## User Question Record
 
@@ -94,10 +95,12 @@ Project Workflow Overview 탭의 Workflow Progress를 `add-img/4.png` reference�
 | CREATE | `poggn/active/dashboard-workflow-progress-reference/implementation/diffs/001_UPDATE_apps_dashboard_src_features_history_historyModel_ts.diff` | |
 | CREATE | `poggn/active/dashboard-workflow-progress-reference/implementation/diffs/002_UPDATE_apps_dashboard_src_shared_locale_dashboardLocale_ts.diff` | |
 | CREATE | `poggn/active/dashboard-workflow-progress-reference/implementation/diffs/003_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.diff` | |
+| CREATE | `poggn/active/dashboard-workflow-progress-reference/implementation/diffs/004_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx_runtime_fix.diff` | |
 | CREATE | `poggn/active/dashboard-workflow-progress-reference/reviews/code.review.md` | |
 | UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | `poggn/active/dashboard-workflow-progress-reference/implementation/diffs/001_UPDATE_apps_dashboard_src_features_history_historyModel_ts.diff` |
 | UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | `poggn/active/dashboard-workflow-progress-reference/implementation/diffs/002_UPDATE_apps_dashboard_src_shared_locale_dashboardLocale_ts.diff` |
 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `poggn/active/dashboard-workflow-progress-reference/implementation/diffs/003_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.diff` |
+| UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `poggn/active/dashboard-workflow-progress-reference/implementation/diffs/004_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx_runtime_fix.diff` |
 | UPDATE | `poggn/active/dashboard-workflow-progress-reference/state/current.md` | |
 | UPDATE | `poggn/active/dashboard-workflow-progress-reference/state/history.ndjson` | |
 | UPDATE | `poggn/active/dashboard-workflow-progress-reference/workflow.reactflow.json` | |
@@ -121,7 +124,9 @@ Project Workflow Overview 탭의 Workflow Progress를 `add-img/4.png` reference�
 - task document review: pass
 - spec files created: pass
 - `pnpm --filter @pgg/dashboard build`: pass
+- runtime fix `pnpm --filter @pgg/dashboard build`: pass
 - source check for active task ids, progressive visibility, i18n keys, and reduced-motion fallback: pass
+- source check for removed `InputProps`: pass
 
 ## Next Action
 
