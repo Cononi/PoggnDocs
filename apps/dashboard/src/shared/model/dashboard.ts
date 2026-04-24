@@ -211,7 +211,7 @@ export type DashboardWorkspaceFilterState = {
 
 export type DashboardTone = "primary" | "success" | "warning" | "danger" | "neutral";
 
-export type FlowStatus = "done" | "current" | "finishing" | "updating" | "upcoming";
+export type FlowStatus = "done" | "current" | "updating" | "upcoming";
 
 export type FlowNodeData = {
   label: ReactNode;

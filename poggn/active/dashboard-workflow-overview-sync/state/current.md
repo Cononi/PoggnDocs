@@ -10,7 +10,7 @@ implementation
 
 ## Goal
 
-Project Workflow Overview의 progress rail 연결, compact density, caption style, flow tooltip, 진행 중 clipping 방지, `마무리 중`/`추가 진행` 상태, flow별 시간 독립성, stage telemetry 반영, 상태별 색 구분을 보강 구현했다.
+Project Workflow Overview의 progress rail 연결, compact density, caption style, flow tooltip, 진행 중 clipping 방지, 필요한 네 상태(`시작 전`, `생성 중`, `완료`, `추가 진행`), flow별 시간 독립성, stage telemetry 반영, 상태별 색 구분을 보강 구현했다.
 
 ## Document Refs
 
@@ -48,7 +48,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 ## Decisions
 
 - `add-img/5.png` and `add-img/6.png` are the visual acceptance references for connector alignment, flow time labels, and status color separation.
-- Connector geometry must draw the rail center-to-center behind circle visuals so it touches the next flow without a visible gap on desktop and mobile.
+- Connector geometry must draw the rail between circle outer edges at the circle center height so it touches the next flow without crossing inside the circles on desktop and mobile.
 - Completed connectors use solid green. Not-started connectors use muted dotted styling. Active/generated flow uses a distinct active color and emphasis.
 - Flow time must be modeled as separate `startedAt`, `completedAt`, and `updatedAt` values.
 - Dashboard must not reuse the topic-wide `updatedAt` as the completed time for multiple different flows.
@@ -56,13 +56,12 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - pgg stages should record `stage-started`, `stage-progress`, and `stage-completed` events in `state/history.ndjson`.
 - `workflow.reactflow.json` node detail/status should expose stage status and timestamps where available.
 - Dashboard Overview Progress should prefer telemetry events and workflow node detail timestamps over broad artifact fallback.
-- User-facing statuses are `시작 전`, `생성 중`, `마무리 중`, `완료`, `추가 진행`, rendered via locale keys.
+- User-facing statuses are `시작 전`, `생성 중`, `완료`, `추가 진행`, rendered via locale keys.
 - Internal stage names stay unchanged: `Add` maps to proposal and `Code` maps to implementation.
 - Active/generated step pulse, glow, and focus outline must not be clipped at the top or sides.
 - Progress rail should reserve active-state safe area and avoid clipping the active visual effect while keeping the layout box stable.
-- `추가 진행` is a transient update status for already-started workflow stages receiving additional user requirements after prior completion/progress.
-- `마무리 중` is a transient finishing/finalizing status for an active stage before completion.
-- Finishing/update status must use distinct accent colors from not-started, generated/current, and completed states.
+- `추가 진행` is a transient update status for the current active workflow stage receiving additional user requirements after prior completion/progress.
+- Update status must use a distinct accent color from not-started, generated/current, and completed states.
 - Revision events should be recorded with telemetry such as `proposal-updated`, `plan-updated`, `task-updated`, or `stage-revised`.
 - Flow time/status must be shown as small caption typography under the flow name, not as a bordered box.
 - Workflow Progress density should be only slightly larger than `add-img/1.png`.
@@ -74,7 +73,8 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - Workflow Progress model separates `startedAt`, `updatedAt`, `completedAt`, timestamp confidence, and source.
 - Broad artifacts such as `state/`, `workflow.reactflow.json`, and shared implementation index files are not promoted into per-flow start/completion times.
 - `stage-commit` is treated as governed completion evidence for implementation/refactor/qa stage-local commits.
-- `마무리 중` and `추가 진행` are implemented as `finishing` and `updating` statuses in Overview Progress and React Flow model.
+- `추가 진행` is implemented as `updating` status in Overview Progress and React Flow model.
+- Historical update events on previous flows do not keep those previous flows in update state after the workflow has advanced.
 - Workflow Progress compact UI removes the bordered time/status box and uses caption typography.
 - Flow nodes expose hover/focus tooltip copy through locale keys.
 - Active/revision rail uses visible overflow and fixed visual sizing to avoid clipping while preserving click target.
@@ -168,7 +168,8 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - spec files created: pass
 - `pnpm build`: pass
 - `./.codex/sh/pgg-gate.sh pgg-code dashboard-workflow-overview-sync`: pass
-- source check for finishing/updating telemetry/status/tooltip keys: pass
+- source check for removed extra status stage and retained updating telemetry/status/tooltip keys: pass
+- source check for edge-to-edge connector geometry and removed internal connector: pass
 - source check for removed bordered time/status box pattern: pass
 
 ## Next Action

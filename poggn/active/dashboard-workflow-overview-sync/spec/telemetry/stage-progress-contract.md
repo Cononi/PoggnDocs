@@ -20,8 +20,6 @@ AI/pgg 작업 진행이 dashboard Workflow Progress와 Workflow/React Flow surfa
   - fields: `ts`, `stage`, `event`, optional `flow`, `task`, `source`
 - `stage-progress`
   - fields: `ts`, `stage`, `event`, optional `flow`, `task`, `summary`, `source`
-- `stage-finishing` 또는 `stage-finalizing`
-  - fields: `ts`, `stage`, `event`, optional `flow`, `task`, `summary`, `source`
 - `stage-completed`
   - fields: `ts`, `stage`, `event`, optional `flow`, `task`, `summary`, `source`
 - `stage-commit`
@@ -35,7 +33,7 @@ AI/pgg 작업 진행이 dashboard Workflow Progress와 Workflow/React Flow surfa
 
 `workflow.reactflow.json` node는 가능하면 아래 detail field를 노출한다.
 
-- `data.status`: `pending`, `generated`, `finishing`, `updating`, `completed` 또는 dashboard가 매핑 가능한 status
+- `data.status`: `pending`, `generated`, `updating`, `completed` 또는 dashboard가 매핑 가능한 status
 - `data.detail.startedAt`
 - `data.detail.updatedAt`
 - `data.detail.completedAt`
@@ -57,6 +55,6 @@ AI/pgg 작업 진행이 dashboard Workflow Progress와 Workflow/React Flow surfa
 
 ## Acceptance
 
-- `stage-started`, `stage-progress`, `stage-finishing`, `stage-completed`, `stage-commit` event가 있으면 Overview Progress에 시작/진행/마무리/완료 상태와 시간이 반영된다.
+- `stage-started`, `stage-progress`, `stage-completed`, `stage-commit` event가 있으면 Overview Progress에 시작/진행/완료 상태와 시간이 반영된다.
 - `proposal-updated`, `requirements-added`, 또는 `stage-revised` event가 있으면 update status source가 될 수 있다.
 - Workflow/React Flow surface와 Overview Progress가 서로 다른 status를 보여 주지 않는다.

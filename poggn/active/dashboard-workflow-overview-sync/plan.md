@@ -33,7 +33,7 @@ state:
 - flow hover/focus 시 `<Flow> 진행 상태 확인 가능` tooltip을 표시하고 click modal interaction은 유지한다.
 - flow time은 `startedAt`, `completedAt`, `updatedAt`으로 분리하고 topic-wide `updatedAt`이 여러 flow 완료 시각으로 복제되지 않게 한다.
 - dashboard가 `state/history.ndjson`와 `workflow.reactflow.json` telemetry를 우선 읽어 stage start/progress/complete와 추가 요구 반영 상태를 표시하게 한다.
-- 사용자-facing status는 `시작 전`, `생성 중`, `마무리 중`, `완료`, `추가 진행`으로 i18n 처리하고 상태별 색/connector/icon/badge를 분리한다.
+- 사용자-facing status는 `시작 전`, `생성 중`, `완료`, `추가 진행`으로 i18n 처리하고 상태별 색/connector/icon/badge를 분리한다.
 
 ## 2. Audit Applicability
 
@@ -55,7 +55,7 @@ state:
 
 1. S1과 S2를 먼저 적용해 UI가 소비할 workflow status, timestamp, revision state를 model에서 제공한다.
 2. S3을 적용해 dashboard가 우선 소비할 telemetry event/node detail contract를 정한다.
-3. S5를 적용해 `시작 전`, `생성 중`, `마무리 중`, `완료`, `추가 진행`, tooltip 문구를 ko/en dictionary로 준비한다.
+3. S5를 적용해 `시작 전`, `생성 중`, `완료`, `추가 진행`, tooltip 문구를 ko/en dictionary로 준비한다.
 4. S4를 적용해 compact surface, connector geometry, active clipping guard, tooltip을 렌더링한다.
 5. S6 기준으로 add-img/5 connector/status와 add-img/1 density, timestamp independence, telemetry ingestion, i18n/tooltip, accessibility를 검증한다.
 
@@ -64,7 +64,7 @@ state:
 - add/plan/code 완료 시간이 같은 topic-wide fallback으로 반복되지 않아야 한다.
 - stage-specific telemetry가 있으면 완료 시간은 `stage-completed` 또는 node `completedAt`을 우선한다.
 - telemetry가 없거나 fallback confidence가 낮으면 확정 완료 시각처럼 표시하지 않는다.
-- 추가 요구가 들어온 flow는 `추가 진행` 상태와 별도 accent color로 표시 가능해야 하며, completion 직전 stage는 `마무리 중`으로 표시 가능해야 한다.
+- 추가 요구가 들어온 현재 flow는 `추가 진행` 상태와 별도 accent color로 표시 가능해야 한다.
 - flow 이름 아래에는 bordered box가 없고 small caption만 보여야 한다.
 - Workflow Progress 크기는 `add-img/1.png`보다 살짝 큰 compact density로 제한되어야 한다.
 - Plan 등 flow node hover/focus tooltip은 locale 문구로 보여야 한다.
@@ -74,7 +74,7 @@ state:
 ## 6. 리스크와 가드레일
 
 - pgg core stage 순서와 skill 이름은 바꾸지 않는다.
-- `추가 진행`과 `마무리 중`은 새 stage가 아니라 기존 stage의 transient status다.
+- `추가 진행`은 새 stage가 아니라 기존 stage의 transient status다.
 - telemetry가 없는 과거 topic은 보수적으로 표시하되 완료를 과대 표시하지 않는다.
 - compact sizing은 visual 크기 축소이며 hit area와 keyboard focus visibility는 유지해야 한다.
 - active safe area를 위해 `overflow: visible`을 쓰더라도 전체 page나 unrelated panel overflow를 만들지 않는다.

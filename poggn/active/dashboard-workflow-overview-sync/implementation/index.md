@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T17:18:16Z"
+  updated_at: "2026-04-24T17:32:33Z"
   auto_mode: "on"
   archive_type: "fix"
   version_bump: "patch"
@@ -19,7 +19,7 @@ reactflow:
   node_type: "doc"
   label: "implementation/index.md"
 state:
-  summary: "Workflow Progress connector geometry, five-state status model, stage-specific timestamp fallback, compact caption UI, tooltip, i18n을 보강했다."
+  summary: "Workflow Progress connector geometry, four-state status model, stage-specific timestamp fallback, compact caption UI, tooltip, i18n을 보강했다."
   next: "pgg-refactor"
 ---
 
@@ -32,11 +32,11 @@ state:
 - Workflow Progress model separates start, update, and completion timestamps with confidence/source metadata.
 - Broad artifacts such as `state/`, `workflow.reactflow.json`, and shared implementation index files are no longer promoted into per-flow start/completion times.
 - Stage-specific telemetry and node timestamps now take priority over file updatedAt fallback for flow updated time, preventing later Add/Code/Refactor file churn from sharing one timestamp.
-- `시작 전`, `생성 중`, `마무리 중`, `완료`, `추가 진행` are modeled as distinct user-facing statuses.
-- Workflow/React Flow nodes can also surface `finishing` and `updating` status from node metadata.
+- `시작 전`, `생성 중`, `완료`, `추가 진행` are modeled as the required user-facing statuses.
+- Workflow/React Flow nodes can also surface `updating` status from node metadata.
 - Workflow Progress UI is more compact, removes the bordered time/status box, shows small caption text, prevents active clipping with visible rail overflow, and adds flow tooltip affordance.
-- Connector geometry now draws center-to-center behind circle visuals so the line touches the next flow without a visible gap.
-- ko/en locale copy was updated for generated/current, finishing/update, count, and tooltip labels.
+- Connector geometry now draws edge-to-edge between circle visuals at the circle center height so the line touches the next flow without crossing inside circles.
+- ko/en locale copy was updated for generated/current, update, count, and tooltip labels.
 
 ## Changed Files
 
@@ -74,17 +74,18 @@ state:
 | Task | Status | Evidence |
 |---|---|---|
 | T1 timestamp/status source | done | strict timestamp evidence bundle, `stage-commit` completion support, and stage-specific fallback filtering |
-| T2 revision status | done | five-state `WorkflowStatus`, finishing/update event detection, warning/secondary accent UI |
-| T3 telemetry contract | done | core `historyEvents` parsing, workflow detail timestamp preservation, and spec update for `stage-finishing`/`stage-commit` |
-| T4 i18n | done | ko/en 시작 전/생성 중/마무리 중/완료/추가 진행 status, count, and tooltip locale keys |
-| T5 compact UI | done | center-to-center connector behind circles, compact rail, caption text, tooltip, visible overflow, smaller chart/counts |
+| T2 revision status | done | four-state `WorkflowStatus`, current-flow update event detection, secondary accent UI |
+| T3 telemetry contract | done | core `historyEvents` parsing, workflow detail timestamp preservation, and `stage-commit` completion support |
+| T4 i18n | done | ko/en 시작 전/생성 중/완료/추가 진행 status, count, and tooltip locale keys |
+| T5 compact UI | done | edge-to-edge connector between circle boundaries, compact rail, caption text, tooltip, visible overflow, smaller chart/counts |
 | T6 evidence | done | dashboard build, core build, source checks, diff records |
 
 ## Verification
 
 - `pnpm build`: pass
 - `./.codex/sh/pgg-gate.sh pgg-code dashboard-workflow-overview-sync`: pass
-- source check for removed `revising` status and added `workflowProgressStatusFinishing` / `workflowProgressStatusUpdating`: pass
+- source check for removed extra status stage and retained `workflowProgressStatusUpdating`: pass
+- source check for edge-to-edge connector geometry and removed center-to-center internal connector: pass
 - source check for `workflowProgressTooltip`, `historyEvents`, `stage-started`, `stage-commit`: pass
 - source check for removed `minHeight: 48` bordered time/status box pattern: pass
 

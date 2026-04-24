@@ -114,7 +114,7 @@
           "sourcePath": "poggn/active/dashboard-workflow-overview-sync/implementation/index.md",
           "updatedAt": "2026-04-24T17:18:16Z",
           "completedAt": "2026-04-24T17:18:16Z",
-          "summary": "Tightened connector geometry, split finishing/updating status, and constrained per-flow timestamp fallback.",
+          "summary": "Tightened connector edge geometry, reduced status model to required live states, and constrained per-flow timestamp fallback.",
           "status": "completed"
         }
       },

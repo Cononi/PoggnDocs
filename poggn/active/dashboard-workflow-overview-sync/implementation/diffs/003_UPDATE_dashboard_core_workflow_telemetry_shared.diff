@@ -1,117 +1,94 @@
 diff --git a/apps/dashboard/src/shared/locale/dashboardLocale.ts b/apps/dashboard/src/shared/locale/dashboardLocale.ts
-index 7e6c146..3ca3b65 100644
+index 3ca3b65..fd4b4b6 100644
 --- a/apps/dashboard/src/shared/locale/dashboardLocale.ts
 +++ b/apps/dashboard/src/shared/locale/dashboardLocale.ts
-@@ -22,14 +22,17 @@ export function resolveDashboardStageLabel(stage: string | null, dictionary: Rec
+@@ -22,15 +22,12 @@ export function resolveDashboardStageLabel(stage: string | null, dictionary: Rec
  }
  
  export function resolveDashboardFlowStatusLabel(
--  status: "done" | "current" | "revising" | "upcoming",
-+  status: "done" | "current" | "finishing" | "updating" | "upcoming",
+-  status: "done" | "current" | "finishing" | "updating" | "upcoming",
++  status: "done" | "current" | "updating" | "upcoming",
    dictionary: Record<string, string>
  ): string {
    if (status === "done") {
      return dictionary.flowDone;
    }
--  if (status === "revising") {
--    return dictionary.flowRevising;
-+  if (status === "finishing") {
-+    return dictionary.flowFinishing;
-+  }
-+  if (status === "updating") {
-+    return dictionary.flowUpdating;
+-  if (status === "finishing") {
+-    return dictionary.flowFinishing;
+-  }
+   if (status === "updating") {
+     return dictionary.flowUpdating;
    }
-   if (status === "current") {
-     return dictionary.flowCurrent;
-@@ -292,16 +295,19 @@ export const dashboardLocale = {
+@@ -295,17 +292,14 @@ export const dashboardLocale = {
      statusDone: "완료",
      flowDone: "완료",
      flowCurrent: "현재",
--    flowRevising: "추가 반영",
-+    flowFinishing: "마무리 중",
-+    flowUpdating: "추가 진행",
+-    flowFinishing: "마무리 중",
+     flowUpdating: "추가 진행",
      flowUpcoming: "예정",
--    workflowProgressStatusPending: "진행 전",
-+    workflowProgressStatusPending: "시작 전",
+     workflowProgressStatusPending: "시작 전",
      workflowProgressStatusCurrent: "생성 중",
--    workflowProgressStatusRevising: "추가 요소 반영 중",
-+    workflowProgressStatusFinishing: "마무리 중",
-+    workflowProgressStatusUpdating: "추가 진행",
+-    workflowProgressStatusFinishing: "마무리 중",
+     workflowProgressStatusUpdating: "추가 진행",
      workflowProgressStatusCompleted: "완료",
      workflowProgressCountCompleted: "완료",
      workflowProgressCountCurrent: "생성 중",
--    workflowProgressCountRevising: "추가 반영",
--    workflowProgressCountPending: "진행 전",
-+    workflowProgressCountFinishing: "마무리 중",
-+    workflowProgressCountUpdating: "추가 진행",
-+    workflowProgressCountPending: "시작 전",
+-    workflowProgressCountFinishing: "마무리 중",
+     workflowProgressCountUpdating: "추가 진행",
+     workflowProgressCountPending: "시작 전",
      workflowProgressCompletedSummary: "완료",
-     workflowProgressTooltip: "진행 상태 확인 가능",
-     workflowProgressFlowAdd: "Add",
-@@ -618,15 +624,18 @@ export const dashboardLocale = {
+@@ -624,17 +618,14 @@ export const dashboardLocale = {
      statusDone: "DONE",
      flowDone: "done",
      flowCurrent: "current",
--    flowRevising: "updating",
-+    flowFinishing: "finishing",
-+    flowUpdating: "updating",
+-    flowFinishing: "finishing",
+     flowUpdating: "updating",
      flowUpcoming: "upcoming",
      workflowProgressStatusPending: "Not started",
      workflowProgressStatusCurrent: "Generating",
--    workflowProgressStatusRevising: "Applying updates",
-+    workflowProgressStatusFinishing: "Finishing",
-+    workflowProgressStatusUpdating: "Additional updates",
+-    workflowProgressStatusFinishing: "Finishing",
+     workflowProgressStatusUpdating: "Additional updates",
      workflowProgressStatusCompleted: "Completed",
      workflowProgressCountCompleted: "Completed",
      workflowProgressCountCurrent: "Generating",
--    workflowProgressCountRevising: "Updating",
-+    workflowProgressCountFinishing: "Finishing",
-+    workflowProgressCountUpdating: "Additional updates",
+-    workflowProgressCountFinishing: "Finishing",
+     workflowProgressCountUpdating: "Additional updates",
      workflowProgressCountPending: "Not started",
      workflowProgressCompletedSummary: "completed",
-     workflowProgressTooltip: "status details available",
 diff --git a/apps/dashboard/src/shared/model/dashboard.ts b/apps/dashboard/src/shared/model/dashboard.ts
-index f4dbece..d3bdbd6 100644
+index d3bdbd6..6ce8830 100644
 --- a/apps/dashboard/src/shared/model/dashboard.ts
 +++ b/apps/dashboard/src/shared/model/dashboard.ts
 @@ -211,7 +211,7 @@ export type DashboardWorkspaceFilterState = {
  
  export type DashboardTone = "primary" | "success" | "warning" | "danger" | "neutral";
  
--export type FlowStatus = "done" | "current" | "revising" | "upcoming";
-+export type FlowStatus = "done" | "current" | "finishing" | "updating" | "upcoming";
+-export type FlowStatus = "done" | "current" | "finishing" | "updating" | "upcoming";
++export type FlowStatus = "done" | "current" | "updating" | "upcoming";
  
  export type FlowNodeData = {
    label: ReactNode;
 diff --git a/apps/dashboard/src/shared/utils/dashboard.tsx b/apps/dashboard/src/shared/utils/dashboard.tsx
-index 9c0dd5e..36a4898 100644
+index 36a4898..d4cad7f 100644
 --- a/apps/dashboard/src/shared/utils/dashboard.tsx
 +++ b/apps/dashboard/src/shared/utils/dashboard.tsx
-@@ -483,8 +483,11 @@ function stageWeight(stage: string | null): number {
- 
- function inferNodeStatus(node: WorkflowNode, topicStage: string | null): FlowStatus {
-   const explicitStatus = node.data.status ?? node.data.detail?.status ?? "";
--  if (/revis|updated|revision/i.test(explicitStatus)) {
--    return "revising";
-+  if (/revis|updated|revision|additional|updat(e|ing)|추가/i.test(explicitStatus)) {
-+    return "updating";
-+  }
-+  if (/finish|finaliz|closing|wrap|마무리/i.test(explicitStatus)) {
-+    return "finishing";
+@@ -486,9 +486,6 @@ function inferNodeStatus(node: WorkflowNode, topicStage: string | null): FlowSta
+   if (/revis|updated|revision|additional|updat(e|ing)|추가/i.test(explicitStatus)) {
+     return "updating";
    }
+-  if (/finish|finaliz|closing|wrap|마무리/i.test(explicitStatus)) {
+-    return "finishing";
+-  }
    if (/done|complete|completed|reviewed|approved/i.test(explicitStatus)) {
      return "done";
-@@ -640,9 +643,12 @@ export function getStatusColor(status: FlowStatus, theme: Theme): string {
-   if (status === "done") {
-     return theme.palette.success.main;
    }
--  if (status === "revising") {
-+  if (status === "updating") {
+@@ -646,9 +643,6 @@ export function getStatusColor(status: FlowStatus, theme: Theme): string {
+   if (status === "updating") {
      return theme.palette.secondary.main;
    }
-+  if (status === "finishing") {
-+    return theme.palette.warning.main;
-+  }
+-  if (status === "finishing") {
+-    return theme.palette.warning.main;
+-  }
    if (status === "current") {
      return theme.palette.primary.main;
    }

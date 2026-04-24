@@ -22,14 +22,11 @@ export function resolveDashboardStageLabel(stage: string | null, dictionary: Rec
 }
 
 export function resolveDashboardFlowStatusLabel(
-  status: "done" | "current" | "finishing" | "updating" | "upcoming",
+  status: "done" | "current" | "updating" | "upcoming",
   dictionary: Record<string, string>
 ): string {
   if (status === "done") {
     return dictionary.flowDone;
-  }
-  if (status === "finishing") {
-    return dictionary.flowFinishing;
   }
   if (status === "updating") {
     return dictionary.flowUpdating;
@@ -295,17 +292,14 @@ export const dashboardLocale = {
     statusDone: "완료",
     flowDone: "완료",
     flowCurrent: "현재",
-    flowFinishing: "마무리 중",
     flowUpdating: "추가 진행",
     flowUpcoming: "예정",
     workflowProgressStatusPending: "시작 전",
     workflowProgressStatusCurrent: "생성 중",
-    workflowProgressStatusFinishing: "마무리 중",
     workflowProgressStatusUpdating: "추가 진행",
     workflowProgressStatusCompleted: "완료",
     workflowProgressCountCompleted: "완료",
     workflowProgressCountCurrent: "생성 중",
-    workflowProgressCountFinishing: "마무리 중",
     workflowProgressCountUpdating: "추가 진행",
     workflowProgressCountPending: "시작 전",
     workflowProgressCompletedSummary: "완료",
@@ -624,17 +618,14 @@ export const dashboardLocale = {
     statusDone: "DONE",
     flowDone: "done",
     flowCurrent: "current",
-    flowFinishing: "finishing",
     flowUpdating: "updating",
     flowUpcoming: "upcoming",
     workflowProgressStatusPending: "Not started",
     workflowProgressStatusCurrent: "Generating",
-    workflowProgressStatusFinishing: "Finishing",
     workflowProgressStatusUpdating: "Additional updates",
     workflowProgressStatusCompleted: "Completed",
     workflowProgressCountCompleted: "Completed",
     workflowProgressCountCurrent: "Generating",
-    workflowProgressCountFinishing: "Finishing",
     workflowProgressCountUpdating: "Additional updates",
     workflowProgressCountPending: "Not started",
     workflowProgressCompletedSummary: "completed",

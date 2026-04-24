@@ -486,9 +486,6 @@ function inferNodeStatus(node: WorkflowNode, topicStage: string | null): FlowSta
   if (/revis|updated|revision|additional|updat(e|ing)|추가/i.test(explicitStatus)) {
     return "updating";
   }
-  if (/finish|finaliz|closing|wrap|마무리/i.test(explicitStatus)) {
-    return "finishing";
-  }
   if (/done|complete|completed|reviewed|approved/i.test(explicitStatus)) {
     return "done";
   }
@@ -645,9 +642,6 @@ export function getStatusColor(status: FlowStatus, theme: Theme): string {
   }
   if (status === "updating") {
     return theme.palette.secondary.main;
-  }
-  if (status === "finishing") {
-    return theme.palette.warning.main;
   }
   if (status === "current") {
     return theme.palette.primary.main;

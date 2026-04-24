@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T17:18:16Z"
+  updated_at: "2026-04-24T17:32:33Z"
 ---
 
 # code.review
@@ -15,8 +15,8 @@ pgg:
 | Expert | Score | Summary | Blocking |
 |---|---:|---|---|
 | 시니어 백엔드 엔지니어 | 96 | dashboard model이 `stage-commit`을 completion evidence로 인식하고, broad artifact와 file updatedAt fallback이 Add/Code 등 여러 flow 시간을 공유하지 않도록 stage-specific fallback으로 제한했다. | none |
-| 테크 리드 | 96 | `revising` 단일 상태를 `finishing`/`updating`으로 분리해 사용자-facing `마무리 중`과 `추가 진행`을 명확히 표현한다. pgg stage 이름과 workflow 순서는 유지했다. | none |
-| 코드 리뷰어 | 96 | connector를 원 edge-to-edge가 아니라 center-to-center behind-circle 방식으로 바꿔 `add-img/6.png`의 gap 원인을 줄였고, 상태별 색/아이콘/count/tooltip도 같은 locale source를 사용한다. | none |
+| 테크 리드 | 96 | 실시간 표시용 상태를 `시작 전`, `생성 중`, `완료`, `추가 진행` 네 가지로 줄이고, `추가 진행`은 현재 active flow에만 붙도록 정리했다. pgg stage 이름과 workflow 순서는 유지했다. | none |
+| 코드 리뷰어 | 96 | connector를 원 내부를 가로지르는 center-to-center 방식에서 원 외곽 edge-to-edge 방식으로 재조정했고, padding 포함 중심 높이를 맞춰 `add-img/7.png`의 낮은 선 문제를 줄였다. | none |
 
 ## Findings
 
@@ -26,7 +26,8 @@ pgg:
 
 - `pnpm build`: pass
 - `./.codex/sh/pgg-gate.sh pgg-code dashboard-workflow-overview-sync`: pass
-- source check for `revising` removal, finishing/updating status keys, telemetry/status/tooltip keys: pass
+- source check for extra status stage removal, updating status keys, telemetry/status/tooltip keys: pass
+- source check for edge-to-edge connector geometry and removed internal connector: pass
 - source check for removed bordered time/status box pattern: pass
 
 ## Residual Risks

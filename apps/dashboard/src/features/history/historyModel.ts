@@ -2,7 +2,7 @@ import type { TopicSummary } from "../../shared/model/dashboard";
 import { buildTopicKey, formatDate } from "../../shared/utils/dashboard";
 
 export type HistoryLanguage = "ko" | "en";
-export type WorkflowStatus = "completed" | "current" | "finishing" | "updating" | "pending";
+export type WorkflowStatus = "completed" | "current" | "updating" | "pending";
 export type WorkflowTimestampConfidence = "high" | "medium" | "low" | "none";
 export type FileChangeKind = "A" | "M" | "D";
 export type RelationKind = "depends" | "blocks" | "related" | "implements" | "mentioned";
@@ -371,10 +371,6 @@ function isRevisionEvent(event: TopicHistoryEventEntry): boolean {
   return eventNameMatches(event, [/updated$/i, /revised$/i, /requirements-added/i]);
 }
 
-function isFinishingEvent(event: TopicHistoryEventEntry): boolean {
-  return eventNameMatches(event, [/stage-finishing/i, /stage-finalizing/i, /finishing/i, /finalizing/i]);
-}
-
 function flowRevisionEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition): TimestampEvidence[] {
   const eventEvidence = flowHistoryEvents(topic, flow)
     .filter((event) => event.ts && isRevisionEvent(event))
@@ -407,33 +403,6 @@ function flowHasUpdatingStatus(topic: TopicSummary, flow: WorkflowFlowDefinition
     return true;
   }
   return new Date(latestRevision).getTime() > new Date(completedAt).getTime();
-}
-
-function flowFinishingEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition): TimestampEvidence[] {
-  const eventEvidence = flowHistoryEvents(topic, flow)
-    .filter((event) => event.ts && isFinishingEvent(event))
-    .map((event) => ({
-      value: event.ts,
-      confidence: "high" as const,
-      source: `state/history.ndjson:${event.event ?? "finishing"}`
-    }));
-  const nodeEvidence = flowNodes(topic, flow)
-    .filter((node) => /finish|finaliz|closing|wrap|마무리/i.test(node.data.status ?? node.data.detail?.status ?? ""))
-    .map((node) => ({
-      value: node.data.detail?.updatedAt ?? null,
-      confidence: "high" as const,
-      source: sourcePathForNode(node)
-    }));
-
-  return [...eventEvidence, ...nodeEvidence];
-}
-
-function flowHasFinishingStatus(topic: TopicSummary, flow: WorkflowFlowDefinition): boolean {
-  if (topic.bucket === "archive") {
-    return false;
-  }
-
-  return Boolean(latestEvidence(flowFinishingEvidence(topic, flow)).value);
 }
 
 function nodeTimestampEvidence(
@@ -559,20 +528,14 @@ export function buildWorkflowSteps(topic: TopicSummary, language: HistoryLanguag
     const currentFlowIsComplete = stageComplete && activeTaskIds.length === 0;
     const isComplete = topic.bucket === "archive" || index < currentIndex || (index === currentIndex && currentFlowIsComplete);
     const timestamps = flowTimestampBundle(topic, flow);
-    const updating = flowHasUpdatingStatus(topic, flow, timestamps.completedAt.value) && index <= currentIndex;
-    const finishing =
-      !updating &&
-      index === currentIndex &&
-      (flowHasFinishingStatus(topic, flow) || (currentFlowIsComplete && timestamps.completedAt.confidence === "none"));
+    const updating = flowHasUpdatingStatus(topic, flow, timestamps.completedAt.value) && index === currentIndex;
     const status: WorkflowStatus = updating
       ? "updating"
-      : finishing
-        ? "finishing"
-        : isComplete
-          ? "completed"
-          : index === currentIndex
-            ? "current"
-            : "pending";
+      : isComplete
+        ? "completed"
+        : index === currentIndex
+          ? "current"
+          : "pending";
     const displayedCompletedAt = status === "completed" && timestamps.completedAt.confidence !== "low" ? timestamps.completedAt.value : null;
 
     return {
