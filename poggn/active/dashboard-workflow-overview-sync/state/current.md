@@ -101,6 +101,8 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - Selected tab overlaps the content panel edge, and the panel keeps one continuous top border while the selected tab masks only its inner bottom segment so both tab side borders connect cleanly.
 - Selected tab extends its inner bottom mask and same-color shadow so the panel line is hidden only between the selected tab and content, while the remaining top line stays connected.
 - Selected tab mask overflow must stay visible so the add-img/10 shape is produced instead of the clipped add-img/12 shape.
+- Panel top line is drawn as left/right segments using header padding plus tab inset, so the selected tab bottom has no line while the outside lines remain connected.
+- Panel top-line segments overlap the selected tab side borders by only 3px, hiding caps without crossing into the selected tab bottom.
 - Content panel top border remains visible except under the selected tab segment, where the selected tab connects to the panel.
 - New dialogue requirements should append `requirements-added` before completion evidence so live dashboard refresh can show the current flow as `추가 진행`.
 - This `requirements-added` first rule is a global pgg workflow rule for future active topics, not a one-off behavior for this topic.
@@ -137,6 +139,8 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - `탭은 add-img/10.png 보시면 여전히 선이 안맞습니다. 양쪽다 전부 이어지도록 해주세요. 그리고 add-img/11.png 보시면 카드 탭들이 서로 겹칩니다. 겹치면 안되고 사이즈에 맞게 자동으로 줄었다가 커졌다 해야 합니다.`
 - `탭의 선은 연결됐습니다. 9.png 처럼 탭과 컨텐츠 사이에 선은 없애줘야죠. 자연스럽게 그리고 나머지 선은이어야 합니다.`
 - `add-img애서 탭을 10.png로만들어야 하나 지금 12.png 모양입니다.`
+- `9.png 처럼 탭의 바텀에 선이 없어야 하는데 지금은 12.png 모양 입니다.`
+- `이제는 아예 라인을 넘어갔습니다. 9.png처럼 완벽하게 라인 끝처리도 깔끔하게 그냥 100% 똑같아야 합니다.`
 
 ## Audit Applicability
 
@@ -242,6 +246,8 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - source check for fixed six-column metadata card row without wrapping or overlap: pass
 - source check for active-tab inner line masking while preserving side connections: pass
 - source check for visible selected-tab mask overflow matching add-img/10: pass
+- source check for header-inset-aware panel top segments with no selected-tab bottom line: pass
+- source check for constrained tab-side overlap with clean line ends: pass
 
 ## Next Action
 

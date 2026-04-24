@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T22:27:52Z"
+  updated_at: "2026-04-24T22:36:16Z"
 ---
 
 # code.review
@@ -43,6 +43,8 @@ pgg:
 | UX 밀도 리뷰어 | 96 | 6개 metadata card에 `minWidth: 0`, `boxSizing`, `noWrap`, container overflow clipping을 적용해 좁은 폭에서 카드와 텍스트가 시각적으로 겹치지 않게 했다. | none |
 | UI 정렬 리뷰어 | 96 | 선택 탭의 inner bottom mask와 matching shadow를 4px까지 확장해 active tab과 content 사이에 남던 panel top line을 숨겼다. | none |
 | UI 정렬 리뷰어 | 96 | 선택 탭의 overflow를 visible로 명시하고 mask z-index를 부여해 add-img/10처럼 마스크가 탭 밖으로 내려오며 add-img/12 형태로 잘리지 않게 했다. | none |
+| UI 정렬 리뷰어 | 96 | panel top border를 전체 선이 아니라 header padding과 tab inset을 반영한 좌우 segment로 다시 나눠 selected tab 아래에는 선이 그려지지 않게 했다. | none |
+| UI 정렬 리뷰어 | 96 | line segment overlap을 3px로 제한해 선 끝은 tab side border 뒤에 숨기되 selected tab bottom까지 넘어가지 않게 했다. | none |
 
 ## Findings
 
@@ -76,6 +78,8 @@ pgg:
 - source check for fixed six-column metadata card row without wrapping or overlap: pass
 - source check for active-tab inner line masking while preserving side connections: pass
 - source check for visible selected-tab mask overflow matching add-img/10: pass
+- source check for header-inset-aware panel top segments with no selected-tab bottom line: pass
+- source check for constrained tab-side overlap with clean line ends: pass
 
 ## Residual Risks
 

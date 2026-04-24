@@ -96,10 +96,21 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
     ) : (
       <HistoryRelations topic={selectedTopic} topics={allTopics} />
     );
+  const historyTabIndex = activeTab === "overview" ? 0 : activeTab === "timeline" ? 1 : 2;
   const historyTabWidth = { xs: 98, sm: 128 };
   const historyTabHeight = { xs: 42, sm: 50 };
   const historyTabGap = 2;
   const historyTabInset = 12;
+  const historyHeaderInset = 12;
+  const historyTabJoinOverlap = 3;
+  const historyTabLeft = {
+    xs: `${historyHeaderInset + historyTabInset + historyTabIndex * (98 + historyTabGap)}px`,
+    sm: `${historyHeaderInset + historyTabInset + historyTabIndex * (128 + historyTabGap)}px`
+  };
+  const historyTabRight = {
+    xs: `${historyHeaderInset + historyTabInset + historyTabIndex * (98 + historyTabGap) + 98}px`,
+    sm: `${historyHeaderInset + historyTabInset + historyTabIndex * (128 + historyTabGap) + 128}px`
+  };
   const historyPanelBg = alpha(theme.palette.background.default, theme.palette.mode === "dark" ? 0.18 : 0.34);
   const historyPanelBorder = alpha(theme.palette.primary.light, theme.palette.mode === "dark" ? 0.62 : 0.42);
 
@@ -243,12 +254,39 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
               position: "relative",
               p: { xs: 1.2, md: 1.5 },
               border: `2px solid ${historyPanelBorder}`,
+              borderTop: 0,
               borderRadius: 1,
               borderTopLeftRadius: 0,
               borderTopRightRadius: 0,
               borderBottomLeftRadius: 1,
               borderBottomRightRadius: 1,
-              bgcolor: historyPanelBg
+              bgcolor: historyPanelBg,
+              "&::before": {
+                content: '""',
+                position: "absolute",
+                top: 0,
+                left: 0,
+                width: {
+                  xs: `calc(${historyTabLeft.xs} + ${historyTabJoinOverlap}px)`,
+                  sm: `calc(${historyTabLeft.sm} + ${historyTabJoinOverlap}px)`
+                },
+                height: 2,
+                bgcolor: historyPanelBorder,
+                pointerEvents: "none"
+              },
+              "&::after": {
+                content: '""',
+                position: "absolute",
+                top: 0,
+                left: {
+                  xs: `calc(${historyTabRight.xs} - ${historyTabJoinOverlap}px)`,
+                  sm: `calc(${historyTabRight.sm} - ${historyTabJoinOverlap}px)`
+                },
+                right: 0,
+                height: 2,
+                bgcolor: historyPanelBorder,
+                pointerEvents: "none"
+              }
             }}
           >
             {activePanel}

@@ -1,96 +1,108 @@
 diff --git a/poggn/active/dashboard-workflow-overview-sync/implementation/index.md b/poggn/active/dashboard-workflow-overview-sync/implementation/index.md
-index 7bb4250..376e5ec 100644
+index 376e5ec..a724f67 100644
 --- a/poggn/active/dashboard-workflow-overview-sync/implementation/index.md
 +++ b/poggn/active/dashboard-workflow-overview-sync/implementation/index.md
 @@ -5,7 +5,7 @@ pgg:
    status: "reviewed"
    skill: "pgg-code"
    score: 96
--  updated_at: "2026-04-24T19:33:31Z"
-+  updated_at: "2026-04-24T22:27:52Z"
+-  updated_at: "2026-04-24T22:27:52Z"
++  updated_at: "2026-04-24T22:36:16Z"
    auto_mode: "on"
    archive_type: "fix"
    version_bump: "patch"
-@@ -50,6 +50,7 @@ state:
- - Overview tabs now remove the tab-group box and header/content divider; inactive tabs are text-only and the selected tab blends into the content panel.
+@@ -51,6 +51,8 @@ state:
  - Selected tab now overlaps the panel border directly; the panel keeps a continuous top border and the selected tab masks only its inner bottom segment so both side borders connect cleanly.
  - Selected tab now extends its inner bottom mask and matching shadow below the tab so the panel line does not remain visible between the active tab and content.
-+- Selected tab mask overflow is now explicitly visible so the add-img/10 inner mask is not clipped into the add-img/12 shape.
+ - Selected tab mask overflow is now explicitly visible so the add-img/10 inner mask is not clipped into the add-img/12 shape.
++- Panel top border is now drawn as header-inset-aware left/right segments, so no line is drawn under the selected tab while the remaining top line stays connected.
++- Panel top-line segment overlap is constrained to 3px so the cap is hidden by the tab side border without crossing into the selected tab bottom.
  - Selected tab and its content panel now share one framed surface while inactive tabs remain unboxed text controls.
  - Selected tabs now use the `add-img/9.png` tab shape with rounded top corners, top/side border, matching panel fill, and no bottom border.
  - History tabs now use a custom `ButtonBase` tablist instead of MUI `Tabs`/`Tab`, removing the built-in selected underline entirely.
-@@ -135,6 +136,7 @@ state:
- - source check for continuous panel top border with selected-tab inner mask: pass
+@@ -137,6 +139,8 @@ state:
  - source check for fixed six-column metadata card row without wrapping or overlap: pass
  - source check for active-tab inner line masking while preserving side connections: pass
-+- source check for visible selected-tab mask overflow matching add-img/10: pass
+ - source check for visible selected-tab mask overflow matching add-img/10: pass
++- source check for header-inset-aware panel top segments with no selected-tab bottom line: pass
++- source check for constrained tab-side overlap with clean line ends: pass
  - source check for `workflowProgressTooltip`, `historyEvents`, `stage-started`, `stage-commit`: pass
  - source check for removed `minHeight: 48` bordered time/status box pattern: pass
  
 diff --git a/poggn/active/dashboard-workflow-overview-sync/reviews/code.review.md b/poggn/active/dashboard-workflow-overview-sync/reviews/code.review.md
-index da7685a..9071866 100644
+index 9071866..767f93a 100644
 --- a/poggn/active/dashboard-workflow-overview-sync/reviews/code.review.md
 +++ b/poggn/active/dashboard-workflow-overview-sync/reviews/code.review.md
 @@ -5,7 +5,7 @@ pgg:
    status: "reviewed"
    skill: "pgg-code"
    score: 96
--  updated_at: "2026-04-24T19:33:31Z"
-+  updated_at: "2026-04-24T22:27:52Z"
+-  updated_at: "2026-04-24T22:27:52Z"
++  updated_at: "2026-04-24T22:36:16Z"
  ---
  
  # code.review
-@@ -42,6 +42,7 @@ pgg:
- | UI 정렬 리뷰어 | 96 | 계산된 top-line segment 방식을 제거하고 panel의 연속 top border를 선택 탭 inner mask로 덮어 양쪽 tab side border가 panel line에 직접 연결되게 했다. | none |
+@@ -43,6 +43,8 @@ pgg:
  | UX 밀도 리뷰어 | 96 | 6개 metadata card에 `minWidth: 0`, `boxSizing`, `noWrap`, container overflow clipping을 적용해 좁은 폭에서 카드와 텍스트가 시각적으로 겹치지 않게 했다. | none |
  | UI 정렬 리뷰어 | 96 | 선택 탭의 inner bottom mask와 matching shadow를 4px까지 확장해 active tab과 content 사이에 남던 panel top line을 숨겼다. | none |
-+| UI 정렬 리뷰어 | 96 | 선택 탭의 overflow를 visible로 명시하고 mask z-index를 부여해 add-img/10처럼 마스크가 탭 밖으로 내려오며 add-img/12 형태로 잘리지 않게 했다. | none |
+ | UI 정렬 리뷰어 | 96 | 선택 탭의 overflow를 visible로 명시하고 mask z-index를 부여해 add-img/10처럼 마스크가 탭 밖으로 내려오며 add-img/12 형태로 잘리지 않게 했다. | none |
++| UI 정렬 리뷰어 | 96 | panel top border를 전체 선이 아니라 header padding과 tab inset을 반영한 좌우 segment로 다시 나눠 selected tab 아래에는 선이 그려지지 않게 했다. | none |
++| UI 정렬 리뷰어 | 96 | line segment overlap을 3px로 제한해 선 끝은 tab side border 뒤에 숨기되 selected tab bottom까지 넘어가지 않게 했다. | none |
  
  ## Findings
  
-@@ -74,6 +75,7 @@ pgg:
- - source check for continuous panel top border with selected-tab inner mask: pass
+@@ -76,6 +78,8 @@ pgg:
  - source check for fixed six-column metadata card row without wrapping or overlap: pass
  - source check for active-tab inner line masking while preserving side connections: pass
-+- source check for visible selected-tab mask overflow matching add-img/10: pass
+ - source check for visible selected-tab mask overflow matching add-img/10: pass
++- source check for header-inset-aware panel top segments with no selected-tab bottom line: pass
++- source check for constrained tab-side overlap with clean line ends: pass
  
  ## Residual Risks
  
 diff --git a/poggn/active/dashboard-workflow-overview-sync/state/current.md b/poggn/active/dashboard-workflow-overview-sync/state/current.md
-index aed72aa..e9c3dc4 100644
+index e9c3dc4..bd0506f 100644
 --- a/poggn/active/dashboard-workflow-overview-sync/state/current.md
 +++ b/poggn/active/dashboard-workflow-overview-sync/state/current.md
-@@ -100,6 +100,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
- - Selected tab and content panel outline must use the same thickness/color and read as one continuous path.
+@@ -101,6 +101,8 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
  - Selected tab overlaps the content panel edge, and the panel keeps one continuous top border while the selected tab masks only its inner bottom segment so both tab side borders connect cleanly.
  - Selected tab extends its inner bottom mask and same-color shadow so the panel line is hidden only between the selected tab and content, while the remaining top line stays connected.
-+- Selected tab mask overflow must stay visible so the add-img/10 shape is produced instead of the clipped add-img/12 shape.
+ - Selected tab mask overflow must stay visible so the add-img/10 shape is produced instead of the clipped add-img/12 shape.
++- Panel top line is drawn as left/right segments using header padding plus tab inset, so the selected tab bottom has no line while the outside lines remain connected.
++- Panel top-line segments overlap the selected tab side borders by only 3px, hiding caps without crossing into the selected tab bottom.
  - Content panel top border remains visible except under the selected tab segment, where the selected tab connects to the panel.
  - New dialogue requirements should append `requirements-added` before completion evidence so live dashboard refresh can show the current flow as `추가 진행`.
  - This `requirements-added` first rule is a global pgg workflow rule for future active topics, not a one-off behavior for this topic.
-@@ -135,6 +136,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
- - `탭이 여전히 컨텐츠와의 선이 연결이 안되고 있습니다. 왼쪽으로 조금 더 가야 맞을거 같습니다. 그리고 Status,Workflow Stage,Priority,Created,Updated 는 카드가 두번째 칸으로 넘어가지 동적으로 사이즈가 바뀌어서 항상 6개의 카드가 일자로 볼 수 있게 만들어주세요.`
+@@ -137,6 +139,8 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
  - `탭은 add-img/10.png 보시면 여전히 선이 안맞습니다. 양쪽다 전부 이어지도록 해주세요. 그리고 add-img/11.png 보시면 카드 탭들이 서로 겹칩니다. 겹치면 안되고 사이즈에 맞게 자동으로 줄었다가 커졌다 해야 합니다.`
  - `탭의 선은 연결됐습니다. 9.png 처럼 탭과 컨텐츠 사이에 선은 없애줘야죠. 자연스럽게 그리고 나머지 선은이어야 합니다.`
-+- `add-img애서 탭을 10.png로만들어야 하나 지금 12.png 모양입니다.`
+ - `add-img애서 탭을 10.png로만들어야 하나 지금 12.png 모양입니다.`
++- `9.png 처럼 탭의 바텀에 선이 없어야 하는데 지금은 12.png 모양 입니다.`
++- `이제는 아예 라인을 넘어갔습니다. 9.png처럼 완벽하게 라인 끝처리도 깔끔하게 그냥 100% 똑같아야 합니다.`
  
  ## Audit Applicability
  
-@@ -239,6 +241,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
- - source check for continuous panel top border with selected-tab inner mask: pass
+@@ -242,6 +246,8 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
  - source check for fixed six-column metadata card row without wrapping or overlap: pass
  - source check for active-tab inner line masking while preserving side connections: pass
-+- source check for visible selected-tab mask overflow matching add-img/10: pass
+ - source check for visible selected-tab mask overflow matching add-img/10: pass
++- source check for header-inset-aware panel top segments with no selected-tab bottom line: pass
++- source check for constrained tab-side overlap with clean line ends: pass
  
  ## Next Action
  
 diff --git a/poggn/active/dashboard-workflow-overview-sync/state/history.ndjson b/poggn/active/dashboard-workflow-overview-sync/state/history.ndjson
-index 51f9511..9ec5c5f 100644
+index 5d1fe3c..b3f805e 100644
 --- a/poggn/active/dashboard-workflow-overview-sync/state/history.ndjson
 +++ b/poggn/active/dashboard-workflow-overview-sync/state/history.ndjson
-@@ -72,3 +72,5 @@
- {"ts":"2026-04-24T19:32:58Z","stage":"implementation","event":"requirements-added","summary":"follow-up confirmed tab side lines connect but selected tab still shows a line between tab and content that should be masked like add-img/9","score":96,"next":"pgg-code"}
- {"ts":"2026-04-24T19:33:31Z","stage":"implementation","event":"stage-progress","summary":"kept the continuous panel top border while extending the selected tab inner mask so the line under the active tab is hidden","score":96,"next":"pgg-code"}
+@@ -74,4 +74,10 @@
  {"ts":"2026-04-24T19:37:03Z","stage":"implementation","event":"stage-commit","archiveType":"fix","targetVersion":"2.2.3","projectLanguage":"ko","commitTitle":"fix: 2.2.3.워크플로우 탭카드 정렬","summary":"워크플로우 탭카드 정렬","why":"탭과 컨텐츠 사이 라인을 선택 탭 내부에서만 숨기고 여섯 메타 카드가 겹치지 않게 한 줄 grid로 줄어들어야 한다","footer":"Refs: dashboard-workflow-overview-sync"}
-+{"ts":"2026-04-24T22:24:38Z","stage":"implementation","event":"requirements-added","summary":"follow-up clarified the selected tab should match add-img/10 rather than the current add-img/12 shape where the panel line remains under the tab","score":96,"next":"pgg-code"}
-+{"ts":"2026-04-24T22:27:52Z","stage":"implementation","event":"stage-progress","summary":"made the selected tab mask overflow visible so add-img/10 style hides the inner panel line instead of clipping like add-img/12","score":96,"next":"pgg-code"}
+ {"ts":"2026-04-24T22:24:38Z","stage":"implementation","event":"requirements-added","summary":"follow-up clarified the selected tab should match add-img/10 rather than the current add-img/12 shape where the panel line remains under the tab","score":96,"next":"pgg-code"}
+ {"ts":"2026-04-24T22:27:52Z","stage":"implementation","event":"stage-progress","summary":"made the selected tab mask overflow visible so add-img/10 style hides the inner panel line instead of clipping like add-img/12","score":96,"next":"pgg-code"}
++{"ts":"2026-04-24T22:30:46Z","stage":"implementation","event":"requirements-added","summary":"follow-up clarified the selected tab bottom must have no line like add-img/9 and must not keep the add-img/12 full panel line under the tab","score":96,"next":"pgg-code"}
++{"ts":"2026-04-24T22:31:44Z","stage":"implementation","event":"stage-progress","summary":"replaced the continuous panel top border with header-inset-aware left and right top-line segments so no line is drawn under the selected tab","score":96,"next":"pgg-code"}
++{"ts":"2026-04-24T22:32:55Z","stage":"implementation","event":"requirements-added","summary":"follow-up reported the tab-panel line ends look visibly capped and should connect naturally into the selected tab side borders","score":96,"next":"pgg-code"}
++{"ts":"2026-04-24T22:33:35Z","stage":"implementation","event":"stage-progress","summary":"extended both panel top-line segments behind the selected tab side borders to hide visible capped ends","score":96,"next":"pgg-code"}
++{"ts":"2026-04-24T22:34:45Z","stage":"implementation","event":"requirements-added","summary":"follow-up reported the line overlap now passes beyond the tab and should match add-img/9 exactly with clean ends and no bottom line","score":96,"next":"pgg-code"}
++{"ts":"2026-04-24T22:36:16Z","stage":"implementation","event":"stage-progress","summary":"reduced tab-panel segment overlap so the line ends are hidden by the tab side border without crossing into the selected tab bottom","score":96,"next":"pgg-code"}
+ {"ts":"2026-04-24T22:29:22Z","stage":"implementation","event":"stage-commit","archiveType":"fix","targetVersion":"2.2.3","projectLanguage":"ko","commitTitle":"fix: 2.2.3.워크플로우 탭마스크 정리","summary":"워크플로우 탭마스크 정리","why":"선택 탭 마스크가 잘려 add-img 12 형태로 보이고 add-img 10 기준처럼 탭과 컨텐츠 사이 선이 사라져야 한다","footer":"Refs: dashboard-workflow-overview-sync"}

@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T22:27:52Z"
+  updated_at: "2026-04-24T22:36:16Z"
   auto_mode: "on"
   archive_type: "fix"
   version_bump: "patch"
@@ -51,6 +51,8 @@ state:
 - Selected tab now overlaps the panel border directly; the panel keeps a continuous top border and the selected tab masks only its inner bottom segment so both side borders connect cleanly.
 - Selected tab now extends its inner bottom mask and matching shadow below the tab so the panel line does not remain visible between the active tab and content.
 - Selected tab mask overflow is now explicitly visible so the add-img/10 inner mask is not clipped into the add-img/12 shape.
+- Panel top border is now drawn as header-inset-aware left/right segments, so no line is drawn under the selected tab while the remaining top line stays connected.
+- Panel top-line segment overlap is constrained to 3px so the cap is hidden by the tab side border without crossing into the selected tab bottom.
 - Selected tab and its content panel now share one framed surface while inactive tabs remain unboxed text controls.
 - Selected tabs now use the `add-img/9.png` tab shape with rounded top corners, top/side border, matching panel fill, and no bottom border.
 - History tabs now use a custom `ButtonBase` tablist instead of MUI `Tabs`/`Tab`, removing the built-in selected underline entirely.
@@ -137,6 +139,8 @@ state:
 - source check for fixed six-column metadata card row without wrapping or overlap: pass
 - source check for active-tab inner line masking while preserving side connections: pass
 - source check for visible selected-tab mask overflow matching add-img/10: pass
+- source check for header-inset-aware panel top segments with no selected-tab bottom line: pass
+- source check for constrained tab-side overlap with clean line ends: pass
 - source check for `workflowProgressTooltip`, `historyEvents`, `stage-started`, `stage-commit`: pass
 - source check for removed `minHeight: 48` bordered time/status box pattern: pass
 
