@@ -62,6 +62,13 @@ type FlowTimestampBundle = {
   updatedAt: TimestampEvidence;
   completedAt: TimestampEvidence;
 };
+type FlowStatusRuntimeEntry = {
+  index: number;
+  timestamps: FlowTimestampBundle;
+  activeAt: string | null;
+  updatingAt: string | null;
+};
+type FlowStatusRuntimeField = "activeAt" | "updatingAt";
 
 export type TimelineRow = {
   id: string;
@@ -552,6 +559,24 @@ function compareTimestamps(left: string | null, right: string | null): number {
   return leftTime - rightTime;
 }
 
+function latestFlowEvidence(entry: Pick<FlowStatusRuntimeEntry, "timestamps">): string | null {
+  return latestEvidence([entry.timestamps.startedAt, entry.timestamps.updatedAt, entry.timestamps.completedAt]).value;
+}
+
+function laterFlowHasNewerEvidence(entries: FlowStatusRuntimeEntry[], entry: FlowStatusRuntimeEntry, timestamp: string): boolean {
+  return entries.some((candidate) => candidate.index > entry.index && compareTimestamps(latestFlowEvidence(candidate), timestamp) > 0);
+}
+
+function latestUnresolvedFlowIndex(entries: FlowStatusRuntimeEntry[], field: FlowStatusRuntimeField): number | undefined {
+  return entries
+    .filter((entry) => {
+      const timestamp = entry[field];
+      return timestamp ? !laterFlowHasNewerEvidence(entries, entry, timestamp) : false;
+    })
+    .sort((left, right) => compareTimestamps(left[field], right[field]) || left.index - right.index)
+    .at(-1)?.index;
+}
+
 function flowUpdatingTimestamp(topic: TopicSummary, flow: WorkflowFlowDefinition, completedAt: string | null): string | null {
   if (topic.bucket === "archive") {
     return null;
@@ -731,48 +756,8 @@ export function buildWorkflowSteps(topic: TopicSummary, language: HistoryLanguag
       updatingAt: flowUpdatingTimestamp(topic, flow, timestamps.completedAt.value)
     };
   });
-  const unresolvedRevisionEntries = entries.filter((entry) => {
-    if (!entry.updatingAt) {
-      return false;
-    }
-
-    return !entries.some((candidate) => {
-      if (candidate.index <= entry.index) {
-        return false;
-      }
-      const laterEvidence = latestEvidence([
-        candidate.timestamps.startedAt,
-        candidate.timestamps.updatedAt,
-        candidate.timestamps.completedAt
-      ]).value;
-      return compareTimestamps(laterEvidence, entry.updatingAt) > 0;
-    });
-  });
-  const updatingIndex = entries
-    .filter((entry) => unresolvedRevisionEntries.includes(entry))
-    .sort((left, right) => compareTimestamps(left.updatingAt, right.updatingAt) || left.index - right.index)
-    .at(-1)?.index;
-  const unresolvedActiveEntries = entries.filter((entry) => {
-    if (!entry.activeAt) {
-      return false;
-    }
-
-    return !entries.some((candidate) => {
-      if (candidate.index <= entry.index) {
-        return false;
-      }
-      const laterEvidence = latestEvidence([
-        candidate.timestamps.startedAt,
-        candidate.timestamps.updatedAt,
-        candidate.timestamps.completedAt
-      ]).value;
-      return compareTimestamps(laterEvidence, entry.activeAt) > 0;
-    });
-  });
-  const activeIndex = entries
-    .filter((entry) => unresolvedActiveEntries.includes(entry))
-    .sort((left, right) => compareTimestamps(left.activeAt, right.activeAt) || left.index - right.index)
-    .at(-1)?.index;
+  const updatingIndex = latestUnresolvedFlowIndex(entries, "updatingAt");
+  const activeIndex = latestUnresolvedFlowIndex(entries, "activeAt");
   const effectiveCurrentIndex = updatingIndex ?? activeIndex ?? currentIndex;
 
   return entries.map(({ flow, index, activeTaskIds, timestamps }) => {

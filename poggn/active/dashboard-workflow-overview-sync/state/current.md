@@ -6,7 +6,7 @@ dashboard-workflow-overview-sync
 
 ## Current Stage
 
-implementation
+refactor
 
 ## Goal
 
@@ -15,6 +15,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 추가로 `stage-started`/`stage-progress`가 들어온 flow가 실제 `진행 중`으로 표시되고, 현재 flow는 `stage-commit` 또는 verified/final completion evidence가 있어야 `완료`로 표시되도록 상태 계산을 보강했다.
 추가로 4상태 flow 규격을 `pgg init/update` 생성물인 AGENTS, WOKR-FLOW, STATE-CONTRACT에 배포했다.
 추가로 dashboard 화면의 active flow label을 전역 계약과 맞춰 `진행 중`으로 표시하도록 정리했다.
+리팩터링으로 unresolved flow index 계산과 generated flow status contract 문자열을 공통 helper로 정리했다.
 
 ## Document Refs
 
@@ -126,6 +127,8 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - The four flow statuses are now global generated contracts: `AGENTS.md`, `.codex/add/WOKR-FLOW.md`, and `.codex/add/STATE-CONTRACT.md` describe the same status evidence rules through `pgg init/update`.
 - Workflow Progress UI uses the shared status model for all rendered flows: label, color, icon, connector, chart, and count all read from each step's `status`.
 - The active/current status label now displays `진행 중` / `In progress` instead of the older generation wording.
+- Refactor keeps behavior unchanged while centralizing repeated unresolved active/updating flow selection in `historyModel.ts`.
+- Refactor keeps generated file output unchanged while centralizing ko/en flow status contract strings in `packages/core/src/templates.ts`.
 
 ## User Question Record
 
@@ -203,6 +206,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 | UPDATE | `apps/dashboard/src/app/DashboardApp.tsx` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/006_UPDATE_apps_dashboard_src_app_DashboardApp_tsx.diff` |
 | UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/001_UPDATE_apps_dashboard_src_features_history_historyModel_ts.diff` |
 | UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/010_UPDATE_dashboard_flow_status_labels.diff` |
+| UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/011_UPDATE_workflow_status_refactor_helpers.diff` |
 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/002_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.diff` |
 | UPDATE | `.codex/add/WOKR-FLOW.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/007_UPDATE_pgg_workflow_contracts.diff` |
 | UPDATE | `.pgg/project.json` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/008_UPDATE_pgg_update_workflow_template.diff` |
@@ -216,6 +220,9 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 | UPDATE | `packages/core/src/templates.ts` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/009_UPDATE_pgg_flow_status_contracts.diff` |
 | UPDATE | `packages/core/dist/templates.js` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/009_UPDATE_pgg_flow_status_contracts.diff` |
 | UPDATE | `packages/core/dist/templates.js.map` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/009_UPDATE_pgg_flow_status_contracts.diff` |
+| UPDATE | `packages/core/src/templates.ts` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/011_UPDATE_workflow_status_refactor_helpers.diff` |
+| UPDATE | `packages/core/dist/templates.js` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/011_UPDATE_workflow_status_refactor_helpers.diff` |
+| UPDATE | `packages/core/dist/templates.js.map` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/011_UPDATE_workflow_status_refactor_helpers.diff` |
 | UPDATE | `poggn/active/dashboard-workflow-overview-sync/plan.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
 | UPDATE | `poggn/active/dashboard-workflow-overview-sync/task.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
 | UPDATE | `poggn/active/dashboard-workflow-overview-sync/spec/model/flow-timestamp-and-status-source.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
@@ -225,19 +232,21 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 | UPDATE | `poggn/active/dashboard-workflow-overview-sync/spec/i18n/workflow-progress-copy-and-tooltip.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
 | UPDATE | `poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
 | UPDATE | `poggn/active/dashboard-workflow-overview-sync/state/current.md` | |
+| UPDATE | `poggn/active/dashboard-workflow-overview-sync/implementation/index.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/012_UPDATE_pgg_refactor_records.diff` |
+| UPDATE | `poggn/active/dashboard-workflow-overview-sync/reviews/refactor.review.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/012_UPDATE_pgg_refactor_records.diff` |
 | UPDATE | `poggn/active/dashboard-workflow-overview-sync/state/dirty-worktree-baseline.txt` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/005_UPDATE_poggn_active_dashboard_workflow_overview_sync_topic_state.diff` |
 | UPDATE | `poggn/active/dashboard-workflow-overview-sync/state/history.ndjson` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/005_UPDATE_poggn_active_dashboard_workflow_overview_sync_topic_state.diff` |
 | UPDATE | `poggn/active/dashboard-workflow-overview-sync/workflow.reactflow.json` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/005_UPDATE_poggn_active_dashboard_workflow_overview_sync_topic_state.diff` |
 
 ## Last Expert Score
 
-- phase: implementation
+- phase: refactor
 - score: 96
 - blocking issues: none
 
 ## Open Items
 
-- status: ready_for_refactor
+- status: ready_for_qa
 
 ## Verification
 
@@ -272,6 +281,9 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - source check for generated four-status flow contract in AGENTS/WOKR-FLOW/STATE-CONTRACT and ko/en templates: pass
 - source check for Workflow Progress UI status consumers using `step.status`: pass
 - source check for visible `진행 중` / `In progress` active labels: pass
+- `node packages/cli/dist/index.js update`: pass; unchanged after template helper refactor
+- `./.codex/sh/pgg-gate.sh pgg-refactor dashboard-workflow-overview-sync`: pass
+- source check for shared unresolved flow index helper and generated flow status rule helpers: pass
 - source check for edge-to-edge connector geometry and removed internal connector: pass
 - source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
 - source check for connector gap-inclusive end offset and circle-radius top alignment: pass
