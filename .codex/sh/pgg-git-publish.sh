@@ -131,18 +131,24 @@ publish_message_field() {
 }
 
 validate_commit_message() {
-  ARCHIVE_TYPE_VALUE="$1" COMMIT_TITLE_VALUE="$2" WHY_SUMMARY_VALUE="$3" FOOTER_VALUE="$4" node - <<'NODE'
+  ARCHIVE_TYPE_VALUE="$1" TARGET_VERSION_VALUE="$2" PROJECT_LANGUAGE_VALUE="$3" COMMIT_TITLE_VALUE="$4" WHY_SUMMARY_VALUE="$5" FOOTER_VALUE="$6" node - <<'NODE'
 const archiveType = (process.env.ARCHIVE_TYPE_VALUE ?? "").trim();
+const targetVersion = (process.env.TARGET_VERSION_VALUE ?? "").trim();
+const projectLanguage = (process.env.PROJECT_LANGUAGE_VALUE ?? "ko").trim();
 const title = (process.env.COMMIT_TITLE_VALUE ?? "").trim();
 const why = (process.env.WHY_SUMMARY_VALUE ?? "").trim();
 const footer = (process.env.FOOTER_VALUE ?? "").trim();
 const errors = [];
 const titleLength = Array.from(title).length;
-const prefix = `${archiveType}: `;
+const prefix = `${archiveType}: [${targetVersion}]`;
 const imperativePattern = /^(add|update|fix|remove|refactor|create|implement|support|use|change|allow|make|introduce|improve|rename|move|convert|delete|enable|disable|publish|archive)\b/i;
 const koreanImperativePattern = /(하라|해라|하세요|하십시오|해요)$/;
+const hasHangul = (value) => /[가-힣]/.test(value);
 if (!/^(feat|fix|docs|refactor|chore|remove)$/.test(archiveType)) {
   errors.push("Archive type is invalid for commit title generation.");
+}
+if (!/^\d+\.\d+\.\d+$/.test(targetVersion)) {
+  errors.push("Target version is required for commit title generation.");
 }
 if (!title) {
   errors.push("Commit title is required.");
@@ -161,12 +167,22 @@ if (!title) {
     errors.push("Commit title summary is required.");
   } else if (imperativePattern.test(summary) || koreanImperativePattern.test(summary)) {
     errors.push("Commit title must not use an imperative command form.");
+  } else if (Array.from(summary).length < 8) {
+    errors.push("Commit title summary must describe the changed content.");
   }
 }
 if (!why) {
   errors.push("Why summary is required.");
 } else if (Array.from(why).length < 15) {
   errors.push("Why summary must explain the reason for the change.");
+}
+const titleSummary = title.startsWith(prefix) ? title.slice(prefix.length).trim() : title;
+const languageSample = `${titleSummary}\n${why}`.trim();
+if (projectLanguage === "ko" && !hasHangul(languageSample)) {
+  errors.push("Commit message text must be Korean when pgg language is ko.");
+}
+if (projectLanguage === "en" && hasHangul(languageSample)) {
+  errors.push("Commit message text must be English when pgg language is en.");
 }
 if (!footer) {
   errors.push("Commit footer is required.");
@@ -177,11 +193,15 @@ NODE
 
 write_commit_message_file() {
   local output_file="$1"
-  COMMIT_TITLE_VALUE="$COMMIT_TITLE" WHY_SUMMARY_VALUE="$WHY_SUMMARY" ISSUE_FOOTER_VALUE="$ISSUE_FOOTER" node - <<'NODE' > "$output_file"
+  ARCHIVE_TYPE_VALUE="$ARCHIVE_TYPE" TARGET_VERSION_VALUE="$TARGET_VERSION" COMMIT_TITLE_VALUE="$COMMIT_TITLE" WHY_SUMMARY_VALUE="$WHY_SUMMARY" ISSUE_FOOTER_VALUE="$ISSUE_FOOTER" node - <<'NODE' > "$output_file"
+const archiveType = (process.env.ARCHIVE_TYPE_VALUE ?? "").trim();
+const targetVersion = (process.env.TARGET_VERSION_VALUE ?? "").trim();
 const title = (process.env.COMMIT_TITLE_VALUE ?? "").trim();
 const why = (process.env.WHY_SUMMARY_VALUE ?? "").trim();
 const footer = (process.env.ISSUE_FOOTER_VALUE ?? "").trim();
-process.stdout.write([title, "", `Why: ${why}`, "", footer, ""].join("\n"));
+const prefix = `${archiveType}: [${targetVersion}]`;
+const summary = title.startsWith(prefix) ? title.slice(prefix.length).trim() : title;
+process.stdout.write([title, "", `Why: ${why}`, "", `Changes: ${summary}`, "", footer, ""].join("\n"));
 NODE
 }
 
@@ -194,6 +214,8 @@ manifest_field() {
       process.stdout.write(String(manifest.git?.mode ?? "off"));
     } else if (process.argv[2] === "defaultRemote") {
       process.stdout.write(String(manifest.git?.defaultRemote ?? "origin"));
+    } else if (process.argv[2] === "language") {
+      process.stdout.write(manifest.language === "en" ? "en" : "ko");
     }
   ' "$MANIFEST" "$field"
 }
@@ -507,6 +529,7 @@ attempt_working_branch_recovery() {
 
 GIT_MODE="$(manifest_field mode)"
 REMOTE_NAME="$(manifest_field defaultRemote)"
+PROJECT_LANGUAGE="$(manifest_field language)"
 ARCHIVE_TYPE="$(read_proposal_field archive_type)"
 VERSION_BUMP="$(version_field versionBump)"
 VERSION="$(version_field version)"
@@ -541,7 +564,7 @@ if [[ -z "$ISSUE_FOOTER" ]]; then
 fi
 
 COMMIT_TITLE="$PUBLISH_TITLE"
-COMMIT_MESSAGE_ERROR="$(validate_commit_message "$ARCHIVE_TYPE" "$COMMIT_TITLE" "$WHY_SUMMARY" "$ISSUE_FOOTER")"
+COMMIT_MESSAGE_ERROR="$(validate_commit_message "$ARCHIVE_TYPE" "$TARGET_VERSION" "$PROJECT_LANGUAGE" "$COMMIT_TITLE" "$WHY_SUMMARY" "$ISSUE_FOOTER")"
 
 blocked_result() {
   local result_type="$1"

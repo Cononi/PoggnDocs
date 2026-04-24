@@ -4,7 +4,7 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 
-import { initializeProject, updateProject } from "../dist/index.js";
+import { buildRootReadme, initializeProject, updateProject } from "../dist/index.js";
 
 const STANDALONE_SKILL_PATH = ".codex/skills/pgg-status/SKILL.md";
 
@@ -40,10 +40,16 @@ test("initializeProject and updateProject keep the standalone pgg-status skill m
       });
 
       const initialSkill = await readFile(path.join(rootDir, STANDALONE_SKILL_PATH), "utf8");
+      const initialWorkflow = await readFile(path.join(rootDir, ".codex/add/WOKR-FLOW.md"), "utf8");
+      const initialStateContract = await readFile(path.join(rootDir, ".codex/add/STATE-CONTRACT.md"), "utf8");
+      const initialReadme = buildRootReadme();
       const initialManifest = await readManifest(rootDir);
 
       assert.match(initialSkill, /name: "pgg-status"/);
       assert.match(initialSkill, /현재 active topic 상태를 읽고/);
+      assert.match(initialWorkflow, /\{convention\}: \[\{version\}\]\{commit message\}/);
+      assert.match(initialStateContract, /pgg lang=ko/);
+      assert.match(initialReadme, /\{convention\}: \[\{version\}\]\{commit message\}/);
       assert.equal(initialManifest.managedFiles.some((entry) => entry.path === STANDALONE_SKILL_PATH), true);
 
       await writeFile(
