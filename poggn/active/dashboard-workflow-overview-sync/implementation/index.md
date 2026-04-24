@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T17:32:33Z"
+  updated_at: "2026-04-24T17:39:16Z"
   auto_mode: "on"
   archive_type: "fix"
   version_bump: "patch"
@@ -37,6 +37,7 @@ state:
 - Workflow Progress UI is more compact, removes the bordered time/status box, shows small caption text, prevents active clipping with visible rail overflow, and adds flow tooltip affordance.
 - Connector geometry now draws edge-to-edge between circle visuals at the circle center height so the line touches the next flow without crossing inside circles.
 - ko/en locale copy was updated for generated/current, update, count, and tooltip labels.
+- Restored the Workflow Progress header icon import and migrated compact Drawer paper styling from `PaperProps` to `slotProps.paper` to remove runtime console errors.
 
 ## Changed Files
 
@@ -49,6 +50,7 @@ state:
 | UPDATE | `apps/dashboard/src/shared/model/dashboard.ts` | `implementation/diffs/003_UPDATE_dashboard_core_workflow_telemetry_shared.diff` |
 | UPDATE | `apps/dashboard/src/shared/utils/dashboard.tsx` | `implementation/diffs/003_UPDATE_dashboard_core_workflow_telemetry_shared.diff` |
 | UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | `implementation/diffs/003_UPDATE_dashboard_core_workflow_telemetry_shared.diff` |
+| UPDATE | `apps/dashboard/src/app/DashboardApp.tsx` | `implementation/diffs/006_UPDATE_apps_dashboard_src_app_DashboardApp_tsx.diff` |
 | UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | `implementation/diffs/001_UPDATE_apps_dashboard_src_features_history_historyModel_ts.diff` |
 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `implementation/diffs/002_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.diff` |
 | UPDATE | `poggn/active/dashboard-workflow-overview-sync/plan.md` | `implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
@@ -68,6 +70,7 @@ state:
 | CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/003_UPDATE_dashboard_core_workflow_telemetry_shared.diff` | |
 | CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` | |
 | CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/005_UPDATE_poggn_active_dashboard_workflow_overview_sync_topic_state.diff` | |
+| CREATE | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/006_UPDATE_apps_dashboard_src_app_DashboardApp_tsx.diff` | |
 
 ## Task Coverage
 
@@ -86,6 +89,7 @@ state:
 - `./.codex/sh/pgg-gate.sh pgg-code dashboard-workflow-overview-sync`: pass
 - source check for removed extra status stage and retained `workflowProgressStatusUpdating`: pass
 - source check for edge-to-edge connector geometry and removed center-to-center internal connector: pass
+- source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
 - source check for `workflowProgressTooltip`, `historyEvents`, `stage-started`, `stage-commit`: pass
 - source check for removed `minHeight: 48` bordered time/status box pattern: pass
 

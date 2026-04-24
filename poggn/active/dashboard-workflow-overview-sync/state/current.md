@@ -75,6 +75,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - `stage-commit` is treated as governed completion evidence for implementation/refactor/qa stage-local commits.
 - `추가 진행` is implemented as `updating` status in Overview Progress and React Flow model.
 - Historical update events on previous flows do not keep those previous flows in update state after the workflow has advanced.
+- Runtime follow-up fixed missing `AutoGraphRounded` import and replaced compact Drawer `PaperProps` with `slotProps.paper`.
 - Workflow Progress compact UI removes the bordered time/status box and uses caption typography.
 - Flow nodes expose hover/focus tooltip copy through locale keys.
 - Active/revision rail uses visible overflow and fixed visual sizing to avoid clipping while preserving click target.
@@ -129,6 +130,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 | UPDATE | `apps/dashboard/src/shared/model/dashboard.ts` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/003_UPDATE_dashboard_core_workflow_telemetry_shared.diff` |
 | UPDATE | `apps/dashboard/src/shared/utils/dashboard.tsx` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/003_UPDATE_dashboard_core_workflow_telemetry_shared.diff` |
 | UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/003_UPDATE_dashboard_core_workflow_telemetry_shared.diff` |
+| UPDATE | `apps/dashboard/src/app/DashboardApp.tsx` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/006_UPDATE_apps_dashboard_src_app_DashboardApp_tsx.diff` |
 | UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/001_UPDATE_apps_dashboard_src_features_history_historyModel_ts.diff` |
 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/002_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.diff` |
 | UPDATE | `poggn/active/dashboard-workflow-overview-sync/plan.md` | `poggn/active/dashboard-workflow-overview-sync/implementation/diffs/004_UPDATE_poggn_active_dashboard_workflow_overview_sync_specs.diff` |
@@ -170,6 +172,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - `./.codex/sh/pgg-gate.sh pgg-code dashboard-workflow-overview-sync`: pass
 - source check for removed extra status stage and retained updating telemetry/status/tooltip keys: pass
 - source check for edge-to-edge connector geometry and removed internal connector: pass
+- source check for `PaperProps` removal and `AutoGraphRounded` import/use consistency: pass
 - source check for removed bordered time/status box pattern: pass
 
 ## Next Action

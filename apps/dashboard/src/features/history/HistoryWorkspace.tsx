@@ -21,6 +21,7 @@ import {
   Typography
 } from "@mui/material";
 import ChevronRightRounded from "@mui/icons-material/ChevronRightRounded";
+import AutoGraphRounded from "@mui/icons-material/AutoGraphRounded";
 import CheckRounded from "@mui/icons-material/CheckRounded";
 import CloseRounded from "@mui/icons-material/CloseRounded";
 import CodeRounded from "@mui/icons-material/CodeRounded";
