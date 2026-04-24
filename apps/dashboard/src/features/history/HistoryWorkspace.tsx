@@ -333,6 +333,7 @@ function HistoryOverview(props: {
   const currentStageHelper = currentStage
     ? `${workflowStatusLabel(currentStage, props.dictionary)} · ${progress.position} of ${steps.length} steps`
     : `0 of ${steps.length} steps`;
+  const currentFlowLabel = currentStage ? workflowFlowLabel(currentStage.id, props.dictionary) : props.dictionary.workflowProgressFlowAdd;
 
   return (
     <Stack spacing={1.5}>
@@ -347,8 +348,8 @@ function HistoryOverview(props: {
         <OverviewStat title="Workflow Stage" value={currentStageLabel} helper={currentStageHelper} tone="primary" />
         <OverviewStat title="Type" value={topicType(props.topic)} helper="Feature" tone="primary" />
         <OverviewStat title="Priority" value={priority.value} helper={priority.helper} tone={priority.tone} />
-        <OverviewStat title="Created" value={created.value} helper={created.helper} />
-        <OverviewStat title="Updated" value={updated.value} helper={updated.helper} />
+        <OverviewStat title="Created" value={created.value} lines={created.lines} helper={created.helper} hideDot />
+        <OverviewStat title="Updated" value={updated.value} lines={updated.lines} helper={currentFlowLabel} hideDot />
       </Box>
 
       <Paper
@@ -533,8 +534,10 @@ function buildProgressOverview(steps: WorkflowStep[]) {
 function OverviewStat(props: {
   title: string;
   value: string;
+  lines?: string[];
   helper: string;
   tone?: "success" | "primary" | "danger";
+  hideDot?: boolean;
 }) {
   const theme = useTheme();
   const color =
@@ -550,10 +553,14 @@ function OverviewStat(props: {
     <Paper sx={{ p: 1.5, borderRadius: 1, minHeight: 96 }}>
       <Typography variant="caption" color="text.secondary">{props.title}</Typography>
       <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", mt: 1 }}>
-        <Box sx={{ width: 12, height: 12, borderRadius: "50%", bgcolor: color }} />
-        <Typography variant="subtitle2" sx={{ fontWeight: 800, overflowWrap: "anywhere" }}>
-          {props.value}
-        </Typography>
+        {props.hideDot ? null : <Box sx={{ width: 12, height: 12, borderRadius: "50%", bgcolor: color, flexShrink: 0 }} />}
+        <Stack spacing={0.1} sx={{ minWidth: 0 }}>
+          {(props.lines?.length ? props.lines : [props.value]).map((line) => (
+            <Typography key={line} variant="subtitle2" sx={{ fontWeight: 800, lineHeight: 1.12, overflowWrap: "anywhere" }}>
+              {line}
+            </Typography>
+          ))}
+        </Stack>
       </Stack>
       {props.helper ? <Typography variant="caption" color="text.secondary" sx={{ overflowWrap: "anywhere" }}>{props.helper}</Typography> : null}
     </Paper>

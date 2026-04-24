@@ -80,6 +80,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - `add-img/8.png` follow-up fixed connector end offset to include grid gap and connector top to align with the circle visual center.
 - Workflow Progress title and donut percentage typography were reduced to match surrounding Overview density.
 - Overview summary cards now derive Workflow Stage, Priority, Created, and Updated from real topic workflow/timestamp/score/blocking data instead of placeholders.
+- Created and Updated cards split date/time into separate lines, hide the decorative dot, and use `Add` / current flow labels as concise helpers.
 - Workflow Progress compact UI removes the bordered time/status box and uses caption typography.
 - Flow nodes expose hover/focus tooltip copy through locale keys.
 - Active/revision rail uses visible overflow and fixed visual sizing to avoid clipping while preserving click target.
@@ -180,6 +181,7 @@ Project Workflow Overview의 progress rail 연결, compact density, caption styl
 - source check for connector gap-inclusive end offset and circle-radius top alignment: pass
 - source check for reduced Workflow Progress title and donut percentage typography: pass
 - source check for removed `High` / `by john.doe` Overview placeholders and real data summary helpers: pass
+- source check for Created/Updated date-time lines, hidden dot, and flow-context helpers: pass
 - source check for removed bordered time/status box pattern: pass
 
 ## Next Action

@@ -37,6 +37,7 @@ export type ActivitySummary = {
 
 export type OverviewStatSummary = {
   value: string;
+  lines?: string[];
   helper: string;
   tone?: "success" | "primary" | "danger";
 };
@@ -288,7 +289,8 @@ export function topicCreatedSummary(topic: TopicSummary, language: HistoryLangua
 
   return {
     value: formatDateValue(earliest.value, language, fallback),
-    helper: earliest.source ?? fallback
+    lines: formatDateTimeLines(earliest.value, language, fallback),
+    helper: "Add"
   };
 }
 
@@ -303,6 +305,7 @@ export function topicUpdatedSummary(topic: TopicSummary, language: HistoryLangua
 
   return {
     value: formatDateValue(latest.value, language, fallback),
+    lines: formatDateTimeLines(latest.value, language, fallback),
     helper: latest.source ?? fallback
   };
 }
@@ -339,6 +342,21 @@ function earliestDate(values: Array<string | null | undefined>): string | null {
 
 function formatDateValue(value: string | null, language: HistoryLanguage, fallback = "unknown"): string {
   return value ? formatDate(value, language) : fallback;
+}
+
+function formatDateTimeLines(value: string | null, language: HistoryLanguage, fallback: string): string[] {
+  if (!value) {
+    return [fallback];
+  }
+
+  const formatted = formatDate(value, language);
+  const marker = language === "ko" ? ". " : ", ";
+  const splitIndex = formatted.indexOf(marker);
+  if (splitIndex < 0) {
+    return [formatted];
+  }
+
+  return [formatted.slice(0, splitIndex + marker.length).trim(), formatted.slice(splitIndex + marker.length).trim()].filter(Boolean);
 }
 
 function latestEvidence(evidence: TimestampEvidence[]): TimestampEvidence {

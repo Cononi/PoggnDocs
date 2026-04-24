@@ -1,24 +1,12 @@
-diff --git a/poggn/active/dashboard-workflow-overview-sync/spec/model/flow-timestamp-and-status-source.md b/poggn/active/dashboard-workflow-overview-sync/spec/model/flow-timestamp-and-status-source.md
-index f7e0f29..9bd4fa3 100644
---- a/poggn/active/dashboard-workflow-overview-sync/spec/model/flow-timestamp-and-status-source.md
-+++ b/poggn/active/dashboard-workflow-overview-sync/spec/model/flow-timestamp-and-status-source.md
-@@ -47,6 +47,7 @@ Workflow Progress의 flow별 시작, 진행, 완료 시간을 독립 source에
- - stage 전용 telemetry나 node timestamp가 있으면 file updatedAt fallback이 더 최근이어도 해당 flow의 update/completion evidence를 덮어쓰지 않는다.
- - `state/`, `workflow.reactflow.json`, stage 공용 index 같은 broad artifact를 특정 flow의 시작/완료 시간으로 승격하지 않는다.
- - UI component가 timestamp source priority를 직접 구현하지 않는다.
-+- Overview summary cards must not use placeholder data for stage, priority, created, or updated fields; they must be derived from topic history, score/blocking metadata, files, artifact summary, or topic timestamps.
- - pgg internal stage 이름을 변경하지 않는다.
- 
- ## Acceptance
 diff --git a/poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md b/poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md
-index c7a329c..e0e8c13 100644
+index e0e8c13..4a2ce37 100644
 --- a/poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md
 +++ b/poggn/active/dashboard-workflow-overview-sync/spec/qa/workflow-overview-sync-acceptance.md
-@@ -31,6 +31,7 @@ Workflow Overview sync 변경의 visual, model, telemetry, i18n, accessibility a
- - topic-wide `updatedAt`이 여러 flow completed time으로 반복 표시되지 않는다.
+@@ -32,6 +32,7 @@ Workflow Overview sync 변경의 visual, model, telemetry, i18n, accessibility a
  - stage-specific completion source가 없으면 완료 시각을 확정값처럼 표시하지 않는다.
  - `추가 진행`은 generated/current/completed/pending과 구분되는 status로 표현 가능하다.
-+- Overview summary cards for Workflow Stage, Priority, Created, and Updated are derived from real topic data rather than placeholders such as fixed `High` or `by john.doe`.
+ - Overview summary cards for Workflow Stage, Priority, Created, and Updated are derived from real topic data rather than placeholders such as fixed `High` or `by john.doe`.
++- Created and Updated summary cards split date and time into separate lines, hide the decorative dot, and use concise workflow context helpers.
  
  ## Telemetry Acceptance
  

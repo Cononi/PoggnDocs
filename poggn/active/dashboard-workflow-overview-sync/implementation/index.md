@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 96
-  updated_at: "2026-04-24T17:54:38Z"
+  updated_at: "2026-04-24T17:59:46Z"
   auto_mode: "on"
   archive_type: "fix"
   version_bump: "patch"
@@ -39,6 +39,7 @@ state:
 - Connector geometry now includes the grid column gap in the end offset and uses circle-radius top alignment so `add-img/8.png` does not show broken or low connectors.
 - Workflow Progress title and donut percentage typography were reduced from `h5`/`h4` to `h6`/`h5` scale to fit the Overview density.
 - Overview summary cards now derive Workflow Stage, Priority, Created, and Updated from workflow steps, score/blocking metadata, history events, files, artifact summary, and topic timestamps instead of placeholder values.
+- Created and Updated cards now split date/time into separate lines, hide the decorative dot, and use `Add` / current flow labels as concise helper context.
 - ko/en locale copy was updated for generated/current, update, count, and tooltip labels.
 - Restored the Workflow Progress header icon import and migrated compact Drawer paper styling from `PaperProps` to `slotProps.paper` to remove runtime console errors.
 
@@ -96,6 +97,7 @@ state:
 - source check for connector gap-inclusive end offset and circle-radius top alignment: pass
 - source check for reduced Workflow Progress title and donut percentage typography: pass
 - source check for removed `High` / `by john.doe` Overview placeholders and real data summary helpers: pass
+- source check for Created/Updated date-time lines, hidden dot, and flow-context helpers: pass
 - source check for `workflowProgressTooltip`, `historyEvents`, `stage-started`, `stage-commit`: pass
 - source check for removed `minHeight: 48` bordered time/status box pattern: pass
 
