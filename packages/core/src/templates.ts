@@ -93,20 +93,20 @@ function auditApplicabilityStateRule(language: TemplateLanguage): string {
 
 function flowStatusAgentRule(language: TemplateLanguage): string {
   return language === "ko"
-    ? "- 모든 flow 상태는 `시작 전`, `진행 중`, `추가 진행`, `완료` 4상태로 기록하고 dashboard가 같은 기준으로 표시할 수 있게 stage event evidence를 유지한다."
-    : "- Keep stage event evidence so every flow can be shown with the same four statuses: `not started`, `in progress`, `updating`, and `completed`.";
+    ? "- 모든 flow 상태는 `시작 전`, `진행 중`, `추가 진행`, `완료` 4상태로 기록하고 dashboard가 같은 기준으로 표시할 수 있게 stage event evidence를 유지하며, stage 필수 산출물/review/verification/commit 또는 release evidence가 완전히 끝나기 전에는 `완료`로 처리하지 않는다."
+    : "- Keep stage event evidence so every flow can be shown with the same four statuses: `not started`, `in progress`, `updating`, and `completed`, and do not mark a flow `completed` until its required artifacts, review, verification, commit, or release evidence are fully finished.";
 }
 
 function flowStatusWorkflowRule(language: TemplateLanguage): string {
   return language === "ko"
-    ? "- 모든 flow는 같은 상태 모델을 따른다: 시작 전은 start evidence 없음, 진행 중은 `stage-started` 또는 `stage-progress`, 추가 진행은 완료 후 unresolved `requirements-added`/revision, 완료는 `stage-commit` 또는 verified/final `stage-completed`/archive/later-flow evidence다."
-    : "- Every flow follows the same status model: `not started` has no start evidence, `in progress` uses `stage-started` or `stage-progress`, `updating` uses unresolved post-completion `requirements-added`/revision evidence, and `completed` uses `stage-commit`, verified/final `stage-completed`, archive, or later-flow evidence.";
+    ? "- 모든 flow는 같은 상태 모델을 따른다: 시작 전은 start evidence 없음, 진행 중은 `stage-started` 또는 `stage-progress`, 추가 진행은 완료 후 unresolved `requirements-added`/revision, 완료는 stage 필수 산출물/review/verification/commit 또는 release 처리가 완전히 끝난 `stage-commit` 또는 verified/final `stage-completed`/archive/later-flow evidence다."
+    : "- Every flow follows the same status model: `not started` has no start evidence, `in progress` uses `stage-started` or `stage-progress`, `updating` uses unresolved post-completion `requirements-added`/revision evidence, and `completed` uses `stage-commit`, verified/final `stage-completed`, archive, or later-flow evidence only after required artifacts, review, verification, commit, or release handling are fully finished.";
 }
 
 function flowStatusStateRule(language: TemplateLanguage): string {
   return language === "ko"
-    ? "- 모든 flow 상태 evidence는 동일 규격으로 유지한다: start evidence 없음은 `시작 전`, `stage-started`/`stage-progress`는 `진행 중`, 완료 후 unresolved `requirements-added`/revision은 `추가 진행`, `stage-commit` 또는 verified/final `stage-completed`/archive/later-flow evidence는 `완료`다."
-    : "- Preserve flow status evidence with one shared contract: no start evidence means `not started`; `stage-started`/`stage-progress` means `in progress`; unresolved post-completion `requirements-added`/revision evidence means `updating`; `stage-commit`, verified/final `stage-completed`, archive, or later-flow evidence means `completed`.";
+    ? "- 모든 flow 상태 evidence는 동일 규격으로 유지한다: start evidence 없음은 `시작 전`, `stage-started`/`stage-progress`는 `진행 중`, 완료 후 unresolved `requirements-added`/revision은 `추가 진행`, stage 필수 산출물/review/verification/commit 또는 release 처리가 완전히 끝난 `stage-commit` 또는 verified/final `stage-completed`/archive/later-flow evidence는 `완료`다."
+    : "- Preserve flow status evidence with one shared contract: no start evidence means `not started`; `stage-started`/`stage-progress` means `in progress`; unresolved post-completion `requirements-added`/revision evidence means `updating`; and `stage-commit`, verified/final `stage-completed`, archive, or later-flow evidence means `completed` only after required artifacts, review, verification, commit, or release handling are fully finished.";
 }
 
 function manifestGitModeShellFunction(manifestReference: string): string[] {
@@ -904,6 +904,13 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "- when `pgg teams` is `off`, keep the same document contract and stay in a single-agent flow",
         "- treat only pgg-generated and managed `.codex/sh/*.sh` helpers as trusted workflow scripts that can run without extra approval",
         "",
+        "## Stage Events",
+        "",
+        "- record `stage-started` in `state/history.ndjson` at stage start; `pgg-new-topic.sh` automatically records proposal `stage-started` for new topics",
+        "- record intermediate artifacts or cleanup as `stage-progress` only",
+        "- record `requirements-added` before stage work when the user adds requirements",
+        "- record verified/final `stage-completed` only after proposal review and handoff state are verified",
+        "",
         "## Expert Roster",
         "",
         "- product manager: problem framing, scope, success criteria",
@@ -951,6 +958,13 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "- when `pgg teams` is `off`, keep the same document contract and stay in a single-agent flow",
         "- treat only pgg-generated and managed `.codex/sh/*.sh` helpers as trusted workflow scripts that can run without extra approval",
         "",
+        "## Stage Events",
+        "",
+        "- record `stage-started` with `stage: \"plan\"` and `source: \"pgg-plan\"` at stage start",
+        "- record intermediate artifacts or cleanup as `stage-progress` only",
+        "- record `requirements-added` before plan work when the user adds requirements",
+        "- record verified/final `stage-completed` only after plan/task/spec/reviews and gate pass",
+        "",
         "## Expert Roster",
         "",
         "- software architect: spec boundaries and system impact",
@@ -984,6 +998,14 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "- when `pgg teams` is `on`, build a minimum handoff with `.codex/sh/pgg-state-pack.sh <topic|topic_dir>` and automatically orchestrate the stage experts below",
         "- when `pgg teams` is `off`, keep the same document contract and stay in a single-agent flow",
         "- treat only pgg-generated and managed `.codex/sh/*.sh` helpers as trusted workflow scripts that can run without extra approval",
+        "",
+        "## Stage Events",
+        "",
+        "- record `stage-started` with `stage: \"implementation\"` and `source: \"pgg-code\"` at stage start",
+        "- record intermediate artifacts, diff cleanup, and pre-verification state as `stage-progress` only",
+        "- record `requirements-added` before implementation work when the user adds requirements",
+        "- record completion only after implementation index, diffs, code review, required task-scoped commit, and gate evidence are finished",
+        "- when `pgg git=on`, prefer the `stage-commit` evidence written by `.codex/sh/pgg-stage-commit.sh` for task completion",
         "",
         "## Expert Roster",
         "",
@@ -1021,6 +1043,14 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "- when `pgg teams` is `on`, build a minimum handoff with `.codex/sh/pgg-state-pack.sh <topic|topic_dir>` and automatically orchestrate the stage experts below",
         "- when `pgg teams` is `off`, keep the same document contract and stay in a single-agent flow",
         "- treat only pgg-generated and managed `.codex/sh/*.sh` helpers as trusted workflow scripts that can run without extra approval",
+        "",
+        "## Stage Events",
+        "",
+        "- record `stage-started` with `stage: \"refactor\"` and `source: \"pgg-refactor\"` at stage start",
+        "- record intermediate artifacts and pre-verification state as `stage-progress` only",
+        "- record `requirements-added` before refactor work when the user adds requirements",
+        "- record completion only after refactor review, cleanup evidence, required task-scoped commit, and gate evidence are finished",
+        "- when `pgg git=on`, prefer the `stage-commit` evidence written by `.codex/sh/pgg-stage-commit.sh` for refactor completion",
         "",
         "## Expert Roster",
         "",
@@ -1126,6 +1156,14 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "- when `pgg teams` is `off`, keep the same document contract and stay in a single-agent flow",
         "- treat only pgg-generated and managed `.codex/sh/*.sh` helpers as trusted workflow scripts that can run without extra approval",
         "",
+        "## Stage Events",
+        "",
+        "- record `stage-started` with `stage: \"qa\"` and `source: \"pgg-qa\"` at stage start",
+        "- record test preparation, evidence cleanup, and in-verification state as `stage-progress` only",
+        "- record `requirements-added` before QA work when the user adds requirements",
+        "- record final completion only after QA report pass, required audit checks, and archive/release outcome handling finish",
+        "- record QA fail, release blocked, and publish blocked as failure/blocking evidence, not Done completed",
+        "",
         "## Expert Roster",
         "",
         "- QA/test engineer: test design and execution evidence",
@@ -1204,6 +1242,13 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "- `pgg teams`가 `off`이면 같은 문서 계약을 유지하되 단일 에이전트 흐름으로 진행한다.",
         "- pgg가 생성·관리하는 `.codex/sh/*.sh` helper만 workflow 내부 trusted script로 보고 추가 허락 없이 실행한다.",
         "",
+        "## Stage Events",
+        "",
+        "- stage 시작 시 `state/history.ndjson`에 `stage-started`를 남긴다. `pgg-new-topic.sh`가 새 topic의 proposal `stage-started`를 자동 기록한다.",
+        "- 중간 산출물이나 추가 정리는 `stage-progress`로만 남긴다.",
+        "- 사용자 추가 요구가 있으면 해당 stage 작업 전에 `requirements-added`를 남긴다.",
+        "- proposal review와 handoff state가 검증된 뒤에만 `source:\"verified\"` 계열 `stage-completed`를 남긴다.",
+        "",
         "## Expert Roster",
         "",
         "- 프로덕트 매니저: 문제 정의, 범위, 성공 기준",
@@ -1252,6 +1297,13 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "- `pgg teams`가 `off`이면 같은 문서 계약을 유지하되 단일 에이전트 흐름으로 진행한다.",
         "- pgg가 생성·관리하는 `.codex/sh/*.sh` helper만 workflow 내부 trusted script로 보고 추가 허락 없이 실행한다.",
         "",
+        "## Stage Events",
+        "",
+        "- stage 시작 시 `state/history.ndjson`에 `{\"stage\":\"plan\",\"event\":\"stage-started\",\"source\":\"pgg-plan\"}`를 남긴다.",
+        "- 중간 산출물이나 추가 정리는 `stage-progress`로만 남긴다.",
+        "- 사용자 추가 요구가 있으면 plan 작업 전에 `requirements-added`를 남긴다.",
+        "- plan/task/spec/review와 gate가 검증된 뒤에만 `source:\"verified\"` 계열 `stage-completed`를 남긴다.",
+        "",
         "## Expert Roster",
         "",
         "- 소프트웨어 아키텍트: spec 경계와 시스템 영향",
@@ -1285,6 +1337,14 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "- `pgg teams`가 `on`이면 `.codex/sh/pgg-state-pack.sh <topic|topic_dir>`로 최소 handoff를 만든 뒤 아래 전문가를 자동 orchestration한다.",
         "- `pgg teams`가 `off`이면 같은 문서 계약을 유지하되 단일 에이전트 흐름으로 진행한다.",
         "- pgg가 생성·관리하는 `.codex/sh/*.sh` helper만 workflow 내부 trusted script로 보고 추가 허락 없이 실행한다.",
+        "",
+        "## Stage Events",
+        "",
+        "- stage 시작 시 `state/history.ndjson`에 `{\"stage\":\"implementation\",\"event\":\"stage-started\",\"source\":\"pgg-code\"}`를 남긴다.",
+        "- 중간 산출물, diff 정리, 검증 전 상태는 `stage-progress`로만 남긴다.",
+        "- 사용자 추가 요구가 있으면 구현 작업 전에 `requirements-added`를 남긴다.",
+        "- implementation index, diffs, code review, 필요한 task-scoped commit/gate가 끝난 뒤에만 completion evidence를 남긴다.",
+        "- `pgg git=on`이면 task 완료의 completion evidence는 `.codex/sh/pgg-stage-commit.sh`가 남기는 `stage-commit`을 우선한다.",
         "",
         "## Expert Roster",
         "",
@@ -1322,6 +1382,14 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "- `pgg teams`가 `on`이면 `.codex/sh/pgg-state-pack.sh <topic|topic_dir>`로 최소 handoff를 만든 뒤 아래 전문가를 자동 orchestration한다.",
         "- `pgg teams`가 `off`이면 같은 문서 계약을 유지하되 단일 에이전트 흐름으로 진행한다.",
         "- pgg가 생성·관리하는 `.codex/sh/*.sh` helper만 workflow 내부 trusted script로 보고 추가 허락 없이 실행한다.",
+        "",
+        "## Stage Events",
+        "",
+        "- stage 시작 시 `state/history.ndjson`에 `{\"stage\":\"refactor\",\"event\":\"stage-started\",\"source\":\"pgg-refactor\"}`를 남긴다.",
+        "- 중간 산출물이나 검증 전 상태는 `stage-progress`로만 남긴다.",
+        "- 사용자 추가 요구가 있으면 refactor 작업 전에 `requirements-added`를 남긴다.",
+        "- refactor review, cleanup evidence, 필요한 task-scoped commit/gate가 끝난 뒤에만 completion evidence를 남긴다.",
+        "- `pgg git=on`이면 refactor task 완료의 completion evidence는 `.codex/sh/pgg-stage-commit.sh`가 남기는 `stage-commit`을 우선한다.",
         "",
         "## Expert Roster",
         "",
@@ -1426,6 +1494,14 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "- `pgg teams`가 `on`이면 `.codex/sh/pgg-state-pack.sh <topic|topic_dir>`로 최소 handoff를 만든 뒤 아래 전문가를 자동 orchestration한다.",
         "- `pgg teams`가 `off`이면 같은 문서 계약을 유지하되 단일 에이전트 흐름으로 진행한다.",
         "- pgg가 생성·관리하는 `.codex/sh/*.sh` helper만 workflow 내부 trusted script로 보고 추가 허락 없이 실행한다.",
+        "",
+        "## Stage Events",
+        "",
+        "- stage 시작 시 `state/history.ndjson`에 `{\"stage\":\"qa\",\"event\":\"stage-started\",\"source\":\"pgg-qa\"}`를 남긴다.",
+        "- 테스트 준비, evidence 정리, 검증 중 상태는 `stage-progress`로만 남긴다.",
+        "- 사용자 추가 요구가 있으면 QA 작업 전에 `requirements-added`를 남긴다.",
+        "- QA report pass, required audit 확인, archive/release outcome 처리가 끝난 뒤에만 final completion evidence를 남긴다.",
+        "- QA fail, release blocked, publish blocked는 Done completed가 아니라 실패/차단 evidence로 남긴다.",
         "",
         "## Expert Roster",
         "",
@@ -1753,6 +1829,7 @@ function newTopicSh(): string {
     "fi",
     "",
     "printf '{\"ts\":\"%s\",\"stage\":\"proposal\",\"event\":\"topic-created\"}\\n' \"$TIMESTAMP\" > \"$TOPIC_DIR/state/history.ndjson\"",
+    "printf '{\"ts\":\"%s\",\"stage\":\"proposal\",\"event\":\"stage-started\",\"source\":\"pgg-add\"}\\n' \"$TIMESTAMP\" >> \"$TOPIC_DIR/state/history.ndjson\"",
     "echo '{\"topic\":\"'$TOPIC'\",\"nodes\":[],\"edges\":[]}' > \"$TOPIC_DIR/workflow.reactflow.json\"",
     "echo \"{\\\"topic\\\":\\\"$TOPIC\\\",\\\"status\\\":\\\"created\\\"}\""
   ]);

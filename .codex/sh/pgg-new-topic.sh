@@ -250,5 +250,6 @@ if [[ -f "$ROOT_DIR/.pgg/project.json" && "$ARCHIVE_TYPE" != "pending" && "$VERS
 fi
 
 printf '{"ts":"%s","stage":"proposal","event":"topic-created"}\n' "$TIMESTAMP" > "$TOPIC_DIR/state/history.ndjson"
+printf '{"ts":"%s","stage":"proposal","event":"stage-started","source":"pgg-add"}\n' "$TIMESTAMP" >> "$TOPIC_DIR/state/history.ndjson"
 echo '{"topic":"'$TOPIC'","nodes":[],"edges":[]}' > "$TOPIC_DIR/workflow.reactflow.json"
 echo "{\"topic\":\"$TOPIC\",\"status\":\"created\"}"

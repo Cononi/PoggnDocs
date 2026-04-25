@@ -2,7 +2,7 @@ import type { TopicSummary } from "../../shared/model/dashboard";
 import { buildTopicKey, formatDate } from "../../shared/utils/dashboard";
 
 export type HistoryLanguage = "ko" | "en";
-export type WorkflowStatus = "completed" | "current" | "updating" | "pending";
+export type WorkflowStatus = "completed" | "current" | "updating" | "pending" | "blocked";
 export type WorkflowTimestampConfidence = "high" | "medium" | "low" | "none";
 export type FileChangeKind = "A" | "M" | "D";
 export type RelationKind = "depends" | "blocks" | "related" | "implements" | "mentioned";
@@ -190,8 +190,8 @@ function topicStageIsComplete(topic: TopicSummary): boolean {
     return true;
   }
 
-  const status = (topic.status ?? "").toLowerCase();
-  return status === "reviewed" || status === "approved" || status === "done";
+  const flow = workflowFlowDefinitions.find((entry) => entry.id === normalizeFlowId(topic.stage));
+  return flow ? flowHasFullCompletionEvidence(topic, flow) : false;
 }
 
 function sourcePathForNode(node: WorkflowNodeEntry): string {
@@ -502,7 +502,7 @@ function isRevisionEvent(event: TopicHistoryEventEntry): boolean {
 }
 
 function isCompletionEvent(event: TopicHistoryEventEntry): boolean {
-  if (eventNameMatches(event, [/stage-commit/i, /reviewed$/i, /archived$/i])) {
+  if (eventNameMatches(event, [/stage-commit/i, /archived$/i, /version-recorded/i])) {
     return true;
   }
 
@@ -511,6 +511,60 @@ function isCompletionEvent(event: TopicHistoryEventEntry): boolean {
   }
 
   return /verified|final|gate|qa|검증|최종/i.test(event.source ?? "");
+}
+
+function isTrustedNodeCompletion(node: WorkflowNodeEntry): boolean {
+  if (!node.data.detail?.completedAt) {
+    return false;
+  }
+
+  const status = `${node.data.status ?? ""} ${node.data.detail?.status ?? ""}`;
+  return /done|complete|completed|verified|final|passed|pass|archived|released|완료|검증|최종/i.test(status);
+}
+
+function nodeCompletionEvidence(nodes: WorkflowNodeEntry[]): TimestampEvidence[] {
+  return nodes
+    .filter(isTrustedNodeCompletion)
+    .map((node) => ({
+      value: node.data.detail?.completedAt ?? null,
+      confidence: "high" as const,
+      source: sourcePathForNode(node)
+    }));
+}
+
+function isPublishBlocked(topic: TopicSummary): boolean {
+  const result = (topic.publishResultType ?? "").toLowerCase();
+  const push = (topic.publishPushStatus ?? "").toLowerCase();
+  return /blocked|failed|invalid|error|required/.test(result) || /failed|not_attempted/.test(push);
+}
+
+function isReleasePublished(topic: TopicSummary): boolean {
+  const result = (topic.publishResultType ?? "").toLowerCase();
+  const push = (topic.publishPushStatus ?? "").toLowerCase();
+
+  if (result || push) {
+    return result === "published" && push === "success";
+  }
+
+  return true;
+}
+
+function isDoneFlowCompleted(topic: TopicSummary): boolean {
+  return topic.bucket === "archive" && Boolean(topic.version && topic.archivedAt) && isReleasePublished(topic);
+}
+
+function isDoneFlowBlocked(topic: TopicSummary): boolean {
+  return topic.bucket === "archive" && isPublishBlocked(topic);
+}
+
+function flowHasFullCompletionEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition): boolean {
+  if (flow.id === "done") {
+    return isDoneFlowCompleted(topic);
+  }
+
+  const hasCompletionEvent = flowHistoryEvents(topic, flow).some(isCompletionEvent);
+  const hasTrustedNodeCompletion = flowNodes(topic, flow).some(isTrustedNodeCompletion);
+  return hasCompletionEvent || hasTrustedNodeCompletion;
 }
 
 function isRuntimeActiveEvent(event: TopicHistoryEventEntry): boolean {
@@ -669,7 +723,7 @@ function flowTimestampBundle(topic: TopicSummary, flow: WorkflowFlowDefinition):
       source: `state/history.ndjson:${event.event ?? "event"}`
     }));
   const fileEvidence = fileTimestampEvidence(files);
-  const doneEvidence = flow.id === "done" ? [{ value: topic.archivedAt, confidence: "high" as const, source: "archive" }] : [];
+  const doneEvidence = flow.id === "done" && isDoneFlowCompleted(topic) ? [{ value: topic.archivedAt, confidence: "high" as const, source: "release" }] : [];
   const topicFallback =
     flow.id === normalizeFlowId(topic.stage)
       ? [{ value: topic.updatedAt, confidence: "low" as const, source: "topic.updatedAt" }]
@@ -694,7 +748,7 @@ function flowTimestampBundle(topic: TopicSummary, flow: WorkflowFlowDefinition):
     updatedAt: latestEvidence(updatedEvidence),
     completedAt: latestEvidence([
       ...completeEvents,
-      ...nodeTimestampEvidence(nodes, "completedAt"),
+      ...nodeCompletionEvidence(nodes),
       ...doneEvidence
     ])
   };
@@ -761,19 +815,26 @@ export function buildWorkflowSteps(topic: TopicSummary, language: HistoryLanguag
   const effectiveCurrentIndex = updatingIndex ?? activeIndex ?? currentIndex;
 
   return entries.map(({ flow, index, activeTaskIds, timestamps }) => {
+    const blocked = flow.id === "done" && isDoneFlowBlocked(topic);
     const completedByProgress = index < currentIndex || index < effectiveCurrentIndex;
-    const completedByEvidence = Boolean(timestamps.completedAt.value && timestamps.completedAt.confidence !== "low");
+    const completedByEvidence =
+      flow.id === "done"
+        ? isDoneFlowCompleted(topic)
+        : Boolean(timestamps.completedAt.value && timestamps.completedAt.confidence !== "low");
     const updating = updatingIndex === index;
+    const completedArchiveFlow = topic.bucket === "archive" && flow.id !== "done";
     const isComplete =
-      topic.bucket === "archive" ||
-      (!updating && (completedByProgress || completedByEvidence));
+      !blocked &&
+      (completedArchiveFlow || (!updating && (completedByProgress || completedByEvidence)));
     const status: WorkflowStatus = updating
       ? "updating"
-      : isComplete
-        ? "completed"
-        : index === effectiveCurrentIndex
-          ? "current"
-          : "pending";
+      : blocked
+        ? "blocked"
+        : isComplete
+          ? "completed"
+          : index === effectiveCurrentIndex
+            ? "current"
+            : "pending";
     const displayedCompletedAt = status === "completed" && timestamps.completedAt.confidence !== "low" ? timestamps.completedAt.value : null;
 
     return {
