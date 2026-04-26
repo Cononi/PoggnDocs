@@ -6,7 +6,7 @@ dashboard-workflow-tab-status-release-fix
 
 ## Current Stage
 
-refactor
+qa
 
 ## Goal
 
@@ -23,6 +23,7 @@ Workflow 탭을 `add-img/9.png` 기준으로 맞추고, 모든 pgg flow step이 
 - implementation index: `poggn/active/dashboard-workflow-tab-status-release-fix/implementation/index.md`
 - code review: `poggn/active/dashboard-workflow-tab-status-release-fix/reviews/code.review.md`
 - refactor review: `poggn/active/dashboard-workflow-tab-status-release-fix/reviews/refactor.review.md`
+- qa report: `poggn/active/dashboard-workflow-tab-status-release-fix/qa/report.md`
 - spec:
   - `poggn/active/dashboard-workflow-tab-status-release-fix/spec/ui/workflow-tab-reference.md`
   - `poggn/active/dashboard-workflow-tab-status-release-fix/spec/model/strict-flow-completion.md`
@@ -67,6 +68,8 @@ Workflow 탭을 `add-img/9.png` 기준으로 맞추고, 모든 pgg flow step이 
 - History tabs now use panel top border plus selected-tab mask instead of fragile split-line geometry.
 - Refactor centralized Done release outcome as `completed`, `blocked`, or `pending` so release failure precedence is kept in one decision point.
 - Refactor extracted Workflow tab progress count and live/highlight status helpers without changing accepted UI behavior.
+- QA passed build, core tests, pgg gate, diff hygiene, and source inspection.
+- Browser screenshot parity against `add-img/9.png` remains manual because no declared verification command or browser automation dependency exists in the workspace.
 
 ## User Question Record
 
@@ -116,6 +119,7 @@ Workflow 탭을 `add-img/9.png` 기준으로 맞추고, 모든 pgg flow step이 
 | CREATE | `poggn/active/dashboard-workflow-tab-status-release-fix/implementation/diffs/004_UPDATE_pgg_stage_event_contracts.diff` | |
 | CREATE | `poggn/active/dashboard-workflow-tab-status-release-fix/reviews/code.review.md` | |
 | CREATE | `poggn/active/dashboard-workflow-tab-status-release-fix/reviews/refactor.review.md` | |
+| CREATE | `poggn/active/dashboard-workflow-tab-status-release-fix/qa/report.md` | |
 | CREATE | `poggn/active/dashboard-workflow-tab-status-release-fix/implementation/diffs/005_UPDATE_workflow_status_refactor_helpers.diff` | |
 | CREATE | `poggn/active/dashboard-workflow-tab-status-release-fix/implementation/diffs/006_UPDATE_dashboard_snapshot_refactor.diff` | |
 | UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | `poggn/active/dashboard-workflow-tab-status-release-fix/implementation/diffs/001_UPDATE_historyModel_strict_flow_completion.diff` |
@@ -137,13 +141,14 @@ Workflow 탭을 `add-img/9.png` 기준으로 맞추고, 모든 pgg flow step이 
 
 ## Last Expert Score
 
-- phase: refactor
-- score: 96
+- phase: qa
+- score: 97
 - blocking issues: none
 
 ## Open Items
 
-- status: ready_for_qa
+- status: pass
+- archive: allowed
 
 ## Verification
 
@@ -153,6 +158,7 @@ Workflow 탭을 `add-img/9.png` 기준으로 맞추고, 모든 pgg flow step이 
 - task document review: pass
 - pgg-code implementation review: pass
 - pgg-refactor review: pass
+- pgg-qa report: pass
 - `pnpm build`: pass
 - `pnpm test`: pass
 - `git diff --check`: pass
@@ -161,3 +167,4 @@ Workflow 탭을 `add-img/9.png` 기준으로 맞추고, 모든 pgg flow step이 
 - `node --check packages/core/dist/templates.js`: pass
 - `node packages/cli/dist/index.js dashboard --snapshot-only`: pass
 - `pnpm lint`: not available, command `lint` not found
+- visual parity with `add-img/9.png`: manual verification required

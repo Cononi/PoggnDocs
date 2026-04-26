@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-04-26T07:06:07.146Z",
+  "generatedAt": "2026-04-26T07:16:48.382Z",
   "currentProjectId": "poggn-ai-c961bdf3",
   "latestActiveProjectId": "poggn-ai-c961bdf3",
   "categories": [
@@ -28,17 +28,17 @@
   ],
   "recentActivity": [
     {
-      "id": "poggn-ai-c961bdf3:active:dashboard-workflow-tab-status-release-fix:2026-04-26T07:04:54.745Z",
+      "id": "poggn-ai-c961bdf3:active:dashboard-workflow-tab-status-release-fix:2026-04-26T07:16:37.206Z",
       "projectId": "poggn-ai-c961bdf3",
       "projectName": "poggn",
       "topicName": "dashboard-workflow-tab-status-release-fix",
       "bucket": "active",
-      "stage": "refactor",
+      "stage": "qa",
       "status": "reviewed",
       "archiveType": null,
-      "score": 96,
+      "score": 97,
       "nextAction": null,
-      "updatedAt": "2026-04-26T07:04:54.745Z"
+      "updatedAt": "2026-04-26T07:16:37.206Z"
     },
     {
       "id": "poggn-ai-c961bdf3:archive:dashboard-workflow-overview-sync:2026-04-24T23:29:09.290Z",
@@ -542,16 +542,16 @@
         "category-075904"
       ],
       "latestTopicName": "dashboard-workflow-tab-status-release-fix",
-      "latestTopicStage": "refactor",
-      "latestActivityAt": "2026-04-26T07:04:54.745Z",
+      "latestTopicStage": "qa",
+      "latestActivityAt": "2026-04-26T07:16:37.206Z",
       "activeTopics": [
         {
           "name": "dashboard-workflow-tab-status-release-fix",
           "bucket": "active",
-          "stage": "refactor",
+          "stage": "qa",
           "goal": "Workflow 탭을 `add-img/9.png` 기준으로 맞추고, 모든 pgg flow step이 `시작 전`, `진행 중`, `추가 진행`, `완료` evidence에 따라 바뀌는지 dashboard와 pgg 기록 절차를 함께 검증한다. 모든 flow는 해당 stage가 완벽하게 끝난 뒤에만 완료로 처리되어야 하며, 중간 산출물이나 `reviewed`/`updatedAt`만으로 완료 처리하면 안 된다.",
           "nextAction": null,
-          "score": 96,
+          "score": 97,
           "blockingIssues": "none",
           "status": "reviewed",
           "version": null,
@@ -569,7 +569,7 @@
           "cleanupReason": null,
           "cleanupTiming": null,
           "archivedAt": null,
-          "updatedAt": "2026-04-26T07:04:54.745Z",
+          "updatedAt": "2026-04-26T07:16:37.206Z",
           "workflow": {
             "topic": "dashboard-workflow-tab-status-release-fix",
             "nodes": [
@@ -741,7 +741,7 @@
                     "kind": "markdown",
                     "title": "Workflow tab status release fix implementation",
                     "sourcePath": "poggn/active/dashboard-workflow-tab-status-release-fix/implementation/index.md",
-                    "content": "---\npgg:\n  topic: \"dashboard-workflow-tab-status-release-fix\"\n  stage: \"refactor\"\n  status: \"reviewed\"\n  skill: \"pgg-refactor\"\n  score: 96\n  updated_at: \"2026-04-26T06:53:42Z\"\n  archive_type: \"fix\"\n  project_scope: \"current-project\"\n---\n\n# Implementation Index\n\n## Summary\n\nWorkflow tab visual, strict flow completion, pgg stage event recording, dashboard ingestion, and Done release outcome handling were implemented for the approved plan.\n\n## Refactor Summary\n\nWorkflow status helpers were consolidated without changing the accepted behavior. Done release outcome now has one `completed | blocked | pending` decision point, and the Workflow tab UI shares progress count/status helper types instead of repeating inline status checks.\n\n## Changes\n\n| Task | Spec | Summary | Evidence |\n|---|---|---|---|\n| T1 | S3 | `pgg-new-topic.sh` now records proposal `stage-started`, and generated skill/templates document stage start/progress/requirements/completion event rules. | `implementation/diffs/004_UPDATE_pgg_stage_event_contracts.diff` |\n| T2 | S2 | Dashboard completion predicates no longer treat `reviewed`, artifact presence, node presence, or `updatedAt` fallback as completion for the current flow. | `implementation/diffs/001_UPDATE_historyModel_strict_flow_completion.diff` |\n| T3 | S5 | Workflow status ingestion prioritizes history events and trusted node completion while keeping low-confidence fallback out of completed state. | `implementation/diffs/001_UPDATE_historyModel_strict_flow_completion.diff` |\n| T4 | S4 | Done flow completion now requires archive/version plus successful release publish when publish metadata exists; publish/QA failure is separated as blocked. | `implementation/diffs/001_UPDATE_historyModel_strict_flow_completion.diff` |\n| T5 | S1 | History tab geometry was simplified so the selected tab masks only its panel-top segment and inactive tabs remain unboxed. | `implementation/diffs/002_UPDATE_HistoryWorkspace_tab_and_blocked_status.diff` |\n| T6 | S6 | Build and core tests were run; lint command is unavailable in this workspace. | Verification section |\n| REF1 | S2, S4, S5 | Release outcome and workflow UI status helper duplication were reduced after implementation review. | `implementation/diffs/005_UPDATE_workflow_status_refactor_helpers.diff` |\n\n## Changed Files\n\n| CRUD | path | diffRef |\n|---|---|---|\n| UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | `implementation/diffs/001_UPDATE_historyModel_strict_flow_completion.diff` |\n| UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `implementation/diffs/002_UPDATE_HistoryWorkspace_tab_and_blocked_status.diff` |\n| UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | `implementation/diffs/005_UPDATE_workflow_status_refactor_helpers.diff` |\n| UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `implementation/diffs/005_UPDATE_workflow_status_refactor_helpers.diff` |\n| UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | `implementation/diffs/003_UPDATE_dashboard_locale_and_flow_status.diff` |\n| UPDATE | `apps/dashboard/src/shared/utils/dashboard.tsx` | `implementation/diffs/003_UPDATE_dashboard_locale_and_flow_status.diff` |\n| UPDATE | `AGENTS.md` | `implementation/diffs/004_UPDATE_pgg_stage_event_contracts.diff` |\n| UPDATE | `.codex/add/WOKR-FLOW.md` | `implementation/diffs/004_UPDATE_pgg_stage_event_contracts.diff` |\n| UPDATE | `.codex/add/STATE-CONTRACT.md` | `implementation/diffs/004_UPDATE_pgg_stage_event_contracts.diff` |\n| UPDATE | `.codex/sh/pgg-new-topic.sh` | `implementation/diffs/004_UPDATE_pgg_stage_event_contracts.diff` |\n| UPDATE | `.codex/skills/pgg-add/SKILL.md` | `implementation/diffs/004_UPDATE_pgg_stage_event_contracts.diff` |\n| UPDATE | `.pgg/project.json` | `implementation/diffs/004_UPDATE_pgg_stage_event_contracts.diff` |\n| UPDATE | `packages/core/src/templates.ts` | `implementation/diffs/004_UPDATE_pgg_stage_event_contracts.diff` |\n| UPDATE | `packages/core/dist/templates.js` | `implementation/diffs/004_UPDATE_pgg_stage_event_contracts.diff` |\n| UPDATE | `packages/core/dist/templates.js.map` | `implementation/diffs/004_UPDATE_pgg_stage_event_contracts.diff` |\n\n## Verification\n\n- `pnpm build`: pass\n- `pnpm test`: pass, 37 tests\n- `git diff --check`: pass\n- `./.codex/sh/pgg-gate.sh pgg-refactor dashboard-workflow-tab-status-release-fix`: pass\n- `./.codex/sh/pgg-gate.sh pgg-qa dashboard-workflow-tab-status-release-fix`: pass\n- `node --check packages/core/dist/templates.js`: pass\n- `pnpm lint`: not available, command `lint` not found\n- `node packages/cli/dist/index.js update`: pass after template build; generated pgg-token/qa skill placement verified\n- current-project verification contract: `manual verification required`\n\n## Notes\n\n- `stage-completed` without verified/final source remains non-completion evidence.\n- Done blocked state is rendered separately from completed when publish metadata reports blocked/failed/not attempted.\n- Browser screenshot comparison remains a QA/manual evidence item because no declared current-project verification command exists.\n",
+                    "content": "---\npgg:\n  topic: \"dashboard-workflow-tab-status-release-fix\"\n  stage: \"refactor\"\n  status: \"reviewed\"\n  skill: \"pgg-refactor\"\n  score: 96\n  updated_at: \"2026-04-26T06:53:42Z\"\n  archive_type: \"fix\"\n  project_scope: \"current-project\"\n---\n\n# Implementation Index\n\n## Summary\n\nWorkflow tab visual, strict flow completion, pgg stage event recording, dashboard ingestion, and Done release outcome handling were implemented for the approved plan.\n\n## Refactor Summary\n\nWorkflow status helpers were consolidated without changing the accepted behavior. Done release outcome now has one `completed | blocked | pending` decision point, and the Workflow tab UI shares progress count/status helper types instead of repeating inline status checks.\n\n## Changes\n\n| Task | Spec | Summary | Evidence |\n|---|---|---|---|\n| T1 | S3 | `pgg-new-topic.sh` now records proposal `stage-started`, and generated skill/templates document stage start/progress/requirements/completion event rules. | `implementation/diffs/004_UPDATE_pgg_stage_event_contracts.diff` |\n| T2 | S2 | Dashboard completion predicates no longer treat `reviewed`, artifact presence, node presence, or `updatedAt` fallback as completion for the current flow. | `implementation/diffs/001_UPDATE_historyModel_strict_flow_completion.diff` |\n| T3 | S5 | Workflow status ingestion prioritizes history events and trusted node completion while keeping low-confidence fallback out of completed state. | `implementation/diffs/001_UPDATE_historyModel_strict_flow_completion.diff` |\n| T4 | S4 | Done flow completion now requires archive/version plus successful release publish when publish metadata exists; publish/QA failure is separated as blocked. | `implementation/diffs/001_UPDATE_historyModel_strict_flow_completion.diff` |\n| T5 | S1 | History tab geometry was simplified so the selected tab masks only its panel-top segment and inactive tabs remain unboxed. | `implementation/diffs/002_UPDATE_HistoryWorkspace_tab_and_blocked_status.diff` |\n| T6 | S6 | Build and core tests were run; lint command is unavailable in this workspace. | Verification section |\n| REF1 | S2, S4, S5 | Release outcome and workflow UI status helper duplication were reduced after implementation review. | `implementation/diffs/005_UPDATE_workflow_status_refactor_helpers.diff` |\n| REF2 | S5 | Dashboard snapshot was regenerated so the local dashboard reflects refactor stage evidence. | `implementation/diffs/006_UPDATE_dashboard_snapshot_refactor.diff` |\n\n## Changed Files\n\n| CRUD | path | diffRef |\n|---|---|---|\n| UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | `implementation/diffs/001_UPDATE_historyModel_strict_flow_completion.diff` |\n| UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `implementation/diffs/002_UPDATE_HistoryWorkspace_tab_and_blocked_status.diff` |\n| UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | `implementation/diffs/005_UPDATE_workflow_status_refactor_helpers.diff` |\n| UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `implementation/diffs/005_UPDATE_workflow_status_refactor_helpers.diff` |\n| UPDATE | `apps/dashboard/public/dashboard-data.json` | `implementation/diffs/006_UPDATE_dashboard_snapshot_refactor.diff` |\n| UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | `implementation/diffs/003_UPDATE_dashboard_locale_and_flow_status.diff` |\n| UPDATE | `apps/dashboard/src/shared/utils/dashboard.tsx` | `implementation/diffs/003_UPDATE_dashboard_locale_and_flow_status.diff` |\n| UPDATE | `AGENTS.md` | `implementation/diffs/004_UPDATE_pgg_stage_event_contracts.diff` |\n| UPDATE | `.codex/add/WOKR-FLOW.md` | `implementation/diffs/004_UPDATE_pgg_stage_event_contracts.diff` |\n| UPDATE | `.codex/add/STATE-CONTRACT.md` | `implementation/diffs/004_UPDATE_pgg_stage_event_contracts.diff` |\n| UPDATE | `.codex/sh/pgg-new-topic.sh` | `implementation/diffs/004_UPDATE_pgg_stage_event_contracts.diff` |\n| UPDATE | `.codex/skills/pgg-add/SKILL.md` | `implementation/diffs/004_UPDATE_pgg_stage_event_contracts.diff` |\n| UPDATE | `.pgg/project.json` | `implementation/diffs/004_UPDATE_pgg_stage_event_contracts.diff` |\n| UPDATE | `packages/core/src/templates.ts` | `implementation/diffs/004_UPDATE_pgg_stage_event_contracts.diff` |\n| UPDATE | `packages/core/dist/templates.js` | `implementation/diffs/004_UPDATE_pgg_stage_event_contracts.diff` |\n| UPDATE | `packages/core/dist/templates.js.map` | `implementation/diffs/004_UPDATE_pgg_stage_event_contracts.diff` |\n\n## Verification\n\n- `pnpm build`: pass\n- `pnpm test`: pass, 37 tests\n- `git diff --check`: pass\n- `./.codex/sh/pgg-gate.sh pgg-refactor dashboard-workflow-tab-status-release-fix`: pass\n- `./.codex/sh/pgg-gate.sh pgg-qa dashboard-workflow-tab-status-release-fix`: pass\n- `node --check packages/core/dist/templates.js`: pass\n- `node packages/cli/dist/index.js dashboard --snapshot-only`: pass\n- `pnpm lint`: not available, command `lint` not found\n- `node packages/cli/dist/index.js update`: pass after template build; generated pgg-token/qa skill placement verified\n- current-project verification contract: `manual verification required`\n\n## Notes\n\n- `stage-completed` without verified/final source remains non-completion evidence.\n- Done blocked state is rendered separately from completed when publish metadata reports blocked/failed/not attempted.\n- Browser screenshot comparison remains a QA/manual evidence item because no declared current-project verification command exists.\n",
                     "contentType": "text/markdown",
                     "startedAt": "2026-04-25T14:14:31Z",
                     "updatedAt": "2026-04-25T14:56:30Z",
@@ -793,7 +793,7 @@
                     "kind": "markdown",
                     "title": "Refactor expert review",
                     "sourcePath": "poggn/active/dashboard-workflow-tab-status-release-fix/reviews/refactor.review.md",
-                    "content": "---\npgg:\n  topic: \"dashboard-workflow-tab-status-release-fix\"\n  stage: \"refactor\"\n  status: \"reviewed\"\n  skill: \"pgg-refactor\"\n  score: 96\n  updated_at: \"2026-04-26T06:53:42Z\"\n  archive_type: \"fix\"\n  project_scope: \"current-project\"\n---\n\n# Refactor Review\n\n## Decision\n\npass\n\n## Scope\n\n- Centralized Done release outcome handling in `historyModel.ts`.\n- Replaced repeated Workflow tab status/count prop shapes and live/highlight checks in `HistoryWorkspace.tsx`.\n\n## Findings\n\n- No blocking issues.\n- The refactor preserves release failure precedence: archive topics with blocked/failed/not-attempted publish metadata still render Done as blocked, even when version/archive completion evidence is incomplete.\n- UI animation semantics are unchanged: only current/updating steps pulse, while blocked steps remain highlighted without live animation.\n\n## Verification\n\n- `pnpm build`: pass\n- `pnpm test`: pass, 37 tests\n- `git diff --check`: pass\n- `./.codex/sh/pgg-gate.sh pgg-refactor dashboard-workflow-tab-status-release-fix`: pass\n- `./.codex/sh/pgg-gate.sh pgg-qa dashboard-workflow-tab-status-release-fix`: pass\n- `node --check packages/core/dist/templates.js`: pass\n\n## Residual Risk\n\n- Visual comparison against `add-img/9.png` remains a QA/manual evidence item because the current-project verification contract is `manual verification required`.\n",
+                    "content": "---\npgg:\n  topic: \"dashboard-workflow-tab-status-release-fix\"\n  stage: \"refactor\"\n  status: \"reviewed\"\n  skill: \"pgg-refactor\"\n  score: 96\n  updated_at: \"2026-04-26T06:53:42Z\"\n  archive_type: \"fix\"\n  project_scope: \"current-project\"\n---\n\n# Refactor Review\n\n## Decision\n\npass\n\n## Scope\n\n- Centralized Done release outcome handling in `historyModel.ts`.\n- Replaced repeated Workflow tab status/count prop shapes and live/highlight checks in `HistoryWorkspace.tsx`.\n- Regenerated `apps/dashboard/public/dashboard-data.json` so the dashboard snapshot includes refactor stage evidence.\n\n## Findings\n\n- No blocking issues.\n- The refactor preserves release failure precedence: archive topics with blocked/failed/not-attempted publish metadata still render Done as blocked, even when version/archive completion evidence is incomplete.\n- UI animation semantics are unchanged: only current/updating steps pulse, while blocked steps remain highlighted without live animation.\n- The regenerated snapshot now shows this topic in `refactor` with score `96` and includes `refactor.review.md`.\n\n## Verification\n\n- `pnpm build`: pass\n- `pnpm test`: pass, 37 tests\n- `git diff --check`: pass\n- `./.codex/sh/pgg-gate.sh pgg-refactor dashboard-workflow-tab-status-release-fix`: pass\n- `./.codex/sh/pgg-gate.sh pgg-qa dashboard-workflow-tab-status-release-fix`: pass\n- `node --check packages/core/dist/templates.js`: pass\n- `node packages/cli/dist/index.js dashboard --snapshot-only`: pass\n\n## Residual Risk\n\n- Visual comparison against `add-img/9.png` remains a QA/manual evidence item because the current-project verification contract is `manual verification required`.\n",
                     "contentType": "text/markdown",
                     "startedAt": "2026-04-26T06:36:12Z",
                     "updatedAt": "2026-04-26T06:53:42Z",
@@ -804,6 +804,32 @@
                 },
                 "position": {
                   "x": 1760,
+                  "y": 0
+                }
+              },
+              {
+                "id": "qa-report",
+                "type": "review",
+                "data": {
+                  "label": "qa/report.md",
+                  "stage": "qa",
+                  "status": "done",
+                  "path": "poggn/active/dashboard-workflow-tab-status-release-fix/qa/report.md",
+                  "detail": {
+                    "kind": "markdown",
+                    "title": "QA report",
+                    "sourcePath": "poggn/active/dashboard-workflow-tab-status-release-fix/qa/report.md",
+                    "content": "---\npgg:\n  topic: \"dashboard-workflow-tab-status-release-fix\"\n  stage: \"qa\"\n  status: \"done\"\n  skill: \"pgg-qa\"\n  score: 97\n  updated_at: \"2026-04-26T07:11:47Z\"\n  archive_type: \"fix\"\n  project_scope: \"current-project\"\nreactflow:\n  node_id: \"qa-report\"\n  node_type: \"review\"\n  label: \"qa/report.md\"\nstate:\n  summary: \"Workflow tab visual/status/release outcome fixes and refactor were verified; archive is allowed.\"\n  next: \"archive\"\n---\n\n# QA Report\n\n## Test Plan\n\n- Verify that Workflow tab rendering changed toward the `add-img/9.png` reference by source inspection of selected-tab borders, panel connection, and inactive-tab styling.\n- Verify that workflow step status no longer completes from partial artifacts, `reviewed`, workflow node presence, or `updatedAt` fallback alone.\n- Verify that pgg stage evidence exists for `stage-started`, `stage-progress`, `stage-completed`, and `stage-commit` so dashboard can distinguish `진행 중`, `추가 진행`, and `완료`.\n- Verify that Done is completed only by archive/version/release evidence, while publish blocked/failed/not attempted remains blocked rather than completed.\n- Verify required audits, build/test/gates, and dashboard snapshot readiness before archive.\n\n## Audit Applicability\n\n- `pgg-token`: `not_required` | handoff token 최적화가 아니라 dashboard tab/status와 pgg evidence contract 정합이 핵심이다.\n- `pgg-performance`: `not_required` | UI geometry와 상태 evidence 계산/기록 수정이며 별도 성능 계측이 필요한 데이터 규모 변경은 없다.\n\n## Execution Results\n\n- `pnpm build`\n  - pass\n  - dashboard, core, cli build succeeded.\n  - Vite still reports the existing large chunk warning: `index-BdL1fMkX.js 1,825.39 kB`, but this is not a build failure.\n- `pnpm test`\n  - pass\n  - core regression suite passed: 37 tests, 0 failed.\n- `./.codex/sh/pgg-gate.sh pgg-qa dashboard-workflow-tab-status-release-fix`\n  - pass\n  - QA stage prerequisites are present.\n- `git diff --check`\n  - pass\n  - no whitespace errors in the QA diff.\n- source inspection\n  - pass\n  - `historyModel.ts` completion evidence excludes untrusted `reviewed` status and uses `releaseOutcomeForTopic` for Done completion/blocked decisions.\n  - `HistoryWorkspace.tsx` selected tabs use panel background, connected border, bottom mask, and transparent inactive tabs.\n  - dashboard flow status no longer treats plain `reviewed` as completed.\n- current-project verification contract\n  - `manual verification required`\n  - No declared current-project verification command exists, so no additional app-specific command was inferred.\n- visual reference\n  - manual evidence required\n  - `add-img/9.png` remains the reference. Browser screenshot automation is not available in this workspace dependency set, so visual parity should be checked manually in the running dashboard.\n\n## Test Evidence\n\n- build: `pnpm build` -> pass\n- tests: `pnpm test` -> pass, 37 tests\n- gate: `./.codex/sh/pgg-gate.sh pgg-qa dashboard-workflow-tab-status-release-fix` -> `{\"gate\":\"pass\",\"stage\":\"pgg-qa\"}`\n- diff hygiene: `git diff --check` -> pass\n- source evidence:\n  - [historyModel.ts](/config/workspace/poggn-ai/apps/dashboard/src/features/history/historyModel.ts:505)\n  - [HistoryWorkspace.tsx](/config/workspace/poggn-ai/apps/dashboard/src/features/history/HistoryWorkspace.tsx:194)\n  - [dashboard.tsx](/config/workspace/poggn-ai/apps/dashboard/src/shared/utils/dashboard.tsx:1)\n- state evidence: [state/history.ndjson](/config/workspace/poggn-ai/poggn/active/dashboard-workflow-tab-status-release-fix/state/history.ndjson:1)\n- refactor evidence: [reviews/refactor.review.md](/config/workspace/poggn-ai/poggn/active/dashboard-workflow-tab-status-release-fix/reviews/refactor.review.md:1)\n\n## Expert Notes\n\n| Expert | Score | Core Judgment | Evidence Checked | Blocking Issue |\n|---|---:|---|---|---|\n| QA/테스트 엔지니어 | 97 | build, regression tests, pgg gate, source inspection이 통과했고 archive 가능한 상태다. | `pnpm build`, `pnpm test`, `pgg-qa` gate, `git diff --check` | 없음 |\n| 코드 리뷰어 | 97 | strict completion, Done release outcome, selected-tab geometry, status helper refactor가 approved spec 범위 안에서 유지된다. | `historyModel.ts`, `HistoryWorkspace.tsx`, `reviews/code.review.md`, `reviews/refactor.review.md` | 없음 |\n| SRE / 운영 엔지니어 | 96 | verification contract는 manual이지만 그 제약이 QA에 기록됐고, release/publish blocked 상태를 Done completed와 분리하는 운영 로그 기준이 갖춰졌다. | `.pgg/project.json`, `state/current.md`, `state/history.ndjson`, `pgg-qa` gate | 없음 |\n\n## Decision\n\npass\n\n## Archive\n\n- archive: allowed\n- rollback: none\n- blocking issues: none\n\n## Git Publish Message\n\n- title: fix: 2.2.4.워크플로우 상태 표시\n- why: Workflow 탭이 add-img/9.png와 다르게 보이고 pgg stage 시작/추가/완료 evidence가 dashboard 상태로 안정적으로 반영되지 않아, 탭 visual과 flow status 기록/계산 및 Done release outcome 표시를 함께 바로잡아야 한다.\n- footer: Refs: dashboard-workflow-tab-status-release-fix\n\n## Residual Risks\n\n- Browser screenshot parity against `add-img/9.png` remains manual because no declared verification command or browser automation dependency is available.\n- The existing dashboard bundle size warning remains and should be tracked separately from this status/release fix.\n",
+                    "contentType": "text/markdown",
+                    "startedAt": "2026-04-26T07:10:22Z",
+                    "updatedAt": "2026-04-26T07:11:47Z",
+                    "completedAt": "2026-04-26T07:11:47Z",
+                    "summary": null,
+                    "status": "completed"
+                  }
+                },
+                "position": {
+                  "x": 1980,
                   "y": 0
                 }
               }
@@ -848,6 +874,11 @@
                 "id": "code-review-refactor-review",
                 "source": "code-review",
                 "target": "refactor-review"
+              },
+              {
+                "id": "refactor-review-qa-report",
+                "source": "refactor-review",
+                "target": "qa-report"
               }
             ]
           },
@@ -855,13 +886,13 @@
             "lifecycleDocs": {
               "count": 4,
               "missingRequired": false,
-              "latestUpdatedAt": "2026-04-26T07:04:10.160Z",
+              "latestUpdatedAt": "2026-04-26T07:14:45.056Z",
               "primaryRef": "proposal.md"
             },
             "reviewDocs": {
               "count": 5,
               "missingRequired": false,
-              "latestUpdatedAt": "2026-04-26T07:04:25.457Z",
+              "latestUpdatedAt": "2026-04-26T07:07:46.470Z",
               "primaryRef": "reviews/proposal.review.md"
             },
             "specDocs": {
@@ -871,27 +902,27 @@
               "primaryRef": "spec/model/dashboard-status-ingestion.md"
             },
             "implementationDocs": {
-              "count": 6,
+              "count": 7,
               "missingRequired": false,
-              "latestUpdatedAt": "2026-04-26T07:04:54.745Z",
+              "latestUpdatedAt": "2026-04-26T07:08:18.202Z",
               "primaryRef": "implementation/index.md"
             },
             "qaDocs": {
-              "count": 0,
+              "count": 1,
               "missingRequired": false,
-              "latestUpdatedAt": null,
+              "latestUpdatedAt": "2026-04-26T07:13:28.610Z",
               "primaryRef": "qa/report.md"
             },
             "releaseDocs": {
               "count": 1,
               "missingRequired": false,
-              "latestUpdatedAt": "2026-04-26T07:02:19.984Z",
+              "latestUpdatedAt": "2026-04-26T07:12:27.486Z",
               "primaryRef": "state/history.ndjson"
             },
             "workflowDocs": {
               "count": 1,
               "missingRequired": false,
-              "latestUpdatedAt": "2026-04-26T07:00:44.108Z",
+              "latestUpdatedAt": "2026-04-26T07:16:37.206Z",
               "primaryRef": "workflow.reactflow.json"
             }
           },
@@ -1050,6 +1081,33 @@
               "task": null,
               "summary": "refactor review passed after build, test, diff check, and pgg-refactor gate",
               "source": "verified"
+            },
+            {
+              "ts": "2026-04-26T07:08:43Z",
+              "stage": "refactor",
+              "event": "stage-commit",
+              "flow": null,
+              "task": null,
+              "summary": "워크플로우 상태 헬퍼 정리",
+              "source": null
+            },
+            {
+              "ts": "2026-04-26T07:10:22Z",
+              "stage": "qa",
+              "event": "stage-started",
+              "flow": null,
+              "task": null,
+              "summary": null,
+              "source": "pgg-qa"
+            },
+            {
+              "ts": "2026-04-26T07:11:47Z",
+              "stage": "qa",
+              "event": "stage-progress",
+              "flow": null,
+              "task": null,
+              "summary": "build, core tests, pgg-qa gate, diff check, and source inspections collected",
+              "source": "pgg-qa"
             }
           ],
           "files": [
@@ -1094,11 +1152,19 @@
               "editable": true
             },
             {
+              "relativePath": "implementation/diffs/006_UPDATE_dashboard_snapshot_refactor.diff",
+              "sourcePath": "poggn/active/dashboard-workflow-tab-status-release-fix/implementation/diffs/006_UPDATE_dashboard_snapshot_refactor.diff",
+              "kind": "diff",
+              "updatedAt": "2026-04-26T07:06:37.432Z",
+              "size": 2641121,
+              "editable": true
+            },
+            {
               "relativePath": "implementation/index.md",
               "sourcePath": "poggn/active/dashboard-workflow-tab-status-release-fix/implementation/index.md",
               "kind": "markdown",
-              "updatedAt": "2026-04-26T07:04:54.745Z",
-              "size": 5103,
+              "updatedAt": "2026-04-26T07:08:18.202Z",
+              "size": 5474,
               "editable": true
             },
             {
@@ -1115,6 +1181,14 @@
               "kind": "markdown",
               "updatedAt": "2026-04-24T23:56:20.269Z",
               "size": 17540,
+              "editable": true
+            },
+            {
+              "relativePath": "qa/report.md",
+              "sourcePath": "poggn/active/dashboard-workflow-tab-status-release-fix/qa/report.md",
+              "kind": "markdown",
+              "updatedAt": "2026-04-26T07:13:28.610Z",
+              "size": 5423,
               "editable": true
             },
             {
@@ -1145,8 +1219,8 @@
               "relativePath": "reviews/refactor.review.md",
               "sourcePath": "poggn/active/dashboard-workflow-tab-status-release-fix/reviews/refactor.review.md",
               "kind": "markdown",
-              "updatedAt": "2026-04-26T07:04:25.457Z",
-              "size": 1352,
+              "updatedAt": "2026-04-26T07:07:46.470Z",
+              "size": 1651,
               "editable": true
             },
             {
@@ -1209,8 +1283,8 @@
               "relativePath": "state/current.md",
               "sourcePath": "poggn/active/dashboard-workflow-tab-status-release-fix/state/current.md",
               "kind": "markdown",
-              "updatedAt": "2026-04-26T07:04:10.160Z",
-              "size": 12506,
+              "updatedAt": "2026-04-26T07:14:45.056Z",
+              "size": 13392,
               "editable": true
             },
             {
@@ -1225,8 +1299,8 @@
               "relativePath": "state/history.ndjson",
               "sourcePath": "poggn/active/dashboard-workflow-tab-status-release-fix/state/history.ndjson",
               "kind": "text",
-              "updatedAt": "2026-04-26T07:02:19.984Z",
-              "size": 2696,
+              "updatedAt": "2026-04-26T07:12:27.486Z",
+              "size": 3414,
               "editable": true
             },
             {
@@ -1241,8 +1315,8 @@
               "relativePath": "workflow.reactflow.json",
               "sourcePath": "poggn/active/dashboard-workflow-tab-status-release-fix/workflow.reactflow.json",
               "kind": "text",
-              "updatedAt": "2026-04-26T07:00:44.108Z",
-              "size": 6976,
+              "updatedAt": "2026-04-26T07:16:37.206Z",
+              "size": 7699,
               "editable": true
             }
           ]

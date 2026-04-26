@@ -172,6 +172,25 @@
         }
       },
       "position": { "x": 1760, "y": 0 }
+    },
+    {
+      "id": "qa-report",
+      "type": "review",
+      "data": {
+        "label": "qa/report.md",
+        "stage": "qa",
+        "status": "done",
+        "path": "poggn/active/dashboard-workflow-tab-status-release-fix/qa/report.md",
+        "detail": {
+          "title": "QA report",
+          "sourcePath": "poggn/active/dashboard-workflow-tab-status-release-fix/qa/report.md",
+          "startedAt": "2026-04-26T07:10:22Z",
+          "updatedAt": "2026-04-26T07:11:47Z",
+          "completedAt": "2026-04-26T07:11:47Z",
+          "status": "completed"
+        }
+      },
+      "position": { "x": 1980, "y": 0 }
     }
   ],
   "edges": [
@@ -182,6 +201,7 @@
     { "id": "plan-review-task-review", "source": "plan-review", "target": "task-review" },
     { "id": "task-review-implementation", "source": "task-review", "target": "implementation" },
     { "id": "implementation-code-review", "source": "implementation", "target": "code-review" },
-    { "id": "code-review-refactor-review", "source": "code-review", "target": "refactor-review" }
+    { "id": "code-review-refactor-review", "source": "code-review", "target": "refactor-review" },
+    { "id": "refactor-review-qa-report", "source": "refactor-review", "target": "qa-report" }
   ]
 }
