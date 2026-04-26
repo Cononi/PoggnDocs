@@ -1,0 +1,14 @@
+{
+  "topic": "dashboard-workflow-tab-status-release-fix",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "version": "2.2.4",
+  "targetVersion": "2.2.4",
+  "previousVersion": "2.2.3",
+  "shortName": "dashboard-fix",
+  "workingBranch": "ai/fix/2.2.4-dashboard-fix",
+  "releaseBranch": "release/2.2.4-dashboard-fix",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-26T07:17:44Z",
+  "history": "poggn/version-history.ndjson"
+}
