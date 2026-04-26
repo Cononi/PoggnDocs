@@ -69,6 +69,7 @@ type FlowStatusRuntimeEntry = {
   updatingAt: string | null;
 };
 type FlowStatusRuntimeField = "activeAt" | "updatingAt";
+type ReleaseOutcome = "completed" | "blocked" | "pending";
 
 export type TimelineRow = {
   id: string;
@@ -538,23 +539,35 @@ function isPublishBlocked(topic: TopicSummary): boolean {
   return /blocked|failed|invalid|error|required/.test(result) || /failed|not_attempted/.test(push);
 }
 
-function isReleasePublished(topic: TopicSummary): boolean {
+function releaseOutcomeForTopic(topic: TopicSummary): ReleaseOutcome {
+  if (topic.bucket !== "archive") {
+    return "pending";
+  }
+
+  if (isPublishBlocked(topic)) {
+    return "blocked";
+  }
+
+  if (!topic.version || !topic.archivedAt) {
+    return "pending";
+  }
+
   const result = (topic.publishResultType ?? "").toLowerCase();
   const push = (topic.publishPushStatus ?? "").toLowerCase();
 
   if (result || push) {
-    return result === "published" && push === "success";
+    return result === "published" && push === "success" ? "completed" : "pending";
   }
 
-  return true;
+  return "completed";
 }
 
 function isDoneFlowCompleted(topic: TopicSummary): boolean {
-  return topic.bucket === "archive" && Boolean(topic.version && topic.archivedAt) && isReleasePublished(topic);
+  return releaseOutcomeForTopic(topic) === "completed";
 }
 
 function isDoneFlowBlocked(topic: TopicSummary): boolean {
-  return topic.bucket === "archive" && isPublishBlocked(topic);
+  return releaseOutcomeForTopic(topic) === "blocked";
 }
 
 function flowHasFullCompletionEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition): boolean {

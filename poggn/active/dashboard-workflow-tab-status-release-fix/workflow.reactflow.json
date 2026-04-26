@@ -153,6 +153,25 @@
         }
       },
       "position": { "x": 1540, "y": 0 }
+    },
+    {
+      "id": "refactor-review",
+      "type": "review",
+      "data": {
+        "label": "refactor.review.md",
+        "stage": "refactor",
+        "status": "reviewed",
+        "path": "poggn/active/dashboard-workflow-tab-status-release-fix/reviews/refactor.review.md",
+        "detail": {
+          "title": "Refactor expert review",
+          "sourcePath": "poggn/active/dashboard-workflow-tab-status-release-fix/reviews/refactor.review.md",
+          "startedAt": "2026-04-26T06:36:12Z",
+          "updatedAt": "2026-04-26T06:53:42Z",
+          "completedAt": "2026-04-26T06:53:42Z",
+          "status": "completed"
+        }
+      },
+      "position": { "x": 1760, "y": 0 }
     }
   ],
   "edges": [
@@ -162,6 +181,7 @@
     { "id": "task-plan-review", "source": "task", "target": "plan-review" },
     { "id": "plan-review-task-review", "source": "plan-review", "target": "task-review" },
     { "id": "task-review-implementation", "source": "task-review", "target": "implementation" },
-    { "id": "implementation-code-review", "source": "implementation", "target": "code-review" }
+    { "id": "implementation-code-review", "source": "implementation", "target": "code-review" },
+    { "id": "code-review-refactor-review", "source": "code-review", "target": "refactor-review" }
   ]
 }

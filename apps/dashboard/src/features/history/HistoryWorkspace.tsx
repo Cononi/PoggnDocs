@@ -69,6 +69,13 @@ type OverviewMetaItem = {
   helper: string;
   tone?: OverviewMetaTone;
 };
+type WorkflowProgressCountsSummary = {
+  completed: number;
+  active: number;
+  updating: number;
+  blocked: number;
+  pending: number;
+};
 
 const HISTORY_TABS: HistoryTab[] = ["overview", "timeline", "relations"];
 const HISTORY_TAB_LABELS: Record<HistoryTab, string> = {
@@ -662,7 +669,7 @@ function buildProgressOverview(steps: WorkflowStep[]) {
   const blocked = steps.filter(isBlockedWorkflowStep).length;
   const pending = steps.filter((step) => step.status === "pending").length;
   const current =
-    steps.find((step) => step.status === "current" || step.status === "updating" || step.status === "blocked") ??
+    steps.find(isHighlightedWorkflowStep) ??
     [...steps].reverse().find((step) => step.status === "completed") ??
     steps[0] ??
     null;
@@ -760,7 +767,7 @@ function workflowStatusLabel(step: WorkflowStep, dictionary: DashboardLocale): s
 
 function workflowStepSurfaceLabel(step: WorkflowStep, dictionary: DashboardLocale): string {
   const status = workflowStatusLabel(step, dictionary);
-  if ((isActiveWorkflowStep(step) || isUpdatingWorkflowStep(step)) && step.activeTaskIds.length) {
+  if (isLiveWorkflowStep(step) && step.activeTaskIds.length) {
     return `${workflowFlowLabel(step.id, dictionary)} ${step.activeTaskIds.join(",")} ${status}`;
   }
   return status;
@@ -814,7 +821,7 @@ function connectorSx(theme: Theme, step: WorkflowStep, nextStep: WorkflowStep | 
 
   const nextIsActive = isActiveWorkflowStep(nextStep);
   const nextIsUpdating = isUpdatingWorkflowStep(nextStep);
-  const nextIsBlocked = nextStep.status === "blocked";
+  const nextIsBlocked = isBlockedWorkflowStep(nextStep);
   const nextIsLive = nextIsActive || nextIsUpdating || nextIsBlocked;
   const color = nextIsUpdating
     ? theme.palette.secondary.main
@@ -854,6 +861,7 @@ function WorkflowStepNode(props: {
   const label = workflowFlowLabel(props.step.id, props.dictionary);
   const statusLabel = workflowStepSurfaceLabel(props.step, props.dictionary);
   const tooltipTitle = `${label} ${props.dictionary.workflowProgressTooltip}`;
+  const isLive = isLiveWorkflowStep(props.step);
 
   return (
     <Stack
@@ -877,15 +885,15 @@ function WorkflowStepNode(props: {
             border: `2px solid ${colors.border}`,
             bgcolor: props.step.status === "pending" ? "#0b1729" : colors.soft,
             boxShadow: [
-              `0 0 0 4px ${alpha(colors.main, isActiveWorkflowStep(props.step) || isUpdatingWorkflowStep(props.step) ? 0.2 : 0.1)}`,
+              `0 0 0 4px ${alpha(colors.main, isLive ? 0.2 : 0.1)}`,
               `0 0 22px ${colors.shadow}`,
-              isActiveWorkflowStep(props.step) || isUpdatingWorkflowStep(props.step) ? `inset 0 0 16px ${alpha(colors.main, 0.32)}` : "none"
+              isLive ? `inset 0 0 16px ${alpha(colors.main, 0.32)}` : "none"
             ].join(", "),
             color: colors.main,
             textAlign: "center",
             position: "relative",
             zIndex: 2,
-            animation: isActiveWorkflowStep(props.step) || isUpdatingWorkflowStep(props.step) ? "workflowPulse 1.9s ease-in-out infinite" : "none",
+            animation: isLive ? "workflowPulse 1.9s ease-in-out infinite" : "none",
             "&:focus-visible": {
               outline: `2px solid ${alpha(colors.main, 0.72)}`,
               outlineOffset: 3
@@ -921,7 +929,7 @@ function WorkflowStepNode(props: {
           minHeight: 30,
           maxWidth: 116,
           color: props.step.status === "completed" ? alpha("#f8fbff", 0.78) : props.step.status === "pending" ? alpha("#d7deea", 0.74) : colors.main,
-          fontWeight: isActiveWorkflowStep(props.step) || isUpdatingWorkflowStep(props.step) || isBlockedWorkflowStep(props.step) ? 800 : 650,
+          fontWeight: isHighlightedWorkflowStep(props.step) ? 800 : 650,
           lineHeight: 1.18,
           textAlign: "center",
           overflowWrap: "anywhere"
@@ -945,7 +953,15 @@ function isBlockedWorkflowStep(step: WorkflowStep): boolean {
   return step.status === "blocked";
 }
 
-function buildProgressChartData(theme: Theme, dictionary: DashboardLocale, counts: { completed: number; active: number; updating: number; blocked: number; pending: number }) {
+function isLiveWorkflowStep(step: WorkflowStep): boolean {
+  return isActiveWorkflowStep(step) || isUpdatingWorkflowStep(step);
+}
+
+function isHighlightedWorkflowStep(step: WorkflowStep): boolean {
+  return isLiveWorkflowStep(step) || isBlockedWorkflowStep(step);
+}
+
+function buildProgressChartData(theme: Theme, dictionary: DashboardLocale, counts: WorkflowProgressCountsSummary) {
   return [
     { id: "completed", value: counts.completed, label: dictionary.workflowProgressStatusCompleted, color: theme.palette.success.main },
     { id: "active", value: counts.active, label: dictionary.workflowProgressStatusCurrent, color: theme.palette.primary.main },
@@ -955,7 +971,7 @@ function buildProgressChartData(theme: Theme, dictionary: DashboardLocale, count
   ].filter((item) => item.value > 0);
 }
 
-function WorkflowProgressChart(props: { completed: number; active: number; updating: number; blocked: number; pending: number; completion: number; dictionary: DashboardLocale }) {
+function WorkflowProgressChart(props: WorkflowProgressCountsSummary & { completion: number; dictionary: DashboardLocale }) {
   const theme = useTheme();
   const data = buildProgressChartData(theme, props.dictionary, props);
 
@@ -990,7 +1006,7 @@ function WorkflowProgressChart(props: { completed: number; active: number; updat
   );
 }
 
-function buildProgressCountItems(theme: Theme, dictionary: DashboardLocale, counts: { completed: number; active: number; updating: number; blocked: number; pending: number }) {
+function buildProgressCountItems(theme: Theme, dictionary: DashboardLocale, counts: WorkflowProgressCountsSummary) {
   return [
     { id: "done", color: theme.palette.success.main, value: counts.completed, label: dictionary.workflowProgressCountCompleted },
     { id: "active", color: theme.palette.primary.main, value: counts.active, label: dictionary.workflowProgressCountCurrent },
@@ -1000,7 +1016,7 @@ function buildProgressCountItems(theme: Theme, dictionary: DashboardLocale, coun
   ].filter((item) => item.value > 0 || (item.id !== "updating" && item.id !== "blocked"));
 }
 
-function WorkflowProgressCounts(props: { completed: number; active: number; updating: number; blocked: number; pending: number; dictionary: DashboardLocale }) {
+function WorkflowProgressCounts(props: WorkflowProgressCountsSummary & { dictionary: DashboardLocale }) {
   const theme = useTheme();
   const counts = buildProgressCountItems(theme, props.dictionary, props);
 

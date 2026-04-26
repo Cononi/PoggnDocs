@@ -6,7 +6,7 @@ dashboard-workflow-tab-status-release-fix
 
 ## Current Stage
 
-implementation
+refactor
 
 ## Goal
 
@@ -22,6 +22,7 @@ Workflow 탭을 `add-img/9.png` 기준으로 맞추고, 모든 pgg flow step이 
 - task review: `poggn/active/dashboard-workflow-tab-status-release-fix/reviews/task.review.md`
 - implementation index: `poggn/active/dashboard-workflow-tab-status-release-fix/implementation/index.md`
 - code review: `poggn/active/dashboard-workflow-tab-status-release-fix/reviews/code.review.md`
+- refactor review: `poggn/active/dashboard-workflow-tab-status-release-fix/reviews/refactor.review.md`
 - spec:
   - `poggn/active/dashboard-workflow-tab-status-release-fix/spec/ui/workflow-tab-reference.md`
   - `poggn/active/dashboard-workflow-tab-status-release-fix/spec/model/strict-flow-completion.md`
@@ -64,6 +65,8 @@ Workflow 탭을 `add-img/9.png` 기준으로 맞추고, 모든 pgg flow step이 
 - Done publish blocked/failed/not attempted metadata is shown as `실패/차단` rather than `완료`.
 - `pgg-new-topic.sh` and generated templates now preserve proposal `stage-started` and stage event recording guidance.
 - History tabs now use panel top border plus selected-tab mask instead of fragile split-line geometry.
+- Refactor centralized Done release outcome as `completed`, `blocked`, or `pending` so release failure precedence is kept in one decision point.
+- Refactor extracted Workflow tab progress count and live/highlight status helpers without changing accepted UI behavior.
 
 ## User Question Record
 
@@ -112,8 +115,14 @@ Workflow 탭을 `add-img/9.png` 기준으로 맞추고, 모든 pgg flow step이 
 | CREATE | `poggn/active/dashboard-workflow-tab-status-release-fix/implementation/diffs/003_UPDATE_dashboard_locale_and_flow_status.diff` | |
 | CREATE | `poggn/active/dashboard-workflow-tab-status-release-fix/implementation/diffs/004_UPDATE_pgg_stage_event_contracts.diff` | |
 | CREATE | `poggn/active/dashboard-workflow-tab-status-release-fix/reviews/code.review.md` | |
+| CREATE | `poggn/active/dashboard-workflow-tab-status-release-fix/reviews/refactor.review.md` | |
+| CREATE | `poggn/active/dashboard-workflow-tab-status-release-fix/implementation/diffs/005_UPDATE_workflow_status_refactor_helpers.diff` | |
+| CREATE | `poggn/active/dashboard-workflow-tab-status-release-fix/implementation/diffs/006_UPDATE_dashboard_snapshot_refactor.diff` | |
 | UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | `poggn/active/dashboard-workflow-tab-status-release-fix/implementation/diffs/001_UPDATE_historyModel_strict_flow_completion.diff` |
 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `poggn/active/dashboard-workflow-tab-status-release-fix/implementation/diffs/002_UPDATE_HistoryWorkspace_tab_and_blocked_status.diff` |
+| UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | `poggn/active/dashboard-workflow-tab-status-release-fix/implementation/diffs/005_UPDATE_workflow_status_refactor_helpers.diff` |
+| UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `poggn/active/dashboard-workflow-tab-status-release-fix/implementation/diffs/005_UPDATE_workflow_status_refactor_helpers.diff` |
+| UPDATE | `apps/dashboard/public/dashboard-data.json` | `poggn/active/dashboard-workflow-tab-status-release-fix/implementation/diffs/006_UPDATE_dashboard_snapshot_refactor.diff` |
 | UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | `poggn/active/dashboard-workflow-tab-status-release-fix/implementation/diffs/003_UPDATE_dashboard_locale_and_flow_status.diff` |
 | UPDATE | `apps/dashboard/src/shared/utils/dashboard.tsx` | `poggn/active/dashboard-workflow-tab-status-release-fix/implementation/diffs/003_UPDATE_dashboard_locale_and_flow_status.diff` |
 | UPDATE | `AGENTS.md` | `poggn/active/dashboard-workflow-tab-status-release-fix/implementation/diffs/004_UPDATE_pgg_stage_event_contracts.diff` |
@@ -128,13 +137,13 @@ Workflow 탭을 `add-img/9.png` 기준으로 맞추고, 모든 pgg flow step이 
 
 ## Last Expert Score
 
-- phase: implementation
-- score: 95
+- phase: refactor
+- score: 96
 - blocking issues: none
 
 ## Open Items
 
-- status: ready_for_refactor
+- status: ready_for_qa
 
 ## Verification
 
@@ -143,6 +152,12 @@ Workflow 탭을 `add-img/9.png` 기준으로 맞추고, 모든 pgg flow step이 
 - plan document review: pass
 - task document review: pass
 - pgg-code implementation review: pass
+- pgg-refactor review: pass
 - `pnpm build`: pass
 - `pnpm test`: pass
+- `git diff --check`: pass
+- `./.codex/sh/pgg-gate.sh pgg-refactor dashboard-workflow-tab-status-release-fix`: pass
+- `./.codex/sh/pgg-gate.sh pgg-qa dashboard-workflow-tab-status-release-fix`: pass
+- `node --check packages/core/dist/templates.js`: pass
+- `node packages/cli/dist/index.js dashboard --snapshot-only`: pass
 - `pnpm lint`: not available, command `lint` not found

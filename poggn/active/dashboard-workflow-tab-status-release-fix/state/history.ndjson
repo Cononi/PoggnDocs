@@ -11,3 +11,7 @@
 {"ts":"2026-04-25T14:14:31Z","stage":"implementation","event":"stage-started","source":"pgg-code"}
 {"ts":"2026-04-25T14:56:30Z","stage":"implementation","event":"stage-progress","source":"pgg-code","summary":"dashboard status model, tab visual, pgg event templates, implementation diffs, and code review recorded"}
 {"ts":"2026-04-25T15:02:41Z","stage":"implementation","event":"stage-commit","archiveType":"fix","targetVersion":"2.2.4","projectLanguage":"ko","commitTitle":"fix: 2.2.4.워크플로우 완료 기준","summary":"워크플로우 완료 기준","why":"워크플로우 단계가 중간 산출물만으로 완료 처리되지 않고 stage event와 release outcome 기준으로 정확히 표시되어야 한다.","footer":"Refs: dashboard-workflow-tab-status-release-fix"}
+{"ts":"2026-04-26T06:36:12Z","stage":"refactor","event":"stage-started","source":"pgg-refactor"}
+{"ts":"2026-04-26T06:53:42Z","stage":"refactor","event":"stage-progress","source":"pgg-refactor","summary":"release outcome and workflow UI status helper duplication reduced"}
+{"ts":"2026-04-26T06:53:42Z","stage":"refactor","event":"stage-completed","source":"verified","summary":"refactor review passed after build, test, diff check, and pgg-refactor gate"}
+{"ts":"2026-04-26T07:08:43Z","stage":"refactor","event":"stage-commit","archiveType":"fix","targetVersion":"2.2.4","projectLanguage":"ko","commitTitle":"fix: 2.2.4.워크플로우 상태 헬퍼 정리","summary":"워크플로우 상태 헬퍼 정리","why":"워크플로우 완료와 차단 판정이 여러 위치에 흩어져 있어 QA 전에 동일한 기준으로 유지되도록 정리했다","footer":"Refs: dashboard-workflow-tab-status-release-fix"}
