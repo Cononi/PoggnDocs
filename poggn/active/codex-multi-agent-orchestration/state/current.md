@@ -6,7 +6,7 @@ codex-multi-agent-orchestration
 
 ## Current Stage
 
-token
+refactor
 
 ## Goal
 
@@ -38,6 +38,8 @@ Codex multi-agent 설정과 pgg teams mode를 연결해, teams가 켜졌을 때�
   - `poggn/active/codex-multi-agent-orchestration/implementation/diffs/005_UPDATE_project_manifest.diff`
 - code review: `poggn/active/codex-multi-agent-orchestration/reviews/code.review.md`
 - token audit: `poggn/active/codex-multi-agent-orchestration/token/report.md`
+- refactor review: `poggn/active/codex-multi-agent-orchestration/reviews/refactor.review.md`
+- refactor diff: `poggn/active/codex-multi-agent-orchestration/implementation/diffs/006_UPDATE_state_pack_route_refactor.diff`
 
 ## Constraints
 
@@ -71,6 +73,8 @@ Codex multi-agent 설정과 pgg teams mode를 연결해, teams가 켜졌을 때�
 - Token audit confirms state-pack handoff is 156 words / 2,475 bytes.
 - Token audit compares naive two-agent proposal/plan/task/spec handoff at 6,016 words with state-pack two-agent handoff at 312 words, an estimated 94.8% reduction.
 - Token audit confirms implementation diffs are the largest token surface at 16,527 words and must stay opt-in by diff ref.
+- Refactor moves state-pack primary agent case generation to helpers backed by `FLOW_AGENT_ROUTES`, removing duplicated route literals from `statePackSh()`.
+- Refactor adds pgg flow-name aliases such as `pgg-code`, `pgg-token`, and `pgg-refactor` to state-pack route matching while preserving the existing compact comma-separated `primary_agents` output.
 
 ## User Question Record
 
@@ -155,16 +159,24 @@ Codex multi-agent 설정과 pgg teams mode를 연결해, teams가 켜졌을 때�
 | CREATE | `poggn/active/codex-multi-agent-orchestration/reviews/code.review.md` | |
 | UPDATE | `poggn/active/codex-multi-agent-orchestration/workflow.reactflow.json` | |
 | CREATE | `poggn/active/codex-multi-agent-orchestration/token/report.md` | |
+| UPDATE | `packages/core/src/templates.ts` | `poggn/active/codex-multi-agent-orchestration/implementation/diffs/006_UPDATE_state_pack_route_refactor.diff` |
+| UPDATE | `packages/core/dist/templates.js` | `poggn/active/codex-multi-agent-orchestration/implementation/diffs/006_UPDATE_state_pack_route_refactor.diff` |
+| UPDATE | `packages/core/dist/templates.js.map` | `poggn/active/codex-multi-agent-orchestration/implementation/diffs/006_UPDATE_state_pack_route_refactor.diff` |
+| UPDATE | `packages/core/test/skill-generation.test.mjs` | `poggn/active/codex-multi-agent-orchestration/implementation/diffs/006_UPDATE_state_pack_route_refactor.diff` |
+| UPDATE | `.codex/sh/pgg-state-pack.sh` | `poggn/active/codex-multi-agent-orchestration/implementation/diffs/006_UPDATE_state_pack_route_refactor.diff` |
+| UPDATE | `.pgg/project.json` | `poggn/active/codex-multi-agent-orchestration/implementation/diffs/006_UPDATE_state_pack_route_refactor.diff` |
+| CREATE | `poggn/active/codex-multi-agent-orchestration/implementation/diffs/006_UPDATE_state_pack_route_refactor.diff` | |
+| CREATE | `poggn/active/codex-multi-agent-orchestration/reviews/refactor.review.md` | |
 
 ## Last Expert Score
 
-- phase: token
+- phase: refactor
 - score: 96
 - blocking issues: none
 
 ## Open Items
 
-- status: ready_for_refactor
+- status: ready_for_qa
 - required audit: `pgg-token` completed
 
 ## Verification
@@ -188,5 +200,10 @@ Codex multi-agent 설정과 pgg teams mode를 연결해, teams가 켜졌을 때�
 - `./.codex/sh/pgg-state-pack.sh codex-multi-agent-orchestration`: pass
 - `./.codex/sh/pgg-gate.sh pgg-code codex-multi-agent-orchestration`: pass
 - token audit measurements: pass
-- `./.codex/sh/pgg-gate.sh pgg-token codex-multi-agent-orchestration`: not_applicable_before_refactor, helper currently requires `reviews/refactor.review.md`
+- `./.codex/sh/pgg-gate.sh pgg-token codex-multi-agent-orchestration`: pass
+- `pnpm --filter @pgg/core test`: pass, 38 tests
+- `pnpm build`: pass
+- `pnpm test`: pass, 38 tests
+- refactor review: pass
+- `./.codex/sh/pgg-gate.sh pgg-refactor codex-multi-agent-orchestration`: pass
 - current-project verification contract: `manual verification required`

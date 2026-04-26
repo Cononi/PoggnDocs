@@ -171,6 +171,25 @@
         }
       },
       "position": { "x": 1760, "y": 0 }
+    },
+    {
+      "id": "refactor-review",
+      "type": "review",
+      "data": {
+        "label": "refactor.review.md",
+        "stage": "refactor",
+        "status": "reviewed",
+        "path": "poggn/active/codex-multi-agent-orchestration/reviews/refactor.review.md",
+        "detail": {
+          "title": "Refactor review",
+          "sourcePath": "poggn/active/codex-multi-agent-orchestration/reviews/refactor.review.md",
+          "startedAt": "2026-04-26T14:46:12Z",
+          "updatedAt": "2026-04-26T14:52:52Z",
+          "completedAt": "2026-04-26T14:52:52Z",
+          "status": "completed"
+        }
+      },
+      "position": { "x": 1980, "y": 0 }
     }
   ],
   "edges": [
@@ -181,6 +200,7 @@
     { "id": "plan-review-task-review", "source": "plan-review", "target": "task-review" },
     { "id": "task-review-implementation", "source": "task-review", "target": "implementation" },
     { "id": "implementation-code-review", "source": "implementation", "target": "code-review" },
-    { "id": "code-review-token-audit", "source": "code-review", "target": "token-audit" }
+    { "id": "code-review-token-audit", "source": "code-review", "target": "token-audit" },
+    { "id": "token-audit-refactor-review", "source": "token-audit", "target": "refactor-review" }
   ]
 }

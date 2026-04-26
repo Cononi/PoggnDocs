@@ -12,3 +12,6 @@
 {"ts":"2026-04-26T14:38:53Z","stage":"token","event":"stage-started","source":"pgg-token"}
 {"ts":"2026-04-26T14:38:53Z","stage":"token","event":"stage-progress","source":"pgg-token","summary":"measured state-pack, topic docs, implementation diffs, generated workflow docs, and agent TOML token surfaces"}
 {"ts":"2026-04-26T14:38:53Z","stage":"token","event":"stage-completed","source":"pgg-token","summary":"token audit passed; state-pack handoff reduces initial two-agent handoff by about 94.8 percent versus proposal/plan/task/spec bundle"}
+{"ts":"2026-04-26T14:46:12Z","stage":"refactor","event":"stage-started","source":"pgg-refactor"}
+{"ts":"2026-04-26T14:52:52Z","stage":"refactor","event":"stage-progress","source":"pgg-refactor","summary":"centralized state-pack primary agent case generation behind FLOW_AGENT_ROUTES and added route alias coverage"}
+{"ts":"2026-04-26T14:58:25Z","stage":"refactor","event":"stage-commit","archiveType":"feat","targetVersion":"2.3.0","projectLanguage":"ko","commitTitle":"feat: 2.3.0.state-pack 라우팅 중복 제거","summary":"state-pack 라우팅 중복 제거","why":"state-pack primary agent 배정을 중앙 FLOW_AGENT_ROUTES에서 생성해 route drift를 줄였다","footer":"Refs: codex-multi-agent-orchestration"}

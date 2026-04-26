@@ -9,6 +9,7 @@ import { buildRootReadme, initializeProject, updateProject, updateProjectTeamsMo
 const STANDALONE_SKILL_PATH = ".codex/skills/pgg-status/SKILL.md";
 const CODEX_CONFIG_PATH = ".codex/config.toml";
 const AGENTS_MAIN_PATH = "agents/main.toml";
+const STATE_PACK_PATH = ".codex/sh/pgg-state-pack.sh";
 
 async function readManifest(rootDir) {
   return JSON.parse(await readFile(path.join(rootDir, ".pgg", "project.json"), "utf8"));
@@ -91,6 +92,7 @@ test("teams mode controls managed Codex multi-agent config and two-agent routing
       const agentsMain = await readFile(path.join(rootDir, AGENTS_MAIN_PATH), "utf8");
       const routing = await readFile(path.join(rootDir, ".codex/add/EXPERT-ROUTING.md"), "utf8");
       const codeSkill = await readFile(path.join(rootDir, ".codex/skills/pgg-code/SKILL.md"), "utf8");
+      const statePack = await readFile(path.join(rootDir, STATE_PACK_PATH), "utf8");
       const initialManifest = await readManifest(rootDir);
 
       assert.match(disabledConfig, /\[features\]\nmulti_agent = false/);
@@ -103,6 +105,10 @@ test("teams mode controls managed Codex multi-agent config and two-agent routing
       assert.match(codeSkill, /- 시니어 백엔드 엔지니어: 주 구현 작업/);
       assert.match(codeSkill, /- 테크 리드: 아키텍처 가드레일과 통합 판단/);
       assert.doesNotMatch(codeSkill, /- 코드 리뷰어: 버그와 회귀 관점 검토/);
+      assert.match(statePack, /implementation\|code\|pgg-code\)/);
+      assert.match(statePack, /PRIMARY_AGENTS="senior-backend-engineer,tech-lead"/);
+      assert.match(statePack, /token\|pgg-token\)/);
+      assert.match(statePack, /PRIMARY_AGENTS="tech-lead,code-reviewer"/);
       assert.equal(initialManifest.managedFiles.some((entry) => entry.path === CODEX_CONFIG_PATH), true);
       assert.equal(initialManifest.managedFiles.some((entry) => entry.path === AGENTS_MAIN_PATH), true);
 

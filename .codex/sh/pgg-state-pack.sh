@@ -82,25 +82,25 @@ if [[ "${TEAMS_MODE:-off}" == "on" ]]; then
 fi
 PRIMARY_AGENTS=""
 case "$STAGE" in
-  proposal|add)
+  proposal|add|pgg-add)
     PRIMARY_AGENTS="product-manager,ux-ui-expert"
     ;;
-  plan|planning|task)
+  plan|planning|task|pgg-plan)
     PRIMARY_AGENTS="software-architect,domain-expert"
     ;;
-  implementation|code)
+  implementation|code|pgg-code)
     PRIMARY_AGENTS="senior-backend-engineer,tech-lead"
     ;;
-  refactor)
+  refactor|pgg-refactor)
     PRIMARY_AGENTS="software-architect,code-reviewer"
     ;;
-  qa)
+  qa|pgg-qa)
     PRIMARY_AGENTS="qa-test-engineer,sre-operations-engineer"
     ;;
-  token)
+  token|pgg-token)
     PRIMARY_AGENTS="tech-lead,code-reviewer"
     ;;
-  performance)
+  performance|pgg-performance)
     PRIMARY_AGENTS="qa-test-engineer,sre-operations-engineer"
     ;;
 esac

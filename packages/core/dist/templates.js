@@ -103,7 +103,29 @@ function flowAgentNames(route) {
     return route.agents.map((agentId) => roleById(agentId).name).join(", ");
 }
 function flowAgentIds(route) {
-    return route.agents.join(", ");
+    return route.agents.join(",");
+}
+function uniqueValues(values) {
+    return [...new Set(values)];
+}
+function flowStageAliases(route) {
+    const stageAliasesByFlow = {
+        "pgg-add": ["proposal", "add"],
+        "pgg-plan": ["plan", "planning", "task"],
+        "pgg-code": ["implementation", "code"],
+        "pgg-refactor": ["refactor"],
+        "pgg-qa": ["qa"],
+        "pgg-token": ["token"],
+        "pgg-performance": ["performance"]
+    };
+    return uniqueValues([...(stageAliasesByFlow[route.flow] ?? []), route.flow]);
+}
+function statePackPrimaryAgentCaseLines() {
+    return FLOW_AGENT_ROUTES.flatMap((route) => [
+        `  ${flowStageAliases(route).join("|")})`,
+        `    PRIMARY_AGENTS="${flowAgentIds(route)}"`,
+        "    ;;"
+    ]);
 }
 function codexConfigToml(input) {
     return lines([
@@ -2293,27 +2315,7 @@ function statePackSh() {
         "fi",
         "PRIMARY_AGENTS=\"\"",
         "case \"$STAGE\" in",
-        "  proposal|add)",
-        "    PRIMARY_AGENTS=\"product-manager,ux-ui-expert\"",
-        "    ;;",
-        "  plan|planning|task)",
-        "    PRIMARY_AGENTS=\"software-architect,domain-expert\"",
-        "    ;;",
-        "  implementation|code)",
-        "    PRIMARY_AGENTS=\"senior-backend-engineer,tech-lead\"",
-        "    ;;",
-        "  refactor)",
-        "    PRIMARY_AGENTS=\"software-architect,code-reviewer\"",
-        "    ;;",
-        "  qa)",
-        "    PRIMARY_AGENTS=\"qa-test-engineer,sre-operations-engineer\"",
-        "    ;;",
-        "  token)",
-        "    PRIMARY_AGENTS=\"tech-lead,code-reviewer\"",
-        "    ;;",
-        "  performance)",
-        "    PRIMARY_AGENTS=\"qa-test-engineer,sre-operations-engineer\"",
-        "    ;;",
+        ...statePackPrimaryAgentCaseLines(),
         "esac",
         "",
         "printf 'topic: %s\\n' \"${TOPIC:-$(basename \"$TOPIC_DIR\")}\"",
