@@ -1,0 +1,45 @@
+diff --git a/apps/dashboard/src/shared/locale/dashboardLocale.ts b/apps/dashboard/src/shared/locale/dashboardLocale.ts
+index 83b6457..f9ea71d 100644
+--- a/apps/dashboard/src/shared/locale/dashboardLocale.ts
++++ b/apps/dashboard/src/shared/locale/dashboardLocale.ts
+@@ -297,10 +297,12 @@ export const dashboardLocale = {
+     workflowProgressStatusPending: "시작 전",
+     workflowProgressStatusCurrent: "진행 중",
+     workflowProgressStatusUpdating: "추가 진행",
++    workflowProgressStatusBlocked: "실패/차단",
+     workflowProgressStatusCompleted: "완료",
+     workflowProgressCountCompleted: "완료",
+-    workflowProgressCountCurrent: "생성 중",
++    workflowProgressCountCurrent: "진행 중",
+     workflowProgressCountUpdating: "추가 진행",
++    workflowProgressCountBlocked: "실패/차단",
+     workflowProgressCountPending: "시작 전",
+     workflowProgressCompletedSummary: "완료",
+     workflowProgressTooltip: "진행 상태 확인 가능",
+@@ -623,10 +625,12 @@ export const dashboardLocale = {
+     workflowProgressStatusPending: "Not started",
+     workflowProgressStatusCurrent: "In progress",
+     workflowProgressStatusUpdating: "Additional updates",
++    workflowProgressStatusBlocked: "Failed/blocked",
+     workflowProgressStatusCompleted: "Completed",
+     workflowProgressCountCompleted: "Completed",
+-    workflowProgressCountCurrent: "Generating",
++    workflowProgressCountCurrent: "In progress",
+     workflowProgressCountUpdating: "Additional updates",
++    workflowProgressCountBlocked: "Failed/blocked",
+     workflowProgressCountPending: "Not started",
+     workflowProgressCompletedSummary: "completed",
+     workflowProgressTooltip: "status details available",
+diff --git a/apps/dashboard/src/shared/utils/dashboard.tsx b/apps/dashboard/src/shared/utils/dashboard.tsx
+index d4cad7f..6b7412a 100644
+--- a/apps/dashboard/src/shared/utils/dashboard.tsx
++++ b/apps/dashboard/src/shared/utils/dashboard.tsx
+@@ -486,7 +486,7 @@ function inferNodeStatus(node: WorkflowNode, topicStage: string | null): FlowSta
+   if (/revis|updated|revision|additional|updat(e|ing)|추가/i.test(explicitStatus)) {
+     return "updating";
+   }
+-  if (/done|complete|completed|reviewed|approved/i.test(explicitStatus)) {
++  if (/done|complete|completed|verified|final|passed|archived|released/i.test(explicitStatus)) {
+     return "done";
+   }
+   if (/pending|upcoming|not[-_ ]?started/i.test(explicitStatus)) {

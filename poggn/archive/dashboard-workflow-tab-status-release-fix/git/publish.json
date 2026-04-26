@@ -1,0 +1,32 @@
+{
+  "topic": "dashboard-workflow-tab-status-release-fix",
+  "version": "2.2.4",
+  "targetVersion": "2.2.4",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "commitTitle": "fix: 2.2.4.워크플로우 상태 표시",
+  "commitSha": "62db4547c5925e02be3bf1a86dfa57236738b9f4",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/2.2.4-dashboard-fix",
+  "workingBranch": "ai/fix/2.2.4-dashboard-fix",
+  "releaseBranch": "release/2.2.4-dashboard-fix",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-26T07:17:51Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/2.2.4-dashboard-fix'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/dashboard-workflow-tab-status-release-fix",
+    "versionFile": "poggn/archive/dashboard-workflow-tab-status-release-fix/version.json"
+  }
+}

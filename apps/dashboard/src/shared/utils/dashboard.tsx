@@ -486,7 +486,7 @@ function inferNodeStatus(node: WorkflowNode, topicStage: string | null): FlowSta
   if (/revis|updated|revision|additional|updat(e|ing)|추가/i.test(explicitStatus)) {
     return "updating";
   }
-  if (/done|complete|completed|reviewed|approved/i.test(explicitStatus)) {
+  if (/done|complete|completed|verified|final|passed|archived|released/i.test(explicitStatus)) {
     return "done";
   }
   if (/pending|upcoming|not[-_ ]?started/i.test(explicitStatus)) {
