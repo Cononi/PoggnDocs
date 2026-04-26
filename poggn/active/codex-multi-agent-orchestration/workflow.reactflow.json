@@ -1,0 +1,166 @@
+{
+  "topic": "codex-multi-agent-orchestration",
+  "nodes": [
+    {
+      "id": "proposal",
+      "type": "doc",
+      "data": {
+        "label": "proposal.md",
+        "stage": "proposal",
+        "status": "reviewed",
+        "path": "poggn/active/codex-multi-agent-orchestration/proposal.md",
+        "detail": {
+          "title": "Codex multi-agent orchestration proposal",
+          "sourcePath": "poggn/active/codex-multi-agent-orchestration/proposal.md",
+          "startedAt": "2026-04-26T07:22:23Z",
+          "updatedAt": "2026-04-26T07:23:42Z",
+          "completedAt": "2026-04-26T07:23:42Z",
+          "status": "completed"
+        }
+      },
+      "position": { "x": 0, "y": 0 }
+    },
+    {
+      "id": "proposal-review",
+      "type": "review",
+      "data": {
+        "label": "proposal.review.md",
+        "stage": "proposal",
+        "status": "reviewed",
+        "path": "poggn/active/codex-multi-agent-orchestration/reviews/proposal.review.md",
+        "detail": {
+          "title": "Proposal expert review",
+          "sourcePath": "poggn/active/codex-multi-agent-orchestration/reviews/proposal.review.md",
+          "startedAt": "2026-04-26T07:22:23Z",
+          "updatedAt": "2026-04-26T07:23:42Z",
+          "completedAt": "2026-04-26T07:23:42Z",
+          "status": "completed"
+        }
+      },
+      "position": { "x": 220, "y": 0 }
+    },
+    {
+      "id": "plan",
+      "type": "doc",
+      "data": {
+        "label": "plan.md",
+        "stage": "plan",
+        "status": "reviewed",
+        "path": "poggn/active/codex-multi-agent-orchestration/plan.md",
+        "detail": {
+          "title": "Codex multi-agent orchestration plan",
+          "sourcePath": "poggn/active/codex-multi-agent-orchestration/plan.md",
+          "startedAt": "2026-04-26T07:54:14Z",
+          "updatedAt": "2026-04-26T07:54:14Z",
+          "completedAt": "2026-04-26T07:54:14Z",
+          "status": "completed"
+        }
+      },
+      "position": { "x": 440, "y": 0 }
+    },
+    {
+      "id": "task",
+      "type": "task",
+      "data": {
+        "label": "task.md",
+        "stage": "task",
+        "status": "reviewed",
+        "path": "poggn/active/codex-multi-agent-orchestration/task.md",
+        "detail": {
+          "title": "Codex multi-agent orchestration tasks",
+          "sourcePath": "poggn/active/codex-multi-agent-orchestration/task.md",
+          "startedAt": "2026-04-26T07:54:14Z",
+          "updatedAt": "2026-04-26T07:54:14Z",
+          "completedAt": "2026-04-26T07:54:14Z",
+          "status": "completed"
+        }
+      },
+      "position": { "x": 660, "y": 0 }
+    },
+    {
+      "id": "plan-review",
+      "type": "review",
+      "data": {
+        "label": "plan.review.md",
+        "stage": "plan",
+        "status": "reviewed",
+        "path": "poggn/active/codex-multi-agent-orchestration/reviews/plan.review.md",
+        "detail": {
+          "title": "Plan expert review",
+          "sourcePath": "poggn/active/codex-multi-agent-orchestration/reviews/plan.review.md",
+          "startedAt": "2026-04-26T07:54:14Z",
+          "updatedAt": "2026-04-26T07:54:14Z",
+          "completedAt": "2026-04-26T07:54:14Z",
+          "status": "completed"
+        }
+      },
+      "position": { "x": 880, "y": 0 }
+    },
+    {
+      "id": "task-review",
+      "type": "review",
+      "data": {
+        "label": "task.review.md",
+        "stage": "task",
+        "status": "reviewed",
+        "path": "poggn/active/codex-multi-agent-orchestration/reviews/task.review.md",
+        "detail": {
+          "title": "Task expert review",
+          "sourcePath": "poggn/active/codex-multi-agent-orchestration/reviews/task.review.md",
+          "startedAt": "2026-04-26T07:54:14Z",
+          "updatedAt": "2026-04-26T07:54:14Z",
+          "completedAt": "2026-04-26T07:54:14Z",
+          "status": "completed"
+        }
+      },
+      "position": { "x": 1100, "y": 0 }
+    },
+    {
+      "id": "implementation",
+      "type": "implementation",
+      "data": {
+        "label": "implementation/index.md",
+        "stage": "implementation",
+        "status": "completed",
+        "path": "poggn/active/codex-multi-agent-orchestration/implementation/index.md",
+        "detail": {
+          "title": "Codex multi-agent orchestration implementation",
+          "sourcePath": "poggn/active/codex-multi-agent-orchestration/implementation/index.md",
+          "startedAt": "2026-04-26T13:30:56Z",
+          "updatedAt": "2026-04-26T13:49:57Z",
+          "completedAt": "2026-04-26T13:49:57Z",
+          "status": "completed"
+        }
+      },
+      "position": { "x": 1320, "y": 0 }
+    },
+    {
+      "id": "code-review",
+      "type": "review",
+      "data": {
+        "label": "code.review.md",
+        "stage": "implementation",
+        "status": "reviewed",
+        "path": "poggn/active/codex-multi-agent-orchestration/reviews/code.review.md",
+        "detail": {
+          "title": "Implementation code review",
+          "sourcePath": "poggn/active/codex-multi-agent-orchestration/reviews/code.review.md",
+          "startedAt": "2026-04-26T13:49:57Z",
+          "updatedAt": "2026-04-26T13:49:57Z",
+          "completedAt": "2026-04-26T13:49:57Z",
+          "status": "completed"
+        }
+      },
+      "position": { "x": 1540, "y": 0 }
+    }
+  ],
+  "edges": [
+    { "id": "proposal-proposal-review", "source": "proposal", "target": "proposal-review" },
+    { "id": "proposal-review-plan", "source": "proposal-review", "target": "plan" },
+    { "id": "plan-task", "source": "plan", "target": "task" },
+    { "id": "task-plan-review", "source": "task", "target": "plan-review" },
+    { "id": "plan-review-task-review", "source": "plan-review", "target": "task-review" },
+    { "id": "task-review-implementation", "source": "task-review", "target": "implementation" },
+    { "id": "implementation-code-review", "source": "implementation", "target": "code-review" }
+  ]
+}

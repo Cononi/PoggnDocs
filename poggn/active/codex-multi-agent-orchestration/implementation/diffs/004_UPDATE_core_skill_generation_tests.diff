@@ -1,0 +1,67 @@
+diff --git a/packages/core/test/skill-generation.test.mjs b/packages/core/test/skill-generation.test.mjs
+index 606f600..3901029 100644
+--- a/packages/core/test/skill-generation.test.mjs
++++ b/packages/core/test/skill-generation.test.mjs
+@@ -4,9 +4,11 @@ import os from "node:os";
+ import path from "node:path";
+ import test from "node:test";
+ 
+-import { buildRootReadme, initializeProject, updateProject } from "../dist/index.js";
++import { buildRootReadme, initializeProject, updateProject, updateProjectTeamsMode } from "../dist/index.js";
+ 
+ const STANDALONE_SKILL_PATH = ".codex/skills/pgg-status/SKILL.md";
++const CODEX_CONFIG_PATH = ".codex/config.toml";
++const AGENTS_MAIN_PATH = "agents/main.toml";
+ 
+ async function readManifest(rootDir) {
+   return JSON.parse(await readFile(path.join(rootDir, ".pgg", "project.json"), "utf8"));
+@@ -72,3 +74,49 @@ test("initializeProject and updateProject keep the standalone pgg-status skill m
+     await rm(rootDir, { recursive: true, force: true });
+   }
+ });
++
++test("teams mode controls managed Codex multi-agent config and two-agent routing", async () => {
++  const rootDir = await mkdtemp(path.join(os.tmpdir(), "pgg-agent-routing-"));
++
++  try {
++    await withTemporaryPggHome(rootDir, async () => {
++      await initializeProject(rootDir, {
++        provider: "codex",
++        language: "ko",
++        autoMode: "on",
++        teamsMode: "off"
++      });
++
++      const disabledConfig = await readFile(path.join(rootDir, CODEX_CONFIG_PATH), "utf8");
++      const agentsMain = await readFile(path.join(rootDir, AGENTS_MAIN_PATH), "utf8");
++      const routing = await readFile(path.join(rootDir, ".codex/add/EXPERT-ROUTING.md"), "utf8");
++      const codeSkill = await readFile(path.join(rootDir, ".codex/skills/pgg-code/SKILL.md"), "utf8");
++      const initialManifest = await readManifest(rootDir);
++
++      assert.match(disabledConfig, /\[features\]\nmulti_agent = false/);
++      assert.match(disabledConfig, /\[agents\]\nmax_threads = 4\nmax_depth = 1/);
++      assert.match(agentsMain, /flow = "pgg-code"\nprimary_agents = \["senior-backend-engineer", "tech-lead"\]/);
++      assert.match(agentsMain, /roles = \["project-generalist", "docs-researcher"\]/);
++      assert.match(routing, /`pgg-code`: Senior Backend Engineer, Tech Lead/);
++      assert.doesNotMatch(routing, /`pgg-code`: .*Code Reviewer/);
++      assert.match(codeSkill, /아래 2개 primary agent/);
++      assert.match(codeSkill, /- 시니어 백엔드 엔지니어: 주 구현 작업/);
++      assert.match(codeSkill, /- 테크 리드: 아키텍처 가드레일과 통합 판단/);
++      assert.doesNotMatch(codeSkill, /- 코드 리뷰어: 버그와 회귀 관점 검토/);
++      assert.equal(initialManifest.managedFiles.some((entry) => entry.path === CODEX_CONFIG_PATH), true);
++      assert.equal(initialManifest.managedFiles.some((entry) => entry.path === AGENTS_MAIN_PATH), true);
++
++      await updateProjectTeamsMode(rootDir, "on");
++
++      const enabledConfig = await readFile(path.join(rootDir, CODEX_CONFIG_PATH), "utf8");
++      const updatedManifest = await readManifest(rootDir);
++
++      assert.match(enabledConfig, /\[features\]\nmulti_agent = true/);
++      assert.equal(updatedManifest.teamsMode, "on");
++      assert.equal(updatedManifest.managedFiles.some((entry) => entry.path === "agents/docs-researcher.toml"), true);
++      assert.equal(updatedManifest.managedFiles.some((entry) => entry.path === "agents/qa-test-engineer.toml"), true);
++    });
++  } finally {
++    await rm(rootDir, { recursive: true, force: true });
++  }
++});

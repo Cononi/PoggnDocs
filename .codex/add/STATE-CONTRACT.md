@@ -9,6 +9,8 @@
 - 다음 단계에는 전체 문서 대신 `state/current.md`를 우선 전달한다.
 - teams handoff가 필요하면 먼저 `.codex/sh/pgg-state-pack.sh <topic|topic_dir>`로 최소 컨텍스트를 만든다.
 - `pgg teams`가 `off`여도 handoff 형식은 같은 최소 컨텍스트 계약을 유지한다.
+- `pgg teams` 상태는 `.codex/config.toml`의 `[features].multi_agent`와 동기화되어야 한다.
+- agent orchestration 기본값은 `max_threads=4`, `max_depth=1`이며 `agents/main.toml`의 flow별 2-agent routing을 따른다.
 - pgg가 생성·관리하는 `.codex/sh/*.sh` helper만 trusted handoff/automation script로 본다.
 - `archive_type`, `version_bump`, `target_version`, branch naming, `project_scope`, archive 후의 version 정보는 최소 컨텍스트에 유지한다.
 - proposal 단계에서는 사용자 입력 질문 기록 섹션의 위치 또는 ref와 `version_bump`, `target_version` 선택 결과를 최소 컨텍스트에 유지한다.
@@ -18,6 +20,7 @@
 - `pgg-state-pack.sh` 출력은 최소한 `archive_type`, `version_bump`, `target_version`, `short_name`, branch naming, `Git Publish Message` 정보를 key/value 형태로 드러내야 한다.
 - 변경 파일은 `Changed Files` 섹션에 CRUD와 diff 경로로 기록한다.
 - 마지막 전문가 점수와 blocking issue를 유지한다.
+- teams mode agent 결과는 전문 복사 대신 attribution 있는 요약과 경로 ref로 유지한다.
 - `state/current.md`에는 review 전문을 복사하지 말고 결정, 점수, blocking issue만 요약한다.
 
 ## Git Publish Message Contract

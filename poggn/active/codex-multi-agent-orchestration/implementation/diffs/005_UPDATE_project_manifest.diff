@@ -1,0 +1,161 @@
+diff --git a/.pgg/project.json b/.pgg/project.json
+index db42072..89f1138 100644
+--- a/.pgg/project.json
++++ b/.pgg/project.json
+@@ -6,7 +6,7 @@
+   "language": "ko",
+   "autoMode": "on",
+   "installedVersion": "0.1.0",
+-  "updatedAt": "2026-04-25T14:48:43.417Z",
++  "updatedAt": "2026-04-26T13:42:26.411Z",
+   "dashboard": {
+     "title": "POGGN",
+     "titleIconSvg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 48 48\"><defs><linearGradient id=\"pgg-dashboard-icon\" x1=\"10%\" y1=\"10%\" x2=\"90%\" y2=\"90%\"><stop offset=\"0%\" stop-color=\"#2467d6\" /><stop offset=\"55%\" stop-color=\"#4f92ff\" /><stop offset=\"100%\" stop-color=\"#f59e0b\" /></linearGradient></defs><rect x=\"6\" y=\"6\" width=\"36\" height=\"36\" rx=\"14\" fill=\"#0f172a\" /><path d=\"M24 11l5.2 7.9 9.3 2.7-5.9 7.3.2 9.9-8.8-3.4-8.8 3.4.2-9.9-5.9-7.3 9.3-2.7L24 11z\" fill=\"url(#pgg-dashboard-icon)\" /><circle cx=\"24\" cy=\"24\" r=\"4.8\" fill=\"#f8fafc\" fill-opacity=\"0.9\" /></svg>",
+@@ -16,22 +16,27 @@
+   "managedFiles": [
+     {
+       "path": "AGENTS.md",
+-      "checksum": "6ddcd770d6dbb5084c8f0e000848cdd0b87f9aee441fa9bcf853eb741f53cbaf",
++      "checksum": "8461ef06e01ac91c39c3f8bc8a493b6a72dd4d43171f5707d16977a0911f8ab8",
++      "executable": false
++    },
++    {
++      "path": ".codex/config.toml",
++      "checksum": "6d4a5389c37515e48e09f6011627b46e25217a7c3bac7379beb718b535dd794f",
+       "executable": false
+     },
+     {
+       "path": ".codex/add/WOKR-FLOW.md",
+-      "checksum": "4e73e47b75ec6462d8876ae84d4f7f826df7ba1a72197b90b0963dd1bfc4f7fb",
++      "checksum": "0481dc847a567b74a0f3e62e6da05782e8ee5b9f1d21c8af28b6116662889255",
+       "executable": false
+     },
+     {
+       "path": ".codex/add/STATE-CONTRACT.md",
+-      "checksum": "ccf020d82a074a75267084552692f10a958240359f9f4aa9d1fc4eae2d7e6d1e",
++      "checksum": "7eedc830631fecfa4b698ac48761e5d71fb3944153b799370b129180f030d9ab",
+       "executable": false
+     },
+     {
+       "path": ".codex/add/EXPERT-ROUTING.md",
+-      "checksum": "74e48bbc2fb931ea139f24874044b9395a1303b178681fde1aec99e3fc301b76",
++      "checksum": "abbe8023510b1df7d73f767fb5f014ac07ce8c3322954b466e525326ba23d425",
+       "executable": false
+     },
+     {
+@@ -49,39 +54,99 @@
+       "checksum": "61f57a92ec32093b6e5e1b08884c9c4c8273ee30633093e38962eed25ad03430",
+       "executable": false
+     },
++    {
++      "path": "agents/main.toml",
++      "checksum": "de4a75a44c58f25f3529ae5572dee4d55051e456f47b1730e117075a281fa27e",
++      "executable": false
++    },
++    {
++      "path": "agents/product-manager.toml",
++      "checksum": "da6a6043bd7e965e5a997254e7fd0c2215117fc01862b3e0b1b0f93ea15c29c2",
++      "executable": false
++    },
++    {
++      "path": "agents/ux-ui-expert.toml",
++      "checksum": "73a63996bfe28202247edc1dd17d860d7ce77f3f926bc74adb0e422e9de1f467",
++      "executable": false
++    },
++    {
++      "path": "agents/domain-expert.toml",
++      "checksum": "afb0e3806754d990cb7038525f3318a5ffbc5db9575431e56e4398f76b734e7b",
++      "executable": false
++    },
++    {
++      "path": "agents/software-architect.toml",
++      "checksum": "4858a6a66fb0acf5b2c6de6a3cf422dc426c8ed59ddb92d2b50aefc74e6cddc2",
++      "executable": false
++    },
++    {
++      "path": "agents/senior-backend-engineer.toml",
++      "checksum": "3a12a6aed21a95e6f35677fdd62d0fed1e2a6eeebc8818643a1d51e7459bdadb",
++      "executable": false
++    },
++    {
++      "path": "agents/tech-lead.toml",
++      "checksum": "6b6f1b529e73bdce3efd6b2705450e6179e57ac60535fdae134bd5ea797a3687",
++      "executable": false
++    },
++    {
++      "path": "agents/code-reviewer.toml",
++      "checksum": "9ee2e93c1cfdcf47c1a5fb18adcb2763841cecb68a247ae49302bacdc91d4c94",
++      "executable": false
++    },
++    {
++      "path": "agents/qa-test-engineer.toml",
++      "checksum": "db0a265b1d486035e3583a263c40cccf70f6b5222fc3a97ed1dfc0484b3b1790",
++      "executable": false
++    },
++    {
++      "path": "agents/sre-operations-engineer.toml",
++      "checksum": "d499aee3f3adb0308a68da96023cdbbd19764da478cb495cf7a0ee6463971a35",
++      "executable": false
++    },
++    {
++      "path": "agents/project-generalist.toml",
++      "checksum": "16f7454ad4da24b264a9a5eabd23a7a586b938a2c3f594409eaf43bb6eab85b2",
++      "executable": false
++    },
++    {
++      "path": "agents/docs-researcher.toml",
++      "checksum": "54e1673cd549da3fae0b1daf4b7527c69c135d7b0513b66f7df5c866c0fe2a20",
++      "executable": false
++    },
+     {
+       "path": ".codex/skills/pgg-add/SKILL.md",
+-      "checksum": "992033cf97863bc28e8dd4224fd1769fe7866a1cecafc057227d3d2d3ea25976",
++      "checksum": "dc76689450dcb1a0c1d67ae9120ebec8a26a336199dd128302e0985489158a9c",
+       "executable": false
+     },
+     {
+       "path": ".codex/skills/pgg-plan/SKILL.md",
+-      "checksum": "0f3ce2ecc484105bc65f584b84467bafd3bfa1fdd70b18d8d44a39abe6fc1583",
++      "checksum": "352c5d83145d3db67a5814b8559b5c292d0ca3666ebe941e04ea6706ce79e95c",
+       "executable": false
+     },
+     {
+       "path": ".codex/skills/pgg-code/SKILL.md",
+-      "checksum": "9de2e766fc4a793578b4d651ecd7f35d64e43929f2d4b06eb770999f58f51ee7",
++      "checksum": "cb06e199f768e419df98f54a1ac31cd549bcdaa9bff98b90ce62110d9495d9c1",
+       "executable": false
+     },
+     {
+       "path": ".codex/skills/pgg-refactor/SKILL.md",
+-      "checksum": "6bd8a66cfb8c505f9a60aaf8e24cf95f6a417e4b5122b3347ab5d06c6d1a167b",
++      "checksum": "59cca8326e18b9a4097ac6fe94d831c4e6348742b01b4195d65708b37bf3cc7e",
+       "executable": false
+     },
+     {
+       "path": ".codex/skills/pgg-qa/SKILL.md",
+-      "checksum": "44062f2fa3f67cfb0291ac7303e68df51626471c0137d32be4ab7a0e3726c53c",
++      "checksum": "03d9b223e74a3dfefcfbdf27ba86b70d68a77c2163130ee53f59f36237511993",
+       "executable": false
+     },
+     {
+       "path": ".codex/skills/pgg-token/SKILL.md",
+-      "checksum": "8e329b32f8886c7bcf7d4367c7ae82814d5e68b80053c3bb460e2c086bd20fce",
++      "checksum": "901489e2d87d33fbf76458b512ac20e4d8907547f358eb663e4cd92c181b23a5",
+       "executable": false
+     },
+     {
+       "path": ".codex/skills/pgg-performance/SKILL.md",
+-      "checksum": "b33279af6dc5930a20c3790df3ca3484e0f16e86acee311608f554974b1eb786",
++      "checksum": "24525347ede9af1b1d71d8bf947c09075a842a4288fa104e8b37f1d346c56a6c",
+       "executable": false
+     },
+     {
+@@ -121,7 +186,7 @@
+     },
+     {
+       "path": ".codex/sh/pgg-state-pack.sh",
+-      "checksum": "e4d5261aa67ed2e97a327c169eda0178488522c10b3526a75eb4656d085f975d",
++      "checksum": "37304ae09185796e478e47df84515d377a96fe581843d68ff05a5d5c76a7aac2",
+       "executable": true
+     },
+     {

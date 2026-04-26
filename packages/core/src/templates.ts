@@ -28,8 +28,231 @@ export interface GeneratedFileTemplate {
   preserveExistingContent?: boolean;
 }
 
+type AgentRoleDefinition = {
+  id: string;
+  name: string;
+  category: "primary" | "support";
+  purpose: string;
+  whenToUse: string;
+};
+
+type FlowAgentRoute = {
+  flow: string;
+  agents: [string, string];
+  purpose: string;
+};
+
+const CODEX_AGENT_MAX_THREADS = 4;
+const CODEX_AGENT_MAX_DEPTH = 1;
+
+const AGENT_ROLES: AgentRoleDefinition[] = [
+  {
+    id: "product-manager",
+    name: "Product Manager",
+    category: "primary",
+    purpose: "Frame the user problem, success criteria, scope, and delivery tradeoffs.",
+    whenToUse: "Use during proposal and product-scope decisions."
+  },
+  {
+    id: "ux-ui-expert",
+    name: "UX/UI Expert",
+    category: "primary",
+    purpose: "Evaluate user flows, interaction clarity, visual hierarchy, and accessibility risk.",
+    whenToUse: "Use when the change affects screens, workflows, or user-facing behavior."
+  },
+  {
+    id: "domain-expert",
+    name: "Domain Expert",
+    category: "primary",
+    purpose: "Check terminology, domain assumptions, data meaning, and cross-domain fit.",
+    whenToUse: "Use when plans or specs need domain constraints made explicit."
+  },
+  {
+    id: "software-architect",
+    name: "Software Architect",
+    category: "primary",
+    purpose: "Define system boundaries, integration contracts, sequencing, and long-term structure.",
+    whenToUse: "Use during planning and structural refactor decisions."
+  },
+  {
+    id: "senior-backend-engineer",
+    name: "Senior Backend Engineer",
+    category: "primary",
+    purpose: "Assess implementation paths, data flow, error handling, and maintainability.",
+    whenToUse: "Use for implementation planning and code execution risk."
+  },
+  {
+    id: "tech-lead",
+    name: "Tech Lead",
+    category: "primary",
+    purpose: "Coordinate implementation strategy, ownership, integration risk, and engineering tradeoffs.",
+    whenToUse: "Use during code and token-sensitive workflow decisions."
+  },
+  {
+    id: "code-reviewer",
+    name: "Code Reviewer",
+    category: "primary",
+    purpose: "Find correctness bugs, regressions, missing tests, and maintainability risks.",
+    whenToUse: "Use for refactor review, token audit, and code-quality checks."
+  },
+  {
+    id: "qa-test-engineer",
+    name: "QA/Test Engineer",
+    category: "primary",
+    purpose: "Design verification strategy, acceptance checks, and test evidence.",
+    whenToUse: "Use for QA and performance evidence planning."
+  },
+  {
+    id: "sre-operations-engineer",
+    name: "SRE/Operations Engineer",
+    category: "primary",
+    purpose: "Assess runtime risk, release safety, rollback, observability, and operational constraints.",
+    whenToUse: "Use for QA release review and performance/operations risk."
+  },
+  {
+    id: "project-generalist",
+    name: "Project Generalist",
+    category: "support",
+    purpose: "Provide broad project context when no specialist role fits.",
+    whenToUse: "Use only as an opt-in support role, never as a flow primary."
+  },
+  {
+    id: "docs-researcher",
+    name: "Docs Researcher",
+    category: "support",
+    purpose: "Verify external or official documentation and summarize source-backed constraints.",
+    whenToUse: "Use only when primary-source documentation needs verification."
+  }
+];
+
+const FLOW_AGENT_ROUTES: FlowAgentRoute[] = [
+  { flow: "pgg-add", agents: ["product-manager", "ux-ui-expert"], purpose: "problem framing and user workflow clarity" },
+  { flow: "pgg-plan", agents: ["software-architect", "domain-expert"], purpose: "system design and domain constraints" },
+  { flow: "pgg-code", agents: ["senior-backend-engineer", "tech-lead"], purpose: "implementation path and integration guardrails" },
+  { flow: "pgg-refactor", agents: ["software-architect", "code-reviewer"], purpose: "structure cleanup and regression risk" },
+  { flow: "pgg-qa", agents: ["qa-test-engineer", "sre-operations-engineer"], purpose: "test evidence and release/operations risk" },
+  { flow: "pgg-token", agents: ["tech-lead", "code-reviewer"], purpose: "context budget and duplication review" },
+  { flow: "pgg-performance", agents: ["qa-test-engineer", "sre-operations-engineer"], purpose: "measurement evidence and operational risk" }
+];
+
 function lines(parts: string[]): string {
   return `${parts.join("\n")}\n`;
+}
+
+function roleById(roleId: string): AgentRoleDefinition {
+  const role = AGENT_ROLES.find((candidate) => candidate.id === roleId);
+  if (!role) {
+    throw new Error(`Unknown agent role: ${roleId}`);
+  }
+  return role;
+}
+
+function flowAgentNames(route: FlowAgentRoute): string {
+  return route.agents.map((agentId) => roleById(agentId).name).join(", ");
+}
+
+function flowAgentIds(route: FlowAgentRoute): string {
+  return route.agents.join(", ");
+}
+
+function codexConfigToml(input: TemplateInput): string {
+  return lines([
+    "# pgg-managed Codex project configuration.",
+    "# Do not edit this file for global user preferences; use ~/.codex/config.toml for user defaults.",
+    "",
+    "[features]",
+    `multi_agent = ${input.teamsMode === "on" ? "true" : "false"}`,
+    "",
+    "[agents]",
+    `max_threads = ${CODEX_AGENT_MAX_THREADS}`,
+    `max_depth = ${CODEX_AGENT_MAX_DEPTH}`
+  ]);
+}
+
+function agentRoleToml(role: AgentRoleDefinition): string {
+  return lines([
+    `id = "${role.id}"`,
+    `name = "${role.name}"`,
+    `category = "${role.category}"`,
+    `purpose = "${role.purpose}"`,
+    `when_to_use = "${role.whenToUse}"`,
+    "",
+    "input_contract = [",
+    '  "Prefer state/current.md or pgg-state-pack output over full topic documents.",',
+    '  "Read only the files explicitly assigned by the parent Codex process.",',
+    '  "Ask the parent for missing critical context instead of broad-scanning by default."',
+    "]",
+    "",
+    "output_contract = [",
+    '  "Return concise findings with file/path evidence when applicable.",',
+    '  "Separate decisions, risks, and open questions.",',
+    '  "Make the result easy to summarize into pgg review notes."',
+    "]",
+    "",
+    "constraints = [",
+    '  "Stay inside the current project unless the parent explicitly provides a wider scope.",',
+    '  "Do not duplicate work assigned to another agent.",',
+    '  "Respect disjoint write ownership for code-edit tasks.",',
+    '  "Do not spawn nested agents; max_depth is one."',
+    "]",
+    "",
+    "forbidden_actions = [",
+    '  "Do not run destructive git or filesystem commands.",',
+    '  "Do not modify global user configuration.",',
+    '  "Do not treat unsupported Codex config behavior as guaranteed.",',
+    '  "Do not paste full source files when a summary or diff is sufficient."',
+    "]",
+    "",
+    "handoff = [",
+    '  "Use state/current.md first.",',
+    '  "Use pgg-state-pack.sh output for teams-mode context.",',
+    '  "Return only the minimum context needed by the parent to decide next steps."',
+    "]"
+  ]);
+}
+
+function agentsMainToml(): string {
+  return lines([
+    `max_threads = ${CODEX_AGENT_MAX_THREADS}`,
+    `max_depth = ${CODEX_AGENT_MAX_DEPTH}`,
+    'source_of_truth = "agents/main.toml and .codex/add/EXPERT-ROUTING.md must stay aligned."',
+    'activation = "pgg teams=on enables multi-agent orchestration; pgg teams=off keeps a single-agent flow."',
+    "",
+    "[token_budget]",
+    'handoff = "state/current.md or pgg-state-pack output first"',
+    'full_documents = "only when the parent explicitly needs them"',
+    'nested_agents = "forbidden"',
+    "",
+    ...AGENT_ROLES.flatMap((role) => [
+      "[[roles]]",
+      `id = "${role.id}"`,
+      `name = "${role.name}"`,
+      `category = "${role.category}"`,
+      `purpose = "${role.purpose}"`,
+      `when_to_use = "${role.whenToUse}"`,
+      ""
+    ]),
+    ...FLOW_AGENT_ROUTES.flatMap((route) => [
+      "[[flows]]",
+      `flow = "${route.flow}"`,
+      `primary_agents = ["${route.agents[0]}", "${route.agents[1]}"]`,
+      `purpose = "${route.purpose}"`,
+      ""
+    ]),
+    "[support]",
+    'roles = ["project-generalist", "docs-researcher"]',
+    'rule = "Support roles are opt-in and never count as flow primary agents."'
+  ]);
+}
+
+function agentTemplates(): GeneratedFileTemplate[] {
+  return [
+    { path: "agents/main.toml", content: agentsMainToml() },
+    ...AGENT_ROLES.map((role) => ({
+      path: `agents/${role.id}.toml`,
+      content: agentRoleToml(role)
+    }))
+  ];
 }
 
 function numberedCoreWorkflowSkillLines(): string[] {
@@ -410,7 +633,10 @@ function agentsMd(input: TemplateInput): string {
       "- 구현 전에는 반드시 `proposal.md`, `plan.md`, `task.md`를 확인한다.",
       "- 구현 단계에서는 `spec/*/*.md` 기준을 위반하지 않는다.",
       "- 다음 단계로 넘길 때는 전체 문맥이 아니라 `state/current.md`만 우선 전달한다.",
-      "- `pgg teams`가 `on`이면 stage 시작 전에 `pgg-state-pack.sh`로 최소 컨텍스트를 만들고 전문가 roster 기반 자동 orchestration을 사용한다.",
+      "- `pgg teams`가 `on`이면 stage 시작 전에 `pgg-state-pack.sh`로 최소 컨텍스트를 만들고 `agents/main.toml`의 flow별 2-agent routing 기반 자동 orchestration을 사용한다.",
+      "- `pgg teams`가 `on`이면 `.codex/config.toml`의 `[features].multi_agent=true`, `off`이면 `false`로 유지하며, 기본 agent budget은 `max_threads=4`, `max_depth=1`이다.",
+      "- Codex sub-agent는 parent가 명시적으로 맡긴 bounded side task만 수행하고, child agent가 다시 agent를 만들지 않는다.",
+      "- 각 flow의 primary agent는 정확히 2개이며 support agent는 opt-in으로만 사용한다.",
       "- core workflow(`pgg-add`, `pgg-plan`, `pgg-code`, `pgg-refactor`, `pgg-qa`)와 필요 시 여는 optional audit(`pgg-token`, `pgg-performance`)의 현재 프로젝트 내부 확인/기록/생성 절차는 추가 허락 없이 자동 처리한다.",
       "- proposal 단계에서 `archive_type`, `version_bump`, `target_version`, branch naming, `project_scope`를 확정하고, `archive_type`는 change category/commit convention, `version_bump`는 semver impact로 구분한다.",
       "- pgg가 생성·관리하는 `.codex/sh/*.sh` helper만 workflow 내부 trusted script로 보고 추가 허락 없이 실행한다.",
@@ -434,6 +660,8 @@ function agentsMd(input: TemplateInput): string {
       "- `proposal.md`, `plan.md`, `task.md` 없이 구현하지 않는다.",
       "- auto mode가 `off`일 때 불확실한 요구사항을 임의 확정하지 않는다.",
       "- teams handoff에 전체 문서를 기본값으로 넘기지 않는다.",
+      "- flow당 primary agent를 2개 초과로 늘리지 않는다.",
+      "- sub-agent에게 즉시 blocking 되는 critical-path 작업을 넘기지 않는다.",
       "- 전체 파일 내용을 불필요하게 다음 단계에 전달하지 않는다.",
       "- diff로 충분한 경우 전체 파일을 복사하지 않는다."
     ]);
@@ -449,7 +677,10 @@ function agentsMd(input: TemplateInput): string {
     "- Read `proposal.md`, `plan.md`, and `task.md` before implementation.",
     "- Do not violate `spec/*/*.md` during implementation.",
     "- Pass only `state/current.md` to the next stage before larger context.",
-    "- When `pgg teams` is `on`, build the minimum handoff with `pgg-state-pack.sh` before expert-roster-based automatic orchestration.",
+    "- When `pgg teams` is `on`, build the minimum handoff with `pgg-state-pack.sh` before automatic orchestration based on the two-agent routing in `agents/main.toml`.",
+    "- Keep `.codex/config.toml` `[features].multi_agent=true` when `pgg teams` is `on` and `false` when it is `off`; the default agent budget is `max_threads=4` and `max_depth=1`.",
+    "- Codex sub-agents handle only bounded side tasks assigned by the parent, and child agents must not spawn nested agents.",
+    "- Each flow has exactly two primary agents; support agents are opt-in only.",
     "- Automatically handle stage-local confirmations, records, and generated documents for the core workflow (`pgg-add`, `pgg-plan`, `pgg-code`, `pgg-refactor`, `pgg-qa`) plus any required optional audit (`pgg-token`, `pgg-performance`) when the work stays inside the current project.",
     "- Resolve `archive_type`, `version_bump`, `target_version`, branch naming, and `project_scope` during the proposal stage, keeping `archive_type` as the change category/commit convention and `version_bump` as the semver impact.",
     "- Treat only pgg-generated and managed `.codex/sh/*.sh` helpers as trusted workflow scripts that can run without extra approval.",
@@ -473,6 +704,8 @@ function agentsMd(input: TemplateInput): string {
     "- Do not implement without `proposal.md`, `plan.md`, and `task.md`.",
     "- Do not lock uncertain requirements when auto mode is `off`.",
     "- Do not forward full documents as the default teams handoff.",
+    "- Do not use more than two primary agents per flow.",
+    "- Do not delegate immediate critical-path blocking work to a sub-agent.",
     "- Do not forward full files to the next stage unless necessary.",
     "- Do not copy full files when a diff is enough."
   ]);
@@ -488,7 +721,9 @@ function workFlowMd(input: TemplateInput): string {
       "## 절대 원칙",
       "",
       "- auto mode가 `off`이면 미확정 요구사항은 선택지와 직접 입력으로 남긴다.",
-      "- `pgg teams`가 `on`이면 stage별 전문가 자동 orchestration을 사용하고, `off`이면 단일 에이전트 흐름을 사용한다.",
+      "- `pgg teams`가 `on`이면 `agents/main.toml`에 정의된 stage별 2-agent 자동 orchestration을 사용하고, `off`이면 단일 에이전트 흐름을 사용한다.",
+      "- `pgg teams` 상태는 `.codex/config.toml`의 `[features].multi_agent`와 동기화하며, token budget 기본값은 `max_threads=4`, `max_depth=1`이다.",
+      "- sub-agent handoff는 `state/current.md` 또는 `.codex/sh/pgg-state-pack.sh <topic|topic_dir>` 출력으로 제한하고 전체 문서 bundle을 기본값으로 넘기지 않는다.",
       "- 현재 프로젝트 내부 문서 생성, 확인, 기록 절차는 stage 안에서 자동 처리하고, 외부 경로나 전역 상태를 건드리는 작업은 자동 처리하지 않는다.",
       "- pgg가 생성·관리하는 `.codex/sh/*.sh` helper만 workflow 내부 trusted script로 보고 추가 허락 없이 실행한다.",
       "- TTY 선택형 인터랙션은 방향키와 Enter 기반 공통 메뉴를 사용한다.",
@@ -503,6 +738,12 @@ function workFlowMd(input: TemplateInput): string {
       "- 대상 프로젝트 검증은 선언된 current-project verification command contract만 사용하고, framework 명령을 추론 실행하지 않는다.",
       "- QA를 통과한 topic만 archive로 이동한다.",
       "- 각 단계는 필요한 전문가 평가를 포함한다.",
+      "",
+      "### Multi-Agent Routing",
+      "",
+      "- 모든 core workflow와 optional audit는 아래 2개 primary agent만 자동 사용한다.",
+      ...FLOW_AGENT_ROUTES.map((route) => `- \`${route.flow}\`: ${flowAgentNames(route)}`),
+      "- `project-generalist`, `docs-researcher`는 support agent이며 parent가 명시적으로 필요하다고 판단할 때만 사용한다.",
       "",
       "## 전체 실행 흐름",
       "",
@@ -567,7 +808,9 @@ function workFlowMd(input: TemplateInput): string {
     "## Hard Rules",
     "",
     "- When auto mode is `off`, unresolved requirements stay as options plus free input.",
-    "- When `pgg teams` is `on`, stages use expert-based automatic orchestration; when it is `off`, they stay in a single-agent flow.",
+    "- When `pgg teams` is `on`, stages use the two-agent automatic orchestration defined in `agents/main.toml`; when it is `off`, they stay in a single-agent flow.",
+    "- Keep `pgg teams` synchronized with `.codex/config.toml` `[features].multi_agent`, and use `max_threads=4`, `max_depth=1` as the default token budget.",
+    "- Limit sub-agent handoff to `state/current.md` or `.codex/sh/pgg-state-pack.sh <topic|topic_dir>` output by default.",
     "- Automatically handle stage-local confirmations, records, and generated documents only when the work stays inside the current project.",
     "- Treat only pgg-generated and managed `.codex/sh/*.sh` helpers as trusted workflow scripts that can run without extra approval.",
     "- TTY choice flows use a shared Up/Down plus Enter menu.",
@@ -582,6 +825,12 @@ function workFlowMd(input: TemplateInput): string {
     "- Use only declared current-project verification command contracts for project verification, and do not guess framework commands.",
     "- Move only QA-passed topics to archive.",
     "- Include the required expert review at every stage.",
+    "",
+    "### Multi-Agent Routing",
+    "",
+    "- Every core workflow and optional audit automatically uses only the two primary agents below.",
+    ...FLOW_AGENT_ROUTES.map((route) => `- \`${route.flow}\`: ${flowAgentNames(route)}`),
+    "- `project-generalist` and `docs-researcher` are support agents and are used only when the parent explicitly decides they are needed.",
     "",
     "## Execution Flow",
     "",
@@ -636,6 +885,8 @@ function stateContractMd(input: TemplateInput): string {
       "- 다음 단계에는 전체 문서 대신 `state/current.md`를 우선 전달한다.",
       "- teams handoff가 필요하면 먼저 `.codex/sh/pgg-state-pack.sh <topic|topic_dir>`로 최소 컨텍스트를 만든다.",
       "- `pgg teams`가 `off`여도 handoff 형식은 같은 최소 컨텍스트 계약을 유지한다.",
+      "- `pgg teams` 상태는 `.codex/config.toml`의 `[features].multi_agent`와 동기화되어야 한다.",
+      "- agent orchestration 기본값은 `max_threads=4`, `max_depth=1`이며 `agents/main.toml`의 flow별 2-agent routing을 따른다.",
       "- pgg가 생성·관리하는 `.codex/sh/*.sh` helper만 trusted handoff/automation script로 본다.",
       "- `archive_type`, `version_bump`, `target_version`, branch naming, `project_scope`, archive 후의 version 정보는 최소 컨텍스트에 유지한다.",
       "- proposal 단계에서는 사용자 입력 질문 기록 섹션의 위치 또는 ref와 `version_bump`, `target_version` 선택 결과를 최소 컨텍스트에 유지한다.",
@@ -645,6 +896,7 @@ function stateContractMd(input: TemplateInput): string {
       "- `pgg-state-pack.sh` 출력은 최소한 `archive_type`, `version_bump`, `target_version`, `short_name`, branch naming, `Git Publish Message` 정보를 key/value 형태로 드러내야 한다.",
       "- 변경 파일은 `Changed Files` 섹션에 CRUD와 diff 경로로 기록한다.",
       "- 마지막 전문가 점수와 blocking issue를 유지한다.",
+      "- teams mode agent 결과는 전문 복사 대신 attribution 있는 요약과 경로 ref로 유지한다.",
       "- `state/current.md`에는 review 전문을 복사하지 말고 결정, 점수, blocking issue만 요약한다.",
       "",
       "## Git Publish Message Contract",
@@ -677,6 +929,8 @@ function stateContractMd(input: TemplateInput): string {
     "- Pass `state/current.md` before full documents to the next stage.",
     "- When teams handoff is needed, build the minimum payload with `.codex/sh/pgg-state-pack.sh <topic|topic_dir>` first.",
     "- Keep the same minimal handoff format even when `pgg teams` is `off`.",
+    "- Keep `pgg teams` synchronized with `.codex/config.toml` `[features].multi_agent`.",
+    "- Use the default agent budget `max_threads=4`, `max_depth=1`, and follow the two-agent routing in `agents/main.toml`.",
     "- Treat only pgg-generated and managed `.codex/sh/*.sh` helpers as trusted handoff and automation scripts.",
     "- Preserve `archive_type`, `version_bump`, `target_version`, branch naming, `project_scope`, and archive version data in the minimum handoff.",
     "- Preserve the user-question record section or reference plus the `version_bump` and `target_version` decision outcome from the proposal stage in the minimum handoff.",
@@ -686,6 +940,7 @@ function stateContractMd(input: TemplateInput): string {
     "- `.codex/sh/pgg-state-pack.sh` output must expose at least `archive_type`, `version_bump`, `target_version`, `short_name`, branch naming, and `Git Publish Message` data as key/value handoff fields.",
     "- Record CRUD and diff paths in the `Changed Files` section.",
     "- Preserve the last expert score and blocking issues.",
+    "- Keep teams-mode agent output as attributed summaries plus path refs instead of full transcript copies.",
     "- Keep full review text out of `state/current.md`; summarize only decisions, score, and blockers.",
     "",
     "## Git Publish Message Contract",
@@ -715,21 +970,27 @@ function expertRoutingMd(input: TemplateInput): string {
       "",
       "- `pgg teams=on`: stage 시작 시 아래 전문가 roster를 자동 orchestration한다.",
       "- `pgg teams=off`: 동일한 문서 계약을 유지하되 단일 에이전트 흐름으로 진행한다.",
+      "- `agents/main.toml`과 이 문서는 같은 2-agent routing matrix를 유지해야 한다.",
+      "- `.codex/config.toml`은 teams mode에 맞춰 `[features].multi_agent`를 동기화하고 `max_threads=4`, `max_depth=1`을 기본값으로 둔다.",
       "",
-      "## Core Workflow 전문가",
+      "## Core Workflow Primary Agents",
       "",
-      "- `pgg-add`: 프로덕트 매니저, UX/UI 전문가, 도메인 전문가",
-      "- `pgg-plan`: 소프트웨어 아키텍트, 시니어 백엔드 엔지니어, QA/테스트 엔지니어",
-      "- `pgg-code`: 시니어 백엔드 엔지니어, 테크 리드, 코드 리뷰어",
-      "- `pgg-refactor`: 소프트웨어 아키텍트, 시니어 백엔드 엔지니어, 코드 리뷰어",
-      "- `pgg-qa`: QA/테스트 엔지니어, 코드 리뷰어, SRE / 운영 엔지니어",
+      ...FLOW_AGENT_ROUTES.filter((route) => CORE_WORKFLOW_SKILLS.includes(route.flow as typeof CORE_WORKFLOW_SKILLS[number])).map(
+        (route) => `- \`${route.flow}\`: ${flowAgentNames(route)}`
+      ),
       "",
-      "## Optional Audit 전문가",
+      "## Optional Audit Primary Agents",
       "",
-      "- `pgg-token`: 테크 리드, 시니어 백엔드 엔지니어, 코드 리뷰어",
-      "- `pgg-performance`: QA/테스트 엔지니어, 시니어 백엔드 엔지니어, SRE / 운영 엔지니어",
+      ...FLOW_AGENT_ROUTES.filter((route) => OPTIONAL_AUDIT_SKILLS.includes(route.flow as typeof OPTIONAL_AUDIT_SKILLS[number])).map(
+        (route) => `- \`${route.flow}\`: ${flowAgentNames(route)}`
+      ),
       "",
-      "token/performance roster는 모든 topic에 자동 적용되는 기본 stage가 아니라, applicability가 `required`이거나 사용자가 audit를 명시한 경우에만 호출한다.",
+      "token/performance routing은 모든 topic에 자동 적용되는 기본 stage가 아니라, applicability가 `required`이거나 사용자가 audit를 명시한 경우에만 호출한다.",
+      "",
+      "## Support Agents",
+      "",
+      "- `project-generalist`: 범용 project context가 필요할 때 parent가 명시적으로 호출한다.",
+      "- `docs-researcher`: 공식 문서나 primary source 확인이 필요할 때 parent가 명시적으로 호출한다.",
     ]);
   }
 
@@ -740,21 +1001,27 @@ function expertRoutingMd(input: TemplateInput): string {
     "",
     "- `pgg teams=on`: automatically orchestrate the stage experts below at stage start.",
     "- `pgg teams=off`: keep the same document contract but stay in a single-agent flow.",
+    "- `agents/main.toml` and this document must keep the same two-agent routing matrix.",
+    "- `.codex/config.toml` keeps `[features].multi_agent` synchronized with teams mode and defaults to `max_threads=4`, `max_depth=1`.",
     "",
-    "## Core Workflow Experts",
+    "## Core Workflow Primary Agents",
     "",
-    "- `pgg-add`: product manager, UX/UI expert, domain expert",
-    "- `pgg-plan`: software architect, senior backend engineer, QA/test engineer",
-    "- `pgg-code`: senior backend engineer, tech lead, code reviewer",
-    "- `pgg-refactor`: software architect, senior backend engineer, code reviewer",
-    "- `pgg-qa`: QA/test engineer, code reviewer, SRE/operations engineer",
+    ...FLOW_AGENT_ROUTES.filter((route) => CORE_WORKFLOW_SKILLS.includes(route.flow as typeof CORE_WORKFLOW_SKILLS[number])).map(
+      (route) => `- \`${route.flow}\`: ${flowAgentNames(route)}`
+    ),
     "",
-    "## Optional Audit Experts",
+    "## Optional Audit Primary Agents",
     "",
-    "- `pgg-token`: tech lead, senior backend engineer, code reviewer",
-    "- `pgg-performance`: QA/test engineer, senior backend engineer, SRE/operations engineer",
+    ...FLOW_AGENT_ROUTES.filter((route) => OPTIONAL_AUDIT_SKILLS.includes(route.flow as typeof OPTIONAL_AUDIT_SKILLS[number])).map(
+      (route) => `- \`${route.flow}\`: ${flowAgentNames(route)}`
+    ),
     "",
-    "The token/performance rosters are optional-audit rosters, not mandatory stages for every topic."
+    "The token/performance routes are optional-audit routes, not mandatory stages for every topic.",
+    "",
+    "## Support Agents",
+    "",
+    "- `project-generalist`: opt-in support when broad project context is needed.",
+    "- `docs-researcher`: opt-in support when official docs or primary sources need verification."
   ]);
 }
 
@@ -900,7 +1167,7 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "",
         "## Teams Mode",
         "",
-        "- when `pgg teams` is `on`, build a minimum handoff with `.codex/sh/pgg-state-pack.sh <topic|topic_dir>` and automatically orchestrate the stage experts below",
+        "- when `pgg teams` is `on`, build a minimum handoff with `.codex/sh/pgg-state-pack.sh <topic|topic_dir>` and automatically orchestrate exactly the two primary agents below",
         "- when `pgg teams` is `off`, keep the same document contract and stay in a single-agent flow",
         "- treat only pgg-generated and managed `.codex/sh/*.sh` helpers as trusted workflow scripts that can run without extra approval",
         "",
@@ -915,7 +1182,6 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "",
         "- product manager: problem framing, scope, success criteria",
         "- UX/UI expert: user flow and interaction clarity",
-        "- domain expert: domain fit and terminology",
         "",
         "## Read",
         "",
@@ -954,7 +1220,7 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "",
         "## Teams Mode",
         "",
-        "- when `pgg teams` is `on`, build a minimum handoff with `.codex/sh/pgg-state-pack.sh <topic|topic_dir>` and automatically orchestrate the stage experts below",
+        "- when `pgg teams` is `on`, build a minimum handoff with `.codex/sh/pgg-state-pack.sh <topic|topic_dir>` and automatically orchestrate exactly the two primary agents below",
         "- when `pgg teams` is `off`, keep the same document contract and stay in a single-agent flow",
         "- treat only pgg-generated and managed `.codex/sh/*.sh` helpers as trusted workflow scripts that can run without extra approval",
         "",
@@ -968,8 +1234,7 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "## Expert Roster",
         "",
         "- software architect: spec boundaries and system impact",
-        "- senior backend engineer: implementation path and regression risk",
-        "- QA/test engineer: validation scope and acceptance checks",
+        "- domain expert: domain constraints and terminology fit",
         "",
         "## Rules",
         "",
@@ -995,7 +1260,7 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "",
         "## Teams Mode",
         "",
-        "- when `pgg teams` is `on`, build a minimum handoff with `.codex/sh/pgg-state-pack.sh <topic|topic_dir>` and automatically orchestrate the stage experts below",
+        "- when `pgg teams` is `on`, build a minimum handoff with `.codex/sh/pgg-state-pack.sh <topic|topic_dir>` and automatically orchestrate exactly the two primary agents below",
         "- when `pgg teams` is `off`, keep the same document contract and stay in a single-agent flow",
         "- treat only pgg-generated and managed `.codex/sh/*.sh` helpers as trusted workflow scripts that can run without extra approval",
         "",
@@ -1011,7 +1276,6 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "",
         "- senior backend engineer: primary implementation work",
         "- tech lead: architecture guardrails and integration decisions",
-        "- code reviewer: bug and regression review",
         "",
         "## Rules",
         "",
@@ -1040,7 +1304,7 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "",
         "## Teams Mode",
         "",
-        "- when `pgg teams` is `on`, build a minimum handoff with `.codex/sh/pgg-state-pack.sh <topic|topic_dir>` and automatically orchestrate the stage experts below",
+        "- when `pgg teams` is `on`, build a minimum handoff with `.codex/sh/pgg-state-pack.sh <topic|topic_dir>` and automatically orchestrate exactly the two primary agents below",
         "- when `pgg teams` is `off`, keep the same document contract and stay in a single-agent flow",
         "- treat only pgg-generated and managed `.codex/sh/*.sh` helpers as trusted workflow scripts that can run without extra approval",
         "",
@@ -1055,7 +1319,6 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "## Expert Roster",
         "",
         "- software architect: structure boundaries and simplification path",
-        "- senior backend engineer: concrete refactor implementation",
         "- code reviewer: regression and dead-code review",
         "",
         "## Rules",
@@ -1083,14 +1346,13 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "",
         "## Teams Mode",
         "",
-        "- when `pgg teams` is `on`, build a minimum handoff with `.codex/sh/pgg-state-pack.sh <topic|topic_dir>` and automatically orchestrate the stage experts below",
+        "- when `pgg teams` is `on`, build a minimum handoff with `.codex/sh/pgg-state-pack.sh <topic|topic_dir>` and automatically orchestrate exactly the two primary agents below",
         "- when `pgg teams` is `off`, keep the same document contract and stay in a single-agent flow",
         "- treat only pgg-generated and managed `.codex/sh/*.sh` helpers as trusted workflow scripts that can run without extra approval",
         "",
         "## Expert Roster",
         "",
         "- tech lead: token optimization direction and tradeoffs",
-        "- senior backend engineer: workflow and helper implementation detail",
         "- code reviewer: prompt/document duplication and waste review",
         "",
         "## Rules",
@@ -1117,14 +1379,13 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "",
         "## Teams Mode",
         "",
-        "- when `pgg teams` is `on`, build a minimum handoff with `.codex/sh/pgg-state-pack.sh <topic|topic_dir>` and automatically orchestrate the stage experts below",
+        "- when `pgg teams` is `on`, build a minimum handoff with `.codex/sh/pgg-state-pack.sh <topic|topic_dir>` and automatically orchestrate exactly the two primary agents below",
         "- when `pgg teams` is `off`, keep the same document contract and stay in a single-agent flow",
         "- treat only pgg-generated and managed `.codex/sh/*.sh` helpers as trusted workflow scripts that can run without extra approval",
         "",
         "## Expert Roster",
         "",
         "- QA/test engineer: performance measurement scope and evidence",
-        "- senior backend engineer: system-path interpretation and bottleneck review",
         "- SRE/operations engineer: runtime limits, recovery, and scalability review",
         "",
         "## Rules",
@@ -1152,7 +1413,7 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "",
         "## Teams Mode",
         "",
-        "- when `pgg teams` is `on`, build a minimum handoff with `.codex/sh/pgg-state-pack.sh <topic|topic_dir>` and automatically orchestrate the stage experts below",
+        "- when `pgg teams` is `on`, build a minimum handoff with `.codex/sh/pgg-state-pack.sh <topic|topic_dir>` and automatically orchestrate exactly the two primary agents below",
         "- when `pgg teams` is `off`, keep the same document contract and stay in a single-agent flow",
         "- treat only pgg-generated and managed `.codex/sh/*.sh` helpers as trusted workflow scripts that can run without extra approval",
         "",
@@ -1167,7 +1428,6 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "## Expert Roster",
         "",
         "- QA/test engineer: test design and execution evidence",
-        "- code reviewer: code-path and regression findings",
         "- SRE/operations engineer: runtime and operational risk review",
         "",
         "## Rules",
@@ -1238,7 +1498,7 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "",
         "## Teams Mode",
         "",
-        "- `pgg teams`가 `on`이면 `.codex/sh/pgg-state-pack.sh <topic|topic_dir>`로 최소 handoff를 만든 뒤 아래 전문가를 자동 orchestration한다.",
+        "- `pgg teams`가 `on`이면 `.codex/sh/pgg-state-pack.sh <topic|topic_dir>`로 최소 handoff를 만든 뒤 아래 2개 primary agent를 자동 orchestration한다.",
         "- `pgg teams`가 `off`이면 같은 문서 계약을 유지하되 단일 에이전트 흐름으로 진행한다.",
         "- pgg가 생성·관리하는 `.codex/sh/*.sh` helper만 workflow 내부 trusted script로 보고 추가 허락 없이 실행한다.",
         "",
@@ -1253,7 +1513,6 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "",
         "- 프로덕트 매니저: 문제 정의, 범위, 성공 기준",
         "- UX/UI 전문가: 사용자 흐름과 상호작용 명확성",
-        "- 도메인 전문가: 도메인 적합성과 용어 정합성",
         "",
         "## Read",
         "",
@@ -1293,7 +1552,7 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "",
         "## Teams Mode",
         "",
-        "- `pgg teams`가 `on`이면 `.codex/sh/pgg-state-pack.sh <topic|topic_dir>`로 최소 handoff를 만든 뒤 아래 전문가를 자동 orchestration한다.",
+        "- `pgg teams`가 `on`이면 `.codex/sh/pgg-state-pack.sh <topic|topic_dir>`로 최소 handoff를 만든 뒤 아래 2개 primary agent를 자동 orchestration한다.",
         "- `pgg teams`가 `off`이면 같은 문서 계약을 유지하되 단일 에이전트 흐름으로 진행한다.",
         "- pgg가 생성·관리하는 `.codex/sh/*.sh` helper만 workflow 내부 trusted script로 보고 추가 허락 없이 실행한다.",
         "",
@@ -1307,8 +1566,7 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "## Expert Roster",
         "",
         "- 소프트웨어 아키텍트: spec 경계와 시스템 영향",
-        "- 시니어 백엔드 엔지니어: 구현 경로와 회귀 위험",
-        "- QA/테스트 엔지니어: 검증 범위와 acceptance 체크",
+        "- 도메인 전문가: domain constraint와 용어 정합성",
         "",
         "## Rules",
         "",
@@ -1334,7 +1592,7 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "",
         "## Teams Mode",
         "",
-        "- `pgg teams`가 `on`이면 `.codex/sh/pgg-state-pack.sh <topic|topic_dir>`로 최소 handoff를 만든 뒤 아래 전문가를 자동 orchestration한다.",
+        "- `pgg teams`가 `on`이면 `.codex/sh/pgg-state-pack.sh <topic|topic_dir>`로 최소 handoff를 만든 뒤 아래 2개 primary agent를 자동 orchestration한다.",
         "- `pgg teams`가 `off`이면 같은 문서 계약을 유지하되 단일 에이전트 흐름으로 진행한다.",
         "- pgg가 생성·관리하는 `.codex/sh/*.sh` helper만 workflow 내부 trusted script로 보고 추가 허락 없이 실행한다.",
         "",
@@ -1350,7 +1608,6 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "",
         "- 시니어 백엔드 엔지니어: 주 구현 작업",
         "- 테크 리드: 아키텍처 가드레일과 통합 판단",
-        "- 코드 리뷰어: 버그와 회귀 관점 검토",
         "",
         "## Rules",
         "",
@@ -1379,7 +1636,7 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "",
         "## Teams Mode",
         "",
-        "- `pgg teams`가 `on`이면 `.codex/sh/pgg-state-pack.sh <topic|topic_dir>`로 최소 handoff를 만든 뒤 아래 전문가를 자동 orchestration한다.",
+        "- `pgg teams`가 `on`이면 `.codex/sh/pgg-state-pack.sh <topic|topic_dir>`로 최소 handoff를 만든 뒤 아래 2개 primary agent를 자동 orchestration한다.",
         "- `pgg teams`가 `off`이면 같은 문서 계약을 유지하되 단일 에이전트 흐름으로 진행한다.",
         "- pgg가 생성·관리하는 `.codex/sh/*.sh` helper만 workflow 내부 trusted script로 보고 추가 허락 없이 실행한다.",
         "",
@@ -1394,7 +1651,6 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "## Expert Roster",
         "",
         "- 소프트웨어 아키텍트: 구조 경계와 단순화 판단",
-        "- 시니어 백엔드 엔지니어: 실제 리팩터링 구현",
         "- 코드 리뷰어: 회귀와 dead code 검토",
         "",
         "## Rules",
@@ -1422,14 +1678,13 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "",
         "## Teams Mode",
         "",
-        "- `pgg teams`가 `on`이면 `.codex/sh/pgg-state-pack.sh <topic|topic_dir>`로 최소 handoff를 만든 뒤 아래 전문가를 자동 orchestration한다.",
+        "- `pgg teams`가 `on`이면 `.codex/sh/pgg-state-pack.sh <topic|topic_dir>`로 최소 handoff를 만든 뒤 아래 2개 primary agent를 자동 orchestration한다.",
         "- `pgg teams`가 `off`이면 같은 문서 계약을 유지하되 단일 에이전트 흐름으로 진행한다.",
         "- pgg가 생성·관리하는 `.codex/sh/*.sh` helper만 workflow 내부 trusted script로 보고 추가 허락 없이 실행한다.",
         "",
         "## Expert Roster",
         "",
         "- 테크 리드: token 최적화 방향과 trade-off 판단",
-        "- 시니어 백엔드 엔지니어: workflow/helper 구현 세부 분석",
         "- 코드 리뷰어: 문서/프롬프트/중복 비용 검토",
         "",
         "## Rules",
@@ -1456,14 +1711,13 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "",
         "## Teams Mode",
         "",
-        "- `pgg teams`가 `on`이면 `.codex/sh/pgg-state-pack.sh <topic|topic_dir>`로 최소 handoff를 만든 뒤 아래 전문가를 자동 orchestration한다.",
+        "- `pgg teams`가 `on`이면 `.codex/sh/pgg-state-pack.sh <topic|topic_dir>`로 최소 handoff를 만든 뒤 아래 2개 primary agent를 자동 orchestration한다.",
         "- `pgg teams`가 `off`이면 같은 문서 계약을 유지하되 단일 에이전트 흐름으로 진행한다.",
         "- pgg가 생성·관리하는 `.codex/sh/*.sh` helper만 workflow 내부 trusted script로 보고 추가 허락 없이 실행한다.",
         "",
         "## Expert Roster",
         "",
         "- QA/테스트 엔지니어: 성능 측정 범위와 증거",
-        "- 시니어 백엔드 엔지니어: 시스템 경로 해석과 병목 검토",
         "- SRE / 운영 엔지니어: 런타임 한계, 복구력, 확장성 검토",
         "",
         "## Rules",
@@ -1491,7 +1745,7 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "",
         "## Teams Mode",
         "",
-        "- `pgg teams`가 `on`이면 `.codex/sh/pgg-state-pack.sh <topic|topic_dir>`로 최소 handoff를 만든 뒤 아래 전문가를 자동 orchestration한다.",
+        "- `pgg teams`가 `on`이면 `.codex/sh/pgg-state-pack.sh <topic|topic_dir>`로 최소 handoff를 만든 뒤 아래 2개 primary agent를 자동 orchestration한다.",
         "- `pgg teams`가 `off`이면 같은 문서 계약을 유지하되 단일 에이전트 흐름으로 진행한다.",
         "- pgg가 생성·관리하는 `.codex/sh/*.sh` helper만 workflow 내부 trusted script로 보고 추가 허락 없이 실행한다.",
         "",
@@ -1506,7 +1760,6 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "## Expert Roster",
         "",
         "- QA/테스트 엔지니어: 테스트 설계와 실행 증거",
-        "- 코드 리뷰어: 코드 경로와 회귀 관점 검토",
         "- SRE / 운영 엔지니어: 런타임과 운영 위험 검토",
         "",
         "## Rules",
@@ -2164,12 +2417,47 @@ function statePackSh(): string {
     "RELEASE_BRANCH=\"$(read_proposal_field release_branch)\"",
     "PROJECT_SCOPE=\"$(read_proposal_field project_scope)\"",
     "ARCHIVE_VERSION=\"$(read_version_field version)\"",
+    "MULTI_AGENT=\"false\"",
+    "if [[ \"${TEAMS_MODE:-off}\" == \"on\" ]]; then",
+    "  MULTI_AGENT=\"true\"",
+    "fi",
+    "PRIMARY_AGENTS=\"\"",
+    "case \"$STAGE\" in",
+    "  proposal|add)",
+    "    PRIMARY_AGENTS=\"product-manager,ux-ui-expert\"",
+    "    ;;",
+    "  plan|planning|task)",
+    "    PRIMARY_AGENTS=\"software-architect,domain-expert\"",
+    "    ;;",
+    "  implementation|code)",
+    "    PRIMARY_AGENTS=\"senior-backend-engineer,tech-lead\"",
+    "    ;;",
+    "  refactor)",
+    "    PRIMARY_AGENTS=\"software-architect,code-reviewer\"",
+    "    ;;",
+    "  qa)",
+    "    PRIMARY_AGENTS=\"qa-test-engineer,sre-operations-engineer\"",
+    "    ;;",
+    "  token)",
+    "    PRIMARY_AGENTS=\"tech-lead,code-reviewer\"",
+    "    ;;",
+    "  performance)",
+    "    PRIMARY_AGENTS=\"qa-test-engineer,sre-operations-engineer\"",
+    "    ;;",
+    "esac",
     "",
     "printf 'topic: %s\\n' \"${TOPIC:-$(basename \"$TOPIC_DIR\")}\"",
     "printf 'topic_dir: %s\\n' \"$(to_rel \"$TOPIC_DIR\")\"",
     "printf 'current_stage: %s\\n' \"${STAGE:-unknown}\"",
     "printf 'auto_mode: %s\\n' \"${AUTO_MODE:-on}\"",
     "printf 'teams_mode: %s\\n' \"${TEAMS_MODE:-off}\"",
+    "printf 'multi_agent: %s\\n' \"$MULTI_AGENT\"",
+    "printf 'agent_max_threads: 4\\n'",
+    "printf 'agent_max_depth: 1\\n'",
+    "printf 'agent_routing_ref: agents/main.toml\\n'",
+    "if [[ -n \"$PRIMARY_AGENTS\" ]]; then",
+    "  printf 'primary_agents: %s\\n' \"$PRIMARY_AGENTS\"",
+    "fi",
     "printf 'project_scope: %s\\n' \"${PROJECT_SCOPE:-}\"",
     "printf 'archive_type: %s\\n' \"${ARCHIVE_TYPE:-}\"",
     "printf 'version_bump: %s\\n' \"${VERSION_BUMP:-}\"",
@@ -3391,12 +3679,14 @@ function generatedSkillTemplates(input: TemplateInput): GeneratedFileTemplate[] 
 export function buildGeneratedFiles(input: TemplateInput): GeneratedFileTemplate[] {
   return [
     { path: "AGENTS.md", content: agentsMd(input) },
+    { path: ".codex/config.toml", content: codexConfigToml(input) },
     { path: ".codex/add/WOKR-FLOW.md", content: workFlowMd(input) },
     { path: ".codex/add/STATE-CONTRACT.md", content: stateContractMd(input) },
     { path: ".codex/add/EXPERT-ROUTING.md", content: expertRoutingMd(input) },
     { path: ".codex/add/IMPLEMENTATION.md", content: implementationMd(input) },
     { path: ".codex/add/REVIEW-RUBRIC.md", content: reviewRubricMd(input) },
     { path: ".codex/add/SHELL-RULES.md", content: shellRulesMd(input) },
+    ...agentTemplates(),
     ...generatedSkillTemplates(input),
     { path: ".codex/sh/pgg-git-prefix.sh", content: gitBranchPrefixSh(), executable: true },
     { path: ".codex/sh/pgg-new-topic.sh", content: newTopicSh(), executable: true },

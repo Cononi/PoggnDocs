@@ -76,12 +76,47 @@ WORKING_BRANCH="$(read_proposal_field working_branch)"
 RELEASE_BRANCH="$(read_proposal_field release_branch)"
 PROJECT_SCOPE="$(read_proposal_field project_scope)"
 ARCHIVE_VERSION="$(read_version_field version)"
+MULTI_AGENT="false"
+if [[ "${TEAMS_MODE:-off}" == "on" ]]; then
+  MULTI_AGENT="true"
+fi
+PRIMARY_AGENTS=""
+case "$STAGE" in
+  proposal|add)
+    PRIMARY_AGENTS="product-manager,ux-ui-expert"
+    ;;
+  plan|planning|task)
+    PRIMARY_AGENTS="software-architect,domain-expert"
+    ;;
+  implementation|code)
+    PRIMARY_AGENTS="senior-backend-engineer,tech-lead"
+    ;;
+  refactor)
+    PRIMARY_AGENTS="software-architect,code-reviewer"
+    ;;
+  qa)
+    PRIMARY_AGENTS="qa-test-engineer,sre-operations-engineer"
+    ;;
+  token)
+    PRIMARY_AGENTS="tech-lead,code-reviewer"
+    ;;
+  performance)
+    PRIMARY_AGENTS="qa-test-engineer,sre-operations-engineer"
+    ;;
+esac
 
 printf 'topic: %s\n' "${TOPIC:-$(basename "$TOPIC_DIR")}"
 printf 'topic_dir: %s\n' "$(to_rel "$TOPIC_DIR")"
 printf 'current_stage: %s\n' "${STAGE:-unknown}"
 printf 'auto_mode: %s\n' "${AUTO_MODE:-on}"
 printf 'teams_mode: %s\n' "${TEAMS_MODE:-off}"
+printf 'multi_agent: %s\n' "$MULTI_AGENT"
+printf 'agent_max_threads: 4\n'
+printf 'agent_max_depth: 1\n'
+printf 'agent_routing_ref: agents/main.toml\n'
+if [[ -n "$PRIMARY_AGENTS" ]]; then
+  printf 'primary_agents: %s\n' "$PRIMARY_AGENTS"
+fi
 printf 'project_scope: %s\n' "${PROJECT_SCOPE:-}"
 printf 'archive_type: %s\n' "${ARCHIVE_TYPE:-}"
 printf 'version_bump: %s\n' "${VERSION_BUMP:-}"
