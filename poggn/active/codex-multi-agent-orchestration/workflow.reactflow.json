@@ -152,6 +152,25 @@
         }
       },
       "position": { "x": 1540, "y": 0 }
+    },
+    {
+      "id": "token-audit",
+      "type": "audit",
+      "data": {
+        "label": "token/report.md",
+        "stage": "token",
+        "status": "completed",
+        "path": "poggn/active/codex-multi-agent-orchestration/token/report.md",
+        "detail": {
+          "title": "Token audit",
+          "sourcePath": "poggn/active/codex-multi-agent-orchestration/token/report.md",
+          "startedAt": "2026-04-26T14:38:53Z",
+          "updatedAt": "2026-04-26T14:38:53Z",
+          "completedAt": "2026-04-26T14:38:53Z",
+          "status": "completed"
+        }
+      },
+      "position": { "x": 1760, "y": 0 }
     }
   ],
   "edges": [
@@ -161,6 +180,7 @@
     { "id": "task-plan-review", "source": "task", "target": "plan-review" },
     { "id": "plan-review-task-review", "source": "plan-review", "target": "task-review" },
     { "id": "task-review-implementation", "source": "task-review", "target": "implementation" },
-    { "id": "implementation-code-review", "source": "implementation", "target": "code-review" }
+    { "id": "implementation-code-review", "source": "implementation", "target": "code-review" },
+    { "id": "code-review-token-audit", "source": "code-review", "target": "token-audit" }
   ]
 }

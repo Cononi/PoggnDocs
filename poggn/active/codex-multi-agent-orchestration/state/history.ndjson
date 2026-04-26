@@ -9,3 +9,6 @@
 {"ts":"2026-04-26T13:49:57Z","stage":"implementation","event":"stage-progress","source":"pgg-code","summary":"generated Codex multi-agent config, agent TOML roster, two-agent routing docs, state-pack routing evidence, and regression tests"}
 {"ts":"2026-04-26T13:49:57Z","stage":"implementation","event":"stage-completed","source":"pgg-code","summary":"implementation and code review completed; required pgg-token audit remains before final QA"}
 {"ts":"2026-04-26T14:32:30Z","stage":"implementation","event":"stage-commit","archiveType":"feat","targetVersion":"2.3.0","projectLanguage":"ko","commitTitle":"feat: 2.3.0.codex 멀티 에이전트 설정","summary":"codex 멀티 에이전트 설정","why":"pgg teams mode와 Codex multi-agent 설정 및 flow별 2-agent routing을 같은 managed asset으로 연결했다","footer":"Refs: codex-multi-agent-orchestration"}
+{"ts":"2026-04-26T14:38:53Z","stage":"token","event":"stage-started","source":"pgg-token"}
+{"ts":"2026-04-26T14:38:53Z","stage":"token","event":"stage-progress","source":"pgg-token","summary":"measured state-pack, topic docs, implementation diffs, generated workflow docs, and agent TOML token surfaces"}
+{"ts":"2026-04-26T14:38:53Z","stage":"token","event":"stage-completed","source":"pgg-token","summary":"token audit passed; state-pack handoff reduces initial two-agent handoff by about 94.8 percent versus proposal/plan/task/spec bundle"}
