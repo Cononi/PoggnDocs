@@ -190,6 +190,25 @@
         }
       },
       "position": { "x": 1980, "y": 0 }
+    },
+    {
+      "id": "qa-report",
+      "type": "qa",
+      "data": {
+        "label": "qa/report.md",
+        "stage": "qa",
+        "status": "completed",
+        "path": "poggn/active/codex-multi-agent-orchestration/qa/report.md",
+        "detail": {
+          "title": "QA report",
+          "sourcePath": "poggn/active/codex-multi-agent-orchestration/qa/report.md",
+          "startedAt": "2026-04-26T14:59:25Z",
+          "updatedAt": "2026-04-26T15:02:17Z",
+          "completedAt": "2026-04-26T15:02:17Z",
+          "status": "completed"
+        }
+      },
+      "position": { "x": 2200, "y": 0 }
     }
   ],
   "edges": [
@@ -201,6 +220,7 @@
     { "id": "task-review-implementation", "source": "task-review", "target": "implementation" },
     { "id": "implementation-code-review", "source": "implementation", "target": "code-review" },
     { "id": "code-review-token-audit", "source": "code-review", "target": "token-audit" },
-    { "id": "token-audit-refactor-review", "source": "token-audit", "target": "refactor-review" }
+    { "id": "token-audit-refactor-review", "source": "token-audit", "target": "refactor-review" },
+    { "id": "refactor-review-qa-report", "source": "refactor-review", "target": "qa-report" }
   ]
 }
