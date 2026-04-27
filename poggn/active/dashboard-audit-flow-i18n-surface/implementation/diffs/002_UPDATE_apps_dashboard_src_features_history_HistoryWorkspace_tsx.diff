@@ -1,0 +1,28 @@
+diff --git a/apps/dashboard/src/features/history/HistoryWorkspace.tsx b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
+index 8199582..a977692 100644
+--- a/apps/dashboard/src/features/history/HistoryWorkspace.tsx
++++ b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
+@@ -431,13 +431,13 @@ function HistoryOverview(props: {
+ }) {
+   const theme = useTheme();
+   const [selectedStep, setSelectedStep] = useState<WorkflowStep | null>(null);
+-  const steps = buildWorkflowSteps(props.topic, props.language);
++  const steps = buildWorkflowSteps(props.topic, props.language, props.dictionary);
+   const stepCount = Math.max(steps.length, 1);
+   const progress = buildProgressOverview(steps);
+   const created = topicCreatedSummary(props.topic, props.language, props.dictionary.unknown);
+   const updated = topicUpdatedSummary(props.topic, props.language, props.dictionary.unknown);
+   const priority = topicPrioritySummary(props.topic);
+-  const activity = buildActivitySummary(props.topic, props.language);
++  const activity = buildActivitySummary(props.topic, props.language, props.dictionary);
+   const currentStage = progress.current;
+   const currentStageLabel = currentStage ? workflowFlowLabel(currentStage.id, props.dictionary) : props.dictionary.workflowProgressFlowAdd;
+   const currentStageHelper = currentStage
+@@ -742,6 +742,7 @@ function workflowFlowLabel(id: WorkflowStep["id"], dictionary: DashboardLocale):
+     plan: dictionary.workflowProgressFlowPlan,
+     code: dictionary.workflowProgressFlowCode,
+     refactor: dictionary.workflowProgressFlowRefactor,
++    token: dictionary.workflowProgressFlowToken,
+     performance: dictionary.workflowProgressFlowPerformance,
+     qa: dictionary.workflowProgressFlowQa,
+     done: dictionary.workflowProgressFlowDone

@@ -1,0 +1,17 @@
+diff --git a/packages/core/test/version-history.test.mjs b/packages/core/test/version-history.test.mjs
+index bce51d2..a5bcfc6 100644
+--- a/packages/core/test/version-history.test.mjs
++++ b/packages/core/test/version-history.test.mjs
+@@ -228,7 +228,12 @@ test("pgg new-topic preserves frontmatter metadata and governed branch names whe
+     assert.match(proposal, /\n  short_name: "release-alias"\n/);
+     assert.match(proposal, /\n  working_branch: "ai\/fix\/0\.0\.1-release-alias"\n/);
+     assert.match(proposal, /\n  release_branch: "release\/0\.0\.1-release-alias"\n/);
++    assert.match(proposal, /Review user requirements and summarize them as a proposal\./);
++    assert.match(proposal, /Record the user input question in this section without changing its original meaning\./);
++    assert.doesNotMatch(proposal, /사용자 요구사항을 proposal로 정리한다/);
+     assert.match(state, /- short name: `release-alias`/);
++    assert.match(state, /Clarify the requirements as an approved proposal\./);
++    assert.doesNotMatch(state, /요구사항을 명확한 proposal로 확정한다/);
+     assert.equal(git(rootDir, ["branch", "--show-current"]), "ai/fix/0.0.1-release-alias");
+   } finally {
+     if (previousPggHome === undefined) {

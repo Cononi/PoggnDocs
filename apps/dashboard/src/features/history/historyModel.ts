@@ -1,4 +1,4 @@
-import type { TopicSummary } from "../../shared/model/dashboard";
+import type { DashboardLocale, TopicSummary } from "../../shared/model/dashboard";
 import { buildTopicKey, formatDate } from "../../shared/utils/dashboard";
 
 export type HistoryLanguage = "ko" | "en";
@@ -7,7 +7,7 @@ export type WorkflowTimestampConfidence = "high" | "medium" | "low" | "none";
 export type FileChangeKind = "A" | "M" | "D";
 export type RelationKind = "depends" | "blocks" | "related" | "implements" | "mentioned";
 export type HistoryChipColor = "primary" | "secondary" | "success" | "warning" | "default";
-export type WorkflowFlowId = "add" | "plan" | "code" | "refactor" | "performance" | "qa" | "done";
+export type WorkflowFlowId = "add" | "plan" | "code" | "refactor" | "token" | "performance" | "qa" | "done";
 
 export type WorkflowStep = {
   id: WorkflowFlowId;
@@ -44,7 +44,6 @@ export type OverviewStatSummary = {
 
 type WorkflowFlowDefinition = {
   id: WorkflowFlowId;
-  label: string;
   command: string | null;
   optional?: boolean;
   pathPatterns: RegExp[];
@@ -106,48 +105,61 @@ export type RelationGroup = {
 const workflowFlowDefinitions: WorkflowFlowDefinition[] = [
   {
     id: "add",
-    label: "Add",
     command: "pgg-add",
     pathPatterns: [/^proposal\.md$/, /^reviews\/proposal\.review\.md$/, /^state\//, /^workflow\.reactflow\.json$/]
   },
   {
     id: "plan",
-    label: "Plan",
     command: "pgg-plan",
     pathPatterns: [/^plan\.md$/, /^task\.md$/, /^spec\//, /^reviews\/plan\.review\.md$/, /^reviews\/task\.review\.md$/]
   },
   {
     id: "code",
-    label: "Code",
     command: "pgg-code",
     pathPatterns: [/^implementation\//, /^reviews\/code\.review\.md$/]
   },
   {
     id: "refactor",
-    label: "Refactor",
     command: "pgg-refactor",
     pathPatterns: [/^reviews\/refactor\.review\.md$/, /^refactor\//, /^implementation\/.*refactor/i]
   },
   {
+    id: "token",
+    command: "pgg-token",
+    optional: true,
+    pathPatterns: [/^token\//, /^reviews\/token\.review\.md$/]
+  },
+  {
     id: "performance",
-    label: "Performance",
     command: "pgg-performance",
     optional: true,
     pathPatterns: [/^performance\//, /^reviews\/performance\.review\.md$/]
   },
   {
     id: "qa",
-    label: "QA",
     command: "pgg-qa",
     pathPatterns: [/^qa\//, /^reviews\/qa\.review\.md$/]
   },
   {
     id: "done",
-    label: "Done",
     command: null,
     pathPatterns: [/^version\.json$/, /^git\//]
   }
 ];
+
+function workflowFlowLabel(id: WorkflowFlowId, dictionary: DashboardLocale): string {
+  const labels: Record<WorkflowFlowId, string> = {
+    add: dictionary.workflowProgressFlowAdd,
+    plan: dictionary.workflowProgressFlowPlan,
+    code: dictionary.workflowProgressFlowCode,
+    refactor: dictionary.workflowProgressFlowRefactor,
+    token: dictionary.workflowProgressFlowToken,
+    performance: dictionary.workflowProgressFlowPerformance,
+    qa: dictionary.workflowProgressFlowQa,
+    done: dictionary.workflowProgressFlowDone
+  };
+  return labels[id] ?? id;
+}
 
 export function topicType(topic: TopicSummary): string {
   return topic.archiveType ?? topic.changeType ?? "feat";
@@ -168,20 +180,33 @@ export function topicDisplayId(topic: TopicSummary): string {
 }
 
 function normalizeFlowId(stage: string | null): WorkflowFlowId {
-  if (stage === "implementation" || stage === "code") {
+  const normalized = stage?.toLowerCase() ?? null;
+  if (normalized === "implementation" || normalized === "code" || normalized === "pgg-code") {
     return "code";
   }
-  if (stage === "proposal" || stage === "add") {
+  if (normalized === "proposal" || normalized === "add" || normalized === "pgg-add") {
     return "add";
   }
-  if (stage === "task") {
+  if (normalized === "task" || normalized === "pgg-plan") {
     return "plan";
   }
-  if (stage === "archive") {
+  if (normalized === "archive") {
     return "done";
   }
-  if (stage === "plan" || stage === "refactor" || stage === "performance" || stage === "qa" || stage === "done") {
-    return stage;
+  if (normalized === "pgg-refactor") {
+    return "refactor";
+  }
+  if (normalized === "token" || normalized === "pgg-token") {
+    return "token";
+  }
+  if (normalized === "performance" || normalized === "pgg-performance") {
+    return "performance";
+  }
+  if (normalized === "pgg-qa") {
+    return "qa";
+  }
+  if (normalized === "plan" || normalized === "refactor" || normalized === "qa" || normalized === "done") {
+    return normalized;
   }
   return "add";
 }
@@ -214,7 +239,7 @@ function topicHasFlowArtifactEvidence(topic: TopicSummary, flow: WorkflowFlowDef
 }
 
 function topicHasFlowEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition): boolean {
-  return normalizeFlowId(topic.stage) === flow.id || topicHasFlowArtifactEvidence(topic, flow);
+  return normalizeFlowId(topic.stage) === flow.id || topicHasFlowArtifactEvidence(topic, flow) || flowHistoryEvents(topic, flow).length > 0;
 }
 
 function visibleWorkflowFlows(topic: TopicSummary): WorkflowFlowDefinition[] {
@@ -767,7 +792,7 @@ function flowTimestampBundle(topic: TopicSummary, flow: WorkflowFlowDefinition):
   };
 }
 
-function flowDetail(topic: TopicSummary, flow: WorkflowFlowDefinition): string {
+function flowDetail(topic: TopicSummary, flow: WorkflowFlowDefinition, dictionary: DashboardLocale): string {
   const files = flowFiles(topic, flow);
   const nodes = flowNodes(topic, flow);
   const firstRef =
@@ -781,34 +806,42 @@ function flowDetail(topic: TopicSummary, flow: WorkflowFlowDefinition): string {
     return files.length > 1 ? `${firstRef} +${files.length - 1}` : firstRef;
   }
   if (flow.id === "done" && topic.bucket === "archive") {
-    return topic.version ? `version ${topic.version}` : "archive complete";
+    return topic.version ? `${dictionary.workflowArchiveVersionPrefix} ${topic.version}` : dictionary.workflowArchiveComplete;
   }
   if (flow.id === normalizeFlowId(topic.stage)) {
-    return topic.goal ?? topic.nextAction ?? "current topic stage";
+    return topic.goal ?? topic.nextAction ?? dictionary.workflowCurrentTopicStage;
   }
-  return "No stage artifact";
+  return dictionary.workflowNoStageArtifact;
 }
 
-function flowEvents(topic: TopicSummary, flow: WorkflowFlowDefinition, language: HistoryLanguage): string[] {
+function flowEvents(topic: TopicSummary, flow: WorkflowFlowDefinition, language: HistoryLanguage, dictionary: DashboardLocale): string[] {
   const timestamps = flowTimestampBundle(topic, flow);
   const files = flowFiles(topic, flow);
+  const label = workflowFlowLabel(flow.id, dictionary);
+  const sourceUnknown = dictionary.workflowSourceUnknown;
   const historyEvents = flowHistoryEvents(topic, flow)
     .filter((event) => event.ts && event.event)
     .slice(-4)
     .map((event) => `${event.event}: ${formatDateValue(event.ts, language)}${event.summary ? ` - ${event.summary}` : ""}`);
   const events = [
-    timestamps.startedAt.value ? `${flow.label} started ${formatDateValue(timestamps.startedAt.value, language)}` : null,
-    timestamps.updatedAt.value ? `${flow.label} updated ${formatDateValue(timestamps.updatedAt.value, language)} (${timestamps.updatedAt.source ?? "source unknown"})` : null,
-    timestamps.completedAt.value ? `${flow.label} completed ${formatDateValue(timestamps.completedAt.value, language)} (${timestamps.completedAt.source ?? "source unknown"})` : null,
+    timestamps.startedAt.value ? `${label} ${dictionary.workflowEventStarted} ${formatDateValue(timestamps.startedAt.value, language)}` : null,
+    timestamps.updatedAt.value
+      ? `${label} ${dictionary.workflowEventUpdated} ${formatDateValue(timestamps.updatedAt.value, language)} (${timestamps.updatedAt.source ?? sourceUnknown})`
+      : null,
+    timestamps.completedAt.value
+      ? `${label} ${dictionary.workflowEventCompleted} ${formatDateValue(timestamps.completedAt.value, language)} (${timestamps.completedAt.source ?? sourceUnknown})`
+      : null,
     ...historyEvents,
-    files.length ? `${files.length} related file${files.length > 1 ? "s" : ""}` : null,
-    flow.id === normalizeFlowId(topic.stage) && topic.nextAction ? `Next action: ${topic.nextAction}` : null
+    files.length
+      ? `${files.length} ${files.length > 1 ? dictionary.workflowRelatedFiles : dictionary.workflowRelatedFile}`
+      : null,
+    flow.id === normalizeFlowId(topic.stage) && topic.nextAction ? `${dictionary.workflowNextAction}: ${topic.nextAction}` : null
   ].filter((value): value is string => Boolean(value));
 
-  return events.length ? events : ["No detailed log event is available in this snapshot."];
+  return events.length ? events : [dictionary.workflowNoDetailedLog];
 }
 
-export function buildWorkflowSteps(topic: TopicSummary, language: HistoryLanguage): WorkflowStep[] {
+export function buildWorkflowSteps(topic: TopicSummary, language: HistoryLanguage, dictionary: DashboardLocale): WorkflowStep[] {
   const flows = visibleWorkflowFlows(topic);
   const currentIndex = resolveStageIndex(topic, flows);
   const entries = flows.map((flow, index) => {
@@ -852,26 +885,26 @@ export function buildWorkflowSteps(topic: TopicSummary, language: HistoryLanguag
 
     return {
       id: flow.id,
-      label: flow.label,
-      date: status === "completed" ? formatDateValue(displayedCompletedAt, language, "record unavailable") : "",
+      label: workflowFlowLabel(flow.id, dictionary),
+      date: status === "completed" ? formatDateValue(displayedCompletedAt, language, dictionary.workflowRecordUnavailable) : "",
       startTime: formatDateValue(timestamps.startedAt.value, language),
       updatedTime: formatDateValue(timestamps.updatedAt.value, language),
-      completedTime: formatDateValue(timestamps.completedAt.value, language, "record unavailable"),
+      completedTime: formatDateValue(timestamps.completedAt.value, language, dictionary.workflowRecordUnavailable),
       timeConfidence: timestamps.completedAt.confidence,
       timeSource: timestamps.completedAt.source ?? timestamps.updatedAt.source,
       activeTaskIds,
       status,
-      detail: flowDetail(topic, flow),
+      detail: flowDetail(topic, flow, dictionary),
       command: status !== "completed" && topic.bucket !== "archive" ? flow.command : null,
       files: flowFiles(topic, flow).map((file) => file.relativePath).slice(0, 5),
       refs: flowNodes(topic, flow).map((node) => sourcePathForNode(node)).slice(0, 5),
-      events: flowEvents(topic, flow, language),
+      events: flowEvents(topic, flow, language, dictionary),
       blockingIssues: topic.blockingIssues
     };
   });
 }
 
-export function buildActivitySummary(topic: TopicSummary, language: HistoryLanguage): ActivitySummary {
+export function buildActivitySummary(topic: TopicSummary, language: HistoryLanguage, dictionary: DashboardLocale): ActivitySummary {
   const reviewCount = topic.artifactSummary.reviewDocs.count || countFilesMatching(topic, /^reviews\//);
   const qaCount = topic.artifactSummary.qaDocs.count || countFilesMatching(topic, /^qa\//);
   const implementationCount = topic.artifactSummary.implementationDocs.count || countFilesMatching(topic, /^implementation\//);
@@ -882,7 +915,7 @@ export function buildActivitySummary(topic: TopicSummary, language: HistoryLangu
     .sort(byLatestUpdatedAt)[0] ?? null;
   const latestArtifactTime = latestDate(Object.values(topic.artifactSummary).map((group) => group.latestUpdatedAt));
   const lastActivityTime = latestDate([topic.updatedAt, latestFile?.updatedAt, latestArtifactTime, topic.archivedAt]);
-  const lastActivity = `${formatDateValue(lastActivityTime, language, "unknown")} ${latestFile?.relativePath ?? topic.nextAction ?? topic.stage ?? "topic updated"}`;
+  const lastActivity = `${formatDateValue(lastActivityTime, language, dictionary.unknown)} ${latestFile?.relativePath ?? topic.nextAction ?? topic.stage ?? dictionary.workflowTopicUpdated}`;
   const recentFiles = [...topic.files]
     .filter((file) => file.updatedAt)
     .sort(byLatestUpdatedAt)
@@ -890,33 +923,33 @@ export function buildActivitySummary(topic: TopicSummary, language: HistoryLangu
 
   return {
     metrics: [
-      { id: "total", label: "Total Events", value: String(workflowCount + topic.files.length + artifactTotal) },
-      { id: "workflow", label: "Workflow Nodes", value: String(workflowCount) },
-      { id: "code", label: "Code Changes", value: formatItemCount(implementationCount, "item") },
-      { id: "files", label: "Files Changed", value: formatItemCount(topic.files.length, "file") },
-      { id: "reviews", label: "Review Requests", value: String(reviewCount) },
-      { id: "qa", label: "QA Items", value: String(qaCount) }
+      { id: "total", label: dictionary.workflowMetricTotalEvents, value: String(workflowCount + topic.files.length + artifactTotal) },
+      { id: "workflow", label: dictionary.workflowMetricWorkflowNodes, value: String(workflowCount) },
+      { id: "code", label: dictionary.workflowMetricCodeChanges, value: formatItemCount(implementationCount, dictionary.item, dictionary.items) },
+      { id: "files", label: dictionary.workflowMetricFilesChanged, value: formatItemCount(topic.files.length, dictionary.file, dictionary.files) },
+      { id: "reviews", label: dictionary.workflowMetricReviewRequests, value: String(reviewCount) },
+      { id: "qa", label: dictionary.workflowMetricQaItems, value: String(qaCount) }
     ],
     lastActivity,
     recent: recentFiles.length
       ? recentFiles.map((file) => ({
           id: file.sourcePath,
           title: file.relativePath,
-          actor: file.editable ? "workspace" : "system",
+          actor: file.editable ? dictionary.workspace : dictionary.system,
           time: formatDateValue(file.updatedAt, language)
         }))
       : [
           {
             id: "topic",
-            title: topic.nextAction ?? topic.goal ?? "Topic updated",
-            actor: "workspace",
-            time: formatDateValue(lastActivityTime, language, "unknown")
+            title: topic.nextAction ?? topic.goal ?? dictionary.workflowTopicUpdated,
+            actor: dictionary.workspace,
+            time: formatDateValue(lastActivityTime, language, dictionary.unknown)
           }
         ],
     artifactRows: [
-      { label: "Lifecycle", value: String(topic.artifactSummary.lifecycleDocs.count) },
-      { label: "Specs", value: String(topic.artifactSummary.specDocs.count) },
-      { label: "Implementation", value: String(topic.artifactSummary.implementationDocs.count) },
+      { label: dictionary.workflowArtifactLifecycle, value: String(topic.artifactSummary.lifecycleDocs.count) },
+      { label: dictionary.workflowArtifactSpecs, value: String(topic.artifactSummary.specDocs.count) },
+      { label: dictionary.workflowArtifactImplementation, value: String(topic.artifactSummary.implementationDocs.count) },
       { label: "QA", value: String(topic.artifactSummary.qaDocs.count) }
     ]
   };

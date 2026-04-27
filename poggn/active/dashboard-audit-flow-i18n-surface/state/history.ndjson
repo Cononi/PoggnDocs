@@ -1,0 +1,9 @@
+{"ts":"2026-04-27T04:40:33Z","stage":"proposal","event":"topic-created"}
+{"ts":"2026-04-27T04:40:33Z","stage":"proposal","event":"stage-started","source":"pgg-add"}
+{"ts":"2026-04-27T04:40:44Z","stage":"proposal","event":"stage-completed","source":"verified","summary":"proposal/review/state/workflow 산출물 검증 완료"}
+{"ts":"2026-04-27T04:43:54Z","stage":"plan","event":"stage-started","source":"pgg-plan"}
+{"ts":"2026-04-27T04:43:54Z","stage":"plan","event":"stage-progress","source":"pgg-plan","summary":"plan/task/spec/review 산출물 작성"}
+{"ts":"2026-04-27T04:47:48Z","stage":"plan","event":"stage-completed","source":"verified","summary":"plan/task/spec/review 작성 및 pgg-code gate 통과"}
+{"ts":"2026-04-27T04:55:08Z","stage":"implementation","event":"stage-started","source":"pgg-code"}
+{"ts":"2026-04-27T04:55:08Z","stage":"implementation","event":"stage-progress","source":"pgg-code","summary":"T1-T4 구현, diff 기록, build/test 검증 완료"}
+{"ts":"2026-04-27T05:17:45Z","stage":"implementation","event":"stage-commit","archiveType":"feat","targetVersion":"2.4.0","projectLanguage":"ko","commitTitle":"feat: 2.4.0.audit flow i18n 구현","summary":"audit flow i18n 구현","why":"dashboard workflow에서 token/performance audit 실행 evidence를 표시하고 pgg lang 기반 문구 생성을 맞추기 위한 구현입니다.","footer":"Refs: dashboard-audit-flow-i18n-surface"}
