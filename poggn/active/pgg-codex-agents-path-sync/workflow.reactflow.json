@@ -138,6 +138,30 @@
         "score": 95,
         "ref": "reviews/refactor.review.md"
       }
+    },
+    {
+      "id": "token-report",
+      "type": "audit",
+      "position": { "x": 1040, "y": 320 },
+      "data": {
+        "label": "token/report.md",
+        "stage": "token",
+        "status": "passed",
+        "score": 94,
+        "ref": "token/report.md"
+      }
+    },
+    {
+      "id": "qa-report",
+      "type": "qa",
+      "position": { "x": 1300, "y": 320 },
+      "data": {
+        "label": "qa/report.md",
+        "stage": "qa",
+        "status": "passed",
+        "score": 95,
+        "ref": "qa/report.md"
+      }
     }
   ],
   "edges": [
@@ -218,6 +242,30 @@
       "source": "refactor-review",
       "target": "state-current",
       "label": "handoff"
+    },
+    {
+      "id": "refactor-review-to-token",
+      "source": "refactor-review",
+      "target": "token-report",
+      "label": "required audit"
+    },
+    {
+      "id": "token-to-state",
+      "source": "token-report",
+      "target": "state-current",
+      "label": "handoff"
+    },
+    {
+      "id": "token-to-qa",
+      "source": "token-report",
+      "target": "qa-report",
+      "label": "qa"
+    },
+    {
+      "id": "qa-to-state",
+      "source": "qa-report",
+      "target": "state-current",
+      "label": "archive decision"
     }
   ]
 }
