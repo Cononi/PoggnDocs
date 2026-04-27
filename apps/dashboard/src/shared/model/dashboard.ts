@@ -72,6 +72,7 @@ export type TopicFileEntry = {
   localEstimatedTokens: number | null;
   llmActualTokens: number | null;
   tokenSource: "estimated" | "none";
+  content: string | null;
   editable: boolean;
 };
 

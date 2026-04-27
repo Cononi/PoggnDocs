@@ -76,6 +76,9 @@ implementation
   - flow file 보기 이후 검색창 옆 두 icon button 대신 reset button을 보여준다.
   - timeline 생성파일 목록은 최대 3개씩만 표시한다.
   - 우측 file tree에 LLM/Local token 정보도 같이 표시한다.
+  - timeline 선은 overview flow처럼 똑바르게 끊기지 않고 이어져야 한다.
+  - 생성 파일 목록의 파일 클릭 시 modal로 파일 내용을 볼 수 있고 LLM/Local token 사용량을 표기해야 한다.
+  - file tree에서는 LLM/Local token 표시를 제거한다.
 - additional implementation:
   - token usage contract에 `llmActualTokens`와 `localEstimatedTokens`를 분리 추가했다.
   - LLM actual evidence가 없는 경우 `기록 없음`으로 표시하고 local estimate는 file content 기반 값으로 표시한다.
@@ -93,6 +96,10 @@ implementation
   - timeline card 내부 생성 파일 목록을 `slice(0, 3)`으로 제한했다.
   - 우측 file tree file row에 LLM actual과 Local estimated token chip을 추가했다.
   - timeline rail endpoint를 completed circle 외곽 ring 기준으로 맞췄다.
+  - topic file snapshot에 text content를 포함하도록 core/dashboard model을 확장했다.
+  - timeline을 row별 선분 대신 단일 vertical rail로 변경했다.
+  - 생성 파일 row 클릭 시 file content modal을 열고 modal에서 LLM/Local token을 표시한다.
+  - 우측 file tree의 LLM/Local token chip은 제거했다.
 - residual risk:
   - reference image parity는 browser screenshot/manual visual evidence가 QA/refactor 이후 필요하다
   - project add Stepper remote FAST/SETUP 세부 credential 입력 UX는 후속 polish 여지가 있다
@@ -174,6 +181,9 @@ implementation
 - evidence: follow-up flow file tree `pnpm test:dashboard` passed
 - evidence: follow-up file tree tokens `pnpm --filter @pgg/dashboard build` passed with existing Vite chunk-size warning
 - evidence: follow-up file tree tokens `pnpm test:dashboard` passed
+- evidence: follow-up file modal `pnpm --filter @pgg/core build` passed
+- evidence: follow-up file modal `pnpm --filter @pgg/dashboard build` passed with existing Vite chunk-size warning
+- evidence: follow-up file modal `pnpm test:dashboard` passed
 
 ## Changed Files
 
@@ -238,6 +248,14 @@ implementation
 | UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md` | flow file tree/reset behavior criteria |
 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | timeline generated files capped at 3 and right file tree file rows include LLM/Local token chips |
 | UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md` | max 3 generated files, file tree token chips, and rail endpoint criteria |
+| UPDATE | `packages/core/src/index.ts` | topic file content included for dashboard file preview modal |
+| UPDATE | `packages/core/dist/index.d.ts` | rebuilt core output |
+| UPDATE | `packages/core/dist/index.js` | rebuilt core output |
+| UPDATE | `packages/core/dist/index.js.map` | rebuilt core output |
+| UPDATE | `apps/dashboard/src/shared/model/dashboard.ts` | topic file content field |
+| UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | timeline file rows carry content |
+| UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | single timeline rail, generated file content modal, remove file tree token chips |
+| UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md` | single rail and file modal criteria |
 
 ## Dirty Worktree Baseline
 

@@ -59,6 +59,10 @@ pgg:
 - follow-up request: timeline generated file list is capped at 3 rows, right file tree rows include LLM/Local token chips, and timeline rail endpoints align to the completed circle outer ring
 - `pnpm --filter @pgg/dashboard build`: pass after file tree token chips and timeline list cap, Vite chunk-size warning remains
 - `pnpm test:dashboard`: pass after file tree token chips and timeline list cap
+- follow-up request: timeline rail is a single continuous overview-style rail, generated file click opens a file content modal with LLM/Local tokens, and right file tree token chips are removed
+- `pnpm --filter @pgg/core build`: pass after file content snapshot contract
+- `pnpm --filter @pgg/dashboard build`: pass after file content modal and rail adjustment, Vite chunk-size warning remains
+- `pnpm test:dashboard`: pass after file content modal and rail adjustment
 
 ## Additional Diff Records
 
@@ -85,3 +89,6 @@ pgg:
 | 036 | UPDATE | `spec/dashboard/workflow-git-timeline-reference.md` | `implementation/diffs/036_UPDATE_spec_dashboard_workflow_git_timeline_reference_md.flow_file_tree.diff` | `T4,T8` | document flow file tree scope, initial all files state, and reset button behavior |
 | 037 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `implementation/diffs/037_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.file_token_tree.diff` | `T4` | cap timeline generated file rows at 3, add LLM/Local token chips to right file tree rows, and align rail endpoints to circle ring |
 | 038 | UPDATE | `spec/dashboard/workflow-git-timeline-reference.md` | `implementation/diffs/038_UPDATE_spec_dashboard_workflow_git_timeline_reference_md.file_token_tree.diff` | `T4,T8` | document timeline file cap, file tree token chips, and rail endpoint criteria |
+| 039 | UPDATE | `packages/core/src/index.ts`, `apps/dashboard/src/shared/model/dashboard.ts`, `apps/dashboard/src/features/history/historyModel.ts` | `implementation/diffs/039_UPDATE_core_dashboard_file_content_contract.diff` | `T4,T8` | include text file content in topic file snapshots for timeline preview modal |
+| 040 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `implementation/diffs/040_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.file_modal_rail.diff` | `T4` | switch timeline to a single continuous rail, add generated file content modal, and remove token chips from right file tree |
+| 041 | UPDATE | `spec/dashboard/workflow-git-timeline-reference.md` | `implementation/diffs/041_UPDATE_spec_dashboard_workflow_git_timeline_reference_md.file_modal_rail.diff` | `T4,T8` | document file modal token display, single rail behavior, and no tokens in right file tree |

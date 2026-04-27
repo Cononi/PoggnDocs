@@ -81,7 +81,7 @@ export type TimelineRow = {
   dateLabel: string;
   timeLabel: string;
   duration: string;
-  files: Array<{ path: string; kind: FileChangeKind; llmActualTokens: number | null; localEstimatedTokens: number }>;
+  files: Array<{ path: string; kind: FileChangeKind; llmActualTokens: number | null; localEstimatedTokens: number; content: string | null }>;
   commits: Array<{ hash: string; title: string; author: string; time: string }>;
 };
 
@@ -1027,7 +1027,8 @@ export function buildTimelineRows(
         path: file.relativePath,
         kind: file.relativePath.includes("delete") ? "D" as const : file.relativePath.includes("proposal") ? "A" as const : "M" as const,
         llmActualTokens: file.llmActualTokens ?? null,
-        localEstimatedTokens: file.localEstimatedTokens ?? file.tokenEstimate ?? 0
+        localEstimatedTokens: file.localEstimatedTokens ?? file.tokenEstimate ?? 0,
+        content: file.content ?? null
       }));
       const events = flowHistoryEvents(topic, flow);
       const completedAt = latestEvidence(timestampEvidenceFromEvents(events, [/stage-completed/i, /stage-commit/i, /archived$/i], "timeline"));

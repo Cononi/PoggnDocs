@@ -4,7 +4,7 @@ pgg:
   stage: "review"
   status: "reviewed"
   score: 94
-  updated_at: "2026-04-27T13:58:38Z"
+  updated_at: "2026-04-27T14:03:55Z"
 ---
 
 # Code Review
@@ -43,12 +43,15 @@ pgg:
 - follow-up flow file tree `pnpm test:dashboard`: pass, 2 tests
 - follow-up file tree tokens `pnpm --filter @pgg/dashboard build`: pass, Vite chunk-size warning 유지
 - follow-up file tree tokens `pnpm test:dashboard`: pass, 2 tests
+- follow-up file modal `pnpm --filter @pgg/core build`: pass
+- follow-up file modal `pnpm --filter @pgg/dashboard build`: pass, Vite chunk-size warning 유지
+- follow-up file modal `pnpm test:dashboard`: pass, 2 tests
 
 ## 잔여 리스크
 
 - timeline은 `add-img/timeline.png`의 세로 축, 날짜 컬럼, 단계 카드, 생성 파일/Git Commit split 구조에 맞추고, flow rail과 완료 check 색상을 overview completed 색상으로 정렬했다. completed check는 overview node와 같은 success soft 배경/테두리/그림자 스타일을 사용하고, rail은 check 원 아래 edge부터 이어지도록 조정했다. row는 최신 flow가 위로 오도록 내림차순 정렬했다. 다만 실제 browser screenshot/manual visual evidence는 QA/refactor 이후 최종 판정한다.
 - timeline header의 filter/show more/collapse action은 제거했고, 우측 file tree folder row는 클릭으로 접고 펼칠 수 있다.
 - timeline card의 파일 보기 action은 우측 file tree를 선택 flow 파일 목록으로 전환한다. 초기 우측 file tree는 topic 전체 파일을 보여주고, flow/search filter가 걸리면 검색창 옆 reset button으로 전체 파일 상태를 복구한다.
-- timeline card 내부 생성 파일 목록은 최대 3개로 제한했고, 우측 file tree의 file row에는 LLM/Local token chip을 함께 표시한다. timeline rail은 completed circle 외곽 ring 기준으로 닿도록 보정했다.
+- timeline card 내부 생성 파일 목록은 최대 3개로 제한했고, 생성 파일 클릭 시 file content modal에서 LLM/Local token과 file 내용을 볼 수 있다. 우측 file tree의 file row에서는 LLM/Local token chip을 제거했다. timeline rail은 row별 선분이 아니라 단일 수직 rail로 이어진다.
 - token 표시는 LLM 실사용과 Local 추정치를 분리했다. 현재 LLM 실사용 evidence가 없는 topic은 `기록 없음`으로 표시하고 local estimate는 file content 기반 deterministic estimate로 표시한다. spec/QA 문서는 신규/기존 project snapshot 모두에서 두 값을 분리 측정하도록 갱신했다.
 - dashboard project add Stepper는 local/defer path 중심으로 구현되어 remote FAST/SETUP의 세부 credential 입력 UX는 후속 개선 여지가 있다.

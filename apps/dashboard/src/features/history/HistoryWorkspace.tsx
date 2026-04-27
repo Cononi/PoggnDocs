@@ -74,6 +74,7 @@ type WorkflowProgressCountsSummary = {
   blocked: number;
   pending: number;
 };
+type TimelineFilePreview = TimelineRow["files"][number];
 
 const HISTORY_TABS: HistoryTab[] = ["overview", "timeline", "relations"];
 const HISTORY_TAB_LABELS: Record<HistoryTab, string> = {
@@ -1135,6 +1136,7 @@ function HistoryTimeline(props: {
 }) {
   const [fileFilter, setFileFilter] = useState("");
   const [selectedFlowFiles, setSelectedFlowFiles] = useState<{ id: string; step: string; paths: Set<string> } | null>(null);
+  const [previewFile, setPreviewFile] = useState<TimelineFilePreview | null>(null);
   const [collapsedFolderIds, setCollapsedFolderIds] = useState<Set<string>>(() => new Set());
   const rows = buildTimelineRows(props.topic, props.language, props.globalUser.username ?? props.dictionary.usernameMissing, props.dictionary);
   const treeSourceFiles = useMemo(() => {
@@ -1176,98 +1178,125 @@ function HistoryTimeline(props: {
   };
 
   return (
-    <Box
-      sx={{
-        display: "grid",
-        gap: 1.5,
-        gridTemplateColumns: { xs: "1fr", xl: "minmax(0, 1fr) 360px" },
-        alignItems: "start"
-      }}
-    >
-      <Stack spacing={1.5} sx={{ minWidth: 0 }}>
+    <>
+      <Box
+        sx={{
+          display: "grid",
+          gap: 1.5,
+          gridTemplateColumns: { xs: "1fr", xl: "minmax(0, 1fr) 360px" },
+          alignItems: "start"
+        }}
+      >
+        <Stack spacing={1.5} sx={{ minWidth: 0 }}>
+          <Paper sx={{ p: 1.5, borderRadius: 1 }}>
+            <Stack direction={{ xs: "column", md: "row" }} spacing={1.25} sx={{ justifyContent: "space-between" }}>
+              <Box>
+                <Typography variant="h6" sx={{ fontWeight: 850 }}>{props.dictionary.timelineView}</Typography>
+                <Typography variant="body2" color="text.secondary">{props.dictionary.timelineReferenceHint}</Typography>
+              </Box>
+            </Stack>
+          </Paper>
+          <Stack spacing={0} sx={{ position: "relative" }}>
+            {rows.length > 1 ? <TimelineRail /> : null}
+            {rows.map((row, index) => (
+              <TimelineMilestone
+                key={row.id}
+                row={row}
+                dictionary={props.dictionary}
+                isLast={index === rows.length - 1}
+                onOpenFile={setPreviewFile}
+                onShowFlowFiles={() => showFlowFiles(row)}
+              />
+            ))}
+          </Stack>
+        </Stack>
+
         <Paper sx={{ p: 1.5, borderRadius: 1 }}>
-          <Stack direction={{ xs: "column", md: "row" }} spacing={1.25} sx={{ justifyContent: "space-between" }}>
+          <Stack spacing={1.2}>
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: 850 }}>{props.dictionary.timelineView}</Typography>
-              <Typography variant="body2" color="text.secondary">{props.dictionary.timelineReferenceHint}</Typography>
+              <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+                {selectedFlowFiles
+                  ? props.dictionary.filesInSelectedFlow.replace("{flow}", selectedFlowFiles.step)
+                  : props.dictionary.filesInTopic}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {selectedFlowFiles ? props.dictionary.selectedFlowFilesHint : props.dictionary.allTopicFilesHint}
+              </Typography>
             </Box>
+            <Stack direction="row" spacing={0.75}>
+              <TextField
+                size="small"
+                value={fileFilter}
+                onChange={(event) => setFileFilter(event.target.value)}
+                placeholder="Search files..."
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchRounded fontSize="small" />
+                      </InputAdornment>
+                    )
+                  }
+                }}
+                sx={{ flexGrow: 1 }}
+              />
+              {selectedFlowFiles || fileFilter ? (
+                <Button variant="outlined" size="small" onClick={resetFileTree} sx={{ minWidth: 72 }}>
+                  {props.dictionary.resetFileTree}
+                </Button>
+              ) : null}
+            </Stack>
+            <Button variant="outlined" size="small" startIcon={<DownloadRounded />}>Download Tree</Button>
+            <Divider />
+            {fileTree.length ? (
+              <Stack spacing={0.4}>
+                {fileTree.map((node) => (
+                  <TimelineFileNode
+                    key={node.id}
+                    node={node}
+                    depth={0}
+                    dictionary={props.dictionary}
+                    collapsedFolderIds={collapsedFolderIds}
+                    onToggleFolder={toggleFolder}
+                  />
+                ))}
+              </Stack>
+            ) : (
+              <Alert severity="info">{props.dictionary.noFilesForTopic}</Alert>
+            )}
+            <Divider />
+            <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
+              <ChangeBadge kind="A" label="Added" />
+              <ChangeBadge kind="M" label="Modified" />
+              <ChangeBadge kind="D" label="Deleted" />
+            </Stack>
           </Stack>
         </Paper>
-        <Stack spacing={0} sx={{ position: "relative" }}>
-          {rows.map((row, index) => (
-            <TimelineMilestone
-              key={row.id}
-              row={row}
-              dictionary={props.dictionary}
-              isLast={index === rows.length - 1}
-              onShowFlowFiles={() => showFlowFiles(row)}
-            />
-          ))}
-        </Stack>
-      </Stack>
+      </Box>
+      <TimelineFilePreviewDialog file={previewFile} dictionary={props.dictionary} onClose={() => setPreviewFile(null)} />
+    </>
+  );
+}
 
-      <Paper sx={{ p: 1.5, borderRadius: 1 }}>
-        <Stack spacing={1.2}>
-          <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
-              {selectedFlowFiles
-                ? props.dictionary.filesInSelectedFlow.replace("{flow}", selectedFlowFiles.step)
-                : props.dictionary.filesInTopic}
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
-              {selectedFlowFiles ? props.dictionary.selectedFlowFilesHint : props.dictionary.allTopicFilesHint}
-            </Typography>
-          </Box>
-          <Stack direction="row" spacing={0.75}>
-            <TextField
-              size="small"
-              value={fileFilter}
-              onChange={(event) => setFileFilter(event.target.value)}
-              placeholder="Search files..."
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchRounded fontSize="small" />
-                    </InputAdornment>
-                  )
-                }
-              }}
-              sx={{ flexGrow: 1 }}
-            />
-            {selectedFlowFiles || fileFilter ? (
-              <Button variant="outlined" size="small" onClick={resetFileTree} sx={{ minWidth: 72 }}>
-                {props.dictionary.resetFileTree}
-              </Button>
-            ) : null}
-          </Stack>
-          <Button variant="outlined" size="small" startIcon={<DownloadRounded />}>Download Tree</Button>
-          <Divider />
-          {fileTree.length ? (
-            <Stack spacing={0.4}>
-              {fileTree.map((node) => (
-                <TimelineFileNode
-                  key={node.id}
-                  node={node}
-                  depth={0}
-                  dictionary={props.dictionary}
-                  collapsedFolderIds={collapsedFolderIds}
-                  onToggleFolder={toggleFolder}
-                />
-              ))}
-            </Stack>
-          ) : (
-            <Alert severity="info">{props.dictionary.noFilesForTopic}</Alert>
-          )}
-          <Divider />
-          <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
-            <ChangeBadge kind="A" label="Added" />
-            <ChangeBadge kind="M" label="Modified" />
-            <ChangeBadge kind="D" label="Deleted" />
-          </Stack>
-        </Stack>
-      </Paper>
-    </Box>
+function TimelineRail() {
+  const theme = useTheme();
+  const accent = theme.palette.success.main;
+
+  return (
+    <Box
+      sx={{
+        position: "absolute",
+        left: { xs: 16.5, md: 20.5 },
+        top: 18,
+        bottom: 18,
+        width: 3,
+        borderRadius: 999,
+        bgcolor: accent,
+        boxShadow: `0 0 12px ${alpha(accent, 0.42)}`,
+        zIndex: 0,
+        pointerEvents: "none"
+      }}
+    />
   );
 }
 
@@ -1275,6 +1304,7 @@ function TimelineMilestone(props: {
   row: TimelineRow;
   dictionary: DashboardLocale;
   isLast: boolean;
+  onOpenFile: (file: TimelineFilePreview) => void;
   onShowFlowFiles: () => void;
 }) {
   const theme = useTheme();
@@ -1292,20 +1322,6 @@ function TimelineMilestone(props: {
       }}
     >
       <Box sx={{ position: "relative", display: "flex", justifyContent: "center" }}>
-        {!props.isLast ? (
-          <Box
-            sx={{
-              position: "absolute",
-              top: 40,
-              bottom: -4,
-              width: 3,
-              borderRadius: 999,
-              bgcolor: accent,
-              boxShadow: `0 0 12px ${alpha(accent, 0.42)}`,
-              zIndex: 0
-            }}
-          />
-        ) : null}
         <Box
           sx={{
             width: 36,
@@ -1371,16 +1387,30 @@ function TimelineMilestone(props: {
             <Stack spacing={0.75}>
               <Typography variant="body2" sx={{ fontWeight: 800 }}>{props.dictionary.timelineGeneratedFiles} ({props.row.files.length})</Typography>
               {props.row.files.slice(0, 3).map((file) => (
-                <Stack key={file.path} direction="row" spacing={0.75} sx={{ alignItems: "flex-start", minWidth: 0 }}>
-                  <ChangeBadge kind={file.kind} />
-                  <Stack spacing={0.35} sx={{ flex: 1, minWidth: 0 }}>
-                    <Stack direction="row" spacing={0.5} useFlexGap sx={{ flexWrap: "wrap", minWidth: 0 }}>
-                      <Chip size="small" variant="outlined" label={`${props.dictionary.llmShort}: ${formatTokenValue(file.llmActualTokens, props.dictionary)}`} sx={{ height: 20 }} />
-                      <Chip size="small" variant="outlined" label={`${props.dictionary.localShort}: ${file.localEstimatedTokens.toLocaleString()}`} sx={{ height: 20 }} />
+                <ButtonBase
+                  key={file.path}
+                  onClick={() => props.onOpenFile(file)}
+                  sx={{
+                    width: "100%",
+                    justifyContent: "flex-start",
+                    textAlign: "left",
+                    borderRadius: 0.75,
+                    p: 0.25,
+                    "&:hover": { bgcolor: "action.hover" },
+                    "&:focus-visible": { outline: "2px solid", outlineColor: "primary.main", outlineOffset: 2 }
+                  }}
+                >
+                  <Stack direction="row" spacing={0.75} sx={{ alignItems: "flex-start", minWidth: 0, width: "100%" }}>
+                    <ChangeBadge kind={file.kind} />
+                    <Stack spacing={0.35} sx={{ flex: 1, minWidth: 0 }}>
+                      <Stack direction="row" spacing={0.5} useFlexGap sx={{ flexWrap: "wrap", minWidth: 0 }}>
+                        <Chip size="small" variant="outlined" label={`${props.dictionary.llmShort}: ${formatTokenValue(file.llmActualTokens, props.dictionary)}`} sx={{ height: 20 }} />
+                        <Chip size="small" variant="outlined" label={`${props.dictionary.localShort}: ${file.localEstimatedTokens.toLocaleString()}`} sx={{ height: 20 }} />
+                      </Stack>
+                      <Typography variant="caption" sx={{ minWidth: 0, overflowWrap: "anywhere", lineHeight: 1.28 }}>{file.path}</Typography>
                     </Stack>
-                    <Typography variant="caption" sx={{ minWidth: 0, overflowWrap: "anywhere", lineHeight: 1.28 }}>{file.path}</Typography>
                   </Stack>
-                </Stack>
+                </ButtonBase>
               ))}
               {props.row.files.length > 3 ? <Typography variant="caption">+ {props.row.files.length - 3} more</Typography> : null}
               <Button size="small" endIcon={<ChevronRightRounded />} onClick={props.onShowFlowFiles} sx={{ alignSelf: "flex-start" }}>
@@ -1391,7 +1421,7 @@ function TimelineMilestone(props: {
               <Typography variant="body2" sx={{ fontWeight: 800 }}>
                 {props.row.commits.length > 1 ? props.dictionary.gitCommits : props.dictionary.gitCommit} ({props.row.commits.length})
               </Typography>
-              {(props.expanded ? props.row.commits : props.row.commits.slice(0, 2)).map((commit) => (
+              {props.row.commits.map((commit) => (
                 <Stack key={commit.hash} spacing={0.35}>
                   <Typography variant="caption" color="primary.main" sx={{ fontWeight: 800 }}>{commit.hash}</Typography>
                   <Typography variant="caption" sx={{ overflowWrap: "anywhere" }}>{commit.title}</Typography>
@@ -1440,13 +1470,7 @@ function TimelineFileNode(props: {
       <Typography variant="body2" sx={{ flexGrow: 1, minWidth: 0, overflowWrap: "anywhere" }}>
         {props.node.name}
       </Typography>
-      {!isFolder && props.node.file ? (
-        <Stack direction="row" spacing={0.5} useFlexGap sx={{ flexWrap: "wrap", justifyContent: "flex-end" }}>
-          <Chip size="small" variant="outlined" label={`${props.dictionary.llmShort}: ${formatTokenValue(props.node.file.llmActualTokens, props.dictionary)}`} sx={{ height: 20 }} />
-          <Chip size="small" variant="outlined" label={`${props.dictionary.localShort}: ${(props.node.file.localEstimatedTokens ?? props.node.file.tokenEstimate ?? 0).toLocaleString()}`} sx={{ height: 20 }} />
-          <ChangeBadge kind={changeKind} />
-        </Stack>
-      ) : null}
+      {!isFolder ? <ChangeBadge kind={changeKind} /> : null}
     </Stack>
   );
 
@@ -1481,6 +1505,67 @@ function TimelineFileNode(props: {
           ))
         : null}
     </Stack>
+  );
+}
+
+function TimelineFilePreviewDialog(props: {
+  file: TimelineFilePreview | null;
+  dictionary: DashboardLocale;
+  onClose: () => void;
+}) {
+  const open = Boolean(props.file);
+  const content = props.file?.content ?? null;
+
+  return (
+    <Dialog open={open} onClose={props.onClose} fullWidth maxWidth="md">
+      <DialogTitle sx={{ pr: 6 }}>
+        <Stack spacing={0.8}>
+          <Typography variant="h6" sx={{ fontWeight: 850, overflowWrap: "anywhere" }}>
+            {props.file?.path ?? props.dictionary.file}
+          </Typography>
+          {props.file ? (
+            <Stack direction="row" spacing={0.75} useFlexGap sx={{ flexWrap: "wrap" }}>
+              <Chip size="small" variant="outlined" label={`${props.dictionary.llmActualTokens}: ${formatTokenValue(props.file.llmActualTokens, props.dictionary)}`} />
+              <Chip size="small" variant="outlined" label={`${props.dictionary.localEstimatedTokens}: ${props.file.localEstimatedTokens.toLocaleString()}`} />
+            </Stack>
+          ) : null}
+        </Stack>
+        <IconButton
+          aria-label="Close"
+          onClick={props.onClose}
+          size="small"
+          sx={{ position: "absolute", right: 12, top: 12 }}
+        >
+          <CloseRounded fontSize="small" />
+        </IconButton>
+      </DialogTitle>
+      <DialogContent dividers>
+        {content ? (
+          <Box
+            component="pre"
+            sx={{
+              m: 0,
+              p: 1.5,
+              maxHeight: "68vh",
+              overflow: "auto",
+              borderRadius: 1,
+              bgcolor: "background.default",
+              border: 1,
+              borderColor: "divider",
+              fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+              fontSize: "0.82rem",
+              lineHeight: 1.55,
+              whiteSpace: "pre-wrap",
+              overflowWrap: "anywhere"
+            }}
+          >
+            {content}
+          </Box>
+        ) : (
+          <Alert severity="info">{props.dictionary.detailUnavailable}</Alert>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
 

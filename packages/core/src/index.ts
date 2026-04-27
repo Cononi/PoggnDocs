@@ -311,6 +311,7 @@ export interface TopicFileEntry {
   localEstimatedTokens: number | null;
   llmActualTokens: number | null;
   tokenSource: "estimated" | "none";
+  content: string | null;
   editable: boolean;
 }
 
@@ -2966,6 +2967,7 @@ async function listTopicFiles(
         localEstimatedTokens: tokenEstimate,
         llmActualTokens: null,
         tokenSource: tokenEstimate === null ? "none" : "estimated",
+        content,
         editable: true
       } satisfies TopicFileEntry;
     })

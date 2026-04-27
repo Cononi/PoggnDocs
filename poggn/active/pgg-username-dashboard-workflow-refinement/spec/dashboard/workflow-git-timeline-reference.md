@@ -28,6 +28,7 @@ Workflow tab timeline/git UI를 `add-img/git.png`, `add-img/timeline.png` refere
 - Flow title에는 flow LLM actual token과 Local estimated token을 분리 표시한다.
 - File row에는 file명 위에 `LLM`과 `Local` token label을 먼저 표시하고, 그 아래 file path/name을 표시한다.
 - Timeline card의 생성 파일 목록은 flow당 최대 3개만 직접 표시한다.
+- Timeline card의 생성 파일 row를 클릭하면 modal로 file content를 볼 수 있어야 하며 modal에는 해당 file의 LLM actual token과 Local estimated token을 표시한다.
 - Git commit 내용은 실제 evidence와 일치해야 한다.
 - Commit source priority:
   1. `state/history.ndjson`의 `stage-commit` evidence
@@ -41,7 +42,7 @@ Workflow tab timeline/git UI를 `add-img/git.png`, `add-img/timeline.png` refere
 
 - Reference와 같은 정보 밀도, column grouping, compact spacing을 목표로 한다.
 - 현재 dashboard의 navy/cyan/blue accent tone과 8px 이하 radius 기준을 유지한다.
-- Timeline의 flow 연결선은 overview workflow progress처럼 각 flow node를 끊기지 않는 rail로 이어야 한다.
+- Timeline의 flow 연결선은 overview workflow progress처럼 개별 row 선분이 아니라 단일 수직 rail로 각 flow node를 끊기지 않게 이어야 한다.
 - 완료 check node와 완료 rail은 overview workflow progress의 completed 색상 token(`success.main`/`success.light`)을 사용한다.
 - 완료 check node의 배경/테두리/그림자 처리는 overview completed node와 같은 스타일을 사용한다.
 - 완료 rail은 check 원을 관통해 보이면 안 되며, 현재 원의 외곽 ring 하단에서 시작해 다음 원의 외곽 ring 상단에 딱 맞게 닿아야 한다.
@@ -50,7 +51,7 @@ Workflow tab timeline/git UI를 `add-img/git.png`, `add-img/timeline.png` refere
 - Timeline card의 `모든 파일 보기` action은 timeline card 내용을 더 펼치지 않고, 우측 file tree를 해당 flow에서 생성/수정한 file 목록으로 전환한다.
 - 우측 file tree는 초기 상태에서 topic 전체 file을 보여준다.
 - 우측 file tree가 flow file 목록 또는 검색 결과로 좁혀진 경우 검색창 옆에 reset button을 표시하고, 기존 table/list icon button은 표시하지 않는다.
-- 우측 file tree file row에는 해당 file의 LLM actual token과 Local estimated token을 함께 표시한다.
+- 우측 file tree file row에는 LLM/Local token chip을 표시하지 않는다. token은 timeline card file row와 file content modal에서만 표시한다.
 - table/header/body column width는 mobile에서 single-column stack으로 무너지되 text overlap이 없어야 한다.
 - long file path와 commit title은 `overflowWrap: anywhere` 또는 equivalent로 깨지지 않아야 한다.
 
@@ -63,7 +64,7 @@ Workflow tab timeline/git UI를 `add-img/git.png`, `add-img/timeline.png` refere
   - compact panel rhythm
 - `add-img/timeline.png` 기준 timeline checklist:
   - flow row grouping
-  - overview flow와 같은 연속 rail 연결
+  - overview flow와 같은 단일 연속 rail 연결
   - completed check 색상은 overview completed 색상과 일치
   - completed check visual treatment matches the overview completed node
   - completed rail touches the circle outer ring exactly without overshooting or leaving a gap
@@ -75,7 +76,8 @@ Workflow tab timeline/git UI를 `add-img/git.png`, `add-img/timeline.png` refere
   - initial right file tree shows all topic files
   - reset button restores the all-topic file tree and clears search/flow filtering
   - no table/list icon buttons next to file search
-  - right file tree rows include LLM and Local token chips
+  - clicking a generated file opens a modal with file content and LLM/Local token usage
+  - right file tree rows do not show LLM/Local token chips
   - files and commits side-by-side on desktop
   - file tree/detail affordance
   - flow/file token labels are split into LLM actual and Local estimated

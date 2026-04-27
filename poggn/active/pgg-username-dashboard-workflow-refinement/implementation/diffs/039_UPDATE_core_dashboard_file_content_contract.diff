@@ -1,0 +1,40 @@
+diff --git a/packages/core/src/index.ts b/packages/core/src/index.ts
+--- a/packages/core/src/index.ts
++++ b/packages/core/src/index.ts
+@@
+   tokenEstimate: number | null;
+   localEstimatedTokens: number | null;
+   llmActualTokens: number | null;
+   tokenSource: "estimated" | "none";
++  content: string | null;
+   editable: boolean;
+ }
+@@
+         localEstimatedTokens: tokenEstimate,
+         llmActualTokens: null,
+         tokenSource: tokenEstimate === null ? "none" : "estimated",
++        content,
+         editable: true
+       } satisfies TopicFileEntry;
+diff --git a/apps/dashboard/src/shared/model/dashboard.ts b/apps/dashboard/src/shared/model/dashboard.ts
+--- a/apps/dashboard/src/shared/model/dashboard.ts
++++ b/apps/dashboard/src/shared/model/dashboard.ts
+@@
+   localEstimatedTokens: number | null;
+   llmActualTokens: number | null;
+   tokenSource: "estimated" | "none";
++  content: string | null;
+   editable: boolean;
+ };
+diff --git a/apps/dashboard/src/features/history/historyModel.ts b/apps/dashboard/src/features/history/historyModel.ts
+--- a/apps/dashboard/src/features/history/historyModel.ts
++++ b/apps/dashboard/src/features/history/historyModel.ts
+@@
+-  files: Array<{ path: string; kind: FileChangeKind; llmActualTokens: number | null; localEstimatedTokens: number }>;
++  files: Array<{ path: string; kind: FileChangeKind; llmActualTokens: number | null; localEstimatedTokens: number; content: string | null }>;
+@@
+         llmActualTokens: file.llmActualTokens ?? null,
+-        localEstimatedTokens: file.localEstimatedTokens ?? file.tokenEstimate ?? 0
++        localEstimatedTokens: file.localEstimatedTokens ?? file.tokenEstimate ?? 0,
++        content: file.content ?? null
+       }));

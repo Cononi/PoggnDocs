@@ -1,0 +1,98 @@
+diff --git a/apps/dashboard/src/features/history/HistoryWorkspace.tsx b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
+--- a/apps/dashboard/src/features/history/HistoryWorkspace.tsx
++++ b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
+@@
++type TimelineFilePreview = TimelineRow["files"][number];
+@@
+   const [fileFilter, setFileFilter] = useState("");
+   const [selectedFlowFiles, setSelectedFlowFiles] = useState<{ id: string; step: string; paths: Set<string> } | null>(null);
++  const [previewFile, setPreviewFile] = useState<TimelineFilePreview | null>(null);
+@@
+-        <Stack spacing={0} sx={{ position: "relative" }}>
++        <Stack spacing={0} sx={{ position: "relative" }}>
++          {rows.length > 1 ? <TimelineRail /> : null}
+@@
+               isLast={index === rows.length - 1}
++              onOpenFile={setPreviewFile}
+               onShowFlowFiles={() => showFlowFiles(row)}
+             />
+@@
+-    </Box>
++      <TimelineFilePreviewDialog file={previewFile} dictionary={props.dictionary} onClose={() => setPreviewFile(null)} />
+@@
++function TimelineRail() {
++  const theme = useTheme();
++  const accent = theme.palette.success.main;
++  return (
++    <Box
++      sx={{
++        position: "absolute",
++        left: { xs: 16.5, md: 20.5 },
++        top: 18,
++        bottom: 18,
++        width: 3,
++        borderRadius: 999,
++        bgcolor: accent,
++        boxShadow: `0 0 12px ${alpha(accent, 0.42)}`,
++        zIndex: 0,
++        pointerEvents: "none"
++      }}
++    />
++  );
++}
+@@
+   row: TimelineRow;
+   dictionary: DashboardLocale;
+   isLast: boolean;
++  onOpenFile: (file: TimelineFilePreview) => void;
+   onShowFlowFiles: () => void;
+ }) {
+@@
+-        {!props.isLast ? (
+-          <Box sx={{ ... }} />
+-        ) : null}
+         <Box
+@@
+-                <Stack key={file.path} direction="row" spacing={0.75} sx={{ alignItems: "flex-start", minWidth: 0 }}>
++                <ButtonBase key={file.path} onClick={() => props.onOpenFile(file)} sx={{ width: "100%", justifyContent: "flex-start", textAlign: "left" }}>
+@@
+-                </Stack>
++                </ButtonBase>
+@@
+-              {(props.expanded ? props.row.commits : props.row.commits.slice(0, 2)).map((commit) => (
++              {props.row.commits.map((commit) => (
+@@
+-      {!isFolder && props.node.file ? (
+-        <Stack direction="row" spacing={0.5} useFlexGap sx={{ flexWrap: "wrap", justifyContent: "flex-end" }}>
+-          <Chip size="small" variant="outlined" label={`${props.dictionary.llmShort}: ${formatTokenValue(props.node.file.llmActualTokens, props.dictionary)}`} sx={{ height: 20 }} />
+-          <Chip size="small" variant="outlined" label={`${props.dictionary.localShort}: ${(props.node.file.localEstimatedTokens ?? props.node.file.tokenEstimate ?? 0).toLocaleString()}`} sx={{ height: 20 }} />
+-          <ChangeBadge kind={changeKind} />
+-        </Stack>
+-      ) : null}
++      {!isFolder ? <ChangeBadge kind={changeKind} /> : null}
+@@
++function TimelineFilePreviewDialog(props: { file: TimelineFilePreview | null; dictionary: DashboardLocale; onClose: () => void }) {
++  const open = Boolean(props.file);
++  const content = props.file?.content ?? null;
++  return (
++    <Dialog open={open} onClose={props.onClose} fullWidth maxWidth="md">
++      <DialogTitle sx={{ pr: 6 }}>
++        <Stack spacing={0.8}>
++          <Typography variant="h6" sx={{ fontWeight: 850, overflowWrap: "anywhere" }}>{props.file?.path ?? props.dictionary.file}</Typography>
++          {props.file ? (
++            <Stack direction="row" spacing={0.75} useFlexGap sx={{ flexWrap: "wrap" }}>
++              <Chip size="small" variant="outlined" label={`${props.dictionary.llmActualTokens}: ${formatTokenValue(props.file.llmActualTokens, props.dictionary)}`} />
++              <Chip size="small" variant="outlined" label={`${props.dictionary.localEstimatedTokens}: ${props.file.localEstimatedTokens.toLocaleString()}`} />
++            </Stack>
++          ) : null}
++        </Stack>
++        <IconButton aria-label="Close" onClick={props.onClose} size="small" sx={{ position: "absolute", right: 12, top: 12 }}>
++          <CloseRounded fontSize="small" />
++        </IconButton>
++      </DialogTitle>
++      <DialogContent dividers>
++        {content ? <Box component="pre" sx={{ m: 0, p: 1.5, maxHeight: "68vh", overflow: "auto", whiteSpace: "pre-wrap", overflowWrap: "anywhere" }}>{content}</Box> : <Alert severity="info">{props.dictionary.detailUnavailable}</Alert>}
++      </DialogContent>
++    </Dialog>
++  );
++}

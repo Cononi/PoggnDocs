@@ -1956,6 +1956,7 @@ async function listTopicFiles(rootDir, topicDir, bucket, topic) {
             localEstimatedTokens: tokenEstimate,
             llmActualTokens: null,
             tokenSource: tokenEstimate === null ? "none" : "estimated",
+            content,
             editable: true
         };
     }));
