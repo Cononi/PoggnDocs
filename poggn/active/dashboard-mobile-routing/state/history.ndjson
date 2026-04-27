@@ -1,0 +1,10 @@
+{"ts":"2026-04-27T08:35:35Z","stage":"proposal","event":"topic-created"}
+{"ts":"2026-04-27T08:35:35Z","stage":"proposal","event":"stage-started","source":"pgg-add"}
+{"ts":"2026-04-27T08:36:06Z","stage":"proposal","event":"stage-progress","source":"pgg-add","summary":"proposal, review, state, workflow metadata drafted from dashboard routing/mobile requirements"}
+{"ts":"2026-04-27T08:36:06Z","stage":"proposal","event":"stage-completed","source":"verified","summary":"proposal review passed with product manager and UX/UI attribution"}
+{"ts":"2026-04-27T08:48:06Z","stage":"plan","event":"stage-started","source":"pgg-plan"}
+{"ts":"2026-04-27T08:48:06Z","stage":"plan","event":"stage-progress","source":"pgg-plan","summary":"plan, task, five specs, and plan/task reviews created from approved proposal"}
+{"ts":"2026-04-27T08:48:06Z","stage":"plan","event":"stage-completed","source":"verified","summary":"pgg-plan gate passed after plan, task, specs, and reviews were verified"}
+{"ts":"2026-04-27T08:56:37Z","stage":"implementation","event":"stage-started","source":"pgg-code"}
+{"ts":"2026-04-27T08:56:37Z","stage":"implementation","event":"stage-progress","source":"pgg-code","summary":"implemented route state, Speed Dial, Bottom Navigation, selector delete, i18n keys, and stage-blocked workflow rendering"}
+{"ts":"2026-04-27T10:59:46Z","stage":"implementation","event":"stage-commit","archiveType":"feat","targetVersion":"2.6.0","projectLanguage":"ko","commitTitle":"feat: 2.6.0.dashboard URL 모바일 액션 구현","summary":"dashboard URL 모바일 액션 구현","why":"dashboard 화면 상태를 URL로 복원하고 모바일 Speed Dial과 Bottom Navigation, 프로젝트 삭제, stage-blocked 표시를 구현했다.","footer":"Refs: dashboard-mobile-routing"}

@@ -18,7 +18,7 @@ import {
   TextField,
   Typography
 } from "@mui/material";
-import { startTransition, useDeferredValue, useEffect, useMemo, useState } from "react";
+import { startTransition, useDeferredValue, useEffect, useMemo, useRef, useState } from "react";
 import { ArtifactDetailDialog } from "../features/artifact-inspector/ArtifactDetailDialog";
 import { InsightsRail } from "../features/backlog/InsightsRail";
 import { CategoryManagementPanel } from "../features/project-list/CategoryManagementPanel";
@@ -34,6 +34,7 @@ import {
 import { dashboardLocale } from "../shared/locale/dashboardLocale";
 import type {
   ArtifactSelection,
+  DashboardBottomNavigationValue,
   DashboardDetailSection,
   DashboardQueryResult,
   DashboardSettingsView,
@@ -48,7 +49,22 @@ import {
   resolveTopicKeyFromSourcePath,
   splitVisibleTopics
 } from "../shared/utils/dashboard";
-import { DashboardStatePanel, ProjectContextSidebar, ProjectSelectorDialog, TopNavigation } from "./DashboardShellChrome";
+import {
+  DashboardMobileBottomNavigation,
+  DashboardSpeedDial,
+  DashboardStatePanel,
+  ProjectContextSidebar,
+  ProjectSelectorDialog,
+  TopNavigation
+} from "./DashboardShellChrome";
+import {
+  dashboardScreenFromMenu,
+  readDashboardRouteState,
+  writeDashboardRouteState,
+  type DashboardRouteModal,
+  type DashboardRouteScreen,
+  type DashboardRouteState
+} from "./dashboardRouteState";
 import {
   buildInsightsSummary,
   createMutationPayload,
@@ -87,9 +103,14 @@ export default function DashboardApp() {
   const setTopicFilter = useDashboardStore((state) => state.setTopicFilter);
   const setInsightsRailOpen = useDashboardStore((state) => state.setInsightsRailOpen);
   const deferredTopicFilter = useDeferredValue(topicFilter);
+  const [activeRouteScreen, setActiveRouteScreen] = useState<DashboardRouteScreen>(
+    () => readDashboardRouteState().screen
+  );
+  const suppressNextRouteWrite = useRef(false);
+  const routeWriteInitialized = useRef(false);
 
   const [feedback, setFeedback] = useState<string | null>(null);
-  const [projectDialogOpen, setProjectDialogOpen] = useState(false);
+  const [projectDialogOpen, setProjectDialogOpen] = useState(() => readDashboardRouteState().modal === "add-project");
   const [projectRootDirDraft, setProjectRootDirDraft] = useState("");
   const [projectCategoryDraft, setProjectCategoryDraft] = useState("");
   const [pendingDeleteProjectId, setPendingDeleteProjectId] = useState<string | null>(null);
@@ -98,7 +119,9 @@ export default function DashboardApp() {
   const [fileSelection, setFileSelection] = useState<ArtifactSelection | null>(null);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
   const [sidebarDrawerOpen, setSidebarDrawerOpen] = useState(false);
-  const [projectSelectorOpen, setProjectSelectorOpen] = useState(false);
+  const [projectSelectorOpen, setProjectSelectorOpen] = useState(
+    () => readDashboardRouteState().modal === "project-selector"
+  );
 
   const snapshotQuery = useQuery({
     queryKey: ["dashboard-snapshot"],
@@ -158,6 +181,117 @@ export default function DashboardApp() {
     [boardContextProject, dictionary, snapshot?.recentActivity]
   );
   const isDeletingCurrentProject = pendingDeleteProject?.id === currentProject?.id;
+  const latestProjectSummary = `${latestActiveProject?.name ?? "-"} · ${
+    latestActiveProject?.projectVersion ?? latestActiveProject?.pggVersion ?? dictionary.unknown
+  }`;
+  const bottomNavigationValue: DashboardBottomNavigationValue =
+    activeTopMenu === "settings" ? "settings" : activeRouteScreen === "home" ? "home" : "projects";
+  const routeStateForUi: DashboardRouteState = {
+    screen:
+      activeTopMenu === "settings"
+        ? "settings"
+        : activeRouteScreen === "home" && activeDetailSection === "main"
+          ? "home"
+          : dashboardScreenFromMenu(activeTopMenu),
+    activeTopMenu,
+    projectId: selectedProjectId,
+    section: activeDetailSection,
+    panel: activeSettingsView,
+    topicKey: selectedTopicKey,
+    filePath: fileSelection?.sourcePath ?? fileSelection?.relativePath ?? null,
+    insightsOpen: activeTopMenu === "projects" && insightsRailOpen,
+    modal: projectDialogOpen ? "add-project" : projectSelectorOpen ? "project-selector" : null
+  };
+
+  const applyRouteState = (nextRoute: DashboardRouteState) => {
+    suppressNextRouteWrite.current = true;
+    setActiveRouteScreen(nextRoute.screen);
+    startTransition(() => {
+      if (nextRoute.activeTopMenu === "settings") {
+        setActiveSettingsView(nextRoute.panel);
+        setInsightsRailOpen(false);
+      } else {
+        setActiveTopMenu("projects");
+        setProjectDetailOpen(true);
+        setActiveDetailSection(nextRoute.section);
+        setSelectedTopicKey(nextRoute.topicKey);
+        setInsightsRailOpen(nextRoute.insightsOpen);
+      }
+      if (nextRoute.projectId) {
+        setSelectedProjectId(nextRoute.projectId);
+      }
+      setProjectDialogOpen(nextRoute.modal === "add-project");
+      setProjectSelectorOpen(nextRoute.modal === "project-selector");
+    });
+  };
+
+  const openRouteModal = (modal: Exclude<DashboardRouteModal, null>) => {
+    if (modal === "add-project") {
+      setProjectDialogOpen(true);
+      setProjectSelectorOpen(false);
+      return;
+    }
+    setProjectSelectorOpen(true);
+    setProjectDialogOpen(false);
+  };
+
+  const goHome = () => {
+    startTransition(() => {
+      setActiveRouteScreen("home");
+      setActiveTopMenu("projects");
+      setProjectDetailOpen(true);
+      setActiveDetailSection("main");
+      setInsightsRailOpen(false);
+      setSidebarDrawerOpen(false);
+    });
+  };
+
+  const handleBottomNavigationChange = (value: DashboardBottomNavigationValue) => {
+    if (value === "home") {
+      goHome();
+      return;
+    }
+    if (value === "settings") {
+      setActiveRouteScreen("settings");
+      setActiveTopMenu("settings");
+      setSidebarDrawerOpen(false);
+      return;
+    }
+    setActiveRouteScreen("projects");
+    setActiveTopMenu("projects");
+    setSidebarDrawerOpen(false);
+  };
+
+  useEffect(() => {
+    applyRouteState(readDashboardRouteState());
+    routeWriteInitialized.current = true;
+
+    const handlePopState = () => {
+      applyRouteState(readDashboardRouteState());
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, []);
+
+  useEffect(() => {
+    if (suppressNextRouteWrite.current) {
+      suppressNextRouteWrite.current = false;
+      return;
+    }
+
+    writeDashboardRouteState(routeStateForUi, routeWriteInitialized.current ? "push" : "replace");
+    routeWriteInitialized.current = true;
+  }, [
+    routeStateForUi.screen,
+    routeStateForUi.projectId,
+    routeStateForUi.section,
+    routeStateForUi.panel,
+    routeStateForUi.topicKey,
+    routeStateForUi.filePath,
+    routeStateForUi.insightsOpen,
+    routeStateForUi.modal
+  ]);
 
   useEffect(() => {
     const nextSelectedProjectId = resolveInitialSelectedProjectId(snapshot, selectedProjectId);
@@ -230,6 +364,31 @@ export default function DashboardApp() {
 
     setDetailSelection(nextSelection);
   }, [detailSelection, selectedTopic]);
+
+  useEffect(() => {
+    if (activeTopMenu !== "projects" || activeDetailSection !== "files" || !selectedTopic) {
+      return;
+    }
+
+    const routeFilePath = readDashboardRouteState().filePath;
+    if (!routeFilePath) {
+      return;
+    }
+
+    const topicKey = buildTopicKey(selectedTopic);
+    const routeFile = selectedTopic.files.find(
+      (file) => file.sourcePath === routeFilePath || file.relativePath === routeFilePath
+    );
+    if (!routeFile) {
+      return;
+    }
+
+    if (fileSelection?.topicKey === topicKey && fileSelection.sourcePath === routeFile.sourcePath) {
+      return;
+    }
+
+    setFileSelection(createArtifactSelection(topicKey, routeFile));
+  }, [activeDetailSection, activeTopMenu, fileSelection, selectedTopic]);
 
   useEffect(() => {
     if (!fileSelection || !selectedTopic) {
@@ -497,6 +656,7 @@ export default function DashboardApp() {
     const shouldResetSelection = selectedProjectId !== projectId;
     markDashboardInteraction("project-switch", "start");
     startTransition(() => {
+      setActiveRouteScreen("projects");
       setSelectedProjectId(projectId);
       setActiveTopMenu("projects");
       setProjectDetailOpen(true);
@@ -518,6 +678,7 @@ export default function DashboardApp() {
     }
 
     startTransition(() => {
+      setActiveRouteScreen("projects");
       setSelectedProjectId(projectId);
       setActiveTopMenu("projects");
       setProjectDetailOpen(true);
@@ -526,6 +687,7 @@ export default function DashboardApp() {
   };
 
   const openSettingsPanel = (panel: DashboardSettingsView) => {
+    setActiveRouteScreen("settings");
     setActiveSettingsView(panel);
     if (isCompactShell) {
       setSidebarDrawerOpen(false);
@@ -533,7 +695,7 @@ export default function DashboardApp() {
   };
 
   const openProjectSelector = () => {
-    setProjectSelectorOpen(true);
+    openRouteModal("project-selector");
   };
 
   const closeProjectSelector = () => {
@@ -755,16 +917,18 @@ export default function DashboardApp() {
       <TopNavigation
         title={projectSurfaceProject?.dashboardTitle ?? dictionary.dashboardFallbackTitle}
         titleIconSvg={projectSurfaceProject?.dashboardTitleIconSvg ?? ""}
-        latestProject={latestActiveProject?.name ?? "-"}
-        latestProjectVersion={latestActiveProject?.projectVersion ?? latestActiveProject?.pggVersion ?? null}
         dictionary={dictionary}
         activeTopMenu={activeTopMenu}
         compactShell={isCompactShell}
-        onOpenProjects={() => setActiveTopMenu("projects")}
-        onOpenSettings={() => setActiveTopMenu("settings")}
+        onOpenProjects={() => {
+          setActiveRouteScreen("projects");
+          setActiveTopMenu("projects");
+        }}
+        onOpenSettings={() => {
+          setActiveRouteScreen("settings");
+          setActiveTopMenu("settings");
+        }}
         onToggleSidebar={() => setSidebarDrawerOpen(true)}
-        onToggleInsights={() => setInsightsRailOpen(!insightsRailOpen)}
-        onAddProject={() => setProjectDialogOpen(true)}
       />
 
       <Box
@@ -801,7 +965,10 @@ export default function DashboardApp() {
           </Box>
         ) : null}
 
-        <Stack spacing={2} sx={{ px: { xs: 1.5, md: 2.5 }, py: { xs: 1.5, md: 2 } }}>
+        <Stack
+          spacing={2}
+          sx={{ px: { xs: 1.5, md: 2.5 }, pt: { xs: 1.5, md: 2 }, pb: { xs: 10, md: 2 } }}
+        >
           {feedback ? (
             <Alert severity="error" onClose={() => setFeedback(null)}>
               {feedback}
@@ -857,7 +1024,7 @@ export default function DashboardApp() {
           }}
           onSelectSettingsView={openSettingsPanel}
           onOpenProjectSelector={() => {
-            setProjectSelectorOpen(true);
+            openRouteModal("project-selector");
             setSidebarDrawerOpen(false);
           }}
         />
@@ -869,8 +1036,27 @@ export default function DashboardApp() {
         categories={categories}
         projects={snapshot.projects}
         dictionary={dictionary}
+        currentProjectId={currentProject?.id ?? null}
         onClose={closeProjectSelector}
         onSelectProject={handleSelectProjectFromSelector}
+        onDeleteProject={(projectId) => setPendingDeleteProjectId(projectId)}
+      />
+
+      <DashboardSpeedDial
+        activeTopMenu={activeTopMenu}
+        compactShell={isCompactShell}
+        latestProjectSummary={latestProjectSummary}
+        dictionary={dictionary}
+        onGoHome={goHome}
+        onAddProject={() => openRouteModal("add-project")}
+        onToggleInsights={() => setInsightsRailOpen(!insightsRailOpen)}
+        onOpenProjectSelector={() => openRouteModal("project-selector")}
+      />
+
+      <DashboardMobileBottomNavigation
+        value={bottomNavigationValue}
+        dictionary={dictionary}
+        onChange={handleBottomNavigationChange}
       />
 
       <Drawer

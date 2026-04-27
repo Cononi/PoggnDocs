@@ -1,0 +1,13 @@
+diff --git a/apps/dashboard/src/shared/model/dashboard.ts b/apps/dashboard/src/shared/model/dashboard.ts
+index f7d1916..ab04c11 100644
+--- a/apps/dashboard/src/shared/model/dashboard.ts
++++ b/apps/dashboard/src/shared/model/dashboard.ts
+@@ -204,6 +204,8 @@ export type DashboardThemeMode = "light" | "dark";
+ 
+ export type DashboardPrimaryMenu = "projects" | "settings";
+ 
++export type DashboardBottomNavigationValue = "home" | "projects" | "settings";
++
+ export type DashboardSidebarItem = "category";
+ 
+ export type DashboardDetailSection =

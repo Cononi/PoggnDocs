@@ -1,0 +1,81 @@
+diff --git a/apps/dashboard/src/features/history/historyModel.ts b/apps/dashboard/src/features/history/historyModel.ts
+index 06f0ff4..13a3cbf 100644
+--- a/apps/dashboard/src/features/history/historyModel.ts
++++ b/apps/dashboard/src/features/history/historyModel.ts
+@@ -2,7 +2,7 @@ import type { DashboardLocale, TopicSummary } from "../../shared/model/dashboard
+ import { buildTopicKey, formatDate } from "../../shared/utils/dashboard";
+ 
+ export type HistoryLanguage = "ko" | "en";
+-export type WorkflowStatus = "completed" | "current" | "updating" | "pending" | "blocked";
++export type WorkflowStatus = "completed" | "current" | "updating" | "pending" | "blocked" | "stage-blocked";
+ export type WorkflowTimestampConfidence = "high" | "medium" | "low" | "none";
+ export type FileChangeKind = "A" | "M" | "D";
+ export type RelationKind = "depends" | "blocks" | "related" | "implements" | "mentioned";
+@@ -595,6 +595,42 @@ function isDoneFlowBlocked(topic: TopicSummary): boolean {
+   return releaseOutcomeForTopic(topic) === "blocked";
+ }
+ 
++function hasMeaningfulBlockingIssue(topic: TopicSummary): boolean {
++  const blockingIssues = topic.blockingIssues?.trim();
++  return Boolean(blockingIssues && !/^(none|no|없음|n\/a)$/i.test(blockingIssues));
++}
++
++function textIndicatesStageBlocked(value: string | null | undefined): boolean {
++  return /blocked|failed|failure|error|invalid|실패|차단|오류/i.test(value ?? "");
++}
++
++function flowHasBlockedEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition): boolean {
++  if (flow.id === "done") {
++    return isDoneFlowBlocked(topic);
++  }
++
++  const isCurrentFlow = flow.id === normalizeFlowId(topic.stage);
++  if (isCurrentFlow && (hasMeaningfulBlockingIssue(topic) || textIndicatesStageBlocked(topic.status))) {
++    return true;
++  }
++
++  const nodeHasBlockedEvidence = flowNodes(topic, flow).some((node) =>
++    [
++      node.data.status,
++      node.data.detail?.status,
++      node.data.detail?.summary,
++      node.data.detail?.title
++    ].some(textIndicatesStageBlocked)
++  );
++  if (nodeHasBlockedEvidence) {
++    return true;
++  }
++
++  return flowHistoryEvents(topic, flow).some((event) =>
++    [event.event, event.summary, event.source].some(textIndicatesStageBlocked)
++  );
++}
++
+ function flowHasFullCompletionEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition): boolean {
+   if (flow.id === "done") {
+     return isDoneFlowCompleted(topic);
+@@ -861,7 +897,7 @@ export function buildWorkflowSteps(topic: TopicSummary, language: HistoryLanguag
+   const effectiveCurrentIndex = updatingIndex ?? activeIndex ?? currentIndex;
+ 
+   return entries.map(({ flow, index, activeTaskIds, timestamps }) => {
+-    const blocked = flow.id === "done" && isDoneFlowBlocked(topic);
++    const stageBlocked = flowHasBlockedEvidence(topic, flow);
+     const completedByProgress = index < currentIndex || index < effectiveCurrentIndex;
+     const completedByEvidence =
+       flow.id === "done"
+@@ -870,12 +906,12 @@ export function buildWorkflowSteps(topic: TopicSummary, language: HistoryLanguag
+     const updating = updatingIndex === index;
+     const completedArchiveFlow = topic.bucket === "archive" && flow.id !== "done";
+     const isComplete =
+-      !blocked &&
++      !stageBlocked &&
+       (completedArchiveFlow || (!updating && (completedByProgress || completedByEvidence)));
+     const status: WorkflowStatus = updating
+       ? "updating"
+-      : blocked
+-        ? "blocked"
++      : stageBlocked
++        ? "stage-blocked"
+         : isComplete
+           ? "completed"
+           : index === effectiveCurrentIndex

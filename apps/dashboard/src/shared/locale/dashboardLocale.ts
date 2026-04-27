@@ -73,6 +73,8 @@ export const dashboardLocale = {
     projects: "프로젝트",
     projectMenu: "프로젝트",
     settings: "설정",
+    homeNavigation: "홈",
+    speedDialActions: "dashboard 빠른 동작",
     navYourWork: "Your work",
     navFilter: "Filter",
     navDashboards: "Dashboards",
@@ -298,6 +300,7 @@ export const dashboardLocale = {
     workflowProgressStatusCurrent: "진행 중",
     workflowProgressStatusUpdating: "추가 진행",
     workflowProgressStatusBlocked: "실패/차단",
+    workflowProgressStatusStageBlocked: "단계 실패",
     workflowProgressStatusCompleted: "완료",
     workflowProgressCountCompleted: "완료",
     workflowProgressCountCurrent: "진행 중",
@@ -446,6 +449,7 @@ export const dashboardLocale = {
     deleteProjectRootHint: "체크 없이 삭제하면 dashboard 등록만 제거되고 파일 시스템은 유지됩니다.",
     deleteProjectConfirm: "삭제 진행",
     deleteProjectBlockedCurrent: "현재 dashboard root 프로젝트는 삭제할 수 없습니다.",
+    routeStateRepaired: "주소 상태를 사용 가능한 화면으로 조정했습니다.",
     dashboardError: "dashboard 요청 처리 중 오류가 발생했습니다."
   },
   en: {
@@ -462,6 +466,8 @@ export const dashboardLocale = {
     projects: "Projects",
     projectMenu: "Project",
     settings: "Settings",
+    homeNavigation: "Home",
+    speedDialActions: "dashboard quick actions",
     navYourWork: "Your work",
     navFilter: "Filter",
     navDashboards: "Dashboards",
@@ -687,6 +693,7 @@ export const dashboardLocale = {
     workflowProgressStatusCurrent: "In progress",
     workflowProgressStatusUpdating: "Additional updates",
     workflowProgressStatusBlocked: "Failed/blocked",
+    workflowProgressStatusStageBlocked: "Stage failed",
     workflowProgressStatusCompleted: "Completed",
     workflowProgressCountCompleted: "Completed",
     workflowProgressCountCurrent: "In progress",
@@ -835,6 +842,7 @@ export const dashboardLocale = {
     deleteProjectRootHint: "Without enabling this option, only the dashboard registration is removed.",
     deleteProjectConfirm: "Delete now",
     deleteProjectBlockedCurrent: "The current dashboard root project cannot be deleted.",
+    routeStateRepaired: "The address state was adjusted to an available screen.",
     dashboardError: "The dashboard request failed."
   }
 } as const;
