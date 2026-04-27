@@ -1,0 +1,86 @@
+diff --git a/apps/dashboard/src/shared/store/dashboardStore.ts b/apps/dashboard/src/shared/store/dashboardStore.ts
+index a70aba4..24507f9 100644
+--- a/apps/dashboard/src/shared/store/dashboardStore.ts
++++ b/apps/dashboard/src/shared/store/dashboardStore.ts
+@@ -14,14 +14,9 @@ type DashboardUiState = Pick<
+   DashboardStore,
+   | "activeTopMenu"
+   | "activeSidebarItem"
+-  | "projectDetailOpen"
+-  | "activeDetailSection"
+-  | "activeSettingsView"
+   | "selectedProjectId"
+-  | "selectedTopicKey"
+   | "topicFilter"
+   | "workspaceFilterState"
+-  | "insightsRailOpen"
+ >;
+ 
+ const defaultWorkspaceFilterState: DashboardWorkspaceFilterState = {
+@@ -32,14 +27,9 @@ const defaultWorkspaceFilterState: DashboardWorkspaceFilterState = {
+ const defaultUiState: DashboardUiState = {
+   activeTopMenu: "projects",
+   activeSidebarItem: "category",
+-  projectDetailOpen: true,
+-  activeDetailSection: "main",
+-  activeSettingsView: "main",
+   selectedProjectId: null,
+-  selectedTopicKey: null,
+   topicFilter: "",
+-  workspaceFilterState: defaultWorkspaceFilterState,
+-  insightsRailOpen: true
++  workspaceFilterState: defaultWorkspaceFilterState
+ };
+ 
+ function readInitialThemeMode(): DashboardThemeMode {
+@@ -71,13 +61,10 @@ function readInitialUiState(): DashboardUiState {
+     }
+ 
+     const parsed = JSON.parse(raw) as Partial<DashboardUiState>;
+-    const activeSidebarItem = "category";
+     return {
+       ...defaultUiState,
+       ...parsed,
+-      activeSidebarItem,
+-      projectDetailOpen: true,
+-      activeDetailSection: "main",
++      activeSidebarItem: "category",
+       workspaceFilterState: {
+         ...defaultWorkspaceFilterState,
+         ...(parsed.workspaceFilterState ?? {})
+@@ -100,27 +87,27 @@ function toUiState(store: DashboardStore): DashboardUiState {
+   return {
+     activeTopMenu: store.activeTopMenu,
+     activeSidebarItem: store.activeSidebarItem,
+-    projectDetailOpen: store.projectDetailOpen,
+-    activeDetailSection: store.activeDetailSection,
+-    activeSettingsView: store.activeSettingsView,
+     selectedProjectId: store.selectedProjectId,
+-    selectedTopicKey: store.selectedTopicKey,
+     topicFilter: store.topicFilter,
+-    workspaceFilterState: store.workspaceFilterState,
+-    insightsRailOpen: store.insightsRailOpen
++    workspaceFilterState: store.workspaceFilterState
+   };
+ }
+ 
+ export const useDashboardStore = create<DashboardStore>((set, get) => {
+   const initialUiState = readInitialUiState();
+ 
+-  const setAndPersist = (partial: Partial<DashboardUiState>) => {
++  const setAndPersist = (partial: Partial<DashboardStore>) => {
+     set(partial as Partial<DashboardStore>);
+-    persistUiState({ ...toUiState(get()), ...partial });
++    persistUiState(toUiState(get()));
+   };
+ 
+   return {
+     ...initialUiState,
++    projectDetailOpen: true,
++    activeDetailSection: "main",
++    activeSettingsView: "main",
++    selectedTopicKey: null,
++    insightsRailOpen: false,
+     themeMode: readInitialThemeMode(),
+     setActiveTopMenu: (value) => {
+       if (value === "settings") {

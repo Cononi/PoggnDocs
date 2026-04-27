@@ -204,6 +204,8 @@ export type DashboardThemeMode = "light" | "dark";
 
 export type DashboardPrimaryMenu = "projects" | "settings";
 
+export type DashboardBottomNavigationValue = "home" | "projects" | "settings";
+
 export type DashboardSidebarItem = "category";
 
 export type DashboardDetailSection =

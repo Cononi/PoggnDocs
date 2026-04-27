@@ -1,0 +1,14 @@
+diff --git a/apps/dashboard/src/features/history/HistoryWorkspace.tsx b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
+index 7ddf421..0015ab2 100644
+--- a/apps/dashboard/src/features/history/HistoryWorkspace.tsx
++++ b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
+@@ -744,6 +744,9 @@ function workflowStatusLabel(step: WorkflowStep, dictionary: DashboardLocale): s
+   if (isUpdatingWorkflowStep(step)) {
+     return dictionary.workflowProgressStatusUpdating;
+   }
++  if (step.status === "stage-blocked") {
++    return dictionary.workflowProgressStatusStageBlocked;
++  }
+   if (isBlockedWorkflowStep(step)) {
+     return dictionary.workflowProgressStatusBlocked;
+   }

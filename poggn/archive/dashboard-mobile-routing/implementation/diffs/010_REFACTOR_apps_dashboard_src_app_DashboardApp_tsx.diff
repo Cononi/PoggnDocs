@@ -1,0 +1,80 @@
+diff --git a/apps/dashboard/src/app/DashboardApp.tsx b/apps/dashboard/src/app/DashboardApp.tsx
+index 0d93ce5..0c9b5d8 100644
+--- a/apps/dashboard/src/app/DashboardApp.tsx
++++ b/apps/dashboard/src/app/DashboardApp.tsx
+@@ -58,7 +58,8 @@ import {
+   TopNavigation
+ } from "./DashboardShellChrome";
+ import {
+-  dashboardScreenFromMenu,
++  createDashboardRouteState,
++  dashboardBottomNavigationValue,
+   readDashboardRouteState,
+   writeDashboardRouteState,
+   type DashboardRouteModal,
+@@ -103,14 +104,15 @@ export default function DashboardApp() {
+   const setTopicFilter = useDashboardStore((state) => state.setTopicFilter);
+   const setInsightsRailOpen = useDashboardStore((state) => state.setInsightsRailOpen);
+   const deferredTopicFilter = useDeferredValue(topicFilter);
++  const initialRouteState = useMemo(() => readDashboardRouteState(), []);
+   const [activeRouteScreen, setActiveRouteScreen] = useState<DashboardRouteScreen>(
+-    () => readDashboardRouteState().screen
++    () => initialRouteState.screen
+   );
+   const suppressNextRouteWrite = useRef(false);
+   const routeWriteInitialized = useRef(false);
+ 
+   const [feedback, setFeedback] = useState<string | null>(null);
+-  const [projectDialogOpen, setProjectDialogOpen] = useState(() => readDashboardRouteState().modal === "add-project");
++  const [projectDialogOpen, setProjectDialogOpen] = useState(() => initialRouteState.modal === "add-project");
+   const [projectRootDirDraft, setProjectRootDirDraft] = useState("");
+   const [projectCategoryDraft, setProjectCategoryDraft] = useState("");
+   const [pendingDeleteProjectId, setPendingDeleteProjectId] = useState<string | null>(null);
+@@ -120,7 +122,7 @@ export default function DashboardApp() {
+   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+   const [sidebarDrawerOpen, setSidebarDrawerOpen] = useState(false);
+   const [projectSelectorOpen, setProjectSelectorOpen] = useState(
+-    () => readDashboardRouteState().modal === "project-selector"
++    () => initialRouteState.modal === "project-selector"
+   );
+ 
+   const snapshotQuery = useQuery({
+@@ -184,24 +186,22 @@ export default function DashboardApp() {
+   const latestProjectSummary = `${latestActiveProject?.name ?? "-"} · ${
+     latestActiveProject?.projectVersion ?? latestActiveProject?.pggVersion ?? dictionary.unknown
+   }`;
+-  const bottomNavigationValue: DashboardBottomNavigationValue =
+-    activeTopMenu === "settings" ? "settings" : activeRouteScreen === "home" ? "home" : "projects";
+-  const routeStateForUi: DashboardRouteState = {
+-    screen:
+-      activeTopMenu === "settings"
+-        ? "settings"
+-        : activeRouteScreen === "home" && activeDetailSection === "main"
+-          ? "home"
+-          : dashboardScreenFromMenu(activeTopMenu),
++  const bottomNavigationValue: DashboardBottomNavigationValue = dashboardBottomNavigationValue(
+     activeTopMenu,
+-    projectId: selectedProjectId,
+-    section: activeDetailSection,
+-    panel: activeSettingsView,
+-    topicKey: selectedTopicKey,
++    activeRouteScreen
++  );
++  const routeStateForUi: DashboardRouteState = createDashboardRouteState({
++    activeRouteScreen,
++    activeTopMenu,
++    selectedProjectId,
++    activeDetailSection,
++    activeSettingsView,
++    selectedTopicKey,
+     filePath: fileSelection?.sourcePath ?? fileSelection?.relativePath ?? null,
+-    insightsOpen: activeTopMenu === "projects" && insightsRailOpen,
+-    modal: projectDialogOpen ? "add-project" : projectSelectorOpen ? "project-selector" : null
+-  };
++    insightsRailOpen,
++    projectDialogOpen,
++    projectSelectorOpen
++  });
+ 
+   const applyRouteState = (nextRoute: DashboardRouteState) => {
+     suppressNextRouteWrite.current = true;

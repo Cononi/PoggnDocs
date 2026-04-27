@@ -29,6 +29,7 @@ import DownloadRounded from "@mui/icons-material/DownloadRounded";
 import ExpandMoreRounded from "@mui/icons-material/ExpandMoreRounded";
 import FilterListRounded from "@mui/icons-material/FilterListRounded";
 import FolderRounded from "@mui/icons-material/FolderRounded";
+import LockRounded from "@mui/icons-material/LockRounded";
 import MoreVertRounded from "@mui/icons-material/MoreVertRounded";
 import SearchRounded from "@mui/icons-material/SearchRounded";
 import TableRowsRounded from "@mui/icons-material/TableRowsRounded";
@@ -743,6 +744,9 @@ function workflowStatusLabel(step: WorkflowStep, dictionary: DashboardLocale): s
   if (isUpdatingWorkflowStep(step)) {
     return dictionary.workflowProgressStatusUpdating;
   }
+  if (step.status === "stage-blocked") {
+    return dictionary.workflowProgressStatusStageBlocked;
+  }
   if (isBlockedWorkflowStep(step)) {
     return dictionary.workflowProgressStatusBlocked;
   }
@@ -899,7 +903,7 @@ function WorkflowStepNode(props: {
           ) : isUpdatingWorkflowStep(props.step) ? (
             <DifferenceRounded sx={{ fontSize: { xs: 23, md: 27 } }} />
           ) : isBlockedWorkflowStep(props.step) ? (
-            <CloseRounded sx={{ fontSize: { xs: 23, md: 27 } }} />
+            <LockRounded sx={{ fontSize: { xs: 23, md: 27 } }} />
           ) : isActiveWorkflowStep(props.step) ? (
             <CodeRounded sx={{ fontSize: { xs: 23, md: 27 } }} />
           ) : (
@@ -937,7 +941,7 @@ function isUpdatingWorkflowStep(step: WorkflowStep): boolean {
 }
 
 function isBlockedWorkflowStep(step: WorkflowStep): boolean {
-  return step.status === "blocked";
+  return step.status === "blocked" || step.status === "stage-blocked";
 }
 
 function isLiveWorkflowStep(step: WorkflowStep): boolean {

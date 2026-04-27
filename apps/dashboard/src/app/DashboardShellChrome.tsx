@@ -6,6 +6,8 @@ import {
   Box,
   Button,
   ButtonBase,
+  BottomNavigation,
+  BottomNavigationAction,
   Chip,
   Dialog,
   DialogActions,
@@ -14,18 +16,25 @@ import {
   Divider,
   IconButton,
   Paper,
+  SpeedDial,
+  SpeedDialAction,
+  SpeedDialIcon,
   Stack,
   Typography
 } from "@mui/material";
 import AddRounded from "@mui/icons-material/AddRounded";
 import AssessmentRounded from "@mui/icons-material/AssessmentRounded";
 import ChevronRightRounded from "@mui/icons-material/ChevronRightRounded";
+import DeleteRounded from "@mui/icons-material/DeleteRounded";
 import FolderRounded from "@mui/icons-material/FolderRounded";
 import HomeRounded from "@mui/icons-material/HomeRounded";
 import HistoryRounded from "@mui/icons-material/HistoryRounded";
+import InsightsRounded from "@mui/icons-material/InsightsRounded";
+import InfoRounded from "@mui/icons-material/InfoRounded";
 import MenuRounded from "@mui/icons-material/MenuRounded";
 import SettingsRounded from "@mui/icons-material/SettingsRounded";
 import type {
+  DashboardBottomNavigationValue,
   DashboardDetailSection,
   DashboardLocale,
   DashboardPrimaryMenu,
@@ -39,16 +48,12 @@ import { buildProjectBoardSections } from "../features/project-list/projectBoard
 type TopNavigationProps = {
   title: string;
   titleIconSvg: string;
-  latestProject: string;
-  latestProjectVersion: string | null;
   dictionary: DashboardLocale;
   activeTopMenu: DashboardPrimaryMenu;
   compactShell: boolean;
   onOpenProjects: () => void;
   onOpenSettings: () => void;
   onToggleSidebar: () => void;
-  onToggleInsights: () => void;
-  onAddProject: () => void;
 };
 
 type ProjectContextSidebarProps = {
@@ -69,8 +74,27 @@ type ProjectSelectorDialogProps = {
   categories: ProjectCategory[];
   projects: ProjectSnapshot[];
   dictionary: DashboardLocale;
+  currentProjectId: string | null;
   onClose: () => void;
   onSelectProject: (projectId: string) => void;
+  onDeleteProject: (projectId: string) => void;
+};
+
+type DashboardSpeedDialProps = {
+  activeTopMenu: DashboardPrimaryMenu;
+  compactShell: boolean;
+  latestProjectSummary: string;
+  dictionary: DashboardLocale;
+  onGoHome: () => void;
+  onAddProject: () => void;
+  onToggleInsights: () => void;
+  onOpenProjectSelector: () => void;
+};
+
+type DashboardMobileBottomNavigationProps = {
+  value: DashboardBottomNavigationValue;
+  dictionary: DashboardLocale;
+  onChange: (value: DashboardBottomNavigationValue) => void;
 };
 
 type ProjectVersionMeta = {
@@ -80,9 +104,6 @@ type ProjectVersionMeta = {
 
 export function TopNavigation(props: TopNavigationProps) {
   const theme = useTheme();
-  const latestProjectSummary = `${props.latestProject} · ${
-    props.latestProjectVersion ?? props.dictionary.unknown
-  }`;
   const navItems = [
     { id: "projects", label: props.dictionary.projectMenu, onClick: props.onOpenProjects },
     { id: "settings", label: props.dictionary.settings, onClick: props.onOpenSettings }
@@ -148,39 +169,103 @@ export function TopNavigation(props: TopNavigationProps) {
           ) : null}
         </Stack>
 
-        <Stack direction="row" spacing={1} sx={{ alignItems: "center", minWidth: 0 }}>
-          {props.activeTopMenu === "projects" ? (
-            <>
-              {!props.compactShell ? (
-                <Button variant="contained" startIcon={<AddRounded />} onClick={props.onAddProject}>
-                  {props.dictionary.addProject}
-                </Button>
-              ) : null}
-              <IconButton
-                onClick={props.onToggleInsights}
-                sx={{
-                  borderRadius: 1,
-                  border: `1px solid ${alpha(theme.palette.common.white, 0.08)}`,
-                  color: "text.primary"
-                }}
-              >
-                <MenuRounded />
-              </IconButton>
-            </>
-          ) : (
-            <>
-              <Chip
-                label={`${props.dictionary.latestProject}: ${latestProjectSummary}`}
-                color="primary"
-                sx={{ maxWidth: { xs: 164, md: 280 } }}
-              />
-              <Button variant="outlined" onClick={props.onToggleInsights}>
-                {props.dictionary.openInsights}
-              </Button>
-            </>
-          )}
-        </Stack>
+        <Box sx={{ width: props.compactShell ? 0 : 1, height: 1 }} />
       </Stack>
+    </Paper>
+  );
+}
+
+export function DashboardSpeedDial(props: DashboardSpeedDialProps) {
+  const actions = [
+    {
+      id: "latest",
+      icon: <InfoRounded />,
+      label: `${props.dictionary.latestProject}: ${props.latestProjectSummary}`,
+      disabled: true,
+      onClick: undefined
+    },
+    {
+      id: "home",
+      icon: <HomeRounded />,
+      label: props.dictionary.homeNavigation,
+      disabled: false,
+      onClick: props.onGoHome
+    },
+    {
+      id: "add",
+      icon: <AddRounded />,
+      label: props.dictionary.addProject,
+      disabled: false,
+      onClick: props.onAddProject
+    },
+    ...(props.activeTopMenu === "projects"
+      ? [
+          {
+            id: "select-project",
+            icon: <FolderRounded />,
+            label: props.dictionary.changeProjectAction,
+            disabled: false,
+            onClick: props.onOpenProjectSelector
+          },
+          {
+            id: "insights",
+            icon: <InsightsRounded />,
+            label: props.dictionary.openInsights,
+            disabled: false,
+            onClick: props.onToggleInsights
+          }
+        ]
+      : [])
+  ];
+
+  return (
+    <SpeedDial
+      ariaLabel={props.dictionary.speedDialActions}
+      icon={<SpeedDialIcon />}
+      sx={{
+        position: "fixed",
+        right: { xs: 16, md: 24 },
+        bottom: props.compactShell ? 88 : 24,
+        zIndex: 20
+      }}
+    >
+      {actions.map((action) => (
+        <SpeedDialAction
+          key={action.id}
+          icon={action.icon}
+          tooltipTitle={action.label}
+          FabProps={{ disabled: action.disabled, size: "small" }}
+          onClick={action.onClick}
+        />
+      ))}
+    </SpeedDial>
+  );
+}
+
+export function DashboardMobileBottomNavigation(props: DashboardMobileBottomNavigationProps) {
+  return (
+    <Paper
+      square
+      elevation={8}
+      sx={{
+        display: { xs: "block", lg: "none" },
+        position: "fixed",
+        left: 0,
+        right: 0,
+        bottom: 0,
+        zIndex: 18,
+        borderTop: (theme) => `1px solid ${theme.palette.divider}`
+      }}
+    >
+      <BottomNavigation
+        showLabels
+        value={props.value}
+        onChange={(_event, value: DashboardBottomNavigationValue) => props.onChange(value)}
+      >
+        <BottomNavigationAction label={props.dictionary.homeNavigation} value="home" icon={<HomeRounded />} />
+        <BottomNavigationAction label={props.dictionary.projectMenu} value="projects" icon={<FolderRounded />} />
+        <BottomNavigationAction label={props.dictionary.settings} value="settings" icon={<SettingsRounded />} />
+      </BottomNavigation>
     </Paper>
   );
 }
@@ -327,6 +412,7 @@ export function ProjectSelectorDialog(props: ProjectSelectorDialogProps) {
 
                       return (
                         <ButtonBase
+                          component="div"
                           key={project.id}
                           onClick={() => props.onSelectProject(project.id)}
                           sx={{
@@ -386,6 +472,18 @@ export function ProjectSelectorDialog(props: ProjectSelectorDialogProps) {
                                 <Typography variant="caption" color="text.secondary">
                                   {project.activeTopics.length} {props.dictionary.active}
                                 </Typography>
+                                <IconButton
+                                  color="error"
+                                  size="small"
+                                  disabled={project.id === props.currentProjectId}
+                                  aria-label={`${props.dictionary.deleteProject}: ${project.name}`}
+                                  onClick={(event) => {
+                                    event.stopPropagation();
+                                    props.onDeleteProject(project.id);
+                                  }}
+                                >
+                                  <DeleteRounded fontSize="small" />
+                                </IconButton>
                               </Stack>
                             </Box>
                           </Stack>
