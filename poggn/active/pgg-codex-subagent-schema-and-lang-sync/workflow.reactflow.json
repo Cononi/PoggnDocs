@@ -24,7 +24,7 @@
       "type": "state",
       "data": {
         "label": "state/current.md",
-        "next": "pgg-code"
+        "next": "pgg-archive"
       }
     },
     {
@@ -97,6 +97,15 @@
         "status": "reviewed",
         "score": 98
       }
+    },
+    {
+      "id": "qa",
+      "type": "qa",
+      "data": {
+        "label": "qa/report.md",
+        "status": "done",
+        "score": 99
+      }
     }
   ],
   "edges": [
@@ -149,6 +158,11 @@
       "id": "code-review-to-refactor-review",
       "source": "code-review",
       "target": "refactor-review"
+    },
+    {
+      "id": "refactor-review-to-qa",
+      "source": "refactor-review",
+      "target": "qa"
     }
   ]
 }

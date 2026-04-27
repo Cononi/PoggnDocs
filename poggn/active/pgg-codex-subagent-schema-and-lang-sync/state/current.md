@@ -6,7 +6,7 @@ pgg-codex-subagent-schema-and-lang-sync
 
 ## Current Stage
 
-refactor
+qa
 
 ## Goal
 
@@ -23,6 +23,7 @@ Codex subagent 공식 스키마에 맞게 generated agent files를 수정하고,
 - implementation index: `poggn/active/pgg-codex-subagent-schema-and-lang-sync/implementation/index.md`
 - code review: `poggn/active/pgg-codex-subagent-schema-and-lang-sync/reviews/code.review.md`
 - refactor review: `poggn/active/pgg-codex-subagent-schema-and-lang-sync/reviews/refactor.review.md`
+- QA report: `poggn/active/pgg-codex-subagent-schema-and-lang-sync/qa/report.md`
 - spec:
   - `poggn/active/pgg-codex-subagent-schema-and-lang-sync/spec/agents/codex-custom-agent-schema.md`
   - `poggn/active/pgg-codex-subagent-schema-and-lang-sync/spec/routing/pgg-routing-metadata-preservation.md`
@@ -60,6 +61,8 @@ Codex subagent 공식 스키마에 맞게 generated agent files를 수정하고,
 - routing manifest path: `.codex/add/AGENT-ROUTING.toml`
 - `.codex/agents/main.toml`: removed from generated custom-agent load path
 - custom agent files: generated with `name`, `description`, and `developer_instructions`
+- QA status: pass
+- archive allowed: yes
 
 ## User Question Record
 
@@ -119,11 +122,12 @@ Codex subagent 공식 스키마에 맞게 generated agent files를 수정하고,
 | UPDATE | `.codex/sh/pgg-git-publish.sh` | `implementation/diffs/015_REFACTOR_stage_helper_deleted_path_staging.diff` |
 | UPDATE | `.pgg/project.json` | `implementation/diffs/015_REFACTOR_stage_helper_deleted_path_staging.diff` |
 | CREATE | `poggn/active/pgg-codex-subagent-schema-and-lang-sync/reviews/refactor.review.md` | 없음 |
+| CREATE | `poggn/active/pgg-codex-subagent-schema-and-lang-sync/qa/report.md` | 없음 |
 
 ## Last Expert Score
 
-- phase: refactor
-- score: 98
+- phase: qa
+- score: 99
 - blocking issues: none
 
 ## Open Items
@@ -140,13 +144,17 @@ Codex subagent 공식 스키마에 맞게 generated agent files를 수정하고,
 - `node packages/cli/dist/index.js update --cwd /config/workspace/poggn-ai`: pass, no conflicts
 - refactor cleanup verified mixed Korean/English role classification text was removed from generated agent files
 - refactor cleanup verified deleted/ignored candidate path staging works through `pnpm test`
+- `./.codex/sh/pgg-gate.sh pgg-qa pgg-codex-subagent-schema-and-lang-sync`: pass
+- QA final `pnpm build`: pass
+- QA final `pnpm test`: pass, 41/41 tests
+- QA verified `.codex/agents/main.toml` is no longer generated and pgg routing metadata is preserved at `.codex/add/AGENT-ROUTING.toml`
 
 ## Next Action
 
-`pgg-qa`
+`pgg-archive`
 
 ## Git Publish Message
 
-- title: fix: 2.3.3.Codex agent schema sync
-- why: Generated Codex agent files must match the official custom agent schema and generated workflow documents must follow the configured project language so init, update, and lang results are usable without parser warnings or mixed-language docs.
+- title: fix: 2.3.3.Codex agent schema 정합성
+- why: Codex custom agent 파일과 pgg routing 문서가 공식 schema와 프로젝트 언어 설정을 따르도록 생성 규칙과 검증을 정리했습니다.
 - footer: Refs: pgg-codex-subagent-schema-and-lang-sync

@@ -10,3 +10,7 @@
 {"ts":"2026-04-27T04:18:57Z","stage":"refactor","event":"stage-progress","source":"pgg-refactor","summary":"cleaned Korean generated agent classification wording and refreshed managed assets"}
 {"ts":"2026-04-27T04:18:57Z","stage":"refactor","event":"stage-progress","source":"pgg-refactor","summary":"hardened stage and publish helper staging for deleted ignored candidate paths"}
 {"ts":"2026-04-27T04:29:21Z","stage":"refactor","event":"stage-commit","archiveType":"fix","targetVersion":"2.3.3","projectLanguage":"ko","commitTitle":"fix: 2.3.3.agent 분류 문구 정리","summary":"agent 분류 문구 정리","why":"한국어 generated agent instruction에서 혼합 영어 분류 문구를 제거하고 삭제된 ignored candidate path도 stage helper가 안정적으로 처리하도록 정리했습니다.","footer":"Refs: pgg-codex-subagent-schema-and-lang-sync"}
+{"ts":"2026-04-27T04:30:27Z","stage":"qa","event":"stage-started","source":"pgg-qa"}
+{"ts":"2026-04-27T04:32:02Z","stage":"qa","event":"stage-progress","source":"pgg-qa","summary":"verified pgg-qa gate, build, test, generated Codex agent schema, routing manifest preservation, and language sync regression"}
+{"ts":"2026-04-27T04:32:02Z","stage":"qa","event":"stage-completed","source":"verified","score":99}
+{"ts":"2026-04-27T04:37:34Z","stage":"qa","event":"stage-commit","archiveType":"fix","targetVersion":"2.3.3","projectLanguage":"ko","commitTitle":"fix: 2.3.3.qa 완료 기록","summary":"qa 완료 기록","why":"QA 산출물과 최종 검증 변경은 archive publish 전에 별도 완료 commit으로 남아야 한다.","footer":"Refs: pgg-codex-subagent-schema-and-lang-sync"}
