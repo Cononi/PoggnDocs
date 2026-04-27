@@ -99,7 +99,8 @@ dashboard를 URL 유지, 모바일 navigation, Speed Dial action, i18n 기본 �
 - task document review: pass
 - `./.codex/sh/pgg-gate.sh pgg-plan dashboard-mobile-routing`: pass
 - `pnpm --filter @pgg/dashboard build`: pass
-- `./.codex/sh/pgg-gate.sh pgg-code dashboard-mobile-routing`: pending
+- `./.codex/sh/pgg-gate.sh pgg-code dashboard-mobile-routing`: pass
+- implementation stage commit: `017e6a279fecee4dfccf0c7b98276856cf58aeb7`
 - current-project verification contract: `manual verification required`
 
 ## Git Publish Message
