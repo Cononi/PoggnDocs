@@ -96,7 +96,9 @@ refactor
 - verification:
   - `pnpm build`: pass
   - `pnpm test`: pass, 49 tests
-  - `pgg-stage-commit refactor`: pending
+  - `pgg-stage-commit refactor`: committed `0c139ec8941a500fc9e41f565af7fffd7f410488`
+  - `pgg-stage-commit branch recovery`: `main` -> `ai/fix/2.6.1-git-gap`
+  - `pgg-gate pgg-qa`: pass
 
 ## Audit Applicability
 
