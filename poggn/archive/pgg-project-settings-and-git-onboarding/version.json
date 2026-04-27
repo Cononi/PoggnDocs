@@ -1,0 +1,14 @@
+{
+  "topic": "pgg-project-settings-and-git-onboarding",
+  "changeType": "feat",
+  "versionBump": "minor",
+  "version": "2.5.0",
+  "targetVersion": "2.5.0",
+  "previousVersion": "2.4.0",
+  "shortName": "project-onboarding",
+  "workingBranch": "ai/feat/2.5.0-project-onboarding",
+  "releaseBranch": "release/2.5.0-project-onboarding",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-27T07:43:14Z",
+  "history": "poggn/version-history.ndjson"
+}

@@ -9,11 +9,30 @@ export type PggAutoMode = TemplateAutoMode;
 export type PggProvider = TemplateProvider;
 export type PggTeamsMode = TemplateTeamsMode;
 export type PggGitMode = "on" | "off";
+export type PggGitProvider = "github" | "gitlab" | "unknown";
+export type PggGitAuthMethod = "https-token" | "ssh" | "provider-cli" | "unknown";
+export type PggGitSetupStatus = "none" | "detected" | "configured" | "deferred" | "failed";
+export type PggGitVisibility = "private" | "public" | "unknown";
+export interface ParsedGitRemote {
+    provider: PggGitProvider;
+    owner: string;
+    repository: string;
+    url: string;
+}
 export interface ProjectGitConfig {
     mode: PggGitMode;
     defaultRemote: string;
     workingBranchPrefix: string;
     releaseBranchPrefix: string;
+    setupStatus: PggGitSetupStatus;
+    provider?: PggGitProvider;
+    owner?: string;
+    repository?: string;
+    remoteUrl?: string;
+    authMethod?: PggGitAuthMethod;
+    visibility?: PggGitVisibility;
+    defaultBranch?: string;
+    setupMessage?: string;
 }
 export interface ManagedFileRecord {
     path: string;
@@ -39,6 +58,17 @@ export interface ProjectManifest {
     };
     verification: import("./verification.js").ProjectVerificationConfig;
     managedFiles: ManagedFileRecord[];
+}
+export interface ProjectGitSetupInspection {
+    path: "fast" | "setup";
+    git: ProjectGitConfig;
+    parsedRemote: ParsedGitRemote | null;
+    hasGitRepository: boolean;
+    canUseProviderCli: {
+        github: boolean;
+        gitlab: boolean;
+    };
+    message: string;
 }
 export interface RegistryProjectEntry {
     id: string;
@@ -234,8 +264,18 @@ export interface ProjectSnapshot {
     autoMode: PggAutoMode;
     teamsMode: PggTeamsMode;
     gitMode: PggGitMode;
+    defaultRemote: string;
     workingBranchPrefix: string;
     releaseBranchPrefix: string;
+    gitSetupStatus: PggGitSetupStatus;
+    gitProvider: PggGitProvider | null;
+    gitOwner: string | null;
+    gitRepository: string | null;
+    gitRemoteUrl: string | null;
+    gitAuthMethod: PggGitAuthMethod | null;
+    gitVisibility: PggGitVisibility | null;
+    gitDefaultBranch: string | null;
+    gitSetupMessage: string | null;
     installedVersion: string | null;
     pggVersion: string | null;
     projectVersion: string | null;
@@ -287,6 +327,8 @@ export interface InitOptions {
     teamsMode?: PggTeamsMode;
     gitMode?: PggGitMode;
 }
+export declare function parseGitRemoteUrl(remoteUrl: string): ParsedGitRemote | null;
+export declare function inspectProjectGitSetup(rootDir: string): Promise<ProjectGitSetupInspection>;
 export declare function createProjectManifest(rootDir: string, options?: InitOptions): ProjectManifest;
 export declare function loadProjectManifest(rootDir: string): Promise<ProjectManifest | null>;
 export declare function saveProjectManifest(rootDir: string, manifest: ProjectManifest): Promise<void>;
@@ -301,6 +343,12 @@ export declare function updateProjectLanguage(rootDir: string, language: PggLang
 export declare function updateProjectAutoMode(rootDir: string, autoMode: PggAutoMode): Promise<SyncResult>;
 export declare function updateProjectTeamsMode(rootDir: string, teamsMode: PggTeamsMode): Promise<SyncResult>;
 export declare function updateProjectGitMode(rootDir: string, gitMode: PggGitMode): Promise<SyncResult>;
+export declare function deferProjectGitSetup(rootDir: string, setupMessage: string): Promise<SyncResult>;
+export declare function updateProjectGitConnection(rootDir: string, updates: Partial<Pick<ProjectGitConfig, "provider" | "owner" | "repository" | "remoteUrl" | "authMethod" | "visibility" | "defaultBranch" | "setupMessage">> & {
+    setupStatus?: PggGitSetupStatus;
+    mode?: PggGitMode;
+    defaultRemote?: string;
+}): Promise<SyncResult>;
 export declare function updateProjectDashboardPort(rootDir: string, defaultPort: number): Promise<SyncResult>;
 export declare function updateProjectDashboardTitle(rootDir: string, title: string): Promise<SyncResult>;
 export declare function updateProjectMainSettings(rootDir: string, updates: {

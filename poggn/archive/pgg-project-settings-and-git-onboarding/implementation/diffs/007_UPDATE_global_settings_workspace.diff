@@ -1,0 +1,93 @@
+diff --git a/apps/dashboard/src/features/settings/SettingsWorkspace.tsx b/apps/dashboard/src/features/settings/SettingsWorkspace.tsx
+index 9b40ef5..58b0d02 100644
+--- a/apps/dashboard/src/features/settings/SettingsWorkspace.tsx
++++ b/apps/dashboard/src/features/settings/SettingsWorkspace.tsx
+@@ -131,18 +131,6 @@ export function SettingsWorkspace(props: SettingsWorkspaceProps) {
+               </Stack>
+             </SettingsSection>
+ 
+-            <SettingsSection title={props.dictionary.language} helper={props.dictionary.languageHint}>
+-              <InlineToggleGroup
+-                options={[
+-                  { value: "ko", label: "KO" },
+-                  { value: "en", label: "EN" }
+-                ]}
+-                value={props.project.language}
+-                disabled={editingDisabled}
+-                onChange={(value) => props.onUpdateLanguage(value as "ko" | "en")}
+-              />
+-            </SettingsSection>
+-
+             <SettingsSection title={props.dictionary.themeMode} helper={props.dictionary.themeModeHint}>
+               <InlineToggleGroup
+                 options={[
+@@ -171,67 +159,8 @@ export function SettingsWorkspace(props: SettingsWorkspaceProps) {
+           </SettingsSection>
+         ) : null}
+ 
+-        {props.panel === "git" ? (
+-          <SettingsSection title={props.dictionary.git} helper={props.dictionary.gitHint}>
+-            <Stack spacing={2}>
+-              {props.project.autoMode === "off" ? (
+-                <Alert severity="warning">{props.dictionary.autoModeRequired}</Alert>
+-              ) : null}
+-              <InlineApplyField
+-                label={props.dictionary.workingBranchPrefix}
+-                value={workingDraft}
+-                disabled={editingDisabled || props.project.autoMode === "off"}
+-                onChange={setWorkingDraft}
+-                onApply={() => props.onApplyGitPrefixes(workingDraft, releaseDraft)}
+-                applyLabel={props.dictionary.applyChanges}
+-              />
+-              <InlineApplyField
+-                label={props.dictionary.releaseBranchPrefix}
+-                value={releaseDraft}
+-                disabled={editingDisabled || props.project.autoMode === "off"}
+-                onChange={setReleaseDraft}
+-                onApply={() => props.onApplyGitPrefixes(workingDraft, releaseDraft)}
+-                applyLabel={props.dictionary.applyChanges}
+-              />
+-            </Stack>
+-          </SettingsSection>
+-        ) : null}
+-
+-        {props.panel === "system" ? (
+-          <SettingsSection title={props.dictionary.system} helper={props.dictionary.systemHint}>
+-            <Stack spacing={2}>
+-              <SystemToggle
+-                label={props.dictionary.autoMode}
+-                checked={autoMode === "on"}
+-                disabled={editingDisabled}
+-                onChange={(checked) => {
+-                  const nextValue = checked ? "on" : "off";
+-                  setAutoMode(nextValue);
+-                  props.onUpdateSystem({ autoMode: nextValue });
+-                }}
+-              />
+-              <SystemToggle
+-                label={props.dictionary.teamsMode}
+-                checked={teamsMode === "on"}
+-                disabled={editingDisabled}
+-                onChange={(checked) => {
+-                  const nextValue = checked ? "on" : "off";
+-                  setTeamsMode(nextValue);
+-                  props.onUpdateSystem({ teamsMode: nextValue });
+-                }}
+-              />
+-              <SystemToggle
+-                label={props.dictionary.gitMode}
+-                checked={gitMode === "on"}
+-                disabled={editingDisabled}
+-                onChange={(checked) => {
+-                  const nextValue = checked ? "on" : "off";
+-                  setGitMode(nextValue);
+-                  props.onUpdateSystem({ gitMode: nextValue });
+-                }}
+-              />
+-            </Stack>
+-          </SettingsSection>
++        {props.panel === "git" || props.panel === "system" ? (
++          <Alert severity="info">{props.dictionary.projectSettingsMovedHint}</Alert>
+         ) : null}
+       </Stack>
+     </Paper>

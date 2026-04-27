@@ -1,0 +1,53 @@
+{
+  "topic": "pgg-project-settings-and-git-onboarding",
+  "version": 1,
+  "nodes": [
+    {
+      "id": "proposal",
+      "type": "doc",
+      "position": { "x": 0, "y": 0 },
+      "data": {
+        "label": "proposal.md",
+        "stage": "proposal",
+        "status": "reviewed",
+        "summary": "Project-scoped pgg settings and git onboarding proposal",
+        "artifact": "proposal.md"
+      }
+    },
+    {
+      "id": "proposal-review",
+      "type": "review",
+      "position": { "x": 360, "y": 0 },
+      "data": {
+        "label": "proposal.review.md",
+        "stage": "proposal",
+        "status": "reviewed",
+        "score": 97,
+        "artifact": "reviews/proposal.review.md"
+      }
+    },
+    {
+      "id": "plan",
+      "type": "next",
+      "position": { "x": 720, "y": 0 },
+      "data": {
+        "label": "pgg-plan",
+        "stage": "plan",
+        "status": "ready",
+        "artifact": "state/current.md"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "proposal-to-review",
+      "source": "proposal",
+      "target": "proposal-review"
+    },
+    {
+      "id": "review-to-plan",
+      "source": "proposal-review",
+      "target": "plan"
+    }
+  ]
+}

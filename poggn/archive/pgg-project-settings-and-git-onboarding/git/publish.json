@@ -1,0 +1,32 @@
+{
+  "topic": "pgg-project-settings-and-git-onboarding",
+  "version": "2.5.0",
+  "targetVersion": "2.5.0",
+  "changeType": "feat",
+  "versionBump": "minor",
+  "commitTitle": "feat: 2.5.0.git 설정 온보딩",
+  "commitSha": "d0c5738f5b9bd9b9b57101ee96696152a2920fc2",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/2.5.0-project-onboarding",
+  "workingBranch": "ai/feat/2.5.0-project-onboarding",
+  "releaseBranch": "release/2.5.0-project-onboarding",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-27T08:17:35Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "update_publish",
+  "upstreamStatus": "unchanged",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/2.5.0-project-onboarding'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "recovered",
+  "branchRecoveryReason": "Governed checkout recovered the publish helper onto 'ai/feat/2.5.0-project-onboarding' from 'release/2.5.0-project-onboarding'.",
+  "branchRecoveryFrom": "release/2.5.0-project-onboarding",
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/pgg-project-settings-and-git-onboarding",
+    "versionFile": "poggn/archive/pgg-project-settings-and-git-onboarding/version.json"
+  }
+}

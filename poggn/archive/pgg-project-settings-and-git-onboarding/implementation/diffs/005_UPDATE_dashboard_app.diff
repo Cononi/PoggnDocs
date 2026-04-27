@@ -1,0 +1,52 @@
+diff --git a/apps/dashboard/src/app/DashboardApp.tsx b/apps/dashboard/src/app/DashboardApp.tsx
+index 2a12e14..41ae263 100644
+--- a/apps/dashboard/src/app/DashboardApp.tsx
++++ b/apps/dashboard/src/app/DashboardApp.tsx
+@@ -479,6 +479,20 @@ export default function DashboardApp() {
+     );
+   };
+ 
++  const mutateProject = (
++    projectId: string,
++    section: "main" | "refresh" | "git" | "system",
++    body: Record<string, unknown>
++  ) => {
++    mutateSnapshot(createMutationPayload(`/api/dashboard/projects/${projectId}/${section}`, "PATCH", body));
++  };
++
++  const deferProjectGitSetup = (projectId: string, message: string) => {
++    mutateSnapshot(
++      createMutationPayload(`/api/dashboard/projects/${projectId}/git/defer`, "POST", { message })
++    );
++  };
++
+   const focusProjectContext = (projectId: string) => {
+     const shouldResetSelection = selectedProjectId !== projectId;
+     markDashboardInteraction("project-switch", "start");
+@@ -573,6 +587,26 @@ export default function DashboardApp() {
+       }}
+       onSaveSelection={(content) => saveFileMutation.mutate(content)}
+       onDeleteSelection={() => deleteFileMutation.mutate()}
++      onApplyGitPrefixes={(workingBranchPrefix, releaseBranchPrefix) => {
++        if (boardContextProject) {
++          mutateProject(boardContextProject.id, "git", { workingBranchPrefix, releaseBranchPrefix });
++        }
++      }}
++      onUpdateLanguage={(language) => {
++        if (boardContextProject) {
++          mutateProject(boardContextProject.id, "main", { language });
++        }
++      }}
++      onUpdateSystem={(payload) => {
++        if (boardContextProject) {
++          mutateProject(boardContextProject.id, "system", payload);
++        }
++      }}
++      onDeferGitSetup={(message) => {
++        if (boardContextProject) {
++          deferProjectGitSetup(boardContextProject.id, message);
++        }
++      }}
+     />
+   );
+ 

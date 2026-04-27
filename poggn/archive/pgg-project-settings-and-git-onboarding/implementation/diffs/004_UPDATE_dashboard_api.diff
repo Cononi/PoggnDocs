@@ -1,0 +1,32 @@
+diff --git a/apps/dashboard/vite.config.ts b/apps/dashboard/vite.config.ts
+index 4fed121..413e35e 100644
+--- a/apps/dashboard/vite.config.ts
++++ b/apps/dashboard/vite.config.ts
+@@ -8,6 +8,7 @@ import {
+   deleteTopicFile,
+   deleteRegisteredProject,
+   deleteProjectCategory,
++  deferProjectGitSetup,
+   moveProjectToCategory,
+   readTopicFileDetail,
+   registerExistingProject,
+@@ -226,6 +227,19 @@ function createDashboardApiPlugin(): Plugin {
+             return;
+           }
+ 
++          const projectGitDeferMatch = url.pathname.match(/^\/api\/dashboard\/projects\/([^/]+)\/git\/defer$/);
++          if (projectGitDeferMatch && request.method === "POST") {
++            const body = await readJsonBody(request);
++            await deferProjectGitSetup(
++              await resolveProjectRootDir(projectGitDeferMatch[1]!),
++              typeof body.message === "string"
++                ? body.message
++                : "Git setup was deferred and can be completed later."
++            );
++            writeJson(response, 200, await buildDashboardSnapshot(dashboardRoot));
++            return;
++          }
++
+           const projectSystemMatch = url.pathname.match(/^\/api\/dashboard\/projects\/([^/]+)\/system$/);
+           if (projectSystemMatch && request.method === "PATCH") {
+             const body = await readJsonBody(request);

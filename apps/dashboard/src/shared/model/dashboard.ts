@@ -151,8 +151,18 @@ export type ProjectSnapshot = {
   autoMode: "on" | "off";
   teamsMode: "on" | "off";
   gitMode: "on" | "off";
+  defaultRemote: string;
   workingBranchPrefix: string;
   releaseBranchPrefix: string;
+  gitSetupStatus: "none" | "detected" | "configured" | "deferred" | "failed";
+  gitProvider: "github" | "gitlab" | "unknown" | null;
+  gitOwner: string | null;
+  gitRepository: string | null;
+  gitRemoteUrl: string | null;
+  gitAuthMethod: "https-token" | "ssh" | "provider-cli" | "unknown" | null;
+  gitVisibility: "private" | "public" | "unknown" | null;
+  gitDefaultBranch: string | null;
+  gitSetupMessage: string | null;
   installedVersion: string | null;
   pggVersion: string | null;
   projectVersion: string | null;
@@ -200,7 +210,8 @@ export type DashboardDetailSection =
   | "main"
   | "history"
   | "report"
-  | "files";
+  | "files"
+  | "settings";
 
 export type DashboardSettingsView = "main" | "refresh" | "git" | "system";
 
