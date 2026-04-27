@@ -24,6 +24,7 @@ Workflow tab timeline/git UI를 `add-img/git.png`, `add-img/timeline.png` refere
 ## Data Requirements
 
 - Timeline row는 flow 단위다.
+- Timeline row 순서는 최신 flow가 위에 오도록 timestamp 내림차순으로 정렬한다.
 - Flow title에는 flow LLM actual token과 Local estimated token을 분리 표시한다.
 - File row에는 file명 위에 `LLM`과 `Local` token label을 먼저 표시하고, 그 아래 file path/name을 표시한다.
 - Git commit 내용은 실제 evidence와 일치해야 한다.
@@ -41,6 +42,7 @@ Workflow tab timeline/git UI를 `add-img/git.png`, `add-img/timeline.png` refere
 - 현재 dashboard의 navy/cyan/blue accent tone과 8px 이하 radius 기준을 유지한다.
 - Timeline의 flow 연결선은 overview workflow progress처럼 각 flow node를 끊기지 않는 rail로 이어야 한다.
 - 완료 check node와 완료 rail은 overview workflow progress의 completed 색상 token(`success.main`/`success.light`)을 사용한다.
+- 완료 rail은 check 원을 관통해 보이면 안 되며, 원 내부는 불투명 배경으로 선과 시각적으로 분리한다.
 - table/header/body column width는 mobile에서 single-column stack으로 무너지되 text overlap이 없어야 한다.
 - long file path와 commit title은 `overflowWrap: anywhere` 또는 equivalent로 깨지지 않아야 한다.
 
@@ -55,6 +57,8 @@ Workflow tab timeline/git UI를 `add-img/git.png`, `add-img/timeline.png` refere
   - flow row grouping
   - overview flow와 같은 연속 rail 연결
   - completed check 색상은 overview completed 색상과 일치
+  - completed rail does not visually pass through check circles
+  - timeline rows are sorted newest first
   - files and commits side-by-side on desktop
   - file tree/detail affordance
   - flow/file token labels are split into LLM actual and Local estimated

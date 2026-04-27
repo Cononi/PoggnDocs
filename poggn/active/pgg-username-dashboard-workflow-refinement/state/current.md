@@ -66,12 +66,16 @@ implementation
   - timeline flow 연결선은 overview flow처럼 이어지고 완료 check 색상은 overview completed 색상과 일치해야 한다.
   - 생성 파일 row는 파일명 위에 LLM/Local token label을 보여야 한다.
   - 문서는 신규/기존 적용 프로젝트 모두에서 LLM actual과 Local estimated token 사용량을 분리 측정하도록 명시해야 한다.
+  - 완료 timeline의 연결선이 check 원을 관통해 보이면 안 된다.
+  - timeline 순서는 내림차순이어야 한다.
 - additional implementation:
   - token usage contract에 `llmActualTokens`와 `localEstimatedTokens`를 분리 추가했다.
   - LLM actual evidence가 없는 경우 `기록 없음`으로 표시하고 local estimate는 file content 기반 값으로 표시한다.
   - timeline UI를 table row에서 vertical rail + stage card 구조로 변경했다.
   - timeline rail/check 색상을 overview completed 색상으로 정렬하고 생성 파일 token chips를 파일명 위로 이동했다.
   - token 관련 spec/QA 문서에 모든 project topic snapshot의 LLM actual/Local estimated 분리 측정 계약을 추가했다.
+  - check 원 배경을 불투명 처리하고 rail 시작 위치를 원 밖으로 내려 선이 원 내부를 관통해 보이지 않게 했다.
+  - timeline row를 최신 timestamp 기준 내림차순으로 정렬했다.
 - residual risk:
   - reference image parity는 browser screenshot/manual visual evidence가 QA/refactor 이후 필요하다
   - project add Stepper remote FAST/SETUP 세부 credential 입력 UX는 후속 polish 여지가 있다
@@ -145,6 +149,8 @@ implementation
 - evidence: additional `pnpm test:dashboard` passed
 - evidence: follow-up `pnpm --filter @pgg/dashboard build` passed with existing Vite chunk-size warning
 - evidence: follow-up `pnpm test:dashboard` passed
+- evidence: follow-up descending timeline `pnpm --filter @pgg/dashboard build` passed with existing Vite chunk-size warning
+- evidence: follow-up descending timeline `pnpm test:dashboard` passed
 
 ## Changed Files
 
@@ -199,6 +205,9 @@ implementation
 | UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-overview-token.md` | LLM actual/Local estimated split token measurement contract |
 | UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md` | timeline rail/check color and file token placement criteria |
 | UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/spec/qa/token-and-reference-regression.md` | QA criteria for split tokens across project snapshots |
+| UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | rail no longer visually crosses completed check circles |
+| UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | timeline rows sorted newest first |
+| UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md` | newest-first timeline and rail/check separation criteria |
 
 ## Dirty Worktree Baseline
 

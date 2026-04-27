@@ -1246,6 +1246,7 @@ function TimelineMilestone(props: {
   const theme = useTheme();
   const accent = theme.palette.success.main;
   const accentLight = theme.palette.success.light;
+  const nodeBackground = theme.palette.mode === "dark" ? "#071428" : theme.palette.background.paper;
 
   return (
     <Box
@@ -1262,12 +1263,13 @@ function TimelineMilestone(props: {
           <Box
             sx={{
               position: "absolute",
-              top: 34,
-              bottom: -24,
+              top: 46,
+              bottom: -18,
               width: 3,
               borderRadius: 999,
               bgcolor: accent,
-              boxShadow: `0 0 12px ${alpha(accent, 0.42)}`
+              boxShadow: `0 0 12px ${alpha(accent, 0.42)}`,
+              zIndex: 0
             }}
           />
         ) : null}
@@ -1279,11 +1281,11 @@ function TimelineMilestone(props: {
             display: "grid",
             placeItems: "center",
             color: "#fff",
-            bgcolor: alpha(accent, 0.18),
+            bgcolor: nodeBackground,
             border: `2px solid ${alpha(accentLight, 0.9)}`,
             boxShadow: `0 0 0 4px ${alpha(accent, 0.16)}, 0 0 22px ${alpha(accent, 0.46)}`,
             position: "relative",
-            zIndex: 1
+            zIndex: 2
           }}
         >
           <CheckRounded fontSize="small" sx={{ color: accent }} />

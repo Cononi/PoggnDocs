@@ -1048,20 +1048,25 @@ export function buildTimelineRows(
         }));
 
       return {
-        id: flow.id,
-        step: workflowFlowLabel(flow.id, dictionary),
-        llmActualTokens: sumNullableTokens(files.map((file) => file.llmActualTokens)),
-        localEstimatedTokens: files.reduce((sum, file) => sum + file.localEstimatedTokens, 0),
-        tone: flow.id === "qa" || flow.id === "done" ? "success" : flow.optional ? "warning" : "primary",
-        completedBy: username,
-        time: formatDateValue(updatedAt.value, language, fallbackTime),
-        dateLabel: formatTimelineDateLine(updatedAt.value, language, fallbackTime),
-        timeLabel: formatTimelineTimeLine(updatedAt.value, language),
-        duration: updatedAt.source ?? "recorded",
-        files,
-        commits
+        sortTime: timestampMillis(updatedAt.value) ?? 0,
+        row: {
+          id: flow.id,
+          step: workflowFlowLabel(flow.id, dictionary),
+          llmActualTokens: sumNullableTokens(files.map((file) => file.llmActualTokens)),
+          localEstimatedTokens: files.reduce((sum, file) => sum + file.localEstimatedTokens, 0),
+          tone: flow.id === "qa" || flow.id === "done" ? "success" : flow.optional ? "warning" : "primary",
+          completedBy: username,
+          time: formatDateValue(updatedAt.value, language, fallbackTime),
+          dateLabel: formatTimelineDateLine(updatedAt.value, language, fallbackTime),
+          timeLabel: formatTimelineTimeLine(updatedAt.value, language),
+          duration: updatedAt.source ?? "recorded",
+          files,
+          commits
+        }
       };
-    });
+    })
+    .sort((left, right) => right.sortTime - left.sortTime)
+    .map((entry) => entry.row);
 }
 
 function formatTimelineDateLine(value: string | null, language: HistoryLanguage, fallback: string): string {
