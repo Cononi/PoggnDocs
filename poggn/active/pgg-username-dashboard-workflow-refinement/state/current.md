@@ -63,10 +63,15 @@ implementation
 - additional user request:
   - LLM 실사용 token과 local 추정 token을 분리 표시한다.
   - workflow timeline을 `add-img/timeline.png` 기준 세로 timeline/date/card/files/git split 구조로 다시 맞춘다.
+  - timeline flow 연결선은 overview flow처럼 이어지고 완료 check 색상은 overview completed 색상과 일치해야 한다.
+  - 생성 파일 row는 파일명 위에 LLM/Local token label을 보여야 한다.
+  - 문서는 신규/기존 적용 프로젝트 모두에서 LLM actual과 Local estimated token 사용량을 분리 측정하도록 명시해야 한다.
 - additional implementation:
   - token usage contract에 `llmActualTokens`와 `localEstimatedTokens`를 분리 추가했다.
   - LLM actual evidence가 없는 경우 `기록 없음`으로 표시하고 local estimate는 file content 기반 값으로 표시한다.
   - timeline UI를 table row에서 vertical rail + stage card 구조로 변경했다.
+  - timeline rail/check 색상을 overview completed 색상으로 정렬하고 생성 파일 token chips를 파일명 위로 이동했다.
+  - token 관련 spec/QA 문서에 모든 project topic snapshot의 LLM actual/Local estimated 분리 측정 계약을 추가했다.
 - residual risk:
   - reference image parity는 browser screenshot/manual visual evidence가 QA/refactor 이후 필요하다
   - project add Stepper remote FAST/SETUP 세부 credential 입력 UX는 후속 polish 여지가 있다
@@ -138,6 +143,8 @@ implementation
 - evidence: additional `pnpm --filter @pgg/core build` passed
 - evidence: additional `pnpm --filter @pgg/dashboard build` passed with existing Vite chunk-size warning
 - evidence: additional `pnpm test:dashboard` passed
+- evidence: follow-up `pnpm --filter @pgg/dashboard build` passed with existing Vite chunk-size warning
+- evidence: follow-up `pnpm test:dashboard` passed
 
 ## Changed Files
 
@@ -188,6 +195,10 @@ implementation
 | UPDATE | `packages/core/dist/index.d.ts` | additional rebuilt core output |
 | UPDATE | `packages/core/dist/index.js` | additional rebuilt core output |
 | UPDATE | `packages/core/dist/index.js.map` | additional rebuilt core output |
+| UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | follow-up timeline rail/check color and generated file token label placement |
+| UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-overview-token.md` | LLM actual/Local estimated split token measurement contract |
+| UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md` | timeline rail/check color and file token placement criteria |
+| UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/spec/qa/token-and-reference-regression.md` | QA criteria for split tokens across project snapshots |
 
 ## Dirty Worktree Baseline
 

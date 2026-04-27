@@ -4,7 +4,7 @@ pgg:
   stage: "review"
   status: "reviewed"
   score: 94
-  updated_at: "2026-04-27T13:24:00Z"
+  updated_at: "2026-04-27T13:35:33Z"
 ---
 
 # Code Review
@@ -33,9 +33,11 @@ pgg:
 - `pnpm test:dashboard`: pass, 2 tests
 - `pnpm build`: pass, Vite chunk-size warning 유지
 - manual CLI check: username missing blocks `pgg init`; `pgg config username 홍길동` 이후 init succeeds
+- additional `pnpm --filter @pgg/dashboard build`: pass, Vite chunk-size warning 유지
+- additional `pnpm test:dashboard`: pass, 2 tests
 
 ## 잔여 리스크
 
-- timeline은 `add-img/timeline.png`의 세로 축, 날짜 컬럼, 단계 카드, 생성 파일/Git Commit split 구조로 재작업했다. 다만 실제 browser screenshot/manual visual evidence는 QA/refactor 이후 최종 판정한다.
-- token 표시는 LLM 실사용과 Local 추정치를 분리했다. 현재 LLM 실사용 evidence가 없는 topic은 `기록 없음`으로 표시하고 local estimate는 file content 기반 deterministic estimate로 표시한다.
+- timeline은 `add-img/timeline.png`의 세로 축, 날짜 컬럼, 단계 카드, 생성 파일/Git Commit split 구조에 맞추고, flow rail과 완료 check 색상을 overview completed 색상으로 정렬했다. 다만 실제 browser screenshot/manual visual evidence는 QA/refactor 이후 최종 판정한다.
+- token 표시는 LLM 실사용과 Local 추정치를 분리했다. 현재 LLM 실사용 evidence가 없는 topic은 `기록 없음`으로 표시하고 local estimate는 file content 기반 deterministic estimate로 표시한다. spec/QA 문서는 신규/기존 project snapshot 모두에서 두 값을 분리 측정하도록 갱신했다.
 - dashboard project add Stepper는 local/defer path 중심으로 구현되어 remote FAST/SETUP의 세부 credential 입력 UX는 후속 개선 여지가 있다.

@@ -1244,14 +1244,8 @@ function TimelineMilestone(props: {
   isLast: boolean;
 }) {
   const theme = useTheme();
-  const accent =
-    props.row.tone === "success"
-      ? theme.palette.success.main
-      : props.row.tone === "warning"
-        ? theme.palette.secondary.main
-        : props.row.tone === "primary"
-          ? theme.palette.primary.main
-          : theme.palette.text.secondary;
+  const accent = theme.palette.success.main;
+  const accentLight = theme.palette.success.light;
 
   return (
     <Box
@@ -1268,10 +1262,12 @@ function TimelineMilestone(props: {
           <Box
             sx={{
               position: "absolute",
-              top: 38,
-              bottom: -16,
-              width: 1,
-              bgcolor: alpha(theme.palette.text.secondary, 0.28)
+              top: 34,
+              bottom: -24,
+              width: 3,
+              borderRadius: 999,
+              bgcolor: accent,
+              boxShadow: `0 0 12px ${alpha(accent, 0.42)}`
             }}
           />
         ) : null}
@@ -1283,12 +1279,14 @@ function TimelineMilestone(props: {
             display: "grid",
             placeItems: "center",
             color: "#fff",
-            bgcolor: alpha(accent, 0.82),
-            border: `1px solid ${alpha(accent, 0.8)}`,
-            boxShadow: `0 0 0 4px ${alpha(accent, 0.16)}`
+            bgcolor: alpha(accent, 0.18),
+            border: `2px solid ${alpha(accentLight, 0.9)}`,
+            boxShadow: `0 0 0 4px ${alpha(accent, 0.16)}, 0 0 22px ${alpha(accent, 0.46)}`,
+            position: "relative",
+            zIndex: 1
           }}
         >
-          <CheckRounded fontSize="small" />
+          <CheckRounded fontSize="small" sx={{ color: accent }} />
         </Box>
       </Box>
       <Box
@@ -1338,11 +1336,15 @@ function TimelineMilestone(props: {
             <Stack spacing={0.75}>
               <Typography variant="body2" sx={{ fontWeight: 800 }}>{props.dictionary.timelineGeneratedFiles} ({props.row.files.length})</Typography>
               {(props.expanded ? props.row.files : props.row.files.slice(0, 3)).map((file) => (
-                <Stack key={file.path} direction="row" spacing={0.75} sx={{ alignItems: "center", minWidth: 0 }}>
+                <Stack key={file.path} direction="row" spacing={0.75} sx={{ alignItems: "flex-start", minWidth: 0 }}>
                   <ChangeBadge kind={file.kind} />
-                  <Typography variant="caption" sx={{ flex: 1, minWidth: 0, overflowWrap: "anywhere" }}>{file.path}</Typography>
-                  <Chip size="small" variant="outlined" label={`${props.dictionary.llmShort}: ${formatTokenValue(file.llmActualTokens, props.dictionary)}`} sx={{ height: 20 }} />
-                  <Chip size="small" variant="outlined" label={`${props.dictionary.localShort}: ${file.localEstimatedTokens.toLocaleString()}`} sx={{ height: 20 }} />
+                  <Stack spacing={0.35} sx={{ flex: 1, minWidth: 0 }}>
+                    <Stack direction="row" spacing={0.5} useFlexGap sx={{ flexWrap: "wrap", minWidth: 0 }}>
+                      <Chip size="small" variant="outlined" label={`${props.dictionary.llmShort}: ${formatTokenValue(file.llmActualTokens, props.dictionary)}`} sx={{ height: 20 }} />
+                      <Chip size="small" variant="outlined" label={`${props.dictionary.localShort}: ${file.localEstimatedTokens.toLocaleString()}`} sx={{ height: 20 }} />
+                    </Stack>
+                    <Typography variant="caption" sx={{ minWidth: 0, overflowWrap: "anywhere", lineHeight: 1.28 }}>{file.path}</Typography>
+                  </Stack>
                 </Stack>
               ))}
               {!props.expanded && props.row.files.length > 3 ? <Typography variant="caption">+ {props.row.files.length - 3} more</Typography> : null}
