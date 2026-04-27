@@ -1,0 +1,32 @@
+{
+  "topic": "pgg-codex-subagent-schema-and-lang-sync",
+  "version": "2.3.3",
+  "targetVersion": "2.3.3",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "commitTitle": "fix: 2.3.3.Codex agent schema 정합성",
+  "commitSha": "3c12d90ca26f6ff0f12b7a7f4f3b2397700e4265",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/2.3.3-codex-sync",
+  "workingBranch": "ai/fix/2.3.3-codex-sync",
+  "releaseBranch": "release/2.3.3-codex-sync",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-27T04:37:40Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/2.3.3-codex-sync'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/pgg-codex-subagent-schema-and-lang-sync",
+    "versionFile": "poggn/archive/pgg-codex-subagent-schema-and-lang-sync/version.json"
+  }
+}
