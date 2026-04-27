@@ -126,6 +126,18 @@
         "score": 94,
         "ref": "reviews/code.review.md"
       }
+    },
+    {
+      "id": "refactor-review",
+      "type": "review",
+      "position": { "x": 780, "y": 320 },
+      "data": {
+        "label": "refactor.review.md",
+        "stage": "refactor",
+        "status": "reviewed",
+        "score": 95,
+        "ref": "reviews/refactor.review.md"
+      }
     }
   ],
   "edges": [
@@ -192,6 +204,18 @@
     {
       "id": "code-review-to-state",
       "source": "code-review",
+      "target": "state-current",
+      "label": "handoff"
+    },
+    {
+      "id": "code-review-to-refactor-review",
+      "source": "code-review",
+      "target": "refactor-review",
+      "label": "refactor"
+    },
+    {
+      "id": "refactor-review-to-state",
+      "source": "refactor-review",
       "target": "state-current",
       "label": "handoff"
     }

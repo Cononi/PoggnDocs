@@ -10,11 +10,16 @@ import { buildRootReadme, initializeProject, updateProject, updateProjectTeamsMo
 
 const STANDALONE_SKILL_PATH = ".codex/skills/pgg-status/SKILL.md";
 const CODEX_CONFIG_PATH = ".codex/config.toml";
-const AGENTS_MAIN_PATH = ".codex/agents/main.toml";
+const CODEX_AGENTS_DIR = ".codex/agents";
+const AGENTS_MAIN_PATH = `${CODEX_AGENTS_DIR}/main.toml`;
 const STATE_PACK_PATH = ".codex/sh/pgg-state-pack.sh";
 
 function checksum(content) {
   return createHash("sha256").update(content).digest("hex");
+}
+
+function codexAgentRolePath(roleId) {
+  return `${CODEX_AGENTS_DIR}/${roleId}.toml`;
 }
 
 async function readManifest(rootDir) {
@@ -127,8 +132,8 @@ test("teams mode controls managed Codex multi-agent config and two-agent routing
 
       assert.match(enabledConfig, /\[features\]\nmulti_agent = true/);
       assert.equal(updatedManifest.teamsMode, "on");
-      assert.equal(updatedManifest.managedFiles.some((entry) => entry.path === ".codex/agents/docs-researcher.toml"), true);
-      assert.equal(updatedManifest.managedFiles.some((entry) => entry.path === ".codex/agents/qa-test-engineer.toml"), true);
+      assert.equal(updatedManifest.managedFiles.some((entry) => entry.path === codexAgentRolePath("docs-researcher")), true);
+      assert.equal(updatedManifest.managedFiles.some((entry) => entry.path === codexAgentRolePath("qa-test-engineer")), true);
     });
   } finally {
     await rm(rootDir, { recursive: true, force: true });
@@ -180,7 +185,7 @@ test("updateProject retires old managed root agents while preserving user-owned 
       assert.equal(existsSync(path.join(rootDir, "agents/custom.toml")), true);
       assert.equal(updatedManifest.managedFiles.some((entry) => entry.path === "agents/main.toml"), false);
       assert.equal(updatedManifest.managedFiles.some((entry) => entry.path === "agents/product-manager.toml"), false);
-      assert.equal(updatedManifest.managedFiles.some((entry) => entry.path === ".codex/agents/main.toml"), true);
+      assert.equal(updatedManifest.managedFiles.some((entry) => entry.path === AGENTS_MAIN_PATH), true);
       assert.equal(result.conflicts.some((conflict) => conflict.path === "agents/product-manager.toml"), true);
       assert.equal(
         existsSync(path.join(rootDir, result.conflicts.find((conflict) => conflict.path === "agents/product-manager.toml").backupPath)),

@@ -1,6 +1,8 @@
 import { CORE_WORKFLOW_SKILLS, GENERATED_SKILLS, MANDATORY_IMPLEMENTATION_CRITERIA_EN, MANDATORY_IMPLEMENTATION_CRITERIA_KO, OPTIONAL_AUDIT_SKILLS, WORKFLOW_FRONTMATTER_SKILLS, WORKFLOW_FRONTMATTER_STAGES } from "./workflow-contract.js";
 const CODEX_AGENT_MAX_THREADS = 4;
 const CODEX_AGENT_MAX_DEPTH = 1;
+const CODEX_AGENTS_DIR = ".codex/agents";
+const CODEX_AGENTS_MAIN_PATH = `${CODEX_AGENTS_DIR}/main.toml`;
 const AGENT_ROLES = [
     {
         id: "product-manager",
@@ -108,6 +110,9 @@ function flowAgentIds(route) {
 function uniqueValues(values) {
     return [...new Set(values)];
 }
+function codexAgentRolePath(roleId) {
+    return `${CODEX_AGENTS_DIR}/${roleId}.toml`;
+}
 function flowStageAliases(route) {
     const stageAliasesByFlow = {
         "pgg-add": ["proposal", "add"],
@@ -185,7 +190,7 @@ function agentsMainToml() {
     return lines([
         `max_threads = ${CODEX_AGENT_MAX_THREADS}`,
         `max_depth = ${CODEX_AGENT_MAX_DEPTH}`,
-        'source_of_truth = ".codex/agents/main.toml and .codex/add/EXPERT-ROUTING.md must stay aligned."',
+        `source_of_truth = "${CODEX_AGENTS_MAIN_PATH} and .codex/add/EXPERT-ROUTING.md must stay aligned."`,
         'activation = "pgg teams=on enables multi-agent orchestration; pgg teams=off keeps a single-agent flow."',
         "",
         "[token_budget]",
@@ -216,9 +221,9 @@ function agentsMainToml() {
 }
 function agentTemplates() {
     return [
-        { path: ".codex/agents/main.toml", content: agentsMainToml() },
+        { path: CODEX_AGENTS_MAIN_PATH, content: agentsMainToml() },
         ...AGENT_ROLES.map((role) => ({
-            path: `.codex/agents/${role.id}.toml`,
+            path: codexAgentRolePath(role.id),
             content: agentRoleToml(role)
         }))
     ];

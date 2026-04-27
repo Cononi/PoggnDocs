@@ -8,3 +8,6 @@
 {"ts":"2026-04-26T15:19:24Z","stage":"implementation","event":"stage-started","source":"pgg-code"}
 {"ts":"2026-04-26T15:27:23Z","stage":"implementation","event":"stage-progress","source":"pgg-code","summary":"implemented .codex/agents path generation, update retirement behavior, routing reference sync, tests, generated update, and implementation diffs"}
 {"ts":"2026-04-27T00:27:01Z","stage":"implementation","event":"stage-commit","archiveType":"fix","targetVersion":"2.3.1","projectLanguage":"ko","commitTitle":"fix: 2.3.1.Codex agents 경로 정렬","summary":"Codex agents 경로 정렬","why":"Codex agent 설정 경로를 .codex/agents로 통일하고 init/update 생성 및 migration 검증을 맞췄다","footer":"Refs: pgg-codex-agents-path-sync"}
+{"ts":"2026-04-27T00:27:59Z","stage":"refactor","event":"stage-started","source":"pgg-refactor"}
+{"ts":"2026-04-27T00:31:04Z","stage":"refactor","event":"stage-progress","source":"pgg-refactor","summary":"centralized .codex/agents path literals in template and test helpers; build/test pass and generated update unchanged"}
+{"ts":"2026-04-27T00:33:20Z","stage":"refactor","event":"stage-commit","archiveType":"fix","targetVersion":"2.3.1","projectLanguage":"ko","commitTitle":"fix: 2.3.1.agents 경로 상수 정리","summary":"agents 경로 상수 정리","why":".codex/agents 경로 계약을 상수와 helper로 모아 template과 test의 중복 문자열 drift를 줄였다","footer":"Refs: pgg-codex-agents-path-sync"}

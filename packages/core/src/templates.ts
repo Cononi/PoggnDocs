@@ -44,6 +44,8 @@ type FlowAgentRoute = {
 
 const CODEX_AGENT_MAX_THREADS = 4;
 const CODEX_AGENT_MAX_DEPTH = 1;
+const CODEX_AGENTS_DIR = ".codex/agents";
+const CODEX_AGENTS_MAIN_PATH = `${CODEX_AGENTS_DIR}/main.toml`;
 
 const AGENT_ROLES: AgentRoleDefinition[] = [
   {
@@ -159,6 +161,10 @@ function uniqueValues(values: string[]): string[] {
   return [...new Set(values)];
 }
 
+function codexAgentRolePath(roleId: string): string {
+  return `${CODEX_AGENTS_DIR}/${roleId}.toml`;
+}
+
 function flowStageAliases(route: FlowAgentRoute): string[] {
   const stageAliasesByFlow: Record<string, string[]> = {
     "pgg-add": ["proposal", "add"],
@@ -241,7 +247,7 @@ function agentsMainToml(): string {
   return lines([
     `max_threads = ${CODEX_AGENT_MAX_THREADS}`,
     `max_depth = ${CODEX_AGENT_MAX_DEPTH}`,
-    'source_of_truth = ".codex/agents/main.toml and .codex/add/EXPERT-ROUTING.md must stay aligned."',
+    `source_of_truth = "${CODEX_AGENTS_MAIN_PATH} and .codex/add/EXPERT-ROUTING.md must stay aligned."`,
     'activation = "pgg teams=on enables multi-agent orchestration; pgg teams=off keeps a single-agent flow."',
     "",
     "[token_budget]",
@@ -273,9 +279,9 @@ function agentsMainToml(): string {
 
 function agentTemplates(): GeneratedFileTemplate[] {
   return [
-    { path: ".codex/agents/main.toml", content: agentsMainToml() },
+    { path: CODEX_AGENTS_MAIN_PATH, content: agentsMainToml() },
     ...AGENT_ROLES.map((role) => ({
-      path: `.codex/agents/${role.id}.toml`,
+      path: codexAgentRolePath(role.id),
       content: agentRoleToml(role)
     }))
   ];

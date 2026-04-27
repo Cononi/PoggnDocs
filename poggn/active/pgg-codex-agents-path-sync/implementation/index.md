@@ -26,6 +26,10 @@ pgg:
 | 004 | CREATE | `.codex/agents/*.toml` | `implementation/diffs/004_MOVE_managed_agent_files.diff` | `T1`, `T2` | pgg update created the managed Codex agent files under `.codex/agents/`. |
 | 004 | DELETE | `agents/*.toml` | `implementation/diffs/004_MOVE_managed_agent_files.diff` | `T2` | pgg update retired prior root managed agent files. |
 | 004 | UPDATE | `.pgg/project.json` | `implementation/diffs/004_MOVE_managed_agent_files.diff` | `T2` | Manifest now tracks `.codex/agents/*` and no root `agents/*` managed paths. |
+| 005 | UPDATE | `packages/core/src/templates.ts` | `implementation/diffs/005_UPDATE_agent_path_constants_refactor.diff` | `T1`, `T3` | Refactored `.codex/agents` path literals into constants and role-path helper. |
+| 005 | UPDATE | `packages/core/test/skill-generation.test.mjs` | `implementation/diffs/005_UPDATE_agent_path_constants_refactor.diff` | `T4` | Refactored test path assertions to use shared local constants/helpers. |
+| 005 | UPDATE | `packages/core/dist/templates.js` | `implementation/diffs/005_UPDATE_agent_path_constants_refactor.diff` | `T1`, `T3` | Built dist output after refactor. |
+| 005 | UPDATE | `packages/core/dist/templates.js.map` | `implementation/diffs/005_UPDATE_agent_path_constants_refactor.diff` | `T1`, `T3` | Built source map output after refactor. |
 
 ## Verification Evidence
 
@@ -33,6 +37,7 @@ pgg:
 - `node packages/cli/dist/index.js update`: pass, created 12 `.codex/agents/*` files and retired 12 root `agents/*` managed files
 - `pnpm test`: pass, 39 tests
 - `.codex/sh/pgg-state-pack.sh pgg-codex-agents-path-sync`: pass, emits `agent_routing_ref: .codex/agents/main.toml`
+- refactor `node packages/cli/dist/index.js update`: pass, unchanged
 
 ## Notes
 
