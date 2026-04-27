@@ -56,6 +56,9 @@ pgg:
 - follow-up request: timeline file action now switches the right file tree to selected flow files, initial tree shows all topic files, reset appears beside search after filtering, and unused table/list buttons are removed
 - `pnpm --filter @pgg/dashboard build`: pass after flow file tree selection, Vite chunk-size warning remains
 - `pnpm test:dashboard`: pass after flow file tree selection
+- follow-up request: timeline generated file list is capped at 3 rows, right file tree rows include LLM/Local token chips, and timeline rail endpoints align to the completed circle outer ring
+- `pnpm --filter @pgg/dashboard build`: pass after file tree token chips and timeline list cap, Vite chunk-size warning remains
+- `pnpm test:dashboard`: pass after file tree token chips and timeline list cap
 
 ## Additional Diff Records
 
@@ -80,3 +83,5 @@ pgg:
 | 034 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `implementation/diffs/034_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.flow_file_tree.diff` | `T4` | timeline file action drives right file tree scope and reset clears flow/search filters |
 | 035 | UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | `implementation/diffs/035_UPDATE_apps_dashboard_src_shared_locale_dashboardLocale_ts.flow_file_tree.diff` | `T7` | i18n labels for flow-scoped file tree and reset action |
 | 036 | UPDATE | `spec/dashboard/workflow-git-timeline-reference.md` | `implementation/diffs/036_UPDATE_spec_dashboard_workflow_git_timeline_reference_md.flow_file_tree.diff` | `T4,T8` | document flow file tree scope, initial all files state, and reset button behavior |
+| 037 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `implementation/diffs/037_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.file_token_tree.diff` | `T4` | cap timeline generated file rows at 3, add LLM/Local token chips to right file tree rows, and align rail endpoints to circle ring |
+| 038 | UPDATE | `spec/dashboard/workflow-git-timeline-reference.md` | `implementation/diffs/038_UPDATE_spec_dashboard_workflow_git_timeline_reference_md.file_token_tree.diff` | `T4,T8` | document timeline file cap, file tree token chips, and rail endpoint criteria |

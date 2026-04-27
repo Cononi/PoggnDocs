@@ -74,6 +74,8 @@ implementation
   - timeline의 모든 파일 보기는 timeline text 확장이 아니라 우측 file tree를 현재 flow 생성 파일 목록으로 전환해야 한다.
   - 초기 우측 file tree는 전체 파일을 보여준다.
   - flow file 보기 이후 검색창 옆 두 icon button 대신 reset button을 보여준다.
+  - timeline 생성파일 목록은 최대 3개씩만 표시한다.
+  - 우측 file tree에 LLM/Local token 정보도 같이 표시한다.
 - additional implementation:
   - token usage contract에 `llmActualTokens`와 `localEstimatedTokens`를 분리 추가했다.
   - LLM actual evidence가 없는 경우 `기록 없음`으로 표시하고 local estimate는 file content 기반 값으로 표시한다.
@@ -88,6 +90,9 @@ implementation
   - timeline file action이 선택 flow 파일 목록을 우측 file tree source로 설정하도록 변경했다.
   - reset button은 flow/search filter를 해제하고 topic 전체 파일 tree로 복구한다.
   - 우측 file search 옆 table/list icon button을 제거했다.
+  - timeline card 내부 생성 파일 목록을 `slice(0, 3)`으로 제한했다.
+  - 우측 file tree file row에 LLM actual과 Local estimated token chip을 추가했다.
+  - timeline rail endpoint를 completed circle 외곽 ring 기준으로 맞췄다.
 - residual risk:
   - reference image parity는 browser screenshot/manual visual evidence가 QA/refactor 이후 필요하다
   - project add Stepper remote FAST/SETUP 세부 credential 입력 UX는 후속 polish 여지가 있다
@@ -167,6 +172,8 @@ implementation
 - evidence: follow-up timeline controls `pnpm test:dashboard` passed
 - evidence: follow-up flow file tree `pnpm --filter @pgg/dashboard build` passed with existing Vite chunk-size warning
 - evidence: follow-up flow file tree `pnpm test:dashboard` passed
+- evidence: follow-up file tree tokens `pnpm --filter @pgg/dashboard build` passed with existing Vite chunk-size warning
+- evidence: follow-up file tree tokens `pnpm test:dashboard` passed
 
 ## Changed Files
 
@@ -229,6 +236,8 @@ implementation
 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | timeline file action scopes right file tree to selected flow and reset restores all files |
 | UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | flow-scoped file tree and reset i18n labels |
 | UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md` | flow file tree/reset behavior criteria |
+| UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | timeline generated files capped at 3 and right file tree file rows include LLM/Local token chips |
+| UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md` | max 3 generated files, file tree token chips, and rail endpoint criteria |
 
 ## Dirty Worktree Baseline
 
