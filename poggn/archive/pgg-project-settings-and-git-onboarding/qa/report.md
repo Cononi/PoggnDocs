@@ -14,7 +14,7 @@ reactflow:
   label: "qa/report.md"
 state:
   summary: "project-scoped pgg settings와 git onboarding 구현을 build/test/gate와 manual verification 분리 기준으로 검증한다."
-  next: "publish retry after unrelated worktree cleanup"
+  next: "done"
 ---
 
 # QA Report
@@ -69,7 +69,7 @@ state:
 - functional QA: pass
 - required audits: none
 - archive eligibility: pass
-- publish result: `publish_blocked` | unrelated dirty worktree paths blocked automatic release publish
+- publish result: `published` | release branch push completed successfully
 - manual verification: GitHub/GitLab real login, repository creation, and push remain required in an environment with credentials
 
 ## Archive / Publish Outcome
@@ -77,11 +77,15 @@ state:
 - archive status: archived
 - version: `2.5.0`
 - version file: `poggn/archive/pgg-project-settings-and-git-onboarding/version.json`
-- publish status: `publish_blocked`
-- push status: `not_attempted`
+- publish status: `published`
+- push status: `success`
+- commit: `5beab8385152fbd46bcb9d04bcb0dbb630b6f5c8`
+- release branch: `release/2.5.0-project-onboarding`
+- published at: `2026-04-27T08:09:33Z`
 - retryable: `true`
-- reason: unrelated worktree changes are present, so automatic publish was deferred
-- note: functional QA and archive completed; release publish success is not recorded yet
+- rollback eligible: `true`
+- cleanup status: `completed`
+- reason: release branch push completed successfully
 
 ## Git Publish Message
 
@@ -91,4 +95,4 @@ state:
 
 ## Decision
 
-- pass, with release publish deferred
+- pass

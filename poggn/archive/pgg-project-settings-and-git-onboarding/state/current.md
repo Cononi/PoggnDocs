@@ -85,13 +85,18 @@ pgg CLI init/help, 프로젝트별 runtime 설정, dashboard project settings, g
   - `pnpm test`: pass, 44 tests
   - `pgg-gate pgg-code`: pass
   - `pgg-gate pgg-refactor`: pass
+  - `pgg-gate pgg-qa` archive path: pass
 - manual verification required: GitHub/GitLab real login, repository creation, and push
-- publish risk: `pgg git=on` archive publish may be blocked by unrelated dirty worktree paths
 - archive status: archived, version `2.5.0`
-- publish result: `publish_blocked`
-- push status: `not_attempted`
+- publish result: `published`
+- push status: `success`
+- publish commit: `5beab8385152fbd46bcb9d04bcb0dbb630b6f5c8`
+- release branch: `release/2.5.0-project-onboarding`
+- published at: `2026-04-27T08:09:33Z`
 - publish retryable: `true`
-- publish reason: unrelated worktree changes are present, so automatic publish was deferred
+- rollback eligible: `true`
+- cleanup status: `completed`
+- publish reason: release branch push completed successfully
 
 ## Git Publish Message
 
@@ -176,4 +181,4 @@ pgg CLI init/help, 프로젝트별 runtime 설정, dashboard project settings, g
 
 ## Next Step
 
-Unrelated dirty worktree 정리 후 `pgg git=on` release publish를 재시도한다. 기능 QA와 archive/version 기록은 완료되었지만 publish success는 아직 기록되지 않았다.
+Done. Functional QA, archive/version 기록, release branch publish, and ai branch cleanup are complete.
