@@ -47,6 +47,7 @@ import {
 import {
   buildActivitySummary,
   buildRelationGroups,
+  buildTimelineBounds,
   buildTimelineRows,
   buildWorkflowSteps,
   changeTypeColor,
@@ -63,6 +64,7 @@ import {
   type TimelineRow,
   type WorkflowStep
 } from "./historyModel";
+import { ArtifactDocumentContent } from "../../shared/ui/ArtifactDocumentContent";
 
 type HistoryTab = "overview" | "timeline" | "relations";
 type OverviewMetaTone = "success" | "primary" | "danger";
@@ -1156,6 +1158,7 @@ function HistoryTimeline(props: {
   const [previewCommits, setPreviewCommits] = useState<{ title: string; commits: TimelineCommitPreview } | null>(null);
   const [collapsedFolderIds, setCollapsedFolderIds] = useState<Set<string>>(() => new Set());
   const rows = buildTimelineRows(props.topic, props.language, props.globalUser.username ?? props.dictionary.usernameMissing, props.dictionary);
+  const timelineBounds = buildTimelineBounds(props.topic, props.language, props.dictionary);
   const treeSourceFiles = useMemo(() => {
     return selectedFlowFiles
       ? props.topic.files.filter((file) => selectedFlowFiles.paths.has(file.relativePath))
@@ -1227,7 +1230,7 @@ function HistoryTimeline(props: {
                   py: 0
                 },
                 "& .MuiStepLabel-iconContainer": {
-                  pr: { xs: 1.1, md: 1.4 },
+                  pr: { xs: 1.1, md: 1.5 },
                   pt: 0
                 },
                 "& .MuiStepLabel-labelContainer": {
@@ -1250,6 +1253,25 @@ function HistoryTimeline(props: {
                 />
               ))}
             </Stepper>
+            <Paper
+              variant="outlined"
+              sx={{
+                mt: 1.5,
+                p: 1.25,
+                borderRadius: 1,
+                bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === "dark" ? 0.12 : 0.08),
+                borderColor: (theme) => alpha(theme.palette.success.light, 0.42)
+              }}
+            >
+              <Stack direction={{ xs: "column", md: "row" }} spacing={1} sx={{ justifyContent: "space-between" }}>
+                <Typography variant="body2" sx={{ fontWeight: 800 }}>
+                  {props.dictionary.timelineStartEndSummary}
+                </Typography>
+                <Typography variant="body2" color="text.secondary" sx={{ overflowWrap: "anywhere" }}>
+                  {timelineBounds.summary}
+                </Typography>
+              </Stack>
+            </Paper>
           </Stack>
         </Stack>
 
@@ -1329,7 +1351,7 @@ function TimelineFlowConnector() {
   return (
     <StepConnector
       sx={{
-        ml: "18px",
+        ml: { xs: "26px", sm: "28px", md: "30px" },
         [`& .${stepConnectorClasses.line}`]: {
           minHeight: 18,
           borderLeftWidth: 3,
@@ -1350,8 +1372,8 @@ function TimelineFlowStepIcon(props: StepIconProps) {
   return (
     <Box
       sx={{
-        width: 36,
-        height: 36,
+        width: { xs: 52, sm: 56, md: 60 },
+        height: { xs: 52, sm: 56, md: 60 },
         borderRadius: "50%",
         display: "grid",
         placeItems: "center",
@@ -1366,7 +1388,11 @@ function TimelineFlowStepIcon(props: StepIconProps) {
         zIndex: 2
       }}
     >
-      {completed ? <CheckRounded fontSize="small" /> : <Box sx={{ width: 10, height: 10, borderRadius: "50%", bgcolor: colors.main }} />}
+      {completed ? (
+        <CheckRounded sx={{ fontSize: { xs: 24, md: 28 } }} />
+      ) : (
+        <Box sx={{ width: { xs: 10, md: 12 }, height: { xs: 10, md: 12 }, borderRadius: "50%", bgcolor: colors.main }} />
+      )}
     </Box>
   );
 }
@@ -1447,8 +1473,8 @@ function TimelineMilestone(props: {
       <StepContent
         transitionDuration={0}
         sx={{
-          ml: "18px",
-          pl: { xs: 3.4, md: "calc(132px + 37px)" },
+          ml: { xs: "26px", sm: "28px", md: "30px" },
+          pl: { xs: 3.4, md: "calc(132px + 43px)" },
           pr: 0,
           pb: props.isLast ? 0 : 2,
           borderLeftWidth: props.isLast ? 0 : 3,
@@ -1657,6 +1683,20 @@ function TimelineFilePreviewDialog(props: {
 }) {
   const open = Boolean(props.file);
   const content = props.file?.content ?? null;
+  const detail = props.file
+    ? {
+        kind: props.file.path.endsWith(".diff") ? "diff" as const : props.file.path.endsWith(".md") ? "markdown" as const : "text" as const,
+        title: props.file.path.split("/").pop() ?? props.file.path,
+        sourcePath: props.file.path,
+        content: content ?? "",
+        contentType: props.file.path.endsWith(".diff")
+          ? "text/x-diff"
+          : props.file.path.endsWith(".md")
+            ? "text/markdown"
+            : "text/plain",
+        updatedAt: null
+      }
+    : null;
 
   return (
     <Dialog open={open} onClose={props.onClose} fullWidth maxWidth="md">
@@ -1682,27 +1722,8 @@ function TimelineFilePreviewDialog(props: {
         </IconButton>
       </DialogTitle>
       <DialogContent dividers>
-        {content ? (
-          <Box
-            component="pre"
-            sx={{
-              m: 0,
-              p: 1.5,
-              maxHeight: "68vh",
-              overflow: "auto",
-              borderRadius: 1,
-              bgcolor: "background.default",
-              border: 1,
-              borderColor: "divider",
-              fontFamily: "ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
-              fontSize: "0.82rem",
-              lineHeight: 1.55,
-              whiteSpace: "pre-wrap",
-              overflowWrap: "anywhere"
-            }}
-          >
-            {content}
-          </Box>
+        {content && detail ? (
+          <ArtifactDocumentContent detail={detail} maxHeight="68vh" />
         ) : (
           <Alert severity="info">{props.dictionary.detailUnavailable}</Alert>
         )}

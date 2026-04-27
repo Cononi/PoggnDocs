@@ -30,10 +30,13 @@ import { ProjectDetailWorkspace } from "../features/project-detail/ProjectDetail
 import { SettingsWorkspace } from "../features/settings/SettingsWorkspace";
 import {
   fetchDashboardSnapshot,
+  fetchProjectFileDetail,
   fetchTopicFileDetail,
+  removeProjectFile,
   removeTopicFile,
   requestDashboardJson,
   requestDashboardSnapshot,
+  saveProjectFileDetail,
   saveTopicFileDetail
 } from "../shared/api/dashboard";
 import { dashboardLocale } from "../shared/locale/dashboardLocale";
@@ -50,6 +53,7 @@ import type {
 import { useDashboardStore } from "../shared/store/dashboardStore";
 import { normalizeDashboardTitleIconSvg, toSvgDataUrl } from "../shared/utils/brand";
 import {
+  buildProjectFileArtifactEntry,
   buildTopicKey,
   createArtifactSelection,
   getDefaultArtifactSelection,
@@ -151,6 +155,7 @@ export default function DashboardApp() {
   const latestActiveProject = resolveLatestActiveProject(snapshot, currentProject);
   const boardContextProject = selectedProject ?? currentProject;
   const projectContextId = boardContextProject?.id ?? null;
+  const projectFileSelectionKey = projectContextId ? `project:${projectContextId}` : null;
   const projectSurfaceProject = activeTopMenu === "projects" ? boardContextProject : currentProject;
   const dictionary = dashboardLocale[projectSurfaceProject?.language ?? "en"];
   const isLiveMode = snapshotSource === "live";
@@ -190,6 +195,9 @@ export default function DashboardApp() {
         ? allProjectTopics.find((topic) => buildTopicKey(topic) === fileSelection.topicKey) ?? null
         : null,
     [allProjectTopics, fileSelection]
+  );
+  const isProjectFileSelection = Boolean(
+    fileSelection && projectFileSelectionKey && fileSelection.topicKey === projectFileSelectionKey
   );
   const insightsSummary = useMemo(
     () => buildInsightsSummary(boardContextProject, snapshot?.recentActivity ?? [], dictionary),
@@ -357,7 +365,7 @@ export default function DashboardApp() {
   }, [detailSelection, selectedTopic]);
 
   useEffect(() => {
-    if (activeTopMenu !== "projects" || activeDetailSection !== "files" || !selectedTopic) {
+    if (activeTopMenu !== "projects" || activeDetailSection !== "files" || !boardContextProject || !projectFileSelectionKey) {
       return;
     }
 
@@ -366,35 +374,33 @@ export default function DashboardApp() {
       return;
     }
 
-    const topicKey = buildTopicKey(selectedTopic);
-    const routeFile = selectedTopic.files.find(
+    const routeFile = boardContextProject.files.find(
       (file) => file.sourcePath === routeFilePath || file.relativePath === routeFilePath
     );
     if (!routeFile) {
       return;
     }
 
-    if (fileSelection?.topicKey === topicKey && fileSelection.sourcePath === routeFile.sourcePath) {
+    if (fileSelection?.topicKey === projectFileSelectionKey && fileSelection.sourcePath === routeFile.sourcePath) {
       return;
     }
 
-    setFileSelection(createArtifactSelection(topicKey, routeFile));
-  }, [activeDetailSection, activeTopMenu, fileSelection, selectedTopic]);
+    setFileSelection(createArtifactSelection(projectFileSelectionKey, buildProjectFileArtifactEntry(routeFile)));
+  }, [activeDetailSection, activeTopMenu, boardContextProject, fileSelection, projectFileSelectionKey]);
 
   useEffect(() => {
-    if (!fileSelection || !selectedTopic) {
+    if (!fileSelection || !boardContextProject || !projectFileSelectionKey) {
       return;
     }
 
-    const selectedTopicKey = buildTopicKey(selectedTopic);
     const fileStillVisible =
-      fileSelection.topicKey === selectedTopicKey &&
-      selectedTopic.files.some((file) => file.relativePath === fileSelection.relativePath);
+      fileSelection.topicKey === projectFileSelectionKey &&
+      boardContextProject.files.some((file) => file.relativePath === fileSelection.relativePath);
 
     if (!fileStillVisible) {
       setFileSelection(null);
     }
-  }, [fileSelection, selectedTopic]);
+  }, [boardContextProject, fileSelection, projectFileSelectionKey]);
 
   useEffect(() => {
     if (snapshot?.generatedAt) {
@@ -472,12 +478,21 @@ export default function DashboardApp() {
     queryKey: [
       "dashboard-topic-browser-file-detail",
       projectContextId,
+      isProjectFileSelection ? "project" : "topic",
       fileTopic?.bucket ?? null,
       fileTopic?.name ?? null,
       fileSelection?.relativePath ?? null
     ],
     queryFn: async () => {
-      if (!projectContextId || !fileTopic || !fileSelection?.relativePath) {
+      if (!projectContextId || !fileSelection?.relativePath) {
+        throw new Error(dictionary.detailUnavailable);
+      }
+
+      if (isProjectFileSelection) {
+        return fetchProjectFileDetail(projectContextId, fileSelection.relativePath);
+      }
+
+      if (!fileTopic) {
         throw new Error(dictionary.detailUnavailable);
       }
 
@@ -488,7 +503,12 @@ export default function DashboardApp() {
         fileSelection.relativePath
       );
     },
-    enabled: Boolean(projectContextId && fileTopic && fileSelection?.relativePath && !fileSelection.detail)
+    enabled: Boolean(
+      projectContextId &&
+        fileSelection?.relativePath &&
+        !fileSelection.detail &&
+        (isProjectFileSelection || fileTopic)
+    )
   });
 
   useEffect(() => {
@@ -595,7 +615,15 @@ export default function DashboardApp() {
 
   const saveFileMutation = useMutation({
     mutationFn: async (content: string) => {
-      if (!projectContextId || !fileTopic || !fileSelection?.relativePath) {
+      if (!projectContextId || !fileSelection?.relativePath) {
+        throw new Error(dictionary.detailUnavailable);
+      }
+
+      if (isProjectFileSelection) {
+        return saveProjectFileDetail(projectContextId, fileSelection.relativePath, content);
+      }
+
+      if (!fileTopic) {
         throw new Error(dictionary.detailUnavailable);
       }
 
@@ -627,7 +655,15 @@ export default function DashboardApp() {
 
   const deleteFileMutation = useMutation({
     mutationFn: async () => {
-      if (!projectContextId || !fileTopic || !fileSelection?.relativePath) {
+      if (!projectContextId || !fileSelection?.relativePath) {
+        throw new Error(dictionary.detailUnavailable);
+      }
+
+      if (isProjectFileSelection) {
+        return removeProjectFile(projectContextId, fileSelection.relativePath);
+      }
+
+      if (!fileTopic) {
         throw new Error(dictionary.detailUnavailable);
       }
 
@@ -780,7 +816,7 @@ export default function DashboardApp() {
         setDetailDialogOpen(true);
       }}
       onSelectFile={(entry) => {
-        const topicKey = resolveSelectionTopicKey(entry);
+        const topicKey = resolveSelectionTopicKey(entry) ?? projectFileSelectionKey;
 
         if (!topicKey) {
           return;

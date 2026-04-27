@@ -1936,8 +1936,92 @@ function resolveTopicFileKind(absolutePath) {
     }
     return "text";
 }
+const projectFileIgnoredDirectories = new Set([
+    ".git",
+    "node_modules",
+    "dist",
+    "coverage",
+    ".turbo",
+    ".next",
+    ".cache"
+]);
+const projectTextExtensions = new Set([
+    ".cjs",
+    ".css",
+    ".html",
+    ".js",
+    ".json",
+    ".jsx",
+    ".md",
+    ".mjs",
+    ".sh",
+    ".toml",
+    ".ts",
+    ".tsx",
+    ".txt",
+    ".yaml",
+    ".yml"
+]);
+function isProjectTextFile(absolutePath) {
+    const extension = path.extname(absolutePath).toLowerCase();
+    return extension === ".diff" || projectTextExtensions.has(extension);
+}
 function estimateTokensFromText(value) {
     return Math.ceil(Array.from(value).length / 4);
+}
+async function collectProjectFiles(rootDir, currentDir = rootDir) {
+    const entries = await readdir(currentDir, { withFileTypes: true }).catch(() => []);
+    const files = [];
+    for (const entry of entries) {
+        if (entry.name === ".DS_Store") {
+            continue;
+        }
+        const absolutePath = path.join(currentDir, entry.name);
+        if (entry.isDirectory()) {
+            if (projectFileIgnoredDirectories.has(entry.name)) {
+                continue;
+            }
+            files.push(...(await collectProjectFiles(rootDir, absolutePath)));
+            continue;
+        }
+        if (entry.isFile()) {
+            files.push(absolutePath);
+        }
+    }
+    return files;
+}
+async function readProjectFileContentForSnapshot(absolutePath) {
+    if (!isProjectTextFile(absolutePath)) {
+        return null;
+    }
+    const fileStat = await stat(absolutePath).catch(() => null);
+    if (fileStat && fileStat.size > 200_000) {
+        return null;
+    }
+    return readTextIfExists(absolutePath);
+}
+async function listProjectFiles(rootDir) {
+    const files = await collectProjectFiles(rootDir);
+    const entries = await Promise.all(files.map(async (absolutePath) => {
+        const fileStat = await stat(absolutePath).catch(() => null);
+        const relativePath = toRelativePath(rootDir, absolutePath);
+        const content = await readProjectFileContentForSnapshot(absolutePath);
+        const tokenEstimate = content === null ? null : estimateTokensFromText(content);
+        return {
+            relativePath,
+            sourcePath: relativePath,
+            kind: resolveTopicFileKind(absolutePath),
+            updatedAt: fileStat?.mtime.toISOString() ?? null,
+            size: fileStat?.size ?? null,
+            tokenEstimate,
+            localEstimatedTokens: tokenEstimate,
+            llmActualTokens: null,
+            tokenSource: tokenEstimate === null ? "none" : "estimated",
+            content,
+            editable: isProjectTextFile(absolutePath)
+        };
+    }));
+    return entries.sort((left, right) => left.relativePath.localeCompare(right.relativePath));
 }
 async function listTopicFiles(rootDir, topicDir, bucket, topic) {
     const files = await collectMatchingFiles(topicDir, () => true);
@@ -2169,6 +2253,7 @@ export async function analyzeProject(rootDir, registered = false) {
             latestTopicName: null,
             latestTopicStage: null,
             latestActivityAt: null,
+            files: [],
             activeTopics: [],
             archivedTopics: []
         };
@@ -2178,6 +2263,7 @@ export async function analyzeProject(rootDir, registered = false) {
     const projectVersion = await readProjectVersion(rootDir);
     const activeTopics = await listTopicSummaries(rootDir, "active");
     const archivedTopics = await listTopicSummaries(rootDir, "archive");
+    const files = await listProjectFiles(rootDir);
     const verification = resolveProjectVerification(rootDir, manifest?.verification);
     const latestTopic = [...activeTopics, ...archivedTopics]
         .filter((topic) => topic.updatedAt)
@@ -2224,6 +2310,7 @@ export async function analyzeProject(rootDir, registered = false) {
         latestTopicName: latestTopic?.name ?? null,
         latestTopicStage: latestTopic?.stage ?? null,
         latestActivityAt: latestTopic?.updatedAt ?? null,
+        files,
         activeTopics,
         archivedTopics
     };
@@ -2320,6 +2407,32 @@ function normalizeTopicRelativeFilePath(relativePath) {
     }
     return normalized;
 }
+function normalizeProjectRelativeFilePath(relativePath) {
+    const trimmed = relativePath.trim();
+    if (!trimmed) {
+        throw new Error("A project-relative file path is required.");
+    }
+    if (path.isAbsolute(trimmed)) {
+        throw new Error("Absolute paths are not allowed.");
+    }
+    const normalized = path.posix.normalize(trimmed.replace(/\\/g, "/"));
+    if (!normalized || normalized === "." || normalized.startsWith("../") || normalized.includes("/../")) {
+        throw new Error("The file path must stay inside the project directory.");
+    }
+    return normalized;
+}
+function resolveProjectFilePath(rootDir, relativePath) {
+    const projectDir = path.resolve(rootDir);
+    const normalizedRelativePath = normalizeProjectRelativeFilePath(relativePath);
+    const absolutePath = path.resolve(projectDir, normalizedRelativePath);
+    if (!absolutePath.startsWith(`${projectDir}${path.sep}`) && absolutePath !== projectDir) {
+        throw new Error("The file path must stay inside the project directory.");
+    }
+    return {
+        absolutePath,
+        normalizedRelativePath
+    };
+}
 function resolveTopicFilePath(rootDir, bucket, topic, relativePath) {
     const topicDir = path.resolve(resolveTopicDir(rootDir, bucket, topic));
     const normalizedRelativePath = normalizeTopicRelativeFilePath(relativePath);
@@ -2330,6 +2443,27 @@ function resolveTopicFilePath(rootDir, bucket, topic, relativePath) {
     return {
         absolutePath,
         normalizedRelativePath
+    };
+}
+export async function readProjectFileDetail(rootDir, relativePath) {
+    const { absolutePath, normalizedRelativePath } = resolveProjectFilePath(rootDir, relativePath);
+    if (!isProjectTextFile(absolutePath)) {
+        throw new Error(`Project file '${normalizedRelativePath}' is not a text file.`);
+    }
+    const content = await readTextIfExists(absolutePath);
+    if (content === null) {
+        throw new Error(`Project file '${normalizedRelativePath}' was not found.`);
+    }
+    const fileStat = await stat(absolutePath).catch(() => null);
+    const kind = resolveTopicFileKind(absolutePath);
+    const contentType = kind === "diff" ? "text/x-diff" : kind === "markdown" ? "text/markdown" : "text/plain";
+    return {
+        kind,
+        title: path.basename(absolutePath),
+        sourcePath: normalizedRelativePath,
+        content,
+        contentType,
+        updatedAt: fileStat?.mtime.toISOString() ?? null
     };
 }
 export async function readTopicFileDetail(rootDir, bucket, topic, relativePath) {
@@ -2359,11 +2493,34 @@ export async function updateTopicFile(rootDir, bucket, topic, relativePath, cont
     await writeTextFile(absolutePath, content);
     return readTopicFileDetail(rootDir, bucket, topic, normalizedRelativePath);
 }
+export async function updateProjectFile(rootDir, relativePath, content) {
+    const { absolutePath, normalizedRelativePath } = resolveProjectFilePath(rootDir, relativePath);
+    if (!isProjectTextFile(absolutePath)) {
+        throw new Error(`Project file '${normalizedRelativePath}' is not a text file.`);
+    }
+    const current = await readTextIfExists(absolutePath);
+    if (current === null) {
+        throw new Error(`Project file '${normalizedRelativePath}' was not found.`);
+    }
+    await writeTextFile(absolutePath, content);
+    return readProjectFileDetail(rootDir, normalizedRelativePath);
+}
 export async function deleteTopicFile(rootDir, bucket, topic, relativePath) {
     const { absolutePath, normalizedRelativePath } = resolveTopicFilePath(rootDir, bucket, topic, relativePath);
     const current = await readTextIfExists(absolutePath);
     if (current === null) {
         throw new Error(`Topic file '${normalizedRelativePath}' was not found.`);
+    }
+    await rm(absolutePath, { force: true });
+}
+export async function deleteProjectFile(rootDir, relativePath) {
+    const { absolutePath, normalizedRelativePath } = resolveProjectFilePath(rootDir, relativePath);
+    if (!isProjectTextFile(absolutePath)) {
+        throw new Error(`Project file '${normalizedRelativePath}' is not a text file.`);
+    }
+    const current = await readTextIfExists(absolutePath);
+    if (current === null) {
+        throw new Error(`Project file '${normalizedRelativePath}' was not found.`);
     }
     await rm(absolutePath, { force: true });
 }

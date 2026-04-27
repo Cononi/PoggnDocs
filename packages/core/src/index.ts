@@ -432,6 +432,7 @@ export interface ProjectSnapshot {
   latestTopicName: string | null;
   latestTopicStage: string | null;
   latestActivityAt: string | null;
+  files: TopicFileEntry[];
   activeTopics: TopicSummary[];
   archivedTopics: TopicSummary[];
 }
@@ -2938,8 +2939,106 @@ function resolveTopicFileKind(absolutePath: string): TopicFileEntry["kind"] {
   return "text";
 }
 
+const projectFileIgnoredDirectories = new Set([
+  ".git",
+  "node_modules",
+  "dist",
+  "coverage",
+  ".turbo",
+  ".next",
+  ".cache"
+]);
+
+const projectTextExtensions = new Set([
+  ".cjs",
+  ".css",
+  ".html",
+  ".js",
+  ".json",
+  ".jsx",
+  ".md",
+  ".mjs",
+  ".sh",
+  ".toml",
+  ".ts",
+  ".tsx",
+  ".txt",
+  ".yaml",
+  ".yml"
+]);
+
+function isProjectTextFile(absolutePath: string): boolean {
+  const extension = path.extname(absolutePath).toLowerCase();
+  return extension === ".diff" || projectTextExtensions.has(extension);
+}
+
 function estimateTokensFromText(value: string): number {
   return Math.ceil(Array.from(value).length / 4);
+}
+
+async function collectProjectFiles(rootDir: string, currentDir = rootDir): Promise<string[]> {
+  const entries = await readdir(currentDir, { withFileTypes: true }).catch(() => []);
+  const files: string[] = [];
+
+  for (const entry of entries) {
+    if (entry.name === ".DS_Store") {
+      continue;
+    }
+
+    const absolutePath = path.join(currentDir, entry.name);
+    if (entry.isDirectory()) {
+      if (projectFileIgnoredDirectories.has(entry.name)) {
+        continue;
+      }
+      files.push(...(await collectProjectFiles(rootDir, absolutePath)));
+      continue;
+    }
+
+    if (entry.isFile()) {
+      files.push(absolutePath);
+    }
+  }
+
+  return files;
+}
+
+async function readProjectFileContentForSnapshot(absolutePath: string): Promise<string | null> {
+  if (!isProjectTextFile(absolutePath)) {
+    return null;
+  }
+  const fileStat = await stat(absolutePath).catch(() => null);
+  if (fileStat && fileStat.size > 200_000) {
+    return null;
+  }
+  return readTextIfExists(absolutePath);
+}
+
+async function listProjectFiles(rootDir: string): Promise<TopicFileEntry[]> {
+  const files = await collectProjectFiles(rootDir);
+  const entries = await Promise.all(
+    files.map(async (absolutePath) => {
+      const fileStat = await stat(absolutePath).catch(() => null);
+      const relativePath = toRelativePath(rootDir, absolutePath);
+      const content = await readProjectFileContentForSnapshot(absolutePath);
+      const tokenEstimate = content === null ? null : estimateTokensFromText(content);
+
+      return {
+        relativePath,
+        sourcePath: relativePath,
+        kind: resolveTopicFileKind(absolutePath),
+        updatedAt: fileStat?.mtime.toISOString() ?? null,
+        size: fileStat?.size ?? null,
+        tokenEstimate,
+        localEstimatedTokens: tokenEstimate,
+        llmActualTokens: null,
+        tokenSource: tokenEstimate === null ? "none" : "estimated",
+        content,
+        editable: isProjectTextFile(absolutePath)
+      } satisfies TopicFileEntry;
+    })
+  );
+
+  return entries.sort((left, right) => left.relativePath.localeCompare(right.relativePath));
 }
 
 async function listTopicFiles(
@@ -3254,6 +3353,7 @@ export async function analyzeProject(rootDir: string, registered = false): Promi
       latestTopicName: null,
       latestTopicStage: null,
       latestActivityAt: null,
+      files: [],
       activeTopics: [],
       archivedTopics: []
     };
@@ -3264,6 +3364,7 @@ export async function analyzeProject(rootDir: string, registered = false): Promi
   const projectVersion = await readProjectVersion(rootDir);
   const activeTopics = await listTopicSummaries(rootDir, "active");
   const archivedTopics = await listTopicSummaries(rootDir, "archive");
+  const files = await listProjectFiles(rootDir);
   const verification = resolveProjectVerification(rootDir, manifest?.verification);
   const latestTopic = [...activeTopics, ...archivedTopics]
     .filter((topic) => topic.updatedAt)
@@ -3312,6 +3413,7 @@ export async function analyzeProject(rootDir: string, registered = false): Promi
     latestTopicName: latestTopic?.name ?? null,
     latestTopicStage: latestTopic?.stage ?? null,
     latestActivityAt: latestTopic?.updatedAt ?? null,
+    files,
     activeTopics,
     archivedTopics
   };
@@ -3425,6 +3527,42 @@ function normalizeTopicRelativeFilePath(relativePath: string): string {
   return normalized;
 }
 
+function normalizeProjectRelativeFilePath(relativePath: string): string {
+  const trimmed = relativePath.trim();
+  if (!trimmed) {
+    throw new Error("A project-relative file path is required.");
+  }
+
+  if (path.isAbsolute(trimmed)) {
+    throw new Error("Absolute paths are not allowed.");
+  }
+
+  const normalized = path.posix.normalize(trimmed.replace(/\\/g, "/"));
+  if (!normalized || normalized === "." || normalized.startsWith("../") || normalized.includes("/../")) {
+    throw new Error("The file path must stay inside the project directory.");
+  }
+
+  return normalized;
+}
+
+function resolveProjectFilePath(
+  rootDir: string,
+  relativePath: string
+): { absolutePath: string; normalizedRelativePath: string } {
+  const projectDir = path.resolve(rootDir);
+  const normalizedRelativePath = normalizeProjectRelativeFilePath(relativePath);
+  const absolutePath = path.resolve(projectDir, normalizedRelativePath);
+
+  if (!absolutePath.startsWith(`${projectDir}${path.sep}`) && absolutePath !== projectDir) {
+    throw new Error("The file path must stay inside the project directory.");
+  }
+
+  return {
+    absolutePath,
+    normalizedRelativePath
+  };
+}
+
 function resolveTopicFilePath(
   rootDir: string,
   bucket: "active" | "archive",
@@ -3442,6 +3580,35 @@ function resolveTopicFilePath(
   return {
     absolutePath,
     normalizedRelativePath
+  };
+}
+
+export async function readProjectFileDetail(
+  rootDir: string,
+  relativePath: string
+): Promise<WorkflowDetailPayload> {
+  const { absolutePath, normalizedRelativePath } = resolveProjectFilePath(rootDir, relativePath);
+  if (!isProjectTextFile(absolutePath)) {
+    throw new Error(`Project file '${normalizedRelativePath}' is not a text file.`);
+  }
+
+  const content = await readTextIfExists(absolutePath);
+  if (content === null) {
+    throw new Error(`Project file '${normalizedRelativePath}' was not found.`);
+  }
+
+  const fileStat = await stat(absolutePath).catch(() => null);
+  const kind = resolveTopicFileKind(absolutePath);
+  const contentType =
+    kind === "diff" ? "text/x-diff" : kind === "markdown" ? "text/markdown" : "text/plain";
+
+  return {
+    kind,
+    title: path.basename(absolutePath),
+    sourcePath: normalizedRelativePath,
+    content,
+    contentType,
+    updatedAt: fileStat?.mtime.toISOString() ?? null
   };
 }
 
@@ -3489,6 +3656,25 @@ export async function updateTopicFile(
   return readTopicFileDetail(rootDir, bucket, topic, normalizedRelativePath);
 }
 
+export async function updateProjectFile(
+  rootDir: string,
+  relativePath: string,
+  content: string
+): Promise<WorkflowDetailPayload> {
+  const { absolutePath, normalizedRelativePath } = resolveProjectFilePath(rootDir, relativePath);
+  if (!isProjectTextFile(absolutePath)) {
+    throw new Error(`Project file '${normalizedRelativePath}' is not a text file.`);
+  }
+
+  const current = await readTextIfExists(absolutePath);
+  if (current === null) {
+    throw new Error(`Project file '${normalizedRelativePath}' was not found.`);
+  }
+
+  await writeTextFile(absolutePath, content);
+  return readProjectFileDetail(rootDir, normalizedRelativePath);
+}
+
 export async function deleteTopicFile(
   rootDir: string,
   bucket: "active" | "archive",
@@ -3499,6 +3685,23 @@ export async function deleteTopicFile(
   const current = await readTextIfExists(absolutePath);
   if (current === null) {
     throw new Error(`Topic file '${normalizedRelativePath}' was not found.`);
+  }
+
+  await rm(absolutePath, { force: true });
+}
+
+export async function deleteProjectFile(
+  rootDir: string,
+  relativePath: string
+): Promise<void> {
+  const { absolutePath, normalizedRelativePath } = resolveProjectFilePath(rootDir, relativePath);
+  if (!isProjectTextFile(absolutePath)) {
+    throw new Error(`Project file '${normalizedRelativePath}' is not a text file.`);
+  }
+
+  const current = await readTextIfExists(absolutePath);
+  if (current === null) {
+    throw new Error(`Project file '${normalizedRelativePath}' was not found.`);
   }
 
   await rm(absolutePath, { force: true });

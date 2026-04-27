@@ -198,6 +198,7 @@ export type ProjectSnapshot = {
   latestTopicName: string | null;
   latestTopicStage: string | null;
   latestActivityAt: string | null;
+  files: TopicFileEntry[];
   activeTopics: TopicSummary[];
   archivedTopics: TopicSummary[];
 };

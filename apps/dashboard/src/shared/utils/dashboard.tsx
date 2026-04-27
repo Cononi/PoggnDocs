@@ -206,6 +206,38 @@ export function buildTopicFileArtifactEntry(file: TopicFileEntry): ArtifactDocum
   };
 }
 
+export function buildProjectFileArtifactEntry(file: TopicFileEntry): ArtifactDocumentEntry {
+  return {
+    id: file.sourcePath,
+    label: file.relativePath.split("/").pop() ?? file.relativePath,
+    sourcePath: file.sourcePath,
+    relativePath: file.relativePath,
+    detail:
+      file.content !== null
+        ? {
+            kind: file.kind,
+            title: file.relativePath.split("/").pop() ?? file.relativePath,
+            sourcePath: file.sourcePath,
+            content: file.content,
+            contentType: file.kind === "diff" ? "text/x-diff" : file.kind === "markdown" ? "text/markdown" : "text/plain",
+            updatedAt: file.updatedAt
+          }
+        : file.editable
+          ? null
+          : {
+              kind: "text",
+              title: file.relativePath.split("/").pop() ?? file.relativePath,
+              sourcePath: file.sourcePath,
+              content: "Preview unavailable for non-text files.",
+              contentType: "text/plain",
+              updatedAt: file.updatedAt
+            },
+    group: resolveArtifactGroupFromPath(file.sourcePath),
+    updatedAt: file.updatedAt,
+    editable: file.editable
+  };
+}
+
 export type TopicFileTreeNode = {
   id: string;
   name: string;

@@ -89,6 +89,9 @@ implementation
   - 마지막/bottom flow는 아래 flow가 없으므로 check 아래로 선이 넘어가면 안 된다.
   - commit 내용은 flow card에서 최대 3개만 표시하고 모든 커밋 보기는 modal로 추가 commit list를 보여줘야 한다.
   - timeline flow check line은 overview completed 상태와 같은 색/표면으로 이어지고, MUI custom connector/step icon 방식의 vertical Stepper로 적용해야 한다.
+  - timeline 아래에 workflow 최초 start와 최종 end/completion 시간을 표기해야 한다.
+  - timeline 우측 file tree의 file modal은 markdown, code highlight, line number, diff 변경/문맥 강조를 제공해야 한다.
+  - project sidebar 파일 메뉴는 `프로젝트 파일`로 이름을 바꾸고 topic 선택 없이 현재 프로젝트 전체 파일을 조회해야 한다.
 - additional implementation:
   - token usage contract에 `llmActualTokens`와 `localEstimatedTokens`를 분리 추가했다.
   - LLM actual evidence가 없는 경우 `기록 없음`으로 표시하고 local estimate는 file content 기반 값으로 표시한다.
@@ -119,6 +122,10 @@ implementation
   - timeline rail/check를 MUI vertical Stepper 구조로 전환하고 custom connector/step icon이 overview completed success 색/soft fill/border/shadow를 공유하게 했다.
   - StepContent connector가 마지막/bottom flow 아래로 이어지지 않게 하여 terminal overshoot를 제거했다.
   - commit list는 flow card에서 `slice(0, 3)`로 제한하고, 4개 이상일 때 `모든 커밋 보기` modal로 전체 commit list를 표시한다.
+  - timeline 하단에 최초 start와 최종 end/completion 시간 요약을 추가했다.
+  - timeline file preview modal을 공통 artifact renderer로 연결해 markdown, syntax highlight, line number, diff 강조를 적용했다.
+  - project snapshot에 node_modules/.git 등 generated-heavy 경로를 제외한 전체 project file tree와 live project file content API를 추가했다.
+  - Project Files 페이지에서 topic 선택 sidebar를 제거하고 현재 project 전체 파일 tree를 직접 표시하도록 바꿨다.
 - residual risk:
   - reference image parity는 browser screenshot/manual visual evidence가 QA/refactor 이후 필요하다
   - project add Stepper remote FAST/SETUP 세부 credential 입력 UX는 후속 polish 여지가 있다
@@ -211,6 +218,10 @@ implementation
 - evidence: follow-up blue rail/check and commit modal `pnpm test:dashboard` passed
 - evidence: follow-up vertical Stepper overview-completed connector `pnpm --filter @pgg/dashboard build` passed with existing Vite chunk-size warning
 - evidence: follow-up vertical Stepper overview-completed connector `pnpm test:dashboard` passed
+- evidence: follow-up project files and highlighted preview `pnpm --filter @pgg/core build` passed
+- evidence: follow-up project files and highlighted preview `pnpm --filter @pgg/dashboard build` passed with existing Vite chunk-size warning
+- evidence: follow-up project files and highlighted preview `pnpm test:dashboard` passed
+- evidence: follow-up project files and highlighted preview `pnpm test:core` passed
 - evidence: `./.codex/sh/pgg-gate.sh pgg-refactor pgg-username-dashboard-workflow-refinement` passed
 
 ## Changed Files
@@ -295,6 +306,21 @@ implementation
 | UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md` | blue rail/check and commit modal acceptance criteria |
 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | MUI vertical Stepper timeline with overview completed connector/check styling |
 | UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md` | vertical Stepper and overview completed connector/check criteria |
+| UPDATE | `packages/core/src/index.ts` | project-wide file snapshot and live project file content API support |
+| UPDATE | `packages/core/dist/index.d.ts` | rebuilt core type output |
+| UPDATE | `packages/core/dist/index.js` | rebuilt core output |
+| UPDATE | `packages/core/dist/index.js.map` | rebuilt core sourcemap |
+| UPDATE | `apps/dashboard/vite.config.ts` | dashboard project file content GET/PATCH/DELETE routes |
+| UPDATE | `apps/dashboard/src/shared/model/dashboard.ts` | project snapshot file list contract |
+| UPDATE | `apps/dashboard/src/shared/api/dashboard.ts` | project file content client API |
+| UPDATE | `apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx` | Project Files page shows project-wide file tree without topic selector |
+| UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | timeline start/end summary and highlighted file preview modal |
+| UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | timeline first-start/final-end summary model |
+| UPDATE | `apps/dashboard/src/shared/ui/ArtifactDocumentContent.tsx` | markdown/code highlighting and line numbers |
+| UPDATE | `apps/dashboard/src/shared/ui/DiffViewer.tsx` | line-numbered diff add/remove/context highlighting |
+| UPDATE | `apps/dashboard/src/shared/utils/dashboard.tsx` | project file artifact selection helper |
+| UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | Project Files and timeline start/end labels |
+| UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md` | timeline start/end and file modal render criteria |
 
 ## Dirty Worktree Baseline
 

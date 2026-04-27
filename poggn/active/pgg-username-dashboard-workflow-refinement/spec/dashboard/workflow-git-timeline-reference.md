@@ -31,6 +31,7 @@ Workflow tab timeline/git UI를 `add-img/git.png`, `add-img/timeline.png` refere
 - Timeline card의 생성 파일 row는 preview modal을 열지 않는다.
 - 우측 file tree의 file row를 클릭하면 modal로 file content를 볼 수 있어야 하며 modal에는 해당 file의 LLM actual token과 Local estimated token을 표시한다.
 - Timeline에 표시되는 시간은 file mtime이 아니라 해당 flow의 completion evidence(`stage-commit`, verified `stage-completed`, trusted node completion, release completion)를 우선 사용한다.
+- Timeline 목록 아래에는 workflow 최초 start와 마지막 end/completion 시간을 별도 요약으로 표시한다.
 - Git commit 내용은 실제 evidence와 일치해야 한다.
 - Commit source priority:
   1. `state/history.ndjson`의 `stage-commit` evidence
@@ -57,6 +58,7 @@ Workflow tab timeline/git UI를 `add-img/git.png`, `add-img/timeline.png` refere
 - 우측 file tree는 초기 상태에서 topic 전체 file을 보여준다.
 - 우측 file tree가 flow file 목록 또는 검색 결과로 좁혀진 경우 검색창 옆에 reset button을 표시하고, 기존 table/list icon button은 표시하지 않는다.
 - 우측 file tree file row에는 LLM/Local token chip을 표시하지 않는다. token은 timeline card file row와 file content modal에서만 표시한다.
+- 우측 file tree file modal은 markdown preview, fenced code syntax highlighting, line number, diff hunk/add/remove/context 강조를 제공해야 한다.
 - table/header/body column width는 mobile에서 single-column stack으로 무너지되 text overlap이 없어야 한다.
 - long file path와 commit title은 `overflowWrap: anywhere` 또는 equivalent로 깨지지 않아야 한다.
 
@@ -77,6 +79,7 @@ Workflow tab timeline/git UI를 `add-img/git.png`, `add-img/timeline.png` refere
   - bottom/last flow has no rail overshoot below its check circle
   - timeline rows follow the reverse actual pgg workflow order
   - displayed timeline time comes from flow completion evidence
+  - timeline footer shows first start and final end/completion time
   - no filter/show more/collapse buttons in the timeline header
   - right file tree folders expand/collapse on folder row click
   - timeline file action changes the right file tree to selected flow files
@@ -87,6 +90,7 @@ Workflow tab timeline/git UI를 `add-img/git.png`, `add-img/timeline.png` refere
   - reset button restores the all-topic file tree and clears search/flow filtering
   - no table/list icon buttons next to file search
   - clicking a right file tree file opens a modal with file content and LLM/Local token usage
+  - file modal renders markdown, code highlighting, line numbers, and diff add/remove/context emphasis
   - clicking a generated file in the timeline card does not open preview
   - right file tree rows do not show LLM/Local token chips
   - generated file rows do not show file-level LLM/Local token chips

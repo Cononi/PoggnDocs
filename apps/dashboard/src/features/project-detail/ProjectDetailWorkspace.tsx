@@ -56,6 +56,7 @@ import type {
   TopicSummary
 } from "../../shared/model/dashboard";
 import {
+  buildProjectFileArtifactEntry,
   buildTopicFileArtifactEntry,
   buildTopicFileTree,
   buildTopicKey,
@@ -191,17 +192,17 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
       ).sort((left, right) => (right.updatedAt ?? right.archivedAt ?? "").localeCompare(left.updatedAt ?? left.archivedAt ?? "")),
     [visibleTopics]
   );
-  const selectedTopicFiles = props.selectedTopic?.files ?? [];
+  const projectFiles = props.project?.files ?? [];
   const [fileFilter, setFileFilter] = useState("");
-  const filteredTopicFiles = useMemo(() => {
+  const filteredProjectFiles = useMemo(() => {
     const query = fileFilter.trim().toLowerCase();
     if (!query) {
-      return selectedTopicFiles;
+      return projectFiles;
     }
 
-    return selectedTopicFiles.filter((file) => file.relativePath.toLowerCase().includes(query));
-  }, [fileFilter, selectedTopicFiles]);
-  const fileTree = useMemo(() => buildTopicFileTree(filteredTopicFiles), [filteredTopicFiles]);
+    return projectFiles.filter((file) => file.relativePath.toLowerCase().includes(query));
+  }, [fileFilter, projectFiles]);
+  const fileTree = useMemo(() => buildTopicFileTree(filteredProjectFiles), [filteredProjectFiles]);
   const [editorValue, setEditorValue] = useState("");
   const [editingPath, setEditingPath] = useState<string | null>(null);
   const [expandedFolders, setExpandedFolders] = useState<string[]>([]);
@@ -241,11 +242,9 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
     setReportPage(0);
   }, [filteredReportTopics.length, reportRowsPerPage]);
 
-  const selectedFileActive =
-    props.fileSelection?.topicKey === (props.selectedTopic ? buildTopicKey(props.selectedTopic) : null) &&
-    props.fileSelection?.relativePath
-      ? selectedTopicFiles.find((file) => file.relativePath === props.fileSelection?.relativePath) ?? null
-      : null;
+  const selectedFileActive = props.fileSelection?.relativePath
+    ? projectFiles.find((file) => file.relativePath === props.fileSelection?.relativePath) ?? null
+    : null;
   const reportRows = useMemo(
     () =>
       filteredReportTopics.slice(
@@ -434,18 +433,9 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
           sx={{
             display: "grid",
             gap: 3,
-            gridTemplateColumns: { xs: "1fr", xl: "280px minmax(280px, 360px) minmax(0, 1fr)" }
+            gridTemplateColumns: { xs: "1fr", xl: "minmax(280px, 380px) minmax(0, 1fr)" }
           }}
         >
-          <TopicSidebarPanel
-            topics={visibleTopics}
-            selectedTopicKey={props.selectedTopicKey}
-            topicFilter={props.topicFilter}
-            dictionary={props.dictionary}
-            onTopicFilterChange={props.onTopicFilterChange}
-            onSelectTopic={props.onSelectTopic}
-          />
-
           <FileTreePanel
             nodes={fileTree}
             selectedRelativePath={selectedFileActive?.relativePath ?? null}
@@ -455,7 +445,7 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
             language={language}
             onFilterChange={setFileFilter}
             onToggleFolder={toggleFolder}
-            onSelectFile={(file) => props.onSelectFile(buildTopicFileArtifactEntry(file))}
+            onSelectFile={(file) => props.onSelectFile(buildProjectFileArtifactEntry(file))}
           />
 
           <Paper sx={{ p: 2, borderRadius: 1, minHeight: 640 }}>

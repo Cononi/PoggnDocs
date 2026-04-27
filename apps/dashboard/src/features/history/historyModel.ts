@@ -85,6 +85,12 @@ export type TimelineRow = {
   commits: Array<{ hash: string; title: string; author: string; time: string }>;
 };
 
+export type TimelineBounds = {
+  startedAt: string;
+  endedAt: string;
+  summary: string;
+};
+
 export type RelationItem = {
   id: string;
   kind: RelationKind;
@@ -1058,6 +1064,30 @@ export function buildTimelineRows(
       };
     })
     .reverse();
+}
+
+export function buildTimelineBounds(
+  topic: TopicSummary,
+  language: HistoryLanguage,
+  dictionary: DashboardLocale
+): TimelineBounds {
+  const timestampValues = workflowFlowDefinitions
+    .filter((flow) => topicHasFlowEvidence(topic, flow))
+    .flatMap((flow) => {
+      const timestamps = flowTimestampBundle(topic, flow);
+      return [timestamps.startedAt.value, timestamps.completedAt.value].filter((value): value is string => Boolean(value));
+    })
+    .sort((left, right) => left.localeCompare(right));
+  const startedAt = timestampValues[0] ?? null;
+  const endedAt = timestampValues[timestampValues.length - 1] ?? null;
+  const startedLabel = formatDateValue(startedAt, language, dictionary.workflowRecordUnavailable);
+  const endedLabel = formatDateValue(endedAt, language, dictionary.workflowRecordUnavailable);
+
+  return {
+    startedAt: startedLabel,
+    endedAt: endedLabel,
+    summary: `${dictionary.timelineStartedAt}: ${startedLabel} - ${dictionary.timelineEndedAt}: ${endedLabel}`
+  };
 }
 
 function formatTimelineDateLine(value: string | null, language: HistoryLanguage, fallback: string): string {

@@ -5,6 +5,7 @@ import react from "@vitejs/plugin-react";
 import {
   buildDashboardSnapshot,
   createProjectCategory,
+  deleteProjectFile,
   deleteTopicFile,
   deleteRegisteredProject,
   deleteProjectCategory,
@@ -12,6 +13,7 @@ import {
   initializeDashboardProject,
   inspectProjectFolder,
   moveProjectToCategory,
+  readProjectFileDetail,
   readTopicFileDetail,
   registerExistingProject,
   reorderProjectCategory,
@@ -19,6 +21,7 @@ import {
   runProjectGitOnboarding,
   setProjectCategoryVisibility,
   setDefaultProjectCategory,
+  updateProjectFile,
   updateTopicFile,
   updateProjectAutoMode,
   updateProjectGitBranchPrefixes,
@@ -353,6 +356,52 @@ function createDashboardApiPlugin(): Plugin {
               currentRootDir: dashboardRoot
             });
             writeJson(response, 200, await buildDashboardSnapshot(dashboardRoot));
+            return;
+          }
+
+          const projectFileMatch = url.pathname.match(/^\/api\/dashboard\/projects\/([^/]+)\/files\/content$/);
+          if (projectFileMatch && request.method === "GET") {
+            const relativePath = url.searchParams.get("path");
+            if (!relativePath) {
+              writeJson(response, 400, { error: "path is required." });
+              return;
+            }
+
+            writeJson(
+              response,
+              200,
+              await readProjectFileDetail(await resolveProjectRootDir(projectFileMatch[1]!), relativePath)
+            );
+            return;
+          }
+
+          if (projectFileMatch && request.method === "PATCH") {
+            const body = await readJsonBody(request);
+            if (typeof body.path !== "string" || typeof body.content !== "string") {
+              writeJson(response, 400, { error: "path and content are required." });
+              return;
+            }
+
+            const rootDir = await resolveProjectRootDir(projectFileMatch[1]!);
+            const detail = await updateProjectFile(rootDir, body.path, body.content);
+            writeJson(response, 200, {
+              snapshot: await buildDashboardSnapshot(dashboardRoot),
+              detail
+            });
+            return;
+          }
+
+          if (projectFileMatch && request.method === "DELETE") {
+            const body = await readJsonBody(request);
+            if (typeof body.path !== "string") {
+              writeJson(response, 400, { error: "path is required." });
+              return;
+            }
+
+            await deleteProjectFile(await resolveProjectRootDir(projectFileMatch[1]!), body.path);
+            writeJson(response, 200, {
+              snapshot: await buildDashboardSnapshot(dashboardRoot)
+            });
             return;
           }
 

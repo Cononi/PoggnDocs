@@ -105,6 +105,16 @@ export async function fetchTopicFileDetail(
   );
 }
 
+export async function fetchProjectFileDetail(
+  projectId: string,
+  relativePath: string
+): Promise<WorkflowDetailPayload> {
+  const params = new URLSearchParams({ path: relativePath });
+  return requestDashboardJson<WorkflowDetailPayload>(
+    `/api/dashboard/projects/${projectId}/files/content?${params.toString()}`
+  );
+}
+
 export async function saveTopicFileDetail(
   projectId: string,
   bucket: "active" | "archive",
@@ -121,6 +131,20 @@ export async function saveTopicFileDetail(
   );
 }
 
+export async function saveProjectFileDetail(
+  projectId: string,
+  relativePath: string,
+  content: string
+): Promise<{ snapshot: DashboardSnapshot; detail: WorkflowDetailPayload }> {
+  return requestDashboardJson<{ snapshot: DashboardSnapshot; detail: WorkflowDetailPayload }>(
+    `/api/dashboard/projects/${projectId}/files/content`,
+    {
+      method: "PATCH",
+      body: JSON.stringify({ path: relativePath, content })
+    }
+  );
+}
+
 export async function removeTopicFile(
   projectId: string,
   bucket: "active" | "archive",
@@ -129,6 +153,19 @@ export async function removeTopicFile(
 ): Promise<{ snapshot: DashboardSnapshot }> {
   return requestDashboardJson<{ snapshot: DashboardSnapshot }>(
     `/api/dashboard/projects/${projectId}/topics/${bucket}/${topic}/files/content`,
+    {
+      method: "DELETE",
+      body: JSON.stringify({ path: relativePath })
+    }
+  );
+}
+
+export async function removeProjectFile(
+  projectId: string,
+  relativePath: string
+): Promise<{ snapshot: DashboardSnapshot }> {
+  return requestDashboardJson<{ snapshot: DashboardSnapshot }>(
+    `/api/dashboard/projects/${projectId}/files/content`,
     {
       method: "DELETE",
       body: JSON.stringify({ path: relativePath })

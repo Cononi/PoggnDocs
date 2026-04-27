@@ -363,6 +363,7 @@ export interface ProjectSnapshot {
     latestTopicName: string | null;
     latestTopicStage: string | null;
     latestActivityAt: string | null;
+    files: TopicFileEntry[];
     activeTopics: TopicSummary[];
     archivedTopics: TopicSummary[];
 }
@@ -460,8 +461,11 @@ export declare function deleteRegisteredProject(projectId: string, options?: {
 export declare function analyzeProject(rootDir: string, registered?: boolean): Promise<ProjectSnapshot>;
 export declare function analyzeProjectStatus(rootDir: string): Promise<ProjectStatusSnapshot>;
 export declare function buildDashboardSnapshot(currentRootDir: string): Promise<DashboardSnapshot>;
+export declare function readProjectFileDetail(rootDir: string, relativePath: string): Promise<WorkflowDetailPayload>;
 export declare function readTopicFileDetail(rootDir: string, bucket: "active" | "archive", topic: string, relativePath: string): Promise<WorkflowDetailPayload>;
 export declare function updateTopicFile(rootDir: string, bucket: "active" | "archive", topic: string, relativePath: string, content: string): Promise<WorkflowDetailPayload>;
+export declare function updateProjectFile(rootDir: string, relativePath: string, content: string): Promise<WorkflowDetailPayload>;
 export declare function deleteTopicFile(rootDir: string, bucket: "active" | "archive", topic: string, relativePath: string): Promise<void>;
+export declare function deleteProjectFile(rootDir: string, relativePath: string): Promise<void>;
 export declare function findWorkspaceRoot(startDir: string): string | null;
 export declare function writeDashboardSnapshotFile(filePath: string, snapshot: DashboardSnapshot): Promise<void>;

@@ -12,11 +12,39 @@ type ArtifactDocumentContentProps = {
   maxHeight?: string | number;
 };
 
+function inferSyntaxLanguage(detail: WorkflowDetailPayload): string {
+  const extension = detail.sourcePath.split(".").pop()?.toLowerCase() ?? "";
+  const byExtension: Record<string, string> = {
+    cjs: "javascript",
+    css: "css",
+    html: "html",
+    js: "javascript",
+    json: "json",
+    jsx: "jsx",
+    md: "markdown",
+    mjs: "javascript",
+    sh: "bash",
+    toml: "toml",
+    ts: "typescript",
+    tsx: "tsx",
+    yaml: "yaml",
+    yml: "yaml"
+  };
+
+  if (byExtension[extension]) {
+    return byExtension[extension];
+  }
+  if (detail.contentType.includes("json")) {
+    return "json";
+  }
+  return "text";
+}
+
 export function ArtifactDocumentContent(props: ArtifactDocumentContentProps) {
   const theme = useTheme();
 
   if (props.detail.kind === "diff") {
-    return <DiffViewer value={props.detail.content} />;
+    return <DiffViewer value={props.detail.content} maxHeight={props.maxHeight} />;
   }
 
   if (props.detail.kind === "markdown") {
@@ -71,6 +99,14 @@ export function ArtifactDocumentContent(props: ArtifactDocumentContentProps) {
                   style={theme.palette.mode === "dark" ? oneDark : oneLight}
                   language={match[1]}
                   PreTag="div"
+                  showLineNumbers
+                  wrapLongLines
+                  lineNumberStyle={{
+                    minWidth: "3.25em",
+                    paddingRight: 12,
+                    color: alpha(theme.palette.text.secondary, 0.72),
+                    userSelect: "none"
+                  }}
                   customStyle={{
                     margin: 0,
                     borderRadius: 8,
@@ -94,25 +130,36 @@ export function ArtifactDocumentContent(props: ArtifactDocumentContentProps) {
     <Paper
       variant="outlined"
       sx={{
-        p: 2,
+        p: 0,
         borderRadius: 1,
         maxHeight: props.maxHeight ?? "65vh",
         overflow: "auto",
         backgroundColor: alpha(theme.palette.text.primary, theme.palette.mode === "dark" ? 0.14 : 0.04)
       }}
     >
-      <Typography
-        component="pre"
-        sx={{
+      <SyntaxHighlighter
+        style={theme.palette.mode === "dark" ? oneDark : oneLight}
+        language={inferSyntaxLanguage(props.detail)}
+        showLineNumbers
+        wrapLongLines
+        lineNumberStyle={{
+          minWidth: "3.25em",
+          paddingRight: 12,
+          color: alpha(theme.palette.text.secondary, 0.72),
+          userSelect: "none"
+        }}
+        customStyle={{
           m: 0,
-          whiteSpace: "pre-wrap",
-          fontFamily: '"IBM Plex Mono", "SFMono-Regular", monospace',
+          margin: 0,
+          minHeight: 120,
+          borderRadius: 0,
+          padding: 16,
           fontSize: "0.84rem",
-          lineHeight: 1.7
+          lineHeight: 1.65
         }}
       >
         {props.detail.content}
-      </Typography>
+      </SyntaxHighlighter>
     </Paper>
   );
 }
