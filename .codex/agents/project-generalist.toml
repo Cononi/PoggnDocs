@@ -2,7 +2,7 @@ name = "project_generalist"
 description = "프로젝트 제너럴리스트: 명시적으로 opt-in된 support role로만 사용하며 flow primary로 사용하지 않는다."
 developer_instructions = """\
 역할: 프로젝트 제너럴리스트.
-분류: support agent이며 parent가 명시적으로 opt-in할 때만 사용한다.
+분류: 지원 에이전트이며 parent가 명시적으로 opt-in할 때만 사용한다.
 목적: 특정 specialist role이 맞지 않을 때 넓은 project context를 제공한다.
 사용 시점: 명시적으로 opt-in된 support role로만 사용하며 flow primary로 사용하지 않는다.
 

@@ -6,7 +6,7 @@ pgg-codex-subagent-schema-and-lang-sync
 
 ## Current Stage
 
-implementation
+refactor
 
 ## Goal
 
@@ -22,6 +22,7 @@ Codex subagent 공식 스키마에 맞게 generated agent files를 수정하고,
 - task review: `poggn/active/pgg-codex-subagent-schema-and-lang-sync/reviews/task.review.md`
 - implementation index: `poggn/active/pgg-codex-subagent-schema-and-lang-sync/implementation/index.md`
 - code review: `poggn/active/pgg-codex-subagent-schema-and-lang-sync/reviews/code.review.md`
+- refactor review: `poggn/active/pgg-codex-subagent-schema-and-lang-sync/reviews/refactor.review.md`
 - spec:
   - `poggn/active/pgg-codex-subagent-schema-and-lang-sync/spec/agents/codex-custom-agent-schema.md`
   - `poggn/active/pgg-codex-subagent-schema-and-lang-sync/spec/routing/pgg-routing-metadata-preservation.md`
@@ -55,6 +56,7 @@ Codex subagent 공식 스키마에 맞게 generated agent files를 수정하고,
 - task status: reviewed
 - spec boundaries: S1 custom agent schema, S2 routing preservation, S3 generated language sync, S4 current asset migration, S5 regression proof
 - implementation status: reviewed
+- refactor status: reviewed
 - routing manifest path: `.codex/add/AGENT-ROUTING.toml`
 - `.codex/agents/main.toml`: removed from generated custom-agent load path
 - custom agent files: generated with `name`, `description`, and `developer_instructions`
@@ -104,16 +106,29 @@ Codex subagent 공식 스키마에 맞게 generated agent files를 수정하고,
 | UPDATE | `.pgg/project.json` | `implementation/diffs/011_UPDATE__pgg_project_json.diff` |
 | DELETE | `.codex/agents/main.toml` | `implementation/diffs/012_DELETE__codex_agents_main_toml.diff` |
 | UPDATE | `.codex/agents/*.toml` | `implementation/diffs/013_UPDATE__codex_agents_role_files.diff` |
+| UPDATE | `packages/core/src/templates.ts` | `implementation/diffs/014_REFACTOR_agent_language_classification.diff` |
+| UPDATE | `packages/core/test/skill-generation.test.mjs` | `implementation/diffs/014_REFACTOR_agent_language_classification.diff` |
+| UPDATE | `packages/core/dist/templates.js` | `implementation/diffs/014_REFACTOR_agent_language_classification.diff` |
+| UPDATE | `packages/core/dist/templates.js.map` | `implementation/diffs/014_REFACTOR_agent_language_classification.diff` |
+| UPDATE | `.codex/agents/*.toml` | `implementation/diffs/014_REFACTOR_agent_language_classification.diff` |
+| UPDATE | `.pgg/project.json` | `implementation/diffs/014_REFACTOR_agent_language_classification.diff` |
+| UPDATE | `packages/core/src/templates.ts` | `implementation/diffs/015_REFACTOR_stage_helper_deleted_path_staging.diff` |
+| UPDATE | `packages/core/dist/templates.js` | `implementation/diffs/015_REFACTOR_stage_helper_deleted_path_staging.diff` |
+| UPDATE | `packages/core/dist/templates.js.map` | `implementation/diffs/015_REFACTOR_stage_helper_deleted_path_staging.diff` |
+| UPDATE | `.codex/sh/pgg-stage-commit.sh` | `implementation/diffs/015_REFACTOR_stage_helper_deleted_path_staging.diff` |
+| UPDATE | `.codex/sh/pgg-git-publish.sh` | `implementation/diffs/015_REFACTOR_stage_helper_deleted_path_staging.diff` |
+| UPDATE | `.pgg/project.json` | `implementation/diffs/015_REFACTOR_stage_helper_deleted_path_staging.diff` |
+| CREATE | `poggn/active/pgg-codex-subagent-schema-and-lang-sync/reviews/refactor.review.md` | 없음 |
 
 ## Last Expert Score
 
-- phase: implementation
-- score: 97
+- phase: refactor
+- score: 98
 - blocking issues: none
 
 ## Open Items
 
-- pgg-refactor should inspect for stale `.codex/agents/main.toml` references, duplicated role wording, and any unnecessary generated churn.
+- none
 
 ## Verification
 
@@ -123,10 +138,12 @@ Codex subagent 공식 스키마에 맞게 generated agent files를 수정하고,
 - `pnpm build`: pass
 - `pnpm test`: pass
 - `node packages/cli/dist/index.js update --cwd /config/workspace/poggn-ai`: pass, no conflicts
+- refactor cleanup verified mixed Korean/English role classification text was removed from generated agent files
+- refactor cleanup verified deleted/ignored candidate path staging works through `pnpm test`
 
 ## Next Action
 
-`pgg-refactor`
+`pgg-qa`
 
 ## Git Publish Message
 

@@ -36,6 +36,8 @@ Implemented Codex custom agent schema alignment and generated language sync for 
 | 011 | UPDATE | `.pgg/project.json` | `implementation/diffs/011_UPDATE__pgg_project_json.diff` | T4 | managed file checksums and generated asset inventory updated |
 | 012 | DELETE | `.codex/agents/main.toml` | `implementation/diffs/012_DELETE__codex_agents_main_toml.diff` | T2, T4 | invalid routing manifest removed from Codex custom agent load path |
 | 013 | UPDATE | `.codex/agents/*.toml` | `implementation/diffs/013_UPDATE__codex_agents_role_files.diff` | T1, T3, T4 | generated role files now use `name`, `description`, and `developer_instructions` only |
+| 014 | UPDATE | `packages/core/src/templates.ts`, `packages/core/test/skill-generation.test.mjs`, `packages/core/dist/templates.js`, `.codex/agents/*.toml`, `.pgg/project.json` | `implementation/diffs/014_REFACTOR_agent_language_classification.diff` | refactor | Korean generated agent classification text no longer uses mixed English phrases such as `primary agent roster` and `support agent` |
+| 015 | UPDATE | `packages/core/src/templates.ts`, `packages/core/dist/templates.js`, `.codex/sh/pgg-stage-commit.sh`, `.codex/sh/pgg-git-publish.sh`, `.pgg/project.json` | `implementation/diffs/015_REFACTOR_stage_helper_deleted_path_staging.diff` | refactor | stage/publish helper staging now skips nonexistent untracked candidate paths while force-adding tracked ignored deletions |
 
 ## Generated Pgg Artifacts
 
@@ -60,6 +62,7 @@ Implemented Codex custom agent schema alignment and generated language sync for 
 - `pnpm build`: pass
 - `pnpm test`: pass
 - `node packages/cli/dist/index.js update --cwd /config/workspace/poggn-ai`: pass, refreshed generated assets with no conflicts
+- refactor verification: `pnpm build` pass, `pnpm test` pass after deleted/ignored path staging cleanup
 
 ## Notes
 

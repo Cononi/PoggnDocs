@@ -268,10 +268,10 @@ function codexConfigToml(input) {
 function agentRoleInstructions(role, language) {
     const roleKind = role.category === "support"
         ? language === "ko"
-            ? "support agent이며 parent가 명시적으로 opt-in할 때만 사용한다."
+            ? "지원 에이전트이며 parent가 명시적으로 opt-in할 때만 사용한다."
             : "Support agent. Use only when the parent explicitly opts in."
         : language === "ko"
-            ? "primary agent roster에 속한다. pgg routing matrix가 배정한 stage에서만 primary로 사용한다."
+            ? "주요 에이전트 목록에 속한다. pgg 라우팅 매트릭스가 배정한 stage에서만 primary 역할로 사용한다."
             : "Part of the primary agent roster. Use as primary only for stages assigned by the pgg routing matrix.";
     if (language === "ko") {
         return [
@@ -645,7 +645,11 @@ function forceAddPathsShellFunction() {
         "  local candidate_path=\"\"",
         '  for candidate_path in "$@"; do',
         '    [[ -n "$candidate_path" ]] || continue',
-        '    git -C "$ROOT_DIR" add -A -f -- "$candidate_path"',
+        '    if [[ -e "$ROOT_DIR/$candidate_path" ]]; then',
+        '      git -C "$ROOT_DIR" add -A -f -- "$candidate_path"',
+        '    elif git -C "$ROOT_DIR" ls-files --error-unmatch "$candidate_path" >/dev/null 2>&1; then',
+        '      git -C "$ROOT_DIR" add -A -f -- "$candidate_path"',
+        "    fi",
         "  done",
         "}",
         ""

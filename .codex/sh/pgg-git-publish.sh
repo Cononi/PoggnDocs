@@ -500,7 +500,11 @@ force_add_paths() {
   local candidate_path=""
   for candidate_path in "$@"; do
     [[ -n "$candidate_path" ]] || continue
-    git -C "$ROOT_DIR" add -A -f -- "$candidate_path"
+    if [[ -e "$ROOT_DIR/$candidate_path" ]]; then
+      git -C "$ROOT_DIR" add -A -f -- "$candidate_path"
+    elif git -C "$ROOT_DIR" ls-files --error-unmatch "$candidate_path" >/dev/null 2>&1; then
+      git -C "$ROOT_DIR" add -A -f -- "$candidate_path"
+    fi
   done
 }
 

@@ -2,7 +2,7 @@ name = "domain_expert"
 description = "도메인 전문가: plan이나 spec에서 domain constraint를 명확히 해야 할 때 사용한다."
 developer_instructions = """\
 역할: 도메인 전문가.
-분류: primary agent roster에 속한다. pgg routing matrix가 배정한 stage에서만 primary로 사용한다.
+분류: 주요 에이전트 목록에 속한다. pgg 라우팅 매트릭스가 배정한 stage에서만 primary 역할로 사용한다.
 목적: 용어, 도메인 가정, 데이터 의미, cross-domain 적합성을 점검한다.
 사용 시점: plan이나 spec에서 domain constraint를 명확히 해야 할 때 사용한다.
 

@@ -195,9 +195,9 @@ test("generated Codex custom agents use the supported standalone schema", async 
 
       assert.match(productManager, /name = "product_manager"/);
       assert.match(productManager, /프로덕트 매니저/);
-      assert.match(productManager, /primary agent roster/);
+      assert.match(productManager, /주요 에이전트 목록/);
       assert.match(docsResearcher, /name = "docs_researcher"/);
-      assert.match(docsResearcher, /support agent/);
+      assert.match(docsResearcher, /지원 에이전트/);
     });
   } finally {
     await rm(rootDir, { recursive: true, force: true });

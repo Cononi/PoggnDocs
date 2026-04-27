@@ -6,7 +6,7 @@
   "language": "ko",
   "autoMode": "on",
   "installedVersion": "0.1.0",
-  "updatedAt": "2026-04-27T01:57:42.017Z",
+  "updatedAt": "2026-04-27T04:23:14.717Z",
   "dashboard": {
     "title": "POGGN",
     "titleIconSvg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 48 48\"><defs><linearGradient id=\"pgg-dashboard-icon\" x1=\"10%\" y1=\"10%\" x2=\"90%\" y2=\"90%\"><stop offset=\"0%\" stop-color=\"#2467d6\" /><stop offset=\"55%\" stop-color=\"#4f92ff\" /><stop offset=\"100%\" stop-color=\"#f59e0b\" /></linearGradient></defs><rect x=\"6\" y=\"6\" width=\"36\" height=\"36\" rx=\"14\" fill=\"#0f172a\" /><path d=\"M24 11l5.2 7.9 9.3 2.7-5.9 7.3.2 9.9-8.8-3.4-8.8 3.4.2-9.9-5.9-7.3 9.3-2.7L24 11z\" fill=\"url(#pgg-dashboard-icon)\" /><circle cx=\"24\" cy=\"24\" r=\"4.8\" fill=\"#f8fafc\" fill-opacity=\"0.9\" /></svg>",
@@ -61,57 +61,57 @@
     },
     {
       "path": ".codex/agents/product-manager.toml",
-      "checksum": "f338b9208da4f2fca17d14fb9985c6eed20a57963de8e19854ee20d0eb6f4708",
+      "checksum": "4097ebe2c19c7489a080e429ba0b26637fe8f8152694957441a040787ffde74c",
       "executable": false
     },
     {
       "path": ".codex/agents/ux-ui-expert.toml",
-      "checksum": "07f11599ea4034d64185c67e34de3b50252524cabaed7fbb6f092217d68ef1c6",
+      "checksum": "839d6d6f0cc5f34c48257d2c990305dbf3457da7b9de053ed30915d538df7405",
       "executable": false
     },
     {
       "path": ".codex/agents/domain-expert.toml",
-      "checksum": "4be77591866ad3ad744530e588b637f841d617e35e41fa196dc0a2bbf08e1c25",
+      "checksum": "3afa5ecd2725f2db806d93eabc791f110033f0114549cfb1e5f599162841017a",
       "executable": false
     },
     {
       "path": ".codex/agents/software-architect.toml",
-      "checksum": "c83f81c636c792b939617d449d4f017ce4a79ff7acf9049280e863de6f0fc61e",
+      "checksum": "377421f07878589d6fbf622848f3a5e291aa772101b99597ad3810f2395aaff0",
       "executable": false
     },
     {
       "path": ".codex/agents/senior-backend-engineer.toml",
-      "checksum": "44224b6a3490e2a8056700d6282e69109bde83eb87777acdc2fa37c208304321",
+      "checksum": "911385061019e59890f6780e92c4ba3a7ff5cd89315f89f02de499ecc71e240a",
       "executable": false
     },
     {
       "path": ".codex/agents/tech-lead.toml",
-      "checksum": "14d678202c0fb6aea63e495629d83b757d10cebfb530038294b9e69622908b3a",
+      "checksum": "d753d5a2129eaf1e632594d30185e707e898bb41abec06fa0683e4a7735d2008",
       "executable": false
     },
     {
       "path": ".codex/agents/code-reviewer.toml",
-      "checksum": "20aa2983571df57aa0d1cb3e5adee9054c6bb9a56c63d62bef2aaf09dc01bbc8",
+      "checksum": "b6f4e7a551b80f86158f354de04b2ceefd9102bbb6636d685bb35b735d339443",
       "executable": false
     },
     {
       "path": ".codex/agents/qa-test-engineer.toml",
-      "checksum": "c12776432894efcef98208abeaaa9aefe0a834a82bb648f969b43a10e2e66af3",
+      "checksum": "bd471aff60690e2d8b2a64d453284af1faaba203d36a4837459e09ef44188ed8",
       "executable": false
     },
     {
       "path": ".codex/agents/sre-operations-engineer.toml",
-      "checksum": "3a0b7534ce2f76cd35d90ee277c47b2c7d60e86c2908a74eaac6e66edce86b27",
+      "checksum": "c13009c7768f7eb65a3c455ec509ee14436977bebebf7e1ef294e46e35133b9a",
       "executable": false
     },
     {
       "path": ".codex/agents/project-generalist.toml",
-      "checksum": "14e919f692dd5084fd6d35264a4b0f2024dc0a5eba210165ae4f54122d167992",
+      "checksum": "7c893d0e5b87f91623458e5e7b3c8e43fffa8f9962626666e9e3368a9b6feb60",
       "executable": false
     },
     {
       "path": ".codex/agents/docs-researcher.toml",
-      "checksum": "6202ebe5988c84e0db34593d4021e343d04207b463dd8f71076335fc8c6514f1",
+      "checksum": "08f4e1a1ec60ca86a76d5da8ce1cf0a2ffaf53b481d2bce29f8ed44ec74c318f",
       "executable": false
     },
     {
@@ -191,7 +191,7 @@
     },
     {
       "path": ".codex/sh/pgg-stage-commit.sh",
-      "checksum": "a496a3933c4804c1579297cbc330a2ab92fad2a058c78a4b3335033c4350ffc8",
+      "checksum": "24003f7debf0afbea9015e5714a084e2aa959cac933ada92c7142b0e3ac8f4fa",
       "executable": true
     },
     {
@@ -201,7 +201,7 @@
     },
     {
       "path": ".codex/sh/pgg-git-publish.sh",
-      "checksum": "5cf4f86767198489ef8d694760efa19414607228151a8ba6cd6fc882f5afcc23",
+      "checksum": "ef05819fb8b8389fd50580a925fdfe1759ad8aaeadd9203d465406f2d3f976fd",
       "executable": true
     },
     {

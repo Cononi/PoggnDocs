@@ -88,6 +88,15 @@
         "status": "reviewed",
         "score": 97
       }
+    },
+    {
+      "id": "refactor-review",
+      "type": "review",
+      "data": {
+        "label": "reviews/refactor.review.md",
+        "status": "reviewed",
+        "score": 98
+      }
     }
   ],
   "edges": [
@@ -135,6 +144,11 @@
       "id": "implementation-to-code-review",
       "source": "implementation",
       "target": "code-review"
+    },
+    {
+      "id": "code-review-to-refactor-review",
+      "source": "code-review",
+      "target": "refactor-review"
     }
   ]
 }
