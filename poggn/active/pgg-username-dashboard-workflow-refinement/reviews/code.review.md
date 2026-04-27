@@ -36,5 +36,6 @@ pgg:
 
 ## 잔여 리스크
 
-- reference image parity는 실제 browser screenshot/manual visual evidence가 필요하므로 QA/refactor 이후 최종 판정한다.
+- timeline은 `add-img/timeline.png`의 세로 축, 날짜 컬럼, 단계 카드, 생성 파일/Git Commit split 구조로 재작업했다. 다만 실제 browser screenshot/manual visual evidence는 QA/refactor 이후 최종 판정한다.
+- token 표시는 LLM 실사용과 Local 추정치를 분리했다. 현재 LLM 실사용 evidence가 없는 topic은 `기록 없음`으로 표시하고 local estimate는 file content 기반 deterministic estimate로 표시한다.
 - dashboard project add Stepper는 local/defer path 중심으로 구현되어 remote FAST/SETUP의 세부 credential 입력 UX는 후속 개선 여지가 있다.

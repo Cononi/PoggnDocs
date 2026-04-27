@@ -257,11 +257,15 @@ export interface TopicFileEntry {
     updatedAt: string | null;
     size: number | null;
     tokenEstimate: number | null;
+    localEstimatedTokens: number | null;
+    llmActualTokens: number | null;
     tokenSource: "estimated" | "none";
     editable: boolean;
 }
 export interface TopicTokenUsage {
     total: number;
+    llmActualTokens: number | null;
+    localEstimatedTokens: number;
     source: "estimated" | "none";
 }
 export type TopicProgressStatus = "ready" | "in_progress" | "blocked" | "archive_ready";

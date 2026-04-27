@@ -1,0 +1,287 @@
+diff --git a/apps/dashboard/src/features/history/HistoryWorkspace.tsx b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
+index f3fc40f..9e1519a 100644
+--- a/apps/dashboard/src/features/history/HistoryWorkspace.tsx
++++ b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
+@@ -442,7 +442,10 @@ function HistoryOverview(props: {
+   const priority = topicPrioritySummary(props.topic);
+   const activity = buildActivitySummary(props.topic, props.language, props.dictionary);
+   const userDisplayName = props.globalUser.username ?? props.dictionary.usernameMissing;
+-  const tokenTotal = props.topic.tokenUsage?.total ?? props.topic.files.reduce((sum, file) => sum + (file.tokenEstimate ?? 0), 0);
++  const localTokenTotal =
++    props.topic.tokenUsage?.localEstimatedTokens ??
++    props.topic.files.reduce((sum, file) => sum + (file.localEstimatedTokens ?? file.tokenEstimate ?? 0), 0);
++  const llmTokenTotal = props.topic.tokenUsage?.llmActualTokens ?? null;
+   const currentStage = progress.current;
+   const currentStageLabel = currentStage?.label ?? props.dictionary.workflowProgressFlowAdd;
+   const currentStageHelper = currentStage
+@@ -518,7 +521,9 @@ function HistoryOverview(props: {
+               <AutoGraphRounded fontSize="small" />
+             </Box>
+             <Typography variant="h6" sx={{ color: "#f8fbff", fontWeight: 850, lineHeight: 1.08, minWidth: 0 }}>
+-              {props.dictionary.workflowProgressTitleWithTokens.replace("{tokens}", tokenTotal.toLocaleString())}
++              {props.dictionary.workflowProgressTitleWithSplitTokens
++                .replace("{llm}", formatTokenValue(llmTokenTotal, props.dictionary))
++                .replace("{local}", localTokenTotal.toLocaleString())}
+             </Typography>
+           </Stack>
+           <Typography variant="caption" sx={{ color: alpha("#dbeafe", 0.72), fontWeight: 600 }}>
+@@ -1121,6 +1126,10 @@ function ActivityMetric(props: { label: string; value: string }) {
+   );
+ }
+ 
++function formatTokenValue(value: number | null, dictionary: DashboardLocale): string {
++  return typeof value === "number" ? value.toLocaleString() : dictionary.tokenNotRecorded;
++}
++
+ function HistoryTimeline(props: {
+   topic: TopicSummary;
+   language: "ko" | "en";
+@@ -1147,37 +1156,32 @@ function HistoryTimeline(props: {
+         alignItems: "start"
+       }}
+     >
+-      <Stack spacing={1.2} sx={{ minWidth: 0 }}>
+-        <Paper sx={{ p: 1.2, borderRadius: 1 }}>
+-          <Stack direction={{ xs: "column", md: "row" }} spacing={1} sx={{ justifyContent: "space-between" }}>
+-            <Button variant="outlined" size="small" startIcon={<FilterListRounded />}>Filters</Button>
+-            <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
+-              <Button variant="outlined" size="small">Apr 20, 2026 - Apr 23, 2026</Button>
+-              <Button variant="outlined" size="small" onClick={() => setExpanded(true)}>Expand All</Button>
+-              <Button variant="outlined" size="small" onClick={() => setExpanded(false)}>Collapse All</Button>
++      <Stack spacing={1.5} sx={{ minWidth: 0 }}>
++        <Paper sx={{ p: 1.5, borderRadius: 1 }}>
++          <Stack direction={{ xs: "column", md: "row" }} spacing={1.25} sx={{ justifyContent: "space-between" }}>
++            <Box>
++              <Typography variant="h6" sx={{ fontWeight: 850 }}>{props.dictionary.timelineView}</Typography>
++              <Typography variant="body2" color="text.secondary">{props.dictionary.timelineReferenceHint}</Typography>
++            </Box>
++            <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap", alignItems: "center" }}>
++              <Button variant="outlined" size="small" startIcon={<FilterListRounded />}>{props.dictionary.filterAction}</Button>
++              <Button variant="outlined" size="small">2026.04.20 ~ 2026.04.27</Button>
++              <Button variant="outlined" size="small" onClick={() => setExpanded(true)}>{props.dictionary.showMore}</Button>
++              <Button variant="outlined" size="small" onClick={() => setExpanded(false)}>{props.dictionary.showLess}</Button>
+             </Stack>
+           </Stack>
+         </Paper>
+-        <Paper sx={{ borderRadius: 1, overflow: "hidden" }}>
+-          <Box
+-            sx={{
+-              display: "grid",
+-              gridTemplateColumns: { xs: "1fr", lg: "120px 110px 82px minmax(220px, 1fr) minmax(220px, 1fr)" },
+-              bgcolor: "action.hover",
+-              borderBottom: 1,
+-              borderColor: "divider"
+-            }}
+-          >
+-            {["Workflow & Step", "Time", "Duration", "Files (Created / Modified)", "Git Commits"].map((header) => (
+-              <Typography key={header} variant="caption" sx={{ p: 1.2, fontWeight: 800 }}>{header}</Typography>
+-            ))}
+-          </Box>
+-          <Stack>
+-            {rows.map((row) => (
+-              <TimelineTableRow key={row.id} row={row} expanded={expanded} dictionary={props.dictionary} />
+-            ))}
+-          </Stack>
+-        </Paper>
++        <Stack spacing={0} sx={{ position: "relative" }}>
++          {rows.map((row, index) => (
++            <TimelineMilestone
++              key={row.id}
++              row={row}
++              expanded={expanded}
++              dictionary={props.dictionary}
++              isLast={index === rows.length - 1}
++            />
++          ))}
++        </Stack>
+       </Stack>
+ 
+       <Paper sx={{ p: 1.5, borderRadius: 1 }}>
+@@ -1233,67 +1237,139 @@ function HistoryTimeline(props: {
+   );
+ }
+ 
+-function TimelineTableRow(props: { row: TimelineRow; expanded: boolean; dictionary: DashboardLocale }) {
++function TimelineMilestone(props: {
++  row: TimelineRow;
++  expanded: boolean;
++  dictionary: DashboardLocale;
++  isLast: boolean;
++}) {
+   const theme = useTheme();
++  const accent =
++    props.row.tone === "success"
++      ? theme.palette.success.main
++      : props.row.tone === "warning"
++        ? theme.palette.secondary.main
++        : props.row.tone === "primary"
++          ? theme.palette.primary.main
++          : theme.palette.text.secondary;
+ 
+   return (
+     <Box
+       sx={{
+         display: "grid",
+-        gridTemplateColumns: { xs: "1fr", lg: "120px 110px 82px minmax(220px, 1fr) minmax(220px, 1fr)" },
+-        borderBottom: 1,
+-        borderColor: "divider",
++        gridTemplateColumns: { xs: "36px minmax(0, 1fr)", md: "44px 132px minmax(0, 1fr)" },
++        gap: { xs: 1.1, md: 1.6 },
+         position: "relative",
+-        "&:last-child": { borderBottom: 0 }
++        pb: props.isLast ? 0 : 2
+       }}
+     >
+-      <TimelineCell>
+-        <Stack spacing={0.9}>
+-          <Chip size="small" label={props.row.step} color={props.row.tone === "success" ? "success" : props.row.tone === "warning" ? "warning" : props.row.tone === "primary" ? "primary" : "default"} />
+-          <Typography variant="caption" color="text.secondary">Completed</Typography>
+-          <Typography variant="caption" color="text.secondary">by {props.row.completedBy}</Typography>
+-        </Stack>
+-      </TimelineCell>
+-      <TimelineCell><Typography variant="body2">{props.row.time}</Typography></TimelineCell>
+-      <TimelineCell><Typography variant="body2">{props.row.duration}</Typography></TimelineCell>
+-      <TimelineCell>
+-        <Stack spacing={0.7}>
+-          <Typography variant="body2" sx={{ fontWeight: 700 }}>Created / Modified ({props.row.files.length})</Typography>
+-          {(props.expanded ? props.row.files : props.row.files.slice(0, 2)).map((file) => (
+-            <Stack key={file.path} direction="row" spacing={0.75} sx={{ alignItems: "center", minWidth: 0 }}>
+-              <ChangeBadge kind={file.kind} />
+-              <Typography variant="caption" sx={{ overflowWrap: "anywhere" }}>{file.path}</Typography>
+-              <Chip size="small" variant="outlined" label={`${file.tokens.toLocaleString()} ${props.dictionary.tokenLabel}`} sx={{ height: 20, ml: "auto" }} />
++      <Box sx={{ position: "relative", display: "flex", justifyContent: "center" }}>
++        {!props.isLast ? (
++          <Box
++            sx={{
++              position: "absolute",
++              top: 38,
++              bottom: -16,
++              width: 1,
++              bgcolor: alpha(theme.palette.text.secondary, 0.28)
++            }}
++          />
++        ) : null}
++        <Box
++          sx={{
++            width: 36,
++            height: 36,
++            borderRadius: "50%",
++            display: "grid",
++            placeItems: "center",
++            color: "#fff",
++            bgcolor: alpha(accent, 0.82),
++            border: `1px solid ${alpha(accent, 0.8)}`,
++            boxShadow: `0 0 0 4px ${alpha(accent, 0.16)}`
++          }}
++        >
++          <CheckRounded fontSize="small" />
++        </Box>
++      </Box>
++      <Box
++        sx={{
++          display: { xs: "none", md: "block" },
++          pt: 0.7,
++          color: "text.primary",
++          fontWeight: 800,
++          lineHeight: 1.45
++        }}
++      >
++        <Typography variant="body2" sx={{ fontWeight: 850 }}>{props.row.dateLabel}</Typography>
++        <Typography variant="body2" sx={{ fontWeight: 850 }}>{props.row.timeLabel}</Typography>
++      </Box>
++      <Paper
++        variant="outlined"
++        sx={{
++          p: { xs: 1.25, md: 1.5 },
++          borderRadius: 1,
++          bgcolor: alpha(theme.palette.background.paper, theme.palette.mode === "dark" ? 0.54 : 0.92),
++          borderColor: alpha(theme.palette.primary.light, theme.palette.mode === "dark" ? 0.18 : 0.24)
++        }}
++      >
++        <Stack spacing={1.25}>
++          <Stack direction="row" spacing={1} sx={{ alignItems: "center", justifyContent: "space-between", minWidth: 0 }}>
++            <Stack direction="row" spacing={1} sx={{ alignItems: "center", minWidth: 0 }}>
++              <Chip size="small" label={props.row.step} color={props.row.tone === "success" ? "success" : props.row.tone === "warning" ? "secondary" : props.row.tone === "primary" ? "primary" : "default"} />
++              <Box sx={{ minWidth: 0 }}>
++                <Typography variant="h6" sx={{ fontSize: { xs: "1rem", md: "1.12rem" }, fontWeight: 850, overflowWrap: "anywhere" }}>
++                  {props.row.step} {props.dictionary.timelineStageComplete}
++                </Typography>
++                <Stack direction="row" spacing={0.75} useFlexGap sx={{ flexWrap: "wrap", mt: 0.4 }}>
++                  <Chip size="small" variant="outlined" label={`${props.dictionary.llmActualTokens}: ${formatTokenValue(props.row.llmActualTokens, props.dictionary)}`} />
++                  <Chip size="small" variant="outlined" label={`${props.dictionary.localEstimatedTokens}: ${props.row.localEstimatedTokens.toLocaleString()}`} />
++                </Stack>
++              </Box>
+             </Stack>
+-          ))}
+-          {!props.expanded && props.row.files.length > 2 ? <Typography variant="caption">+ {props.row.files.length - 2} more</Typography> : null}
+-          <Button size="small" endIcon={<ChevronRightRounded />} sx={{ alignSelf: "flex-start" }}>View all files</Button>
+-        </Stack>
+-      </TimelineCell>
+-      <TimelineCell>
+-        <Stack spacing={0.85}>
+-          <Stack direction="row" spacing={1} sx={{ alignItems: "center", justifyContent: "space-between" }}>
+-            <Typography variant="body2" sx={{ fontWeight: 700 }}>
+-              {props.row.step} · {props.row.totalTokens.toLocaleString()} {props.dictionary.tokenLabel}
+-            </Typography>
+-            <MoreVertRounded fontSize="small" sx={{ color: "text.secondary" }} />
++            <ExpandMoreRounded fontSize="small" sx={{ color: "text.secondary" }} />
+           </Stack>
+-          {(props.expanded ? props.row.commits : props.row.commits.slice(0, 1)).map((commit) => (
+-            <Stack key={commit.hash} spacing={0.4}>
+-              <Typography variant="caption" color="primary.main" sx={{ fontWeight: 700 }}>{commit.hash}</Typography>
+-              <Typography variant="caption" sx={{ overflowWrap: "anywhere" }}>{commit.title}</Typography>
+-              <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+-                <Box sx={{ width: 14, height: 14, borderRadius: "50%", bgcolor: alpha(theme.palette.text.secondary, 0.28) }} />
+-                <Typography variant="caption" color="text.secondary">{commit.author}</Typography>
+-                <Typography variant="caption" color="text.secondary">{commit.time}</Typography>
+-              </Stack>
++          <Stack direction="row" spacing={1.5} useFlexGap sx={{ flexWrap: "wrap", color: "text.secondary" }}>
++            <Typography variant="caption">by {props.row.completedBy}</Typography>
++            <Typography variant="caption">{props.row.duration}</Typography>
++            <Typography variant="caption" sx={{ display: { xs: "inline", md: "none" } }}>{props.row.dateLabel} {props.row.timeLabel}</Typography>
++          </Stack>
++          <Divider />
++          <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", lg: "minmax(0, 1fr) minmax(0, 1fr)" }, gap: 1.5 }}>
++            <Stack spacing={0.75}>
++              <Typography variant="body2" sx={{ fontWeight: 800 }}>{props.dictionary.timelineGeneratedFiles} ({props.row.files.length})</Typography>
++              {(props.expanded ? props.row.files : props.row.files.slice(0, 3)).map((file) => (
++                <Stack key={file.path} direction="row" spacing={0.75} sx={{ alignItems: "center", minWidth: 0 }}>
++                  <ChangeBadge kind={file.kind} />
++                  <Typography variant="caption" sx={{ flex: 1, minWidth: 0, overflowWrap: "anywhere" }}>{file.path}</Typography>
++                  <Chip size="small" variant="outlined" label={`${props.dictionary.llmShort}: ${formatTokenValue(file.llmActualTokens, props.dictionary)}`} sx={{ height: 20 }} />
++                  <Chip size="small" variant="outlined" label={`${props.dictionary.localShort}: ${file.localEstimatedTokens.toLocaleString()}`} sx={{ height: 20 }} />
++                </Stack>
++              ))}
++              {!props.expanded && props.row.files.length > 3 ? <Typography variant="caption">+ {props.row.files.length - 3} more</Typography> : null}
++              <Button size="small" endIcon={<ChevronRightRounded />} sx={{ alignSelf: "flex-start" }}>{props.dictionary.viewAllFiles}</Button>
+             </Stack>
+-          ))}
+-          {props.row.commits.length === 0 ? (
+-            <Typography variant="caption" color="text.secondary">{props.dictionary.noCommitEvidence}</Typography>
+-          ) : null}
++            <Stack spacing={0.85} sx={{ borderLeft: { lg: `1px solid ${alpha(theme.palette.divider, 0.8)}` }, pl: { lg: 1.5 } }}>
++              <Typography variant="body2" sx={{ fontWeight: 800 }}>
++                {props.row.commits.length > 1 ? props.dictionary.gitCommits : props.dictionary.gitCommit} ({props.row.commits.length})
++              </Typography>
++              {(props.expanded ? props.row.commits : props.row.commits.slice(0, 2)).map((commit) => (
++                <Stack key={commit.hash} spacing={0.35}>
++                  <Typography variant="caption" color="primary.main" sx={{ fontWeight: 800 }}>{commit.hash}</Typography>
++                  <Typography variant="caption" sx={{ overflowWrap: "anywhere" }}>{commit.title}</Typography>
++                  <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
++                    <Box sx={{ width: 14, height: 14, borderRadius: "50%", bgcolor: alpha(theme.palette.text.secondary, 0.28) }} />
++                    <Typography variant="caption" color="text.secondary">{commit.author}</Typography>
++                    <Typography variant="caption" color="text.secondary">{commit.time}</Typography>
++                  </Stack>
++                </Stack>
++              ))}
++              {props.row.commits.length === 0 ? (
++                <Typography variant="caption" color="text.secondary">{props.dictionary.noCommitEvidence}</Typography>
++              ) : null}
++            </Stack>
++          </Box>
+         </Stack>
+-      </TimelineCell>
++      </Paper>
+     </Box>
+   );
+ }

@@ -69,12 +69,16 @@ export type TopicFileEntry = {
   updatedAt: string | null;
   size: number | null;
   tokenEstimate: number | null;
+  localEstimatedTokens: number | null;
+  llmActualTokens: number | null;
   tokenSource: "estimated" | "none";
   editable: boolean;
 };
 
 export type TopicTokenUsage = {
   total: number;
+  llmActualTokens: number | null;
+  localEstimatedTokens: number;
   source: "estimated" | "none";
 };
 

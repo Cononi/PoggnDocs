@@ -73,12 +73,15 @@ type ReleaseOutcome = "completed" | "blocked" | "pending";
 export type TimelineRow = {
   id: string;
   step: string;
-  totalTokens: number;
+  llmActualTokens: number | null;
+  localEstimatedTokens: number;
   tone: "primary" | "success" | "warning" | "neutral";
   completedBy: string;
   time: string;
+  dateLabel: string;
+  timeLabel: string;
   duration: string;
-  files: Array<{ path: string; kind: FileChangeKind; tokens: number }>;
+  files: Array<{ path: string; kind: FileChangeKind; llmActualTokens: number | null; localEstimatedTokens: number }>;
   commits: Array<{ hash: string; title: string; author: string; time: string }>;
 };
 
@@ -1023,7 +1026,8 @@ export function buildTimelineRows(
       const files = flowFiles(topic, flow).map((file) => ({
         path: file.relativePath,
         kind: file.relativePath.includes("delete") ? "D" as const : file.relativePath.includes("proposal") ? "A" as const : "M" as const,
-        tokens: file.tokenEstimate ?? 0
+        llmActualTokens: file.llmActualTokens ?? null,
+        localEstimatedTokens: file.localEstimatedTokens ?? file.tokenEstimate ?? 0
       }));
       const events = flowHistoryEvents(topic, flow);
       const completedAt = latestEvidence(timestampEvidenceFromEvents(events, [/stage-completed/i, /stage-commit/i, /archived$/i], "timeline"));
@@ -1046,15 +1050,33 @@ export function buildTimelineRows(
       return {
         id: flow.id,
         step: workflowFlowLabel(flow.id, dictionary),
-        totalTokens: files.reduce((sum, file) => sum + file.tokens, 0),
+        llmActualTokens: sumNullableTokens(files.map((file) => file.llmActualTokens)),
+        localEstimatedTokens: files.reduce((sum, file) => sum + file.localEstimatedTokens, 0),
         tone: flow.id === "qa" || flow.id === "done" ? "success" : flow.optional ? "warning" : "primary",
         completedBy: username,
         time: formatDateValue(updatedAt.value, language, fallbackTime),
+        dateLabel: formatTimelineDateLine(updatedAt.value, language, fallbackTime),
+        timeLabel: formatTimelineTimeLine(updatedAt.value, language),
         duration: updatedAt.source ?? "recorded",
         files,
         commits
       };
     });
+}
+
+function formatTimelineDateLine(value: string | null, language: HistoryLanguage, fallback: string): string {
+  const lines = formatDateTimeLines(value, language, fallback);
+  return lines[0] ?? fallback;
+}
+
+function formatTimelineTimeLine(value: string | null, language: HistoryLanguage): string {
+  const lines = formatDateTimeLines(value, language, "");
+  return lines[1] ?? "";
+}
+
+function sumNullableTokens(values: Array<number | null>): number | null {
+  const numeric = values.filter((value): value is number => typeof value === "number");
+  return numeric.length ? numeric.reduce((sum, value) => sum + value, 0) : null;
 }
 
 export function buildRelationGroups(topic: TopicSummary, topics: TopicSummary[]): RelationGroup[] {

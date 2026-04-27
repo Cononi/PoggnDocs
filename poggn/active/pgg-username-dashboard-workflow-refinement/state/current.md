@@ -60,6 +60,13 @@ implementation
   - CLI `pgg config username {name}`, `pgg settings`, `pgg init` username gate 추가
   - dashboard project add Stepper, sidebar username card, speed dial version removal, insights close removal 구현
   - workflow overview token heading/helper, Creator/Assignee username, timeline flow/file token과 actual stage-commit evidence 표시 구현
+- additional user request:
+  - LLM 실사용 token과 local 추정 token을 분리 표시한다.
+  - workflow timeline을 `add-img/timeline.png` 기준 세로 timeline/date/card/files/git split 구조로 다시 맞춘다.
+- additional implementation:
+  - token usage contract에 `llmActualTokens`와 `localEstimatedTokens`를 분리 추가했다.
+  - LLM actual evidence가 없는 경우 `기록 없음`으로 표시하고 local estimate는 file content 기반 값으로 표시한다.
+  - timeline UI를 table row에서 vertical rail + stage card 구조로 변경했다.
 - residual risk:
   - reference image parity는 browser screenshot/manual visual evidence가 QA/refactor 이후 필요하다
   - project add Stepper remote FAST/SETUP 세부 credential 입력 UX는 후속 polish 여지가 있다
@@ -128,6 +135,9 @@ implementation
 - evidence: `pnpm test:dashboard` passed with 2 tests
 - evidence: `pnpm build` passed with existing Vite chunk-size warning
 - evidence: manual CLI username gate check passed
+- evidence: additional `pnpm --filter @pgg/core build` passed
+- evidence: additional `pnpm --filter @pgg/dashboard build` passed with existing Vite chunk-size warning
+- evidence: additional `pnpm test:dashboard` passed
 
 ## Changed Files
 
@@ -170,6 +180,14 @@ implementation
 | UPDATE | `packages/core/dist/index.js.map` | rebuilt core output |
 | UPDATE | `packages/cli/dist/index.js` | rebuilt CLI output |
 | UPDATE | `packages/cli/dist/index.js.map` | rebuilt CLI output |
+| UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | additional split token display and timeline reference layout |
+| UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | additional split token timeline model |
+| UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | additional token/timeline i18n labels |
+| UPDATE | `apps/dashboard/src/shared/model/dashboard.ts` | additional split token contract |
+| UPDATE | `packages/core/src/index.ts` | additional split token fields |
+| UPDATE | `packages/core/dist/index.d.ts` | additional rebuilt core output |
+| UPDATE | `packages/core/dist/index.js` | additional rebuilt core output |
+| UPDATE | `packages/core/dist/index.js.map` | additional rebuilt core output |
 
 ## Dirty Worktree Baseline
 

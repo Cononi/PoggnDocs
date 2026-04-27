@@ -1953,6 +1953,8 @@ async function listTopicFiles(rootDir, topicDir, bucket, topic) {
             updatedAt: fileStat?.mtime.toISOString() ?? null,
             size: fileStat?.size ?? null,
             tokenEstimate,
+            localEstimatedTokens: tokenEstimate,
+            llmActualTokens: null,
             tokenSource: tokenEstimate === null ? "none" : "estimated",
             editable: true
         };
@@ -1963,6 +1965,8 @@ function summarizeTopicTokenUsage(files) {
     const total = files.reduce((sum, file) => sum + (file.tokenEstimate ?? 0), 0);
     return {
         total,
+        llmActualTokens: null,
+        localEstimatedTokens: total,
         source: total > 0 ? "estimated" : "none"
     };
 }

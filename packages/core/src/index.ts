@@ -308,12 +308,16 @@ export interface TopicFileEntry {
   updatedAt: string | null;
   size: number | null;
   tokenEstimate: number | null;
+  localEstimatedTokens: number | null;
+  llmActualTokens: number | null;
   tokenSource: "estimated" | "none";
   editable: boolean;
 }
 
 export interface TopicTokenUsage {
   total: number;
+  llmActualTokens: number | null;
+  localEstimatedTokens: number;
   source: "estimated" | "none";
 }
 
@@ -2959,6 +2963,8 @@ async function listTopicFiles(
         updatedAt: fileStat?.mtime.toISOString() ?? null,
         size: fileStat?.size ?? null,
         tokenEstimate,
+        localEstimatedTokens: tokenEstimate,
+        llmActualTokens: null,
         tokenSource: tokenEstimate === null ? "none" : "estimated",
         editable: true
       } satisfies TopicFileEntry;
@@ -2972,6 +2978,8 @@ function summarizeTopicTokenUsage(files: TopicFileEntry[]): TopicTokenUsage {
   const total = files.reduce((sum, file) => sum + (file.tokenEstimate ?? 0), 0);
   return {
     total,
+    llmActualTokens: null,
+    localEstimatedTokens: total,
     source: total > 0 ? "estimated" : "none"
   };
 }

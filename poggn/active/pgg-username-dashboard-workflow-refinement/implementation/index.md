@@ -39,3 +39,21 @@ pgg:
 - `pnpm test:dashboard`: pass, 2 tests
 - `pnpm build`: pass with existing Vite chunk-size warning
 - manual CLI check: missing username blocks `pgg init`; `pgg config username 홍길동` enables init
+- additional request: LLM actual token and local estimated token are separated in the workflow heading, flow cards, and file rows
+- additional request: timeline layout is changed from table rows to the `add-img/timeline.png` style vertical rail with stage cards, date column, generated file column, and git commit column
+- `pnpm --filter @pgg/core build`: pass after additional token split
+- `pnpm --filter @pgg/dashboard build`: pass after timeline reference adjustment, Vite chunk-size warning remains
+- `pnpm test:dashboard`: pass after timeline model change
+
+## Additional Diff Records
+
+| ID | CRUD | path | diffRef | taskRef | note |
+|---|---|---|---|---|---|
+| 018 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `implementation/diffs/018_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.additional.diff` | `T3,T4` | split LLM/local token display and vertical timeline reference layout |
+| 019 | UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | `implementation/diffs/019_UPDATE_apps_dashboard_src_features_history_historyModel_ts.additional.diff` | `T3,T4` | split token fields and timeline date/time labels |
+| 020 | UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | `implementation/diffs/020_UPDATE_apps_dashboard_src_shared_locale_dashboardLocale_ts.additional.diff` | `T7` | token split and timeline reference labels |
+| 021 | UPDATE | `apps/dashboard/src/shared/model/dashboard.ts` | `implementation/diffs/021_UPDATE_apps_dashboard_src_shared_model_dashboard_ts.additional.diff` | `T3` | split token usage contract |
+| 022 | UPDATE | `packages/core/src/index.ts` | `implementation/diffs/022_UPDATE_packages_core_src_index_ts.additional.diff` | `T3` | split local estimated and LLM actual token fields |
+| 023 | UPDATE | `packages/core/dist/index.d.ts` | `implementation/diffs/023_UPDATE_packages_core_dist_index_d_ts.additional.diff` | `T3` | rebuilt core type output |
+| 024 | UPDATE | `packages/core/dist/index.js` | `implementation/diffs/024_UPDATE_packages_core_dist_index_js.additional.diff` | `T3` | rebuilt core output |
+| 025 | UPDATE | `packages/core/dist/index.js.map` | `implementation/diffs/025_UPDATE_packages_core_dist_index_js_map.additional.diff` | `T3` | rebuilt core sourcemap |
