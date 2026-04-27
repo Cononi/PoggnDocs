@@ -10,3 +10,8 @@
 {"ts":"2026-04-27T05:21:03Z","stage":"refactor","event":"stage-started","source":"pgg-refactor"}
 {"ts":"2026-04-27T05:21:03Z","stage":"refactor","event":"stage-progress","source":"pgg-refactor","summary":"flow label 중복 제거와 overview i18n key 정리"}
 {"ts":"2026-04-27T05:30:38Z","stage":"refactor","event":"stage-commit","archiveType":"feat","targetVersion":"2.4.0","projectLanguage":"ko","commitTitle":"feat: 2.4.0.workflow i18n 중복 정리","summary":"workflow i18n 중복 정리","why":"workflow label source를 단일화하고 overview 고정 문구를 locale key로 옮겨 표시 계층 중복과 언어 혼합 위험을 줄였습니다.","footer":"Refs: dashboard-audit-flow-i18n-surface"}
+{"ts":"2026-04-27T05:35:50Z","stage":"token","event":"stage-started","source":"pgg-token"}
+{"ts":"2026-04-27T05:35:50Z","stage":"token","event":"stage-completed","source":"verified","summary":"token/report.md 작성 및 token 비용 기여 요인 점검 완료"}
+{"ts":"2026-04-27T05:41:06Z","stage":"qa","event":"stage-started","source":"pgg-qa"}
+{"ts":"2026-04-27T05:41:06Z","stage":"qa","event":"stage-progress","source":"pgg-qa","summary":"QA report 작성, required audit 확인, archive 준비"}
+{"ts":"2026-04-27T05:44:26Z","stage":"qa","event":"stage-commit","archiveType":"feat","targetVersion":"2.4.0","projectLanguage":"ko","commitTitle":"feat: 2.4.0.qa 완료 기록","summary":"qa 완료 기록","why":"QA 산출물과 최종 검증 변경은 archive publish 전에 별도 완료 commit으로 남아야 한다.","footer":"Refs: dashboard-audit-flow-i18n-surface"}

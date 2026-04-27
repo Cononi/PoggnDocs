@@ -154,6 +154,28 @@
         "status": "reviewed",
         "summary": "소프트웨어 아키텍트와 코드 리뷰어 refactor 승인"
       }
+    },
+    {
+      "id": "token-report",
+      "type": "audit",
+      "data": {
+        "label": "token/report.md",
+        "path": "poggn/active/dashboard-audit-flow-i18n-surface/token/report.md",
+        "stage": "token",
+        "status": "reviewed",
+        "summary": "workflow/generated asset token 비용 점검 pass"
+      }
+    },
+    {
+      "id": "qa-report",
+      "type": "qa",
+      "data": {
+        "label": "qa/report.md",
+        "path": "poggn/active/dashboard-audit-flow-i18n-surface/qa/report.md",
+        "stage": "qa",
+        "status": "done",
+        "summary": "QA 최종 판정 pass"
+      }
     }
   ],
   "edges": [
@@ -170,6 +192,8 @@
     { "id": "e-task-review", "source": "task", "target": "task-review" },
     { "id": "e-task-implementation", "source": "task-review", "target": "implementation-index" },
     { "id": "e-implementation-review", "source": "implementation-index", "target": "code-review" },
-    { "id": "e-code-refactor", "source": "code-review", "target": "refactor-review" }
+    { "id": "e-code-refactor", "source": "code-review", "target": "refactor-review" },
+    { "id": "e-refactor-token", "source": "refactor-review", "target": "token-report" },
+    { "id": "e-token-qa", "source": "token-report", "target": "qa-report" }
   ]
 }
