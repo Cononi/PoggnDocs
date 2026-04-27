@@ -1,0 +1,32 @@
+{
+  "topic": "dashboard-mobile-routing",
+  "version": "2.6.0",
+  "targetVersion": "2.6.0",
+  "changeType": "feat",
+  "versionBump": "minor",
+  "commitTitle": "feat: 2.6.0.dashboard mobile routing",
+  "commitSha": "58356bdb6d679158d8ac3e8e10ce30b1e278a3ff",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/2.6.0-dashboard-mobile-routing",
+  "workingBranch": "ai/feat/2.6.0-dashboard-mobile-routing",
+  "releaseBranch": "release/2.6.0-dashboard-mobile-routing",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-27T11:12:10Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/2.6.0-dashboard-mobile-routing'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/dashboard-mobile-routing",
+    "versionFile": "poggn/archive/dashboard-mobile-routing/version.json"
+  }
+}

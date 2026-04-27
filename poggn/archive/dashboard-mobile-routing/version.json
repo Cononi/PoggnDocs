@@ -1,0 +1,14 @@
+{
+  "topic": "dashboard-mobile-routing",
+  "changeType": "feat",
+  "versionBump": "minor",
+  "version": "2.6.0",
+  "targetVersion": "2.6.0",
+  "previousVersion": "2.5.0",
+  "shortName": "dashboard-mobile-routing",
+  "workingBranch": "ai/feat/2.6.0-dashboard-mobile-routing",
+  "releaseBranch": "release/2.6.0-dashboard-mobile-routing",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-27T11:12:04Z",
+  "history": "poggn/version-history.ndjson"
+}
