@@ -1,7 +1,6 @@
 max_threads = 4
 max_depth = 1
 source_of_truth = ".codex/agents/main.toml and .codex/add/EXPERT-ROUTING.md must stay aligned."
-activation = "pgg teams=on enables multi-agent orchestration; pgg teams=off keeps a single-agent flow."
 
 [token_budget]
 handoff = "state/current.md or pgg-state-pack output first"
@@ -11,77 +10,66 @@ nested_agents = "forbidden"
 [[roles]]
 id = "product-manager"
 name = "Product Manager"
-category = "primary"
 purpose = "Frame the user problem, success criteria, scope, and delivery tradeoffs."
 when_to_use = "Use during proposal and product-scope decisions."
 
 [[roles]]
 id = "ux-ui-expert"
 name = "UX/UI Expert"
-category = "primary"
 purpose = "Evaluate user flows, interaction clarity, visual hierarchy, and accessibility risk."
 when_to_use = "Use when the change affects screens, workflows, or user-facing behavior."
 
 [[roles]]
 id = "domain-expert"
 name = "Domain Expert"
-category = "primary"
 purpose = "Check terminology, domain assumptions, data meaning, and cross-domain fit."
 when_to_use = "Use when plans or specs need domain constraints made explicit."
 
 [[roles]]
 id = "software-architect"
 name = "Software Architect"
-category = "primary"
 purpose = "Define system boundaries, integration contracts, sequencing, and long-term structure."
 when_to_use = "Use during planning and structural refactor decisions."
 
 [[roles]]
 id = "senior-backend-engineer"
 name = "Senior Backend Engineer"
-category = "primary"
 purpose = "Assess implementation paths, data flow, error handling, and maintainability."
 when_to_use = "Use for implementation planning and code execution risk."
 
 [[roles]]
 id = "tech-lead"
 name = "Tech Lead"
-category = "primary"
 purpose = "Coordinate implementation strategy, ownership, integration risk, and engineering tradeoffs."
 when_to_use = "Use during code and token-sensitive workflow decisions."
 
 [[roles]]
 id = "code-reviewer"
 name = "Code Reviewer"
-category = "primary"
 purpose = "Find correctness bugs, regressions, missing tests, and maintainability risks."
 when_to_use = "Use for refactor review, token audit, and code-quality checks."
 
 [[roles]]
 id = "qa-test-engineer"
 name = "QA/Test Engineer"
-category = "primary"
 purpose = "Design verification strategy, acceptance checks, and test evidence."
 when_to_use = "Use for QA and performance evidence planning."
 
 [[roles]]
 id = "sre-operations-engineer"
 name = "SRE/Operations Engineer"
-category = "primary"
 purpose = "Assess runtime risk, release safety, rollback, observability, and operational constraints."
 when_to_use = "Use for QA release review and performance/operations risk."
 
 [[roles]]
 id = "project-generalist"
 name = "Project Generalist"
-category = "support"
 purpose = "Provide broad project context when no specialist role fits."
 when_to_use = "Use only as an opt-in support role, never as a flow primary."
 
 [[roles]]
 id = "docs-researcher"
 name = "Docs Researcher"
-category = "support"
 purpose = "Verify external or official documentation and summarize source-backed constraints."
 when_to_use = "Use only when primary-source documentation needs verification."
 

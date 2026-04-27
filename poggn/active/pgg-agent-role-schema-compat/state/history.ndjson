@@ -1,0 +1,10 @@
+{"ts":"2026-04-27T00:45:44Z","stage":"proposal","event":"topic-created"}
+{"ts":"2026-04-27T00:45:44Z","stage":"proposal","event":"stage-started","source":"pgg-add"}
+{"ts":"2026-04-27T00:46:10Z","stage":"proposal","event":"stage-progress","source":"pgg-add","summary":"proposal, review, handoff state drafted for malformed agent role schema warning"}
+{"ts":"2026-04-27T00:46:10Z","stage":"proposal","event":"stage-completed","source":"verified:pgg-add","summary":"proposal review passed and state/current.md prepared for pgg-plan"}
+{"ts":"2026-04-27T00:53:17Z","stage":"plan","event":"stage-started","source":"pgg-plan"}
+{"ts":"2026-04-27T00:53:17Z","stage":"plan","event":"stage-progress","source":"pgg-plan","summary":"plan, task, specs, and attributed reviews drafted for agent role schema compatibility"}
+{"ts":"2026-04-27T00:53:17Z","stage":"plan","event":"stage-completed","source":"verified:pgg-plan","summary":"plan/task/spec/reviews verified and pgg-code gate passed"}
+{"ts":"2026-04-27T01:13:51Z","stage":"implementation","event":"stage-started","source":"pgg-code"}
+{"ts":"2026-04-27T01:19:27Z","stage":"implementation","event":"stage-progress","source":"pgg-code","summary":"removed unsupported agent TOML metadata, refreshed manifest checksums, and recorded implementation evidence"}
+{"ts":"2026-04-27T01:22:23Z","stage":"implementation","event":"stage-commit","archiveType":"fix","targetVersion":"2.3.2","projectLanguage":"ko","commitTitle":"fix: 2.3.2.에이전트 역할 스키마 호환","summary":"에이전트 역할 스키마 호환","why":"Codex가 프로젝트 agent role TOML을 malformed로 무시하지 않도록 거부된 metadata field를 제거하고 managed checksum을 갱신했다","footer":"Refs: pgg-agent-role-schema-compat"}

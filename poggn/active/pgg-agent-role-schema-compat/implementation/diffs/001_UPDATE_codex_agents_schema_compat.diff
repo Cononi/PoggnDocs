@@ -1,0 +1,211 @@
+diff --git a/.codex/agents/code-reviewer.toml b/.codex/agents/code-reviewer.toml
+index 04e051c..9591af7 100644
+--- a/.codex/agents/code-reviewer.toml
++++ b/.codex/agents/code-reviewer.toml
+@@ -1,6 +1,5 @@
+ id = "code-reviewer"
+ name = "Code Reviewer"
+-category = "primary"
+ purpose = "Find correctness bugs, regressions, missing tests, and maintainability risks."
+ when_to_use = "Use for refactor review, token audit, and code-quality checks."
+ 
+diff --git a/.codex/agents/docs-researcher.toml b/.codex/agents/docs-researcher.toml
+index 0bf3b03..ae26cd9 100644
+--- a/.codex/agents/docs-researcher.toml
++++ b/.codex/agents/docs-researcher.toml
+@@ -1,6 +1,5 @@
+ id = "docs-researcher"
+ name = "Docs Researcher"
+-category = "support"
+ purpose = "Verify external or official documentation and summarize source-backed constraints."
+ when_to_use = "Use only when primary-source documentation needs verification."
+ 
+diff --git a/.codex/agents/domain-expert.toml b/.codex/agents/domain-expert.toml
+index ec151c1..9746bbb 100644
+--- a/.codex/agents/domain-expert.toml
++++ b/.codex/agents/domain-expert.toml
+@@ -1,6 +1,5 @@
+ id = "domain-expert"
+ name = "Domain Expert"
+-category = "primary"
+ purpose = "Check terminology, domain assumptions, data meaning, and cross-domain fit."
+ when_to_use = "Use when plans or specs need domain constraints made explicit."
+ 
+diff --git a/.codex/agents/main.toml b/.codex/agents/main.toml
+index e005980..640add3 100644
+--- a/.codex/agents/main.toml
++++ b/.codex/agents/main.toml
+@@ -1,7 +1,6 @@
+ max_threads = 4
+ max_depth = 1
+ source_of_truth = ".codex/agents/main.toml and .codex/add/EXPERT-ROUTING.md must stay aligned."
+-activation = "pgg teams=on enables multi-agent orchestration; pgg teams=off keeps a single-agent flow."
+ 
+ [token_budget]
+ handoff = "state/current.md or pgg-state-pack output first"
+@@ -11,77 +10,66 @@ nested_agents = "forbidden"
+ [[roles]]
+ id = "product-manager"
+ name = "Product Manager"
+-category = "primary"
+ purpose = "Frame the user problem, success criteria, scope, and delivery tradeoffs."
+ when_to_use = "Use during proposal and product-scope decisions."
+ 
+ [[roles]]
+ id = "ux-ui-expert"
+ name = "UX/UI Expert"
+-category = "primary"
+ purpose = "Evaluate user flows, interaction clarity, visual hierarchy, and accessibility risk."
+ when_to_use = "Use when the change affects screens, workflows, or user-facing behavior."
+ 
+ [[roles]]
+ id = "domain-expert"
+ name = "Domain Expert"
+-category = "primary"
+ purpose = "Check terminology, domain assumptions, data meaning, and cross-domain fit."
+ when_to_use = "Use when plans or specs need domain constraints made explicit."
+ 
+ [[roles]]
+ id = "software-architect"
+ name = "Software Architect"
+-category = "primary"
+ purpose = "Define system boundaries, integration contracts, sequencing, and long-term structure."
+ when_to_use = "Use during planning and structural refactor decisions."
+ 
+ [[roles]]
+ id = "senior-backend-engineer"
+ name = "Senior Backend Engineer"
+-category = "primary"
+ purpose = "Assess implementation paths, data flow, error handling, and maintainability."
+ when_to_use = "Use for implementation planning and code execution risk."
+ 
+ [[roles]]
+ id = "tech-lead"
+ name = "Tech Lead"
+-category = "primary"
+ purpose = "Coordinate implementation strategy, ownership, integration risk, and engineering tradeoffs."
+ when_to_use = "Use during code and token-sensitive workflow decisions."
+ 
+ [[roles]]
+ id = "code-reviewer"
+ name = "Code Reviewer"
+-category = "primary"
+ purpose = "Find correctness bugs, regressions, missing tests, and maintainability risks."
+ when_to_use = "Use for refactor review, token audit, and code-quality checks."
+ 
+ [[roles]]
+ id = "qa-test-engineer"
+ name = "QA/Test Engineer"
+-category = "primary"
+ purpose = "Design verification strategy, acceptance checks, and test evidence."
+ when_to_use = "Use for QA and performance evidence planning."
+ 
+ [[roles]]
+ id = "sre-operations-engineer"
+ name = "SRE/Operations Engineer"
+-category = "primary"
+ purpose = "Assess runtime risk, release safety, rollback, observability, and operational constraints."
+ when_to_use = "Use for QA release review and performance/operations risk."
+ 
+ [[roles]]
+ id = "project-generalist"
+ name = "Project Generalist"
+-category = "support"
+ purpose = "Provide broad project context when no specialist role fits."
+ when_to_use = "Use only as an opt-in support role, never as a flow primary."
+ 
+ [[roles]]
+ id = "docs-researcher"
+ name = "Docs Researcher"
+-category = "support"
+ purpose = "Verify external or official documentation and summarize source-backed constraints."
+ when_to_use = "Use only when primary-source documentation needs verification."
+ 
+diff --git a/.codex/agents/product-manager.toml b/.codex/agents/product-manager.toml
+index 4b13d5c..2b48e50 100644
+--- a/.codex/agents/product-manager.toml
++++ b/.codex/agents/product-manager.toml
+@@ -1,6 +1,5 @@
+ id = "product-manager"
+ name = "Product Manager"
+-category = "primary"
+ purpose = "Frame the user problem, success criteria, scope, and delivery tradeoffs."
+ when_to_use = "Use during proposal and product-scope decisions."
+ 
+diff --git a/.codex/agents/project-generalist.toml b/.codex/agents/project-generalist.toml
+index 6007ff5..1b47bd5 100644
+--- a/.codex/agents/project-generalist.toml
++++ b/.codex/agents/project-generalist.toml
+@@ -1,6 +1,5 @@
+ id = "project-generalist"
+ name = "Project Generalist"
+-category = "support"
+ purpose = "Provide broad project context when no specialist role fits."
+ when_to_use = "Use only as an opt-in support role, never as a flow primary."
+ 
+diff --git a/.codex/agents/qa-test-engineer.toml b/.codex/agents/qa-test-engineer.toml
+index 80f095d..2f7cce6 100644
+--- a/.codex/agents/qa-test-engineer.toml
++++ b/.codex/agents/qa-test-engineer.toml
+@@ -1,6 +1,5 @@
+ id = "qa-test-engineer"
+ name = "QA/Test Engineer"
+-category = "primary"
+ purpose = "Design verification strategy, acceptance checks, and test evidence."
+ when_to_use = "Use for QA and performance evidence planning."
+ 
+diff --git a/.codex/agents/senior-backend-engineer.toml b/.codex/agents/senior-backend-engineer.toml
+index a289a7d..6ee616e 100644
+--- a/.codex/agents/senior-backend-engineer.toml
++++ b/.codex/agents/senior-backend-engineer.toml
+@@ -1,6 +1,5 @@
+ id = "senior-backend-engineer"
+ name = "Senior Backend Engineer"
+-category = "primary"
+ purpose = "Assess implementation paths, data flow, error handling, and maintainability."
+ when_to_use = "Use for implementation planning and code execution risk."
+ 
+diff --git a/.codex/agents/software-architect.toml b/.codex/agents/software-architect.toml
+index 8046d4d..45bf486 100644
+--- a/.codex/agents/software-architect.toml
++++ b/.codex/agents/software-architect.toml
+@@ -1,6 +1,5 @@
+ id = "software-architect"
+ name = "Software Architect"
+-category = "primary"
+ purpose = "Define system boundaries, integration contracts, sequencing, and long-term structure."
+ when_to_use = "Use during planning and structural refactor decisions."
+ 
+diff --git a/.codex/agents/sre-operations-engineer.toml b/.codex/agents/sre-operations-engineer.toml
+index bcf8f8e..5cbba8b 100644
+--- a/.codex/agents/sre-operations-engineer.toml
++++ b/.codex/agents/sre-operations-engineer.toml
+@@ -1,6 +1,5 @@
+ id = "sre-operations-engineer"
+ name = "SRE/Operations Engineer"
+-category = "primary"
+ purpose = "Assess runtime risk, release safety, rollback, observability, and operational constraints."
+ when_to_use = "Use for QA release review and performance/operations risk."
+ 
+diff --git a/.codex/agents/tech-lead.toml b/.codex/agents/tech-lead.toml
+index c9028b3..730572f 100644
+--- a/.codex/agents/tech-lead.toml
++++ b/.codex/agents/tech-lead.toml
+@@ -1,6 +1,5 @@
+ id = "tech-lead"
+ name = "Tech Lead"
+-category = "primary"
+ purpose = "Coordinate implementation strategy, ownership, integration risk, and engineering tradeoffs."
+ when_to_use = "Use during code and token-sensitive workflow decisions."
+ 
+diff --git a/.codex/agents/ux-ui-expert.toml b/.codex/agents/ux-ui-expert.toml
+index b7d1b73..c1be603 100644
+--- a/.codex/agents/ux-ui-expert.toml
++++ b/.codex/agents/ux-ui-expert.toml
+@@ -1,6 +1,5 @@
+ id = "ux-ui-expert"
+ name = "UX/UI Expert"
+-category = "primary"
+ purpose = "Evaluate user flows, interaction clarity, visual hierarchy, and accessibility risk."
+ when_to_use = "Use when the change affects screens, workflows, or user-facing behavior."
+ 

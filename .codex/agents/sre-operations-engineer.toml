@@ -1,6 +1,5 @@
 id = "sre-operations-engineer"
 name = "SRE/Operations Engineer"
-category = "primary"
 purpose = "Assess runtime risk, release safety, rollback, observability, and operational constraints."
 when_to_use = "Use for QA release review and performance/operations risk."
 

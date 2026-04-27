@@ -1,6 +1,5 @@
 id = "code-reviewer"
 name = "Code Reviewer"
-category = "primary"
 purpose = "Find correctness bugs, regressions, missing tests, and maintainability risks."
 when_to_use = "Use for refactor review, token audit, and code-quality checks."
 

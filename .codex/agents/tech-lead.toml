@@ -1,6 +1,5 @@
 id = "tech-lead"
 name = "Tech Lead"
-category = "primary"
 purpose = "Coordinate implementation strategy, ownership, integration risk, and engineering tradeoffs."
 when_to_use = "Use during code and token-sensitive workflow decisions."
 

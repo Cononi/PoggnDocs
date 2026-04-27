@@ -1,6 +1,5 @@
 id = "ux-ui-expert"
 name = "UX/UI Expert"
-category = "primary"
 purpose = "Evaluate user flows, interaction clarity, visual hierarchy, and accessibility risk."
 when_to_use = "Use when the change affects screens, workflows, or user-facing behavior."
 

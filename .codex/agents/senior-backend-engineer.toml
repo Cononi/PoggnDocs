@@ -1,6 +1,5 @@
 id = "senior-backend-engineer"
 name = "Senior Backend Engineer"
-category = "primary"
 purpose = "Assess implementation paths, data flow, error handling, and maintainability."
 when_to_use = "Use for implementation planning and code execution risk."
 

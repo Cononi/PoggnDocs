@@ -1,6 +1,5 @@
 id = "project-generalist"
 name = "Project Generalist"
-category = "support"
 purpose = "Provide broad project context when no specialist role fits."
 when_to_use = "Use only as an opt-in support role, never as a flow primary."
 

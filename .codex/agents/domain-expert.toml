@@ -1,6 +1,5 @@
 id = "domain-expert"
 name = "Domain Expert"
-category = "primary"
 purpose = "Check terminology, domain assumptions, data meaning, and cross-domain fit."
 when_to_use = "Use when plans or specs need domain constraints made explicit."
 

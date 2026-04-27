@@ -1,0 +1,159 @@
+{
+  "topic": "pgg-agent-role-schema-compat",
+  "stage": "implementation",
+  "nodes": [
+    {
+      "id": "proposal",
+      "type": "doc",
+      "data": {
+        "label": "proposal.md",
+        "status": "reviewed"
+      },
+      "position": {
+        "x": 0,
+        "y": 0
+      }
+    },
+    {
+      "id": "proposal-review",
+      "type": "review",
+      "data": {
+        "label": "proposal.review.md",
+        "status": "pass",
+        "score": 92
+      },
+      "position": {
+        "x": 280,
+        "y": 0
+      }
+    },
+    {
+      "id": "handoff-state",
+      "type": "state",
+      "data": {
+        "label": "state/current.md",
+        "status": "ready-for-plan"
+      },
+      "position": {
+        "x": 560,
+        "y": 0
+      }
+    },
+    {
+      "id": "plan",
+      "type": "doc",
+      "data": {
+        "label": "plan.md",
+        "status": "reviewed"
+      },
+      "position": {
+        "x": 0,
+        "y": 160
+      }
+    },
+    {
+      "id": "task",
+      "type": "doc",
+      "data": {
+        "label": "task.md",
+        "status": "reviewed"
+      },
+      "position": {
+        "x": 280,
+        "y": 160
+      }
+    },
+    {
+      "id": "specs",
+      "type": "spec",
+      "data": {
+        "label": "spec/*",
+        "status": "ready"
+      },
+      "position": {
+        "x": 560,
+        "y": 160
+      }
+    },
+    {
+      "id": "plan-task-reviews",
+      "type": "review",
+      "data": {
+        "label": "plan/task reviews",
+        "status": "pass",
+        "score": 94
+      },
+      "position": {
+        "x": 840,
+        "y": 160
+      }
+    },
+    {
+      "id": "implementation",
+      "type": "doc",
+      "data": {
+        "label": "implementation/index.md",
+        "status": "reviewed"
+      },
+      "position": {
+        "x": 0,
+        "y": 320
+      }
+    },
+    {
+      "id": "code-review",
+      "type": "review",
+      "data": {
+        "label": "code.review.md",
+        "status": "pass",
+        "score": 95
+      },
+      "position": {
+        "x": 280,
+        "y": 320
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "proposal-to-review",
+      "source": "proposal",
+      "target": "proposal-review"
+    },
+    {
+      "id": "review-to-state",
+      "source": "proposal-review",
+      "target": "handoff-state"
+    },
+    {
+      "id": "state-to-plan",
+      "source": "handoff-state",
+      "target": "plan"
+    },
+    {
+      "id": "plan-to-task",
+      "source": "plan",
+      "target": "task"
+    },
+    {
+      "id": "task-to-specs",
+      "source": "task",
+      "target": "specs"
+    },
+    {
+      "id": "specs-to-reviews",
+      "source": "specs",
+      "target": "plan-task-reviews"
+    },
+    {
+      "id": "reviews-to-implementation",
+      "source": "plan-task-reviews",
+      "target": "implementation"
+    },
+    {
+      "id": "implementation-to-code-review",
+      "source": "implementation",
+      "target": "code-review"
+    }
+  ]
+}

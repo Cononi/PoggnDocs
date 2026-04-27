@@ -1,6 +1,5 @@
 id = "product-manager"
 name = "Product Manager"
-category = "primary"
 purpose = "Frame the user problem, success criteria, scope, and delivery tradeoffs."
 when_to_use = "Use during proposal and product-scope decisions."
 

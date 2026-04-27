@@ -1,6 +1,5 @@
 id = "software-architect"
 name = "Software Architect"
-category = "primary"
 purpose = "Define system boundaries, integration contracts, sequencing, and long-term structure."
 when_to_use = "Use during planning and structural refactor decisions."
 

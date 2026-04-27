@@ -1,6 +1,5 @@
 id = "docs-researcher"
 name = "Docs Researcher"
-category = "support"
 purpose = "Verify external or official documentation and summarize source-backed constraints."
 when_to_use = "Use only when primary-source documentation needs verification."
 

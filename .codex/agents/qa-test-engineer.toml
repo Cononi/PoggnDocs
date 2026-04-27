@@ -1,6 +1,5 @@
 id = "qa-test-engineer"
 name = "QA/Test Engineer"
-category = "primary"
 purpose = "Design verification strategy, acceptance checks, and test evidence."
 when_to_use = "Use for QA and performance evidence planning."
 
