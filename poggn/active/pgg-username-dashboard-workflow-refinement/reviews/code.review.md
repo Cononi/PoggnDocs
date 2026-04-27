@@ -4,7 +4,7 @@ pgg:
   stage: "review"
   status: "reviewed"
   score: 94
-  updated_at: "2026-04-27T14:42:30Z"
+  updated_at: "2026-04-27T14:47:32Z"
 ---
 
 # Code Review
@@ -58,6 +58,8 @@ pgg:
 - follow-up project files and highlighted preview `pnpm --filter @pgg/dashboard build`: pass, Vite chunk-size warning 유지
 - follow-up project files and highlighted preview `pnpm test:dashboard`: pass, 2 tests
 - follow-up project files and highlighted preview `pnpm test:core`: pass, 53 tests
+- follow-up timeline reference CSS restore `pnpm --filter @pgg/dashboard build`: pass, Vite chunk-size warning 유지
+- follow-up timeline reference CSS restore `pnpm test:dashboard`: pass, 2 tests
 - `./.codex/sh/pgg-gate.sh pgg-refactor pgg-username-dashboard-workflow-refinement`: pass
 
 ## 잔여 리스크
@@ -69,6 +71,7 @@ pgg:
 - timeline row는 실제 workflow 역순으로 표시하고, flow rail/check는 MUI vertical Stepper의 custom connector/step icon 구조로 전환했다. completed 상태는 overview completed node와 같은 success soft fill, success border, success shadow를 공유하고, 마지막/bottom flow에는 아래로 내려가는 rail을 만들지 않는다. 생성 파일 row의 file-level LLM/Local chip은 제거했으며 flow header의 total LLM/Local token은 유지했다.
 - commit panel은 flow card에서 최대 3개 commit만 보여주고, 4개 이상이면 `모든 커밋 보기` modal로 전체 commit list를 확인한다.
 - timeline 하단은 workflow 최초 start와 최종 end/completion 시간을 표시한다. timeline file preview modal은 공통 artifact renderer를 사용해 markdown, syntax highlighting, line number, diff 변경/문맥 강조를 제공한다.
+- timeline start-end 범위는 footer가 아니라 `Timeline` 제목 바로 아래 `YYYY.MM.DD HH:mm:ss ~ YYYY.MM.DD HH:mm:ss` 형식으로 표시한다. timeline CSS는 기능을 유지한 채 `add-img/timeline.png`의 날짜 컬럼, neutral rail, small colored check node, 단일 stage card 구조로 되돌렸다.
 - Project Files 페이지는 topic 선택 sidebar를 제거하고 현재 project 전체 파일 tree를 조회한다. live API는 project-relative path를 검증해 read/update/delete를 처리하며, node_modules/.git/dist 등 generated-heavy 경로는 project file snapshot에서 제외한다.
 - token 표시는 LLM 실사용과 Local 추정치를 분리했다. 현재 LLM 실사용 evidence가 없는 topic은 `기록 없음`으로 표시하고 local estimate는 file content 기반 deterministic estimate로 표시한다. spec/QA 문서는 신규/기존 project snapshot 모두에서 두 값을 분리 측정하도록 갱신했다.
 - dashboard project add Stepper는 local/defer path 중심으로 구현되어 remote FAST/SETUP의 세부 credential 입력 UX는 후속 개선 여지가 있다.

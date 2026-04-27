@@ -92,6 +92,8 @@ implementation
   - timeline 아래에 workflow 최초 start와 최종 end/completion 시간을 표기해야 한다.
   - timeline 우측 file tree의 file modal은 markdown, code highlight, line number, diff 변경/문맥 강조를 제공해야 한다.
   - project sidebar 파일 메뉴는 `프로젝트 파일`로 이름을 바꾸고 topic 선택 없이 현재 프로젝트 전체 파일을 조회해야 한다.
+  - timeline 기능은 유지하되 CSS 디자인만 `add-img/timeline.png`처럼 날짜 컬럼, neutral rail, small check node, 단일 stage card 구조로 맞춰야 한다.
+  - 최초 start-end 시간은 timeline card의 `Timeline` 글자 바로 아래에 `YYYY.MM.DD HH:mm:ss ~ YYYY.MM.DD HH:mm:ss` 형식으로 표시해야 한다.
 - additional implementation:
   - token usage contract에 `llmActualTokens`와 `localEstimatedTokens`를 분리 추가했다.
   - LLM actual evidence가 없는 경우 `기록 없음`으로 표시하고 local estimate는 file content 기반 값으로 표시한다.
@@ -126,6 +128,8 @@ implementation
   - timeline file preview modal을 공통 artifact renderer로 연결해 markdown, syntax highlight, line number, diff 강조를 적용했다.
   - project snapshot에 node_modules/.git 등 generated-heavy 경로를 제외한 전체 project file tree와 live project file content API를 추가했다.
   - Project Files 페이지에서 topic 선택 sidebar를 제거하고 현재 project 전체 파일 tree를 직접 표시하도록 바꿨다.
+  - timeline CSS를 MUI Stepper split layout에서 `add-img/timeline.png` 기준의 date column + neutral rail + single stage card 구조로 다시 맞췄다.
+  - timeline start-end 요약을 footer에서 제거하고 `Timeline` heading 바로 아래 범위 문자열로 이동했다.
 - residual risk:
   - reference image parity는 browser screenshot/manual visual evidence가 QA/refactor 이후 필요하다
   - project add Stepper remote FAST/SETUP 세부 credential 입력 UX는 후속 polish 여지가 있다
@@ -222,6 +226,8 @@ implementation
 - evidence: follow-up project files and highlighted preview `pnpm --filter @pgg/dashboard build` passed with existing Vite chunk-size warning
 - evidence: follow-up project files and highlighted preview `pnpm test:dashboard` passed
 - evidence: follow-up project files and highlighted preview `pnpm test:core` passed
+- evidence: follow-up timeline reference CSS restore `pnpm --filter @pgg/dashboard build` passed with existing Vite chunk-size warning
+- evidence: follow-up timeline reference CSS restore `pnpm test:dashboard` passed
 - evidence: `./.codex/sh/pgg-gate.sh pgg-refactor pgg-username-dashboard-workflow-refinement` passed
 
 ## Changed Files
@@ -321,6 +327,9 @@ implementation
 | UPDATE | `apps/dashboard/src/shared/utils/dashboard.tsx` | project file artifact selection helper |
 | UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | Project Files and timeline start/end labels |
 | UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md` | timeline start/end and file modal render criteria |
+| UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | restore timeline CSS to timeline.png-style date column, neutral rail, and single stage card |
+| UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | format timeline start-end range as YYYY.MM.DD HH:mm:ss |
+| UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md` | document reference CSS and Timeline-heading start/end placement |
 
 ## Dirty Worktree Baseline
 

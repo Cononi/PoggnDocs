@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 94
-  updated_at: "2026-04-27T14:42:30Z"
+  updated_at: "2026-04-27T14:47:32Z"
 ---
 
 # Implementation Index
@@ -78,6 +78,8 @@ pgg:
 - `pnpm --filter @pgg/dashboard build`: pass after project files and highlighted preview adjustment, Vite chunk-size warning remains
 - `pnpm test:dashboard`: pass after project files and highlighted preview adjustment
 - `pnpm test:core`: pass after project files and highlighted preview adjustment, 53 tests
+- `pnpm --filter @pgg/dashboard build`: pass after timeline reference CSS restore, Vite chunk-size warning remains
+- `pnpm test:dashboard`: pass after timeline reference CSS restore
 - `./.codex/sh/pgg-gate.sh pgg-refactor pgg-username-dashboard-workflow-refinement`: pass
 
 ## Additional Diff Records
@@ -117,3 +119,4 @@ pgg:
 | 048 | UPDATE | `spec/dashboard/workflow-git-timeline-reference.md` | `implementation/diffs/048_UPDATE_spec_dashboard_workflow_git_timeline_reference_md.blue_rail_commit_modal.diff` | `T4,T8` | document blue rail/check, terminal line constraint, and commit modal behavior |
 | 049 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx`, `spec/dashboard/workflow-git-timeline-reference.md` | `implementation/diffs/049_UPDATE_dashboard_timeline_vertical_stepper_completed_connector.diff` | `T4,T8` | use MUI vertical Stepper with custom connector/step icon and overview completed success styling |
 | 050 | UPDATE | `packages/core/src/index.ts`, `packages/core/dist/index.d.ts`, `packages/core/dist/index.js`, `packages/core/dist/index.js.map`, `apps/dashboard/vite.config.ts`, `apps/dashboard/src/shared/model/dashboard.ts`, `apps/dashboard/src/shared/api/dashboard.ts`, `apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx`, `apps/dashboard/src/features/history/HistoryWorkspace.tsx`, `apps/dashboard/src/features/history/historyModel.ts`, `apps/dashboard/src/shared/ui/ArtifactDocumentContent.tsx`, `apps/dashboard/src/shared/ui/DiffViewer.tsx`, `apps/dashboard/src/shared/utils/dashboard.tsx`, `apps/dashboard/src/shared/locale/dashboardLocale.ts`, `spec/dashboard/workflow-git-timeline-reference.md` | `implementation/diffs/050_UPDATE_project_files_timeline_preview_start_end.diff` | `T4,T7,T8` | add timeline start/end summary, highlighted file preview modal, and project-wide Project Files tree without topic selector |
+| 051 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx`, `apps/dashboard/src/features/history/historyModel.ts`, `spec/dashboard/workflow-git-timeline-reference.md` | `implementation/diffs/051_UPDATE_timeline_reference_css_and_heading_range.diff` | `T4,T8` | restore timeline CSS to add-img/timeline.png style and move start-end range under Timeline heading |

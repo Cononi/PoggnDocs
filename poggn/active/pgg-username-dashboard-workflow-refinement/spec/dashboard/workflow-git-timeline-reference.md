@@ -31,7 +31,7 @@ Workflow tab timeline/git UI를 `add-img/git.png`, `add-img/timeline.png` refere
 - Timeline card의 생성 파일 row는 preview modal을 열지 않는다.
 - 우측 file tree의 file row를 클릭하면 modal로 file content를 볼 수 있어야 하며 modal에는 해당 file의 LLM actual token과 Local estimated token을 표시한다.
 - Timeline에 표시되는 시간은 file mtime이 아니라 해당 flow의 completion evidence(`stage-commit`, verified `stage-completed`, trusted node completion, release completion)를 우선 사용한다.
-- Timeline 목록 아래에는 workflow 최초 start와 마지막 end/completion 시간을 별도 요약으로 표시한다.
+- Timeline header의 `Timeline` 제목 바로 아래에는 `YYYY.MM.DD HH:mm:ss ~ YYYY.MM.DD HH:mm:ss` 형식으로 workflow 최초 start와 마지막 end/completion 시간을 표시한다.
 - Git commit 내용은 실제 evidence와 일치해야 한다.
 - Commit source priority:
   1. `state/history.ndjson`의 `stage-commit` evidence
@@ -45,9 +45,9 @@ Workflow tab timeline/git UI를 `add-img/git.png`, `add-img/timeline.png` refere
 
 - Reference와 같은 정보 밀도, column grouping, compact spacing을 목표로 한다.
 - 현재 dashboard의 navy/cyan/blue accent tone과 8px 이하 radius 기준을 유지한다.
-- Timeline은 MUI vertical Stepper 구조를 사용하고 custom connector/step icon 방식으로 flow를 이어야 한다.
-- Timeline의 flow 연결선은 overview workflow progress처럼 위 flow node 하단에서 다음 flow node 상단까지 끊기지 않게 이어야 한다.
-- 완료 rail과 완료 check node는 overview completed node와 같은 success color/soft fill/border/shadow token을 사용한다.
+- Timeline CSS는 `add-img/timeline.png`의 날짜 컬럼, 세로 rail, small check node, 단일 stage card 구조를 따른다.
+- Timeline의 flow 연결선은 reference처럼 위 flow node 하단에서 다음 flow node 상단까지 이어야 한다.
+- 완료 rail과 완료 check node는 reference의 small colored node/neutral vertical rail 스타일을 따른다.
 - 완료 check node는 불투명한 surface로 뒷선이 보이지 않아야 한다.
 - 완료 rail은 check 원을 관통해 보이면 안 되며, 현재 원의 외곽 ring 하단에서 시작해 다음 원의 외곽 ring 상단에 딱 맞게 닿아야 한다.
 - 마지막/bottom flow는 아래 flow가 없으므로 check 원 아래로 rail이 넘어가면 안 된다.
@@ -71,15 +71,14 @@ Workflow tab timeline/git UI를 `add-img/git.png`, `add-img/timeline.png` refere
   - compact panel rhythm
 - `add-img/timeline.png` 기준 timeline checklist:
   - flow row grouping
-  - vertical Stepper structure with a custom connector and custom step icon
-  - overview flow와 같은 끊김 없는 completed rail 연결
-  - completed rail/check visual tokens match the overview completed state
+  - CSS layout matches `add-img/timeline.png` while preserving existing interactions
+  - date column, neutral vertical rail, small colored check nodes, and single stage cards
   - completed check visual treatment hides the rail behind the node
   - completed rail touches the circle outer ring exactly without overshooting or leaving a gap
   - bottom/last flow has no rail overshoot below its check circle
   - timeline rows follow the reverse actual pgg workflow order
   - displayed timeline time comes from flow completion evidence
-  - timeline footer shows first start and final end/completion time
+  - timeline header under the `Timeline` title shows `YYYY.MM.DD HH:mm:ss ~ YYYY.MM.DD HH:mm:ss`
   - no filter/show more/collapse buttons in the timeline header
   - right file tree folders expand/collapse on folder row click
   - timeline file action changes the right file tree to selected flow files

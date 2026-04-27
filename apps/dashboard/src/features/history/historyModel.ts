@@ -1080,14 +1080,33 @@ export function buildTimelineBounds(
     .sort((left, right) => left.localeCompare(right));
   const startedAt = timestampValues[0] ?? null;
   const endedAt = timestampValues[timestampValues.length - 1] ?? null;
-  const startedLabel = formatDateValue(startedAt, language, dictionary.workflowRecordUnavailable);
-  const endedLabel = formatDateValue(endedAt, language, dictionary.workflowRecordUnavailable);
+  const startedLabel = formatTimelineRangeValue(startedAt, dictionary.workflowRecordUnavailable);
+  const endedLabel = formatTimelineRangeValue(endedAt, dictionary.workflowRecordUnavailable);
 
   return {
     startedAt: startedLabel,
     endedAt: endedLabel,
-    summary: `${dictionary.timelineStartedAt}: ${startedLabel} - ${dictionary.timelineEndedAt}: ${endedLabel}`
+    summary: `${startedLabel} ~ ${endedLabel}`
   };
+}
+
+function formatTimelineRangeValue(value: string | null, fallback: string): string {
+  if (!value) {
+    return fallback;
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const seconds = String(date.getSeconds()).padStart(2, "0");
+  return `${year}.${month}.${day} ${hours}:${minutes}:${seconds}`;
 }
 
 function formatTimelineDateLine(value: string | null, language: HistoryLanguage, fallback: string): string {
