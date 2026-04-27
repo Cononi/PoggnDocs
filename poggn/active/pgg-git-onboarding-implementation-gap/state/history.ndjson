@@ -1,0 +1,14 @@
+{"ts":"2026-04-27T11:21:09Z","stage":"proposal","event":"topic-created"}
+{"ts":"2026-04-27T11:21:09Z","stage":"proposal","event":"stage-started","source":"pgg-add"}
+{"ts":"2026-04-27T11:21:17Z","stage":"proposal","event":"stage-progress","source":"pgg-add","summary":"test.md 요구 중 현재 코드에서 deferred placeholder로 남은 git onboarding gap을 확인하고 proposal/review/state를 작성했다."}
+{"ts":"2026-04-27T11:21:17Z","stage":"proposal","event":"stage-completed","source":"verified","summary":"proposal review와 state handoff 검증 완료, pgg-plan gate 통과."}
+{"ts":"2026-04-27T11:24:16Z","stage":"plan","event":"stage-started","source":"pgg-plan"}
+{"ts":"2026-04-27T11:24:16Z","stage":"plan","event":"stage-progress","source":"pgg-plan","summary":"core, CLI, dashboard, QA spec과 task 분해를 작성했다."}
+{"ts":"2026-04-27T11:24:16Z","stage":"plan","event":"stage-completed","source":"verified","summary":"plan/task/spec/review 작성 완료, pgg-code gate 통과."}
+{"ts":"2026-04-27T11:27:00Z","stage":"implementation","event":"stage-started","source":"pgg-code"}
+{"ts":"2026-04-27T11:27:00Z","stage":"implementation","event":"stage-progress","source":"pgg-code","summary":"core onboarding engine, CLI flow, dashboard setup API와 Stepper execution UI를 구현했다."}
+{"ts":"2026-04-27T11:31:00Z","stage":"implementation","event":"stage-progress","source":"pgg-code","summary":"pnpm build와 pnpm test를 통과했고 implementation index/diff/code review를 작성했다."}
+{"ts":"2026-04-27T11:31:00Z","stage":"implementation","event":"stage-completed","source":"verified","summary":"implementation artifacts, code review, verification, pgg-refactor gate 완료."}
+{"ts":"2026-04-27T11:36:00Z","stage":"refactor","event":"stage-started","source":"pgg-refactor"}
+{"ts":"2026-04-27T11:36:00Z","stage":"refactor","event":"stage-progress","source":"pgg-refactor","summary":"core onboarding result 생성 중복을 제거하고 auth/branch/push 실패 early return과 회귀 테스트를 추가했다."}
+{"ts":"2026-04-27T11:44:06Z","stage":"refactor","event":"stage-commit","archiveType":"fix","targetVersion":"2.6.1","projectLanguage":"ko","commitTitle":"fix: 2.6.1.git 온보딩 실패 처리 정리","summary":"git 온보딩 실패 처리 정리","why":"core git onboarding result 생성을 공통화하고 인증, 브랜치, push 실패 시 이후 단계가 실행되지 않도록 회귀 테스트를 추가했다","footer":"Refs: pgg-git-onboarding-implementation-gap","branchRecovery":"recovered","branchRecoveryReason":"Governed checkout recovered the stage helper onto 'ai/fix/2.6.1-git-gap' from 'main'.","branchRecoveryFrom":"main"}

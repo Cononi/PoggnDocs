@@ -186,6 +186,20 @@ export type ProjectSnapshot = {
   archivedTopics: TopicSummary[];
 };
 
+export type ProjectGitSetupRequest = {
+  path: "local" | "fast" | "setup" | "defer";
+  provider?: "github" | "gitlab" | "unknown";
+  owner?: string;
+  repository?: string;
+  remoteUrl?: string;
+  authMethod?: "https-token" | "ssh" | "provider-cli" | "unknown";
+  visibility?: "private" | "public" | "unknown";
+  defaultBranch?: string;
+  confirmRemoteMutation?: boolean;
+  confirmPush?: boolean;
+  deferMessage?: string;
+};
+
 export type DashboardSnapshot = {
   generatedAt: string;
   currentProjectId: string | null;

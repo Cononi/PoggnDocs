@@ -28,6 +28,7 @@ import {
   fetchDashboardSnapshot,
   fetchTopicFileDetail,
   removeTopicFile,
+  requestDashboardJson,
   requestDashboardSnapshot,
   saveTopicFileDetail
 } from "../shared/api/dashboard";
@@ -38,7 +39,8 @@ import type {
   DashboardDetailSection,
   DashboardQueryResult,
   DashboardSettingsView,
-  DashboardSnapshot
+  DashboardSnapshot,
+  ProjectGitSetupRequest
 } from "../shared/model/dashboard";
 import { useDashboardStore } from "../shared/store/dashboardStore";
 import { normalizeDashboardTitleIconSvg, toSvgDataUrl } from "../shared/utils/brand";
@@ -557,6 +559,29 @@ export default function DashboardApp() {
     }
   });
 
+  const gitSetupMutation = useMutation({
+    mutationFn: async (input: { projectId: string; request: ProjectGitSetupRequest }) => {
+      if (!isLiveMode) {
+        throw new Error(dictionary.liveEditingDisabled);
+      }
+
+      return requestDashboardJson<{ snapshot: DashboardSnapshot }>(
+        `/api/dashboard/projects/${input.projectId}/git/setup`,
+        {
+          method: "POST",
+          body: JSON.stringify(input.request)
+        }
+      );
+    },
+    onSuccess: ({ snapshot: nextSnapshot }) => {
+      setFeedback(null);
+      updateSnapshotCache(nextSnapshot);
+    },
+    onError: (error) => {
+      setFeedback(error instanceof Error ? error.message : dictionary.dashboardError);
+    }
+  });
+
   const saveFileMutation = useMutation({
     mutationFn: async (content: string) => {
       if (!projectContextId || !fileTopic || !fileSelection?.relativePath) {
@@ -650,6 +675,10 @@ export default function DashboardApp() {
     mutateSnapshot(
       createMutationPayload(`/api/dashboard/projects/${projectId}/git/defer`, "POST", { message })
     );
+  };
+
+  const runProjectGitSetup = (projectId: string, request: ProjectGitSetupRequest) => {
+    gitSetupMutation.mutate({ projectId, request });
   };
 
   const focusProjectContext = (projectId: string) => {
@@ -769,6 +798,12 @@ export default function DashboardApp() {
           deferProjectGitSetup(boardContextProject.id, message);
         }
       }}
+      onRunGitSetup={(request) => {
+        if (boardContextProject) {
+          runProjectGitSetup(boardContextProject.id, request);
+        }
+      }}
+      gitSetupPending={gitSetupMutation.isPending}
     />
   );
 

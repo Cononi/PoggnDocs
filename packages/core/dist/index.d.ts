@@ -70,6 +70,49 @@ export interface ProjectGitSetupInspection {
     };
     message: string;
 }
+export type PggGitOnboardingPath = "local" | "fast" | "setup" | "defer";
+export type PggGitOnboardingStatus = "configured" | "deferred" | "failed" | "blocked";
+export interface GitCommandResult {
+    stdout: string;
+    stderr: string;
+    exitCode: number;
+}
+export type GitCommandRunner = (command: string, args: string[], options: {
+    cwd: string;
+}) => Promise<GitCommandResult>;
+export interface ProjectGitOnboardingRequest {
+    path: PggGitOnboardingPath;
+    provider?: PggGitProvider;
+    owner?: string;
+    repository?: string;
+    remoteUrl?: string;
+    authMethod?: PggGitAuthMethod;
+    visibility?: PggGitVisibility;
+    defaultBranch?: string;
+    initializeWithReadme?: boolean;
+    createRepository?: boolean;
+    confirmRemoteMutation?: boolean;
+    confirmPush?: boolean;
+    deferMessage?: string;
+}
+export interface ProjectGitOnboardingStep {
+    id: string;
+    status: "pending" | "success" | "failed" | "skipped";
+    message: string;
+}
+export interface ProjectGitOnboardingResult {
+    path: PggGitOnboardingPath;
+    status: PggGitOnboardingStatus;
+    setupStatus: PggGitSetupStatus;
+    provider: PggGitProvider | null;
+    owner: string | null;
+    repository: string | null;
+    remoteUrl: string | null;
+    authMethod: PggGitAuthMethod | null;
+    defaultBranch: string | null;
+    message: string;
+    steps: ProjectGitOnboardingStep[];
+}
 export interface RegistryProjectEntry {
     id: string;
     name: string;
@@ -344,6 +387,7 @@ export declare function updateProjectAutoMode(rootDir: string, autoMode: PggAuto
 export declare function updateProjectTeamsMode(rootDir: string, teamsMode: PggTeamsMode): Promise<SyncResult>;
 export declare function updateProjectGitMode(rootDir: string, gitMode: PggGitMode): Promise<SyncResult>;
 export declare function deferProjectGitSetup(rootDir: string, setupMessage: string): Promise<SyncResult>;
+export declare function runProjectGitOnboarding(rootDir: string, request: ProjectGitOnboardingRequest, runner?: GitCommandRunner): Promise<ProjectGitOnboardingResult>;
 export declare function updateProjectGitConnection(rootDir: string, updates: Partial<Pick<ProjectGitConfig, "provider" | "owner" | "repository" | "remoteUrl" | "authMethod" | "visibility" | "defaultBranch" | "setupMessage">> & {
     setupStatus?: PggGitSetupStatus;
     mode?: PggGitMode;

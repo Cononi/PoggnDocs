@@ -14,6 +14,7 @@ import {
   registerExistingProject,
   reorderProjectCategory,
   renameProjectCategory,
+  runProjectGitOnboarding,
   setProjectCategoryVisibility,
   setDefaultProjectCategory,
   updateTopicFile,
@@ -237,6 +238,33 @@ function createDashboardApiPlugin(): Plugin {
                 : "Git setup was deferred and can be completed later."
             );
             writeJson(response, 200, await buildDashboardSnapshot(dashboardRoot));
+            return;
+          }
+
+          const projectGitSetupMatch = url.pathname.match(/^\/api\/dashboard\/projects\/([^/]+)\/git\/setup$/);
+          if (projectGitSetupMatch && request.method === "POST") {
+            const body = await readJsonBody(request);
+            const rootDir = await resolveProjectRootDir(projectGitSetupMatch[1]!);
+            const result = await runProjectGitOnboarding(rootDir, {
+              path:
+                body.path === "local" || body.path === "fast" || body.path === "setup" || body.path === "defer"
+                  ? body.path
+                  : "defer",
+              provider: body.provider === "github" || body.provider === "gitlab" || body.provider === "unknown" ? body.provider : undefined,
+              owner: typeof body.owner === "string" ? body.owner : undefined,
+              repository: typeof body.repository === "string" ? body.repository : undefined,
+              remoteUrl: typeof body.remoteUrl === "string" ? body.remoteUrl : undefined,
+              authMethod:
+                body.authMethod === "https-token" || body.authMethod === "ssh" || body.authMethod === "provider-cli" || body.authMethod === "unknown"
+                  ? body.authMethod
+                  : undefined,
+              visibility: body.visibility === "private" || body.visibility === "public" || body.visibility === "unknown" ? body.visibility : undefined,
+              defaultBranch: typeof body.defaultBranch === "string" ? body.defaultBranch : undefined,
+              confirmRemoteMutation: body.confirmRemoteMutation === true,
+              confirmPush: body.confirmPush === true,
+              deferMessage: typeof body.deferMessage === "string" ? body.deferMessage : undefined
+            });
+            writeJson(response, 200, { snapshot: await buildDashboardSnapshot(dashboardRoot), result });
             return;
           }
 

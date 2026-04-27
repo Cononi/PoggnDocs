@@ -1,10 +1,11 @@
 #!/usr/bin/env node
 import { clearScreenDown, cursorTo, emitKeypressEvents, moveCursor } from "node:readline";
+import { createInterface } from "node:readline/promises";
 import { spawn } from "node:child_process";
 import { existsSync } from "node:fs";
 import { stdin as input, stdout as output } from "node:process";
 import path from "node:path";
-import { analyzeProjectStatus, buildDashboardSnapshot, deferProjectGitSetup, findWorkspaceRoot, initializeProject, inspectProjectGitSetup, loadProjectManifest, MANIFEST_RELATIVE_PATH, summarizeSyncResult, updateProject, updateProjectAutoMode, updateProjectDashboardPort, updateProjectGitMode, updateProjectLanguage, updateProjectTeamsMode, writeDashboardSnapshotFile } from "@pgg/core";
+import { analyzeProjectStatus, buildDashboardSnapshot, findWorkspaceRoot, initializeProject, inspectProjectGitSetup, loadProjectManifest, MANIFEST_RELATIVE_PATH, runProjectGitOnboarding, summarizeSyncResult, updateProject, updateProjectAutoMode, updateProjectDashboardPort, updateProjectGitMode, updateProjectLanguage, updateProjectTeamsMode, writeDashboardSnapshotFile } from "@pgg/core";
 class InteractiveCancelError extends Error {
     constructor() {
         super("Interactive selection was cancelled.");
@@ -206,6 +207,23 @@ async function chooseMany(question, options) {
         render();
     });
 }
+async function askText(question, fallback) {
+    if (!process.stdin.isTTY || !process.stdout.isTTY) {
+        if (fallback !== undefined) {
+            return fallback;
+        }
+        throw new Error(`${question} requires an interactive terminal or an explicit flag.`);
+    }
+    const rl = createInterface({ input, output });
+    try {
+        const suffix = fallback ? ` (${fallback})` : "";
+        const answer = (await rl.question(`${question}${suffix}: `)).trim();
+        return answer || fallback || "";
+    }
+    finally {
+        rl.close();
+    }
+}
 function printHelp(language) {
     output.write(helpText(language));
 }
@@ -279,20 +297,90 @@ function localizedFeatureOptions(language, rootDir) {
         { value: "git", label: "git - Manage commits, publishing, and repository connection.", checked: hasGitRepository }
     ];
 }
-async function deferGitSetup(rootDir, language) {
+function readStringOption(options, key) {
+    return typeof options[key] === "string" ? options[key] : undefined;
+}
+function isGitSetupOptionProvided(options) {
+    return ["git-setup", "git-provider", "git-owner", "git-repository", "git-auth", "git-remote-url", "git-default-branch"].some((key) => typeof options[key] === "string");
+}
+async function resolveGitOnboardingRequest(rootDir, language, options) {
     const inspection = await inspectProjectGitSetup(rootDir);
-    const message = language === "ko"
-        ? "Git 저장소 연결은 나중에 `pgg git` 또는 dashboard project settings에서 완료할 수 있습니다."
-        : "Git repository connection can be completed later with `pgg git` or dashboard project settings.";
-    await deferProjectGitSetup(rootDir, message);
-    output.write(`${JSON.stringify({
-        gitSetup: "deferred",
-        setupPath: inspection.path,
-        provider: inspection.parsedRemote?.provider ?? null,
-        owner: inspection.parsedRemote?.owner ?? null,
-        repository: inspection.parsedRemote?.repository ?? null,
-        message
-    }, null, 2)}\n`);
+    const explicitPath = readStringOption(options, "git-setup");
+    const pathChoice = explicitPath ??
+        (process.stdin.isTTY && process.stdout.isTTY
+            ? await choose(language === "ko" ? "Git 설정 방식을 선택하세요" : "Choose Git setup path", [
+                { value: "local", label: language === "ko" ? "local - git init만 처리" : "local - run git init only" },
+                {
+                    value: inspection.path === "fast" ? "fast" : "setup",
+                    label: inspection.path === "fast"
+                        ? language === "ko"
+                            ? "remote - 기존 origin FAST PATH 사용"
+                            : "remote - use detected origin FAST PATH"
+                        : language === "ko"
+                            ? "remote - 새 remote SETUP PATH 진행"
+                            : "remote - configure a new remote SETUP PATH"
+                },
+                { value: "defer", label: language === "ko" ? "나중에 등록" : "Register later" }
+            ])
+            : undefined);
+    if (!pathChoice) {
+        throw new Error(language === "ko"
+            ? "Git 설정에는 interactive terminal 또는 --git-setup local|fast|setup|defer 옵션이 필요합니다."
+            : "Git setup requires an interactive terminal or --git-setup local|fast|setup|defer.");
+    }
+    if (pathChoice === "defer") {
+        return {
+            path: "defer",
+            deferMessage: language === "ko"
+                ? "Git 저장소 연결은 나중에 `pgg git` 또는 dashboard project settings에서 완료할 수 있습니다."
+                : "Git repository connection can be completed later with `pgg git` or dashboard project settings."
+        };
+    }
+    if (pathChoice === "local") {
+        const localRequest = { path: "local" };
+        const localDefaultBranch = readStringOption(options, "git-default-branch");
+        if (localDefaultBranch)
+            localRequest.defaultBranch = localDefaultBranch;
+        return localRequest;
+    }
+    const provider = readStringOption(options, "git-provider") ??
+        inspection.parsedRemote?.provider ??
+        (pathChoice === "setup"
+            ? (await choose(language === "ko" ? "Git provider를 선택하세요" : "Choose Git provider", [
+                { value: "github", label: "GitHub" },
+                { value: "gitlab", label: "GitLab" }
+            ]))
+            : "github");
+    const authMethod = readStringOption(options, "git-auth") ??
+        (await choose(language === "ko" ? "인증 방식을 선택하세요" : "Choose auth method", [
+            { value: "ssh", label: "SSH" },
+            { value: "https-token", label: "HTTPS Token" },
+            { value: "provider-cli", label: provider === "gitlab" ? "glab auth login" : "gh auth login" }
+        ]));
+    const owner = readStringOption(options, "git-owner") ?? inspection.parsedRemote?.owner ?? (await askText(language === "ko" ? "Owner/user/org" : "Owner/user/org"));
+    const repository = readStringOption(options, "git-repository") ??
+        inspection.parsedRemote?.repository ??
+        (await askText(language === "ko" ? "Repository name" : "Repository name", path.basename(rootDir)));
+    const request = {
+        path: pathChoice === "fast" ? "fast" : "setup",
+        provider,
+        owner,
+        repository,
+        authMethod,
+        defaultBranch: readStringOption(options, "git-default-branch") ?? "main",
+        visibility: readStringOption(options, "git-visibility") ?? "private",
+        confirmRemoteMutation: options["yes"] === true || process.stdin.isTTY,
+        confirmPush: options.push === true || readStringOption(options, "push") === "true"
+    };
+    const remoteUrl = readStringOption(options, "git-remote-url") ?? inspection.git.remoteUrl;
+    if (remoteUrl)
+        request.remoteUrl = remoteUrl;
+    return request;
+}
+async function runGitOnboarding(rootDir, language, options) {
+    const request = await resolveGitOnboardingRequest(rootDir, language, options);
+    const result = await runProjectGitOnboarding(rootDir, request);
+    output.write(`${JSON.stringify({ gitSetup: result }, null, 2)}\n`);
 }
 function resolveRoot(options) {
     const raw = typeof options.cwd === "string" ? options.cwd : process.cwd();
@@ -369,7 +457,7 @@ async function run() {
         });
         output.write(`${formatSyncResult(result)}\n`);
         if (gitMode === "on") {
-            await deferGitSetup(rootDir, language === "en" ? "en" : "ko");
+            await runGitOnboarding(rootDir, language === "en" ? "en" : "ko", options);
         }
         return;
     }
@@ -422,7 +510,14 @@ async function run() {
         const result = await updateProjectGitMode(rootDir, gitMode);
         output.write(`${formatSyncResult(result)}\n`);
         if (gitMode === "on") {
-            await deferGitSetup(rootDir, language);
+            if (isGitSetupOptionProvided(options) || (process.stdin.isTTY && process.stdout.isTTY)) {
+                await runGitOnboarding(rootDir, language, options);
+            }
+            else {
+                throw new Error(language === "ko"
+                    ? "Git 활성화 후 저장소 설정에는 interactive terminal 또는 --git-setup local|fast|setup|defer 옵션이 필요합니다."
+                    : "Enabling Git repository setup requires an interactive terminal or --git-setup local|fast|setup|defer.");
+            }
         }
         return;
     }

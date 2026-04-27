@@ -14,6 +14,7 @@ import {
   FormControlLabel,
   IconButton,
   InputAdornment,
+  MenuItem,
   Paper,
   Stack,
   Step,
@@ -50,6 +51,7 @@ import type {
   ArtifactSelection,
   DashboardDetailSection,
   DashboardLocale,
+  ProjectGitSetupRequest,
   ProjectSnapshot,
   TopicSummary
 } from "../../shared/model/dashboard";
@@ -89,6 +91,8 @@ type ProjectDetailWorkspaceProps = {
   onUpdateLanguage: (language: "ko" | "en") => void;
   onUpdateSystem: (payload: Partial<{ autoMode: "on" | "off"; teamsMode: "on" | "off"; gitMode: "on" | "off" }>) => void;
   onDeferGitSetup: (message: string) => void;
+  onRunGitSetup: (request: ProjectGitSetupRequest) => void;
+  gitSetupPending: boolean;
 };
 
 type ReportFilter = "all" | "qa" | "review";
@@ -299,6 +303,8 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
           onUpdateLanguage={props.onUpdateLanguage}
           onUpdateSystem={props.onUpdateSystem}
           onDeferGitSetup={props.onDeferGitSetup}
+          onRunGitSetup={props.onRunGitSetup}
+          gitSetupPending={props.gitSetupPending}
         />
       ) : null}
 
@@ -759,11 +765,22 @@ function ProjectSettingsSection(props: {
   onUpdateLanguage: (language: "ko" | "en") => void;
   onUpdateSystem: (payload: Partial<{ autoMode: "on" | "off"; teamsMode: "on" | "off"; gitMode: "on" | "off" }>) => void;
   onDeferGitSetup: (message: string) => void;
+  onRunGitSetup: (request: ProjectGitSetupRequest) => void;
+  gitSetupPending: boolean;
 }) {
   const [activeTab, setActiveTab] = useState<"basic" | "git">("basic");
   const [workingDraft, setWorkingDraft] = useState(props.project.workingBranchPrefix || "ai");
   const [releaseDraft, setReleaseDraft] = useState(props.project.releaseBranchPrefix || "release");
   const [setupOpen, setSetupOpen] = useState(false);
+  const [setupPath, setSetupPath] = useState<ProjectGitSetupRequest["path"]>(props.project.gitRemoteUrl ? "fast" : "setup");
+  const [providerDraft, setProviderDraft] = useState<ProjectGitSetupRequest["provider"]>(props.project.gitProvider ?? "github");
+  const [authDraft, setAuthDraft] = useState<ProjectGitSetupRequest["authMethod"]>(props.project.gitAuthMethod ?? "ssh");
+  const [ownerDraft, setOwnerDraft] = useState(props.project.gitOwner ?? "");
+  const [repositoryDraft, setRepositoryDraft] = useState(props.project.gitRepository ?? props.project.name);
+  const [remoteDraft, setRemoteDraft] = useState(props.project.gitRemoteUrl ?? "");
+  const [branchDraft, setBranchDraft] = useState(props.project.gitDefaultBranch ?? "main");
+  const [confirmRemote, setConfirmRemote] = useState(false);
+  const [confirmPush, setConfirmPush] = useState(false);
   const gitConnected = isGitConnectionKnown(props.project);
   const gitDeferred = props.project.gitSetupStatus === "deferred";
   const gitDetailsDisabled = !gitConnected && !gitDeferred;
@@ -773,6 +790,39 @@ function ProjectSettingsSection(props: {
     setWorkingDraft(props.project.workingBranchPrefix || "ai");
     setReleaseDraft(props.project.releaseBranchPrefix || "release");
   }, [props.project.releaseBranchPrefix, props.project.workingBranchPrefix]);
+
+  useEffect(() => {
+    setSetupPath(props.project.gitRemoteUrl ? "fast" : "setup");
+    setProviderDraft(props.project.gitProvider ?? "github");
+    setAuthDraft(props.project.gitAuthMethod ?? "ssh");
+    setOwnerDraft(props.project.gitOwner ?? "");
+    setRepositoryDraft(props.project.gitRepository ?? props.project.name);
+    setRemoteDraft(props.project.gitRemoteUrl ?? "");
+    setBranchDraft(props.project.gitDefaultBranch ?? "main");
+  }, [
+    props.project.gitAuthMethod,
+    props.project.gitDefaultBranch,
+    props.project.gitOwner,
+    props.project.gitProvider,
+    props.project.gitRemoteUrl,
+    props.project.gitRepository,
+    props.project.name
+  ]);
+
+  const submitGitSetup = () => {
+    props.onRunGitSetup({
+      path: setupPath,
+      provider: providerDraft,
+      authMethod: authDraft,
+      owner: ownerDraft,
+      repository: repositoryDraft,
+      remoteUrl: remoteDraft,
+      defaultBranch: branchDraft,
+      visibility: "private",
+      confirmRemoteMutation: confirmRemote,
+      confirmPush
+    });
+  };
 
   return (
     <Paper sx={{ p: 2.25, borderRadius: 1 }}>
@@ -918,6 +968,86 @@ function ProjectSettingsSection(props: {
                 </Step>
               ))}
             </Stepper>
+            <TextField
+              select
+              label={props.dictionary.gitSetupPath}
+              value={setupPath}
+              disabled={!props.isLiveMode || props.gitSetupPending}
+              onChange={(event) => setSetupPath(event.target.value as ProjectGitSetupRequest["path"])}
+            >
+              <MenuItem value="local">{props.dictionary.gitSetupLocal}</MenuItem>
+              <MenuItem value="fast">{props.dictionary.gitSetupFast}</MenuItem>
+              <MenuItem value="setup">{props.dictionary.gitSetupNewRemote}</MenuItem>
+            </TextField>
+            {setupPath !== "local" ? (
+              <Stack spacing={1.25}>
+                <TextField
+                  select
+                  label={props.dictionary.gitProvider}
+                  value={providerDraft}
+                  disabled={!props.isLiveMode || props.gitSetupPending}
+                  onChange={(event) => setProviderDraft(event.target.value as ProjectGitSetupRequest["provider"])}
+                >
+                  <MenuItem value="github">GitHub</MenuItem>
+                  <MenuItem value="gitlab">GitLab</MenuItem>
+                </TextField>
+                <TextField
+                  select
+                  label={props.dictionary.gitAuthMethod}
+                  value={authDraft}
+                  disabled={!props.isLiveMode || props.gitSetupPending}
+                  onChange={(event) => setAuthDraft(event.target.value as ProjectGitSetupRequest["authMethod"])}
+                >
+                  <MenuItem value="ssh">SSH</MenuItem>
+                  <MenuItem value="https-token">HTTPS Token</MenuItem>
+                  <MenuItem value="provider-cli">Provider CLI Login</MenuItem>
+                </TextField>
+                <TextField
+                  label={props.dictionary.gitOwner}
+                  value={ownerDraft}
+                  disabled={!props.isLiveMode || props.gitSetupPending}
+                  onChange={(event) => setOwnerDraft(event.target.value)}
+                />
+                <TextField
+                  label={props.dictionary.gitRepository}
+                  value={repositoryDraft}
+                  disabled={!props.isLiveMode || props.gitSetupPending}
+                  onChange={(event) => setRepositoryDraft(event.target.value)}
+                />
+                <TextField
+                  label={props.dictionary.gitRemoteUrl}
+                  value={remoteDraft}
+                  disabled={!props.isLiveMode || props.gitSetupPending}
+                  onChange={(event) => setRemoteDraft(event.target.value)}
+                />
+              </Stack>
+            ) : null}
+            <TextField
+              label={props.dictionary.gitDefaultBranch}
+              value={branchDraft}
+              disabled={!props.isLiveMode || props.gitSetupPending}
+              onChange={(event) => setBranchDraft(event.target.value)}
+            />
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={confirmRemote}
+                  disabled={!props.isLiveMode || props.gitSetupPending || setupPath === "local"}
+                  onChange={(event) => setConfirmRemote(event.target.checked)}
+                />
+              }
+              label={props.dictionary.gitConfirmRemoteMutation}
+            />
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={confirmPush}
+                  disabled={!props.isLiveMode || props.gitSetupPending || setupPath === "local"}
+                  onChange={(event) => setConfirmPush(event.target.checked)}
+                />
+              }
+              label={props.dictionary.gitConfirmPush}
+            />
             <Alert severity="info">{props.dictionary.gitDeferredHint}</Alert>
           </Stack>
         </DialogContent>
@@ -929,6 +1059,13 @@ function ProjectSettingsSection(props: {
             }}
           >
             {props.dictionary.deferGitSetup}
+          </Button>
+          <Button
+            variant="contained"
+            disabled={!props.isLiveMode || props.gitSetupPending}
+            onClick={submitGitSetup}
+          >
+            {props.dictionary.runGitSetup}
           </Button>
           <Button variant="contained" onClick={() => setSetupOpen(false)}>
             {props.dictionary.close}

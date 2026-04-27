@@ -825,6 +825,253 @@ export async function deferProjectGitSetup(rootDir, setupMessage) {
         })
     }));
 }
+async function defaultGitCommandRunner(command, args, options) {
+    try {
+        const stdout = execFileSync(command, args, {
+            cwd: options.cwd,
+            encoding: "utf8",
+            stdio: ["ignore", "pipe", "pipe"]
+        });
+        return { stdout: stdout.trim(), stderr: "", exitCode: 0 };
+    }
+    catch (error) {
+        const failure = error;
+        return {
+            stdout: Buffer.isBuffer(failure.stdout) ? failure.stdout.toString("utf8").trim() : String(failure.stdout ?? "").trim(),
+            stderr: Buffer.isBuffer(failure.stderr) ? failure.stderr.toString("utf8").trim() : String(failure.stderr ?? "").trim(),
+            exitCode: typeof failure.status === "number" ? failure.status : 1
+        };
+    }
+}
+function sanitizeGitOnboardingString(value) {
+    return typeof value === "string" && value.trim() ? value.trim() : undefined;
+}
+function createRemoteUrl(input) {
+    const host = input.provider === "gitlab" ? "gitlab.com" : "github.com";
+    const repoPath = `${input.owner}/${input.repository}`.replace(/^\/+|\/+$/g, "");
+    return input.authMethod === "ssh" ? `git@${host}:${repoPath}.git` : `https://${host}/${repoPath}.git`;
+}
+async function runGitStep(steps, runner, rootDir, id, message, command, args) {
+    const result = await runner(command, args, { cwd: rootDir });
+    const ok = result.exitCode === 0;
+    steps.push({
+        id,
+        status: ok ? "success" : "failed",
+        message: ok ? message : `${message} failed${result.stderr ? `: ${result.stderr}` : ""}`
+    });
+    return ok;
+}
+function createGitOnboardingResult(input) {
+    return {
+        path: input.path,
+        status: input.status,
+        setupStatus: input.setupStatus,
+        provider: input.provider ?? null,
+        owner: input.owner ?? null,
+        repository: input.repository ?? null,
+        remoteUrl: input.remoteUrl ?? null,
+        authMethod: input.authMethod ?? null,
+        defaultBranch: input.defaultBranch ?? null,
+        message: input.message,
+        steps: input.steps
+    };
+}
+async function completeGitOnboarding(rootDir, request, detected, steps, message) {
+    const parsed = request.remoteUrl ? parseGitRemoteUrl(request.remoteUrl) : null;
+    const provider = normalizeGitProvider(request.provider) ?? parsed?.provider ?? detected.provider ?? "unknown";
+    const owner = sanitizeGitOnboardingString(request.owner) ?? parsed?.owner ?? detected.owner ?? null;
+    const repository = sanitizeGitOnboardingString(request.repository) ?? parsed?.repository ?? detected.repository ?? null;
+    const authMethod = normalizeGitAuthMethod(request.authMethod) ?? detected.authMethod ?? "unknown";
+    const remoteUrl = sanitizeGitOnboardingString(request.remoteUrl) ?? detected.remoteUrl ?? null;
+    const defaultBranch = sanitizeGitOnboardingString(request.defaultBranch) ?? detected.defaultBranch ?? "main";
+    const visibility = normalizeGitVisibility(request.visibility) ?? detected.visibility;
+    const connectionUpdates = {
+        provider,
+        authMethod,
+        defaultBranch,
+        setupStatus: "configured",
+        setupMessage: message
+    };
+    if (owner)
+        connectionUpdates.owner = owner;
+    if (repository)
+        connectionUpdates.repository = repository;
+    if (remoteUrl)
+        connectionUpdates.remoteUrl = remoteUrl;
+    if (visibility)
+        connectionUpdates.visibility = visibility;
+    await updateProjectGitConnection(rootDir, connectionUpdates);
+    return createGitOnboardingResult({
+        path: request.path,
+        status: "configured",
+        setupStatus: "configured",
+        provider,
+        owner,
+        repository,
+        remoteUrl,
+        authMethod,
+        defaultBranch,
+        message,
+        steps
+    });
+}
+export async function runProjectGitOnboarding(rootDir, request, runner = defaultGitCommandRunner) {
+    const inspection = await inspectProjectGitSetup(rootDir);
+    const steps = [];
+    if (request.path === "defer") {
+        const message = request.deferMessage?.trim() || "Git setup was deferred and can be completed later.";
+        await deferProjectGitSetup(rootDir, message);
+        steps.push({ id: "defer", status: "success", message });
+        return createGitOnboardingResult({
+            path: "defer",
+            status: "deferred",
+            setupStatus: "deferred",
+            provider: inspection.git.provider ?? null,
+            owner: inspection.git.owner ?? null,
+            repository: inspection.git.repository ?? null,
+            remoteUrl: inspection.git.remoteUrl ?? null,
+            authMethod: inspection.git.authMethod ?? null,
+            defaultBranch: inspection.git.defaultBranch ?? null,
+            message,
+            steps
+        });
+    }
+    if (request.path === "local") {
+        if (!inspection.hasGitRepository) {
+            const initialized = await runGitStep(steps, runner, rootDir, "git-init", "Initialized local Git repository.", "git", ["init"]);
+            if (!initialized) {
+                return createGitOnboardingResult({
+                    path: "local",
+                    status: "failed",
+                    setupStatus: "failed",
+                    message: "Local Git initialization failed.",
+                    steps
+                });
+            }
+        }
+        else {
+            steps.push({ id: "git-init", status: "skipped", message: "Local Git repository already exists." });
+        }
+        await updateProjectGitConnection(rootDir, {
+            provider: "unknown",
+            authMethod: "unknown",
+            setupStatus: "configured",
+            setupMessage: "Configured local Git repository without a remote.",
+            defaultBranch: request.defaultBranch ?? inspection.git.defaultBranch ?? "main"
+        });
+        return createGitOnboardingResult({
+            path: "local",
+            status: "configured",
+            setupStatus: "configured",
+            provider: "unknown",
+            owner: null,
+            repository: null,
+            remoteUrl: null,
+            authMethod: "unknown",
+            defaultBranch: request.defaultBranch ?? inspection.git.defaultBranch ?? "main",
+            message: "Configured local Git repository without a remote.",
+            steps
+        });
+    }
+    if (request.path === "fast" && !inspection.parsedRemote && !request.remoteUrl) {
+        steps.push({ id: "detect-remote", status: "failed", message: "FAST PATH requires an existing or provided remote URL." });
+        return createGitOnboardingResult({
+            path: "fast",
+            status: "failed",
+            setupStatus: "failed",
+            message: "FAST PATH requires an existing or provided remote URL.",
+            steps
+        });
+    }
+    if ((request.path === "fast" || request.path === "setup") && !request.confirmRemoteMutation) {
+        steps.push({ id: "confirm", status: "pending", message: "Remote setup requires confirmation before changing git state." });
+        return createGitOnboardingResult({
+            path: request.path,
+            status: "blocked",
+            setupStatus: inspection.git.setupStatus,
+            provider: inspection.git.provider ?? null,
+            owner: inspection.git.owner ?? null,
+            repository: inspection.git.repository ?? null,
+            remoteUrl: inspection.git.remoteUrl ?? null,
+            authMethod: inspection.git.authMethod ?? null,
+            defaultBranch: inspection.git.defaultBranch ?? null,
+            message: "Remote setup requires confirmation before changing git state.",
+            steps
+        });
+    }
+    const provider = normalizeGitProvider(request.provider) ?? inspection.parsedRemote?.provider ?? "github";
+    const owner = sanitizeGitOnboardingString(request.owner) ?? inspection.parsedRemote?.owner;
+    const repository = sanitizeGitOnboardingString(request.repository) ?? inspection.parsedRemote?.repository;
+    const authMethod = normalizeGitAuthMethod(request.authMethod) ?? "ssh";
+    const defaultBranch = sanitizeGitOnboardingString(request.defaultBranch) ?? inspection.git.defaultBranch ?? "main";
+    const remoteUrl = sanitizeGitOnboardingString(request.remoteUrl) ??
+        inspection.git.remoteUrl ??
+        (owner && repository ? createRemoteUrl({ provider, owner, repository, authMethod }) : undefined);
+    if (!remoteUrl || !owner || !repository) {
+        steps.push({ id: "repository", status: "failed", message: "Provider, owner, repository, and remote URL are required." });
+        return createGitOnboardingResult({
+            path: request.path,
+            status: "failed",
+            setupStatus: "failed",
+            provider,
+            owner: owner ?? null,
+            repository: repository ?? null,
+            remoteUrl: remoteUrl ?? null,
+            authMethod,
+            defaultBranch,
+            message: "Provider, owner, repository, and remote URL are required.",
+            steps
+        });
+    }
+    if (!inspection.hasGitRepository) {
+        const initialized = await runGitStep(steps, runner, rootDir, "git-init", "Initialized local Git repository.", "git", ["init"]);
+        if (!initialized) {
+            return createGitOnboardingResult({ path: request.path, status: "failed", setupStatus: "failed", provider, owner, repository, remoteUrl, authMethod, defaultBranch, message: "Git initialization failed.", steps });
+        }
+    }
+    else {
+        steps.push({ id: "git-init", status: "skipped", message: "Local Git repository already exists." });
+    }
+    if (request.path === "setup") {
+        const remoteAction = inspection.git.remoteUrl ? "set-url" : "add";
+        const remoteArgs = remoteAction === "set-url" ? ["remote", "set-url", inspection.git.defaultRemote, remoteUrl] : ["remote", "add", inspection.git.defaultRemote, remoteUrl];
+        const remoteConfigured = await runGitStep(steps, runner, rootDir, "remote", `Configured remote '${inspection.git.defaultRemote}'.`, "git", remoteArgs);
+        if (!remoteConfigured) {
+            return createGitOnboardingResult({ path: request.path, status: "failed", setupStatus: "failed", provider, owner, repository, remoteUrl, authMethod, defaultBranch, message: "Remote configuration failed.", steps });
+        }
+    }
+    else {
+        steps.push({ id: "remote", status: "success", message: `Using detected remote '${inspection.git.defaultRemote}'.` });
+    }
+    const authOk = authMethod === "provider-cli"
+        ? await runGitStep(steps, runner, rootDir, "auth", `Checked ${provider === "gitlab" ? "glab" : "gh"} authentication.`, provider === "gitlab" ? "glab" : "gh", ["auth", "status"])
+        : await runGitStep(steps, runner, rootDir, "auth", "Checked remote access.", "git", ["ls-remote", remoteUrl, "HEAD"]);
+    if (!authOk) {
+        return createGitOnboardingResult({ path: request.path, status: "failed", setupStatus: "failed", provider, owner, repository, remoteUrl, authMethod, defaultBranch, message: "Git authentication or remote access check failed.", steps });
+    }
+    const branchOk = await runGitStep(steps, runner, rootDir, "branch", `Selected default branch '${defaultBranch}'.`, "git", ["branch", "-M", defaultBranch]);
+    if (!branchOk) {
+        return createGitOnboardingResult({ path: request.path, status: "failed", setupStatus: "failed", provider, owner, repository, remoteUrl, authMethod, defaultBranch, message: "Default branch selection failed.", steps });
+    }
+    if (request.confirmPush) {
+        const pushOk = await runGitStep(steps, runner, rootDir, "push", `Pushed '${defaultBranch}' to '${inspection.git.defaultRemote}'.`, "git", ["push", "-u", inspection.git.defaultRemote, defaultBranch]);
+        if (!pushOk) {
+            return createGitOnboardingResult({ path: request.path, status: "failed", setupStatus: "failed", provider, owner, repository, remoteUrl, authMethod, defaultBranch, message: "Git push failed.", steps });
+        }
+    }
+    else {
+        steps.push({ id: "push", status: "skipped", message: "Push was skipped because it was not confirmed." });
+    }
+    return completeGitOnboarding(rootDir, {
+        ...request,
+        provider,
+        owner,
+        repository,
+        remoteUrl,
+        authMethod,
+        defaultBranch
+    }, inspection.git, steps, request.confirmPush ? "Git repository connection completed." : "Git repository connection configured; push was skipped.");
+}
 export async function updateProjectGitConnection(rootDir, updates) {
     return updateRegisteredProject(rootDir, (manifest) => {
         const current = normalizeProjectGitConfig(manifest.git);
