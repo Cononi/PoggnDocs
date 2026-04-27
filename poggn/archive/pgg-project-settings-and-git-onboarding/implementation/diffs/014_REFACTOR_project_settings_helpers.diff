@@ -1,0 +1,295 @@
+diff --git a/apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx b/apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx
+index 9ee3aad..28ee8dd 100644
+--- a/apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx
++++ b/apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx
+@@ -6,11 +6,20 @@ import {
+   Button,
+   ButtonBase,
+   Chip,
++  Dialog,
++  DialogActions,
++  DialogContent,
++  DialogTitle,
+   Divider,
++  FormControlLabel,
+   IconButton,
+   InputAdornment,
+   Paper,
+   Stack,
++  Step,
++  StepLabel,
++  Stepper,
++  Switch,
+   Tab,
+   Table,
+   TableBody,
+@@ -76,6 +85,10 @@ type ProjectDetailWorkspaceProps = {
+   onSelectFile: (entry: ArtifactDocumentEntry) => void;
+   onSaveSelection: (content: string) => void;
+   onDeleteSelection: () => void;
++  onApplyGitPrefixes: (workingBranchPrefix: string, releaseBranchPrefix: string) => void;
++  onUpdateLanguage: (language: "ko" | "en") => void;
++  onUpdateSystem: (payload: Partial<{ autoMode: "on" | "off"; teamsMode: "on" | "off"; gitMode: "on" | "off" }>) => void;
++  onDeferGitSetup: (message: string) => void;
+ };
+ 
+ type ReportFilter = "all" | "qa" | "review";
+@@ -85,6 +98,24 @@ type MetricEntry = {
+   value: string;
+ };
+ 
++function isGitConnectionKnown(project: ProjectSnapshot): boolean {
++  return project.gitSetupStatus === "configured" || project.gitSetupStatus === "detected";
++}
++
++function buildGitSetupSteps(project: ProjectSnapshot, dictionary: DashboardLocale): string[] {
++  return project.gitRemoteUrl || isGitConnectionKnown(project)
++    ? [
++        dictionary.gitFastDetectStep,
++        dictionary.gitAuthStep,
++        dictionary.gitPushStep
++      ]
++    : [
++        dictionary.gitSetupProviderStep,
++        dictionary.gitSetupRepositoryStep,
++        dictionary.gitPushStep
++      ];
++}
++
+ function filterReportTopics(topics: TopicSummary[], query: string, filter: ReportFilter): TopicSummary[] {
+   const normalizedQuery = query.trim().toLowerCase();
+   return topics.filter((topic) => {
+@@ -259,6 +290,18 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
+         <ProjectInfoSection project={props.project} dictionary={props.dictionary} />
+       ) : null}
+ 
++      {props.activeSection === "settings" ? (
++        <ProjectSettingsSection
++          project={props.project}
++          dictionary={props.dictionary}
++          isLiveMode={props.isLiveMode}
++          onApplyGitPrefixes={props.onApplyGitPrefixes}
++          onUpdateLanguage={props.onUpdateLanguage}
++          onUpdateSystem={props.onUpdateSystem}
++          onDeferGitSetup={props.onDeferGitSetup}
++        />
++      ) : null}
++
+       {props.activeSection === "history" ? (
+         <HistoryWorkspace
+           project={props.project}
+@@ -708,6 +751,214 @@ function ProjectInfoSection(props: { project: ProjectSnapshot; dictionary: Dashb
+   );
+ }
+ 
++function ProjectSettingsSection(props: {
++  project: ProjectSnapshot;
++  dictionary: DashboardLocale;
++  isLiveMode: boolean;
++  onApplyGitPrefixes: (workingBranchPrefix: string, releaseBranchPrefix: string) => void;
++  onUpdateLanguage: (language: "ko" | "en") => void;
++  onUpdateSystem: (payload: Partial<{ autoMode: "on" | "off"; teamsMode: "on" | "off"; gitMode: "on" | "off" }>) => void;
++  onDeferGitSetup: (message: string) => void;
++}) {
++  const [activeTab, setActiveTab] = useState<"basic" | "git">("basic");
++  const [workingDraft, setWorkingDraft] = useState(props.project.workingBranchPrefix || "ai");
++  const [releaseDraft, setReleaseDraft] = useState(props.project.releaseBranchPrefix || "release");
++  const [setupOpen, setSetupOpen] = useState(false);
++  const gitConnected = isGitConnectionKnown(props.project);
++  const gitDeferred = props.project.gitSetupStatus === "deferred";
++  const gitDetailsDisabled = !gitConnected && !gitDeferred;
++  const setupSteps = buildGitSetupSteps(props.project, props.dictionary);
++
++  useEffect(() => {
++    setWorkingDraft(props.project.workingBranchPrefix || "ai");
++    setReleaseDraft(props.project.releaseBranchPrefix || "release");
++  }, [props.project.releaseBranchPrefix, props.project.workingBranchPrefix]);
++
++  return (
++    <Paper sx={{ p: 2.25, borderRadius: 1 }}>
++      <Stack spacing={2}>
++        <Box>
++          <Typography variant="h6">{props.dictionary.sidebarProjectSettings}</Typography>
++          <Typography variant="body2" color="text.secondary">
++            {props.dictionary.projectSettingsHint}
++          </Typography>
++        </Box>
++
++        {!props.isLiveMode ? <Alert severity="info">{props.dictionary.liveEditingDisabled}</Alert> : null}
++
++        <Tabs value={activeTab} onChange={(_event, value) => setActiveTab(value)}>
++          <Tab value="basic" label={props.dictionary.basicSettingsTab} />
++          <Tab value="git" label={props.dictionary.git} />
++        </Tabs>
++
++        {activeTab === "basic" ? (
++          <Stack spacing={2}>
++            <Paper variant="outlined" sx={{ p: 2, borderRadius: 1 }}>
++              <Stack spacing={1.5}>
++                <Typography variant="subtitle1">{props.dictionary.language}</Typography>
++                <Stack direction="row" spacing={1}>
++                  <Button
++                    variant={props.project.language === "ko" ? "contained" : "outlined"}
++                    disabled={!props.isLiveMode}
++                    onClick={() => props.onUpdateLanguage("ko")}
++                  >
++                    KO
++                  </Button>
++                  <Button
++                    variant={props.project.language === "en" ? "contained" : "outlined"}
++                    disabled={!props.isLiveMode}
++                    onClick={() => props.onUpdateLanguage("en")}
++                  >
++                    EN
++                  </Button>
++                </Stack>
++              </Stack>
++            </Paper>
++
++            <Paper variant="outlined" sx={{ p: 2, borderRadius: 1 }}>
++              <Stack spacing={1}>
++                <ProjectSettingSwitch
++                  label={props.dictionary.autoMode}
++                  checked={props.project.autoMode === "on"}
++                  disabled={!props.isLiveMode}
++                  onChange={(checked) => props.onUpdateSystem({ autoMode: checked ? "on" : "off" })}
++                />
++                <ProjectSettingSwitch
++                  label={props.dictionary.teamsMode}
++                  checked={props.project.teamsMode === "on"}
++                  disabled={!props.isLiveMode}
++                  onChange={(checked) => props.onUpdateSystem({ teamsMode: checked ? "on" : "off" })}
++                />
++              </Stack>
++            </Paper>
++          </Stack>
++        ) : null}
++
++        {activeTab === "git" ? (
++          <Stack spacing={2}>
++            <Paper variant="outlined" sx={{ p: 2, borderRadius: 1 }}>
++              <Stack spacing={1.5}>
++                <ProjectSettingSwitch
++                  label={props.dictionary.gitMode}
++                  checked={props.project.gitMode === "on"}
++                  disabled={!props.isLiveMode}
++                  onChange={(checked) => props.onUpdateSystem({ gitMode: checked ? "on" : "off" })}
++                />
++                <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
++                  <Chip size="small" label={`${props.dictionary.gitSetupStatus}: ${props.project.gitSetupStatus}`} />
++                  <Chip size="small" label={`${props.dictionary.defaultRemote}: ${props.project.defaultRemote || "origin"}`} />
++                  <Chip size="small" label={`${props.dictionary.workingBranchPrefix}: ${props.project.workingBranchPrefix || "ai"}`} />
++                  <Chip size="small" label={`${props.dictionary.releaseBranchPrefix}: ${props.project.releaseBranchPrefix || "release"}`} />
++                </Stack>
++                {props.project.gitSetupMessage ? (
++                  <Alert severity={gitDeferred ? "warning" : "info"}>{props.project.gitSetupMessage}</Alert>
++                ) : null}
++              </Stack>
++            </Paper>
++
++            <Paper variant="outlined" sx={{ p: 2, borderRadius: 1, opacity: gitDetailsDisabled ? 0.72 : 1 }}>
++              <Stack spacing={1.25}>
++                <Typography variant="subtitle1">{props.dictionary.gitConnectionDetails}</Typography>
++                <MetricRow label={props.dictionary.provider} value={props.project.gitProvider ?? props.dictionary.unknown} />
++                <MetricRow label={props.dictionary.gitOwner} value={props.project.gitOwner ?? props.dictionary.unknown} />
++                <MetricRow label={props.dictionary.gitRepository} value={props.project.gitRepository ?? props.dictionary.unknown} />
++                <MetricRow label={props.dictionary.gitRemoteUrl} value={props.project.gitRemoteUrl ?? props.dictionary.unknown} />
++                <MetricRow label={props.dictionary.gitDefaultBranch} value={props.project.gitDefaultBranch ?? "main"} />
++                <MetricRow label={props.dictionary.gitAuthMethod} value={props.project.gitAuthMethod ?? props.dictionary.unknown} />
++              </Stack>
++            </Paper>
++
++            <Paper variant="outlined" sx={{ p: 2, borderRadius: 1 }}>
++              <Stack spacing={1.5}>
++                <Typography variant="subtitle1">{props.dictionary.gitBranchDefaults}</Typography>
++                <TextField
++                  label={props.dictionary.workingBranchPrefix}
++                  value={workingDraft}
++                  disabled={!props.isLiveMode}
++                  onChange={(event) => setWorkingDraft(event.target.value)}
++                />
++                <TextField
++                  label={props.dictionary.releaseBranchPrefix}
++                  value={releaseDraft}
++                  disabled={!props.isLiveMode}
++                  onChange={(event) => setReleaseDraft(event.target.value)}
++                />
++                <Button
++                  variant="contained"
++                  disabled={!props.isLiveMode}
++                  onClick={() => props.onApplyGitPrefixes(workingDraft, releaseDraft)}
++                >
++                  {props.dictionary.applyChanges}
++                </Button>
++              </Stack>
++            </Paper>
++
++            <Button
++              variant="outlined"
++              disabled={!props.isLiveMode || props.project.gitMode === "off"}
++              onClick={() => setSetupOpen(true)}
++            >
++              {props.dictionary.addGitInfo}
++            </Button>
++          </Stack>
++        ) : null}
++      </Stack>
++
++      <Dialog open={setupOpen} onClose={() => setSetupOpen(false)} fullWidth maxWidth="sm">
++        <DialogTitle>{props.dictionary.addGitInfo}</DialogTitle>
++        <DialogContent>
++          <Stack spacing={2} sx={{ pt: 1 }}>
++            <Typography variant="body2" color="text.secondary">
++              {props.project.gitRemoteUrl ? props.dictionary.gitFastPathHint : props.dictionary.gitSetupPathHint}
++            </Typography>
++            <Stepper activeStep={gitConnected ? setupSteps.length - 1 : 0} orientation="vertical">
++              {setupSteps.map((step) => (
++                <Step key={step}>
++                  <StepLabel>{step}</StepLabel>
++                </Step>
++              ))}
++            </Stepper>
++            <Alert severity="info">{props.dictionary.gitDeferredHint}</Alert>
++          </Stack>
++        </DialogContent>
++        <DialogActions>
++          <Button
++            onClick={() => {
++              props.onDeferGitSetup(props.dictionary.gitDeferredSavedMessage);
++              setSetupOpen(false);
++            }}
++          >
++            {props.dictionary.deferGitSetup}
++          </Button>
++          <Button variant="contained" onClick={() => setSetupOpen(false)}>
++            {props.dictionary.close}
++          </Button>
++        </DialogActions>
++      </Dialog>
++    </Paper>
++  );
++}
++
++function ProjectSettingSwitch(props: {
++  label: string;
++  checked: boolean;
++  disabled: boolean;
++  onChange: (checked: boolean) => void;
++}) {
++  return (
++    <FormControlLabel
++      control={
++        <Switch
++          checked={props.checked}
++          disabled={props.disabled}
++          onChange={(event) => props.onChange(event.target.checked)}
++        />
++      }
++      label={props.label}
++    />
++  );
++}
++
+ function TopicSidebarPanel(props: {
+   topics: TopicSummary[];
+   selectedTopicKey: string | null;

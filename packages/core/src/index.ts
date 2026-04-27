@@ -1,4 +1,5 @@
 import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { existsSync } from "node:fs";
 import { chmod, mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/promises";
 import os from "node:os";
@@ -35,12 +36,32 @@ export type PggAutoMode = TemplateAutoMode;
 export type PggProvider = TemplateProvider;
 export type PggTeamsMode = TemplateTeamsMode;
 export type PggGitMode = "on" | "off";
+export type PggGitProvider = "github" | "gitlab" | "unknown";
+export type PggGitAuthMethod = "https-token" | "ssh" | "provider-cli" | "unknown";
+export type PggGitSetupStatus = "none" | "detected" | "configured" | "deferred" | "failed";
+export type PggGitVisibility = "private" | "public" | "unknown";
+
+export interface ParsedGitRemote {
+  provider: PggGitProvider;
+  owner: string;
+  repository: string;
+  url: string;
+}
 
 export interface ProjectGitConfig {
   mode: PggGitMode;
   defaultRemote: string;
   workingBranchPrefix: string;
   releaseBranchPrefix: string;
+  setupStatus: PggGitSetupStatus;
+  provider?: PggGitProvider;
+  owner?: string;
+  repository?: string;
+  remoteUrl?: string;
+  authMethod?: PggGitAuthMethod;
+  visibility?: PggGitVisibility;
+  defaultBranch?: string;
+  setupMessage?: string;
 }
 
 export interface ManagedFileRecord {
@@ -68,6 +89,18 @@ export interface ProjectManifest {
   };
   verification: import("./verification.js").ProjectVerificationConfig;
   managedFiles: ManagedFileRecord[];
+}
+
+export interface ProjectGitSetupInspection {
+  path: "fast" | "setup";
+  git: ProjectGitConfig;
+  parsedRemote: ParsedGitRemote | null;
+  hasGitRepository: boolean;
+  canUseProviderCli: {
+    github: boolean;
+    gitlab: boolean;
+  };
+  message: string;
 }
 
 export interface RegistryProjectEntry {
@@ -293,8 +326,18 @@ export interface ProjectSnapshot {
   autoMode: PggAutoMode;
   teamsMode: PggTeamsMode;
   gitMode: PggGitMode;
+  defaultRemote: string;
   workingBranchPrefix: string;
   releaseBranchPrefix: string;
+  gitSetupStatus: PggGitSetupStatus;
+  gitProvider: PggGitProvider | null;
+  gitOwner: string | null;
+  gitRepository: string | null;
+  gitRemoteUrl: string | null;
+  gitAuthMethod: PggGitAuthMethod | null;
+  gitVisibility: PggGitVisibility | null;
+  gitDefaultBranch: string | null;
+  gitSetupMessage: string | null;
   installedVersion: string | null;
   pggVersion: string | null;
   projectVersion: string | null;
@@ -745,12 +788,199 @@ function normalizeDashboardConfig(
   };
 }
 
+function normalizeOptionalGitString(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim() ? value.trim() : undefined;
+}
+
+function normalizeGitProvider(value: unknown): PggGitProvider | undefined {
+  return value === "github" || value === "gitlab" || value === "unknown" ? value : undefined;
+}
+
+function normalizeGitAuthMethod(value: unknown): PggGitAuthMethod | undefined {
+  return value === "https-token" || value === "ssh" || value === "provider-cli" || value === "unknown"
+    ? value
+    : undefined;
+}
+
+function normalizeGitVisibility(value: unknown): PggGitVisibility | undefined {
+  return value === "private" || value === "public" || value === "unknown" ? value : undefined;
+}
+
+function normalizeGitSetupStatus(value: unknown, mode: PggGitMode): PggGitSetupStatus {
+  if (value === "none" || value === "detected" || value === "configured" || value === "deferred" || value === "failed") {
+    return value;
+  }
+
+  return mode === "on" ? "deferred" : "none";
+}
+
 function normalizeProjectGitConfig(git: ProjectManifest["git"] | undefined): ProjectGitConfig {
-  return {
-    mode: git?.mode ?? "off",
+  const mode = git?.mode === "on" ? "on" : "off";
+  const normalized: ProjectGitConfig = {
+    mode,
     defaultRemote: git?.defaultRemote?.trim() || "origin",
     workingBranchPrefix: git?.workingBranchPrefix?.trim() || "ai",
-    releaseBranchPrefix: git?.releaseBranchPrefix?.trim() || "release"
+    releaseBranchPrefix: git?.releaseBranchPrefix?.trim() || "release",
+    setupStatus: normalizeGitSetupStatus(git?.setupStatus, mode)
+  };
+  const provider = normalizeGitProvider(git?.provider);
+  const owner = normalizeOptionalGitString(git?.owner);
+  const repository = normalizeOptionalGitString(git?.repository);
+  const remoteUrl = normalizeOptionalGitString(git?.remoteUrl);
+  const authMethod = normalizeGitAuthMethod(git?.authMethod);
+  const visibility = normalizeGitVisibility(git?.visibility);
+  const defaultBranch = normalizeOptionalGitString(git?.defaultBranch);
+  const setupMessage = normalizeOptionalGitString(git?.setupMessage);
+
+  if (provider) normalized.provider = provider;
+  if (owner) normalized.owner = owner;
+  if (repository) normalized.repository = repository;
+  if (remoteUrl) normalized.remoteUrl = remoteUrl;
+  if (authMethod) normalized.authMethod = authMethod;
+  if (visibility) normalized.visibility = visibility;
+  if (defaultBranch) normalized.defaultBranch = defaultBranch;
+  if (setupMessage) normalized.setupMessage = setupMessage;
+
+  return normalized;
+}
+
+function providerFromRemoteHost(host: string): PggGitProvider {
+  const normalizedHost = host.toLowerCase();
+  if (normalizedHost === "github.com" || normalizedHost.endsWith(".github.com")) {
+    return "github";
+  }
+  if (normalizedHost === "gitlab.com" || normalizedHost.endsWith(".gitlab.com")) {
+    return "gitlab";
+  }
+  return "unknown";
+}
+
+function trimGitSuffix(value: string): string {
+  return value.replace(/\.git$/i, "").replace(/^\/+|\/+$/g, "");
+}
+
+export function parseGitRemoteUrl(remoteUrl: string): ParsedGitRemote | null {
+  const raw = remoteUrl.trim();
+  if (!raw) {
+    return null;
+  }
+
+  const scpLike = raw.match(/^git@([^:]+):(.+)$/);
+  if (scpLike) {
+    const host = scpLike[1]!;
+    const pathParts = trimGitSuffix(scpLike[2]!).split("/").filter(Boolean);
+    if (pathParts.length >= 2) {
+      const repository = pathParts.at(-1)!;
+      const owner = pathParts.slice(0, -1).join("/");
+      return {
+        provider: providerFromRemoteHost(host),
+        owner,
+        repository,
+        url: raw
+      };
+    }
+  }
+
+  try {
+    const parsed = new URL(raw);
+    const pathParts = trimGitSuffix(parsed.pathname).split("/").filter(Boolean);
+    if (pathParts.length < 2) {
+      return null;
+    }
+
+    const repository = pathParts.at(-1)!;
+    const owner = pathParts.slice(0, -1).join("/");
+    return {
+      provider: providerFromRemoteHost(parsed.hostname),
+      owner,
+      repository,
+      url: raw
+    };
+  } catch {
+    return null;
+  }
+}
+
+function gitOutput(rootDir: string, args: string[]): string | null {
+  try {
+    return execFileSync("git", ["-C", rootDir, ...args], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"]
+    }).trim();
+  } catch {
+    return null;
+  }
+}
+
+function commandAvailable(command: string): boolean {
+  try {
+    execFileSync(command, ["--version"], {
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "ignore"]
+    });
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function detectProjectGitConfig(rootDir: string, manifestGit: ProjectGitConfig): ProjectGitConfig {
+  const normalized = normalizeProjectGitConfig(manifestGit);
+  const remoteUrl = gitOutput(rootDir, ["remote", "get-url", normalized.defaultRemote]);
+  if (!remoteUrl) {
+    if (existsSync(path.join(rootDir, ".git"))) {
+      return normalizeProjectGitConfig({
+        ...normalized,
+        mode: "on",
+        setupStatus: normalized.setupStatus === "configured" ? "configured" : "detected",
+        setupMessage: normalized.setupMessage ?? "Detected a local Git repository without a configured remote."
+      });
+    }
+    return normalized;
+  }
+
+  const parsed = parseGitRemoteUrl(remoteUrl);
+  const currentBranch = gitOutput(rootDir, ["branch", "--show-current"]);
+  const detected: ProjectGitConfig = {
+    ...normalized,
+    mode: "on",
+    setupStatus: normalized.setupStatus === "configured" ? "configured" : "detected",
+    remoteUrl,
+    defaultBranch: normalized.defaultBranch ?? currentBranch ?? "main",
+    setupMessage: normalized.setupMessage ?? `Detected remote '${normalized.defaultRemote}'.`
+  };
+  detected.provider = parsed?.provider ?? normalized.provider ?? "unknown";
+  const owner = parsed?.owner ?? normalized.owner;
+  if (owner) {
+    detected.owner = owner;
+  }
+  const repository = parsed?.repository ?? normalized.repository;
+  if (repository) {
+    detected.repository = repository;
+  }
+  return normalizeProjectGitConfig(detected);
+}
+
+export async function inspectProjectGitSetup(rootDir: string): Promise<ProjectGitSetupInspection> {
+  const manifest = await loadProjectManifest(rootDir);
+  const manifestGit = normalizeProjectGitConfig(manifest?.git);
+  const git = detectProjectGitConfig(rootDir, manifestGit);
+  const parsedRemote = git.remoteUrl ? parseGitRemoteUrl(git.remoteUrl) : null;
+  const hasGitRepository = existsSync(path.join(rootDir, ".git"));
+  const pathKind = parsedRemote ? "fast" : "setup";
+  return {
+    path: pathKind,
+    git,
+    parsedRemote,
+    hasGitRepository,
+    canUseProviderCli: {
+      github: commandAvailable("gh"),
+      gitlab: commandAvailable("glab")
+    },
+    message:
+      pathKind === "fast"
+        ? "Detected an existing Git remote. Confirm it or reconfigure the repository."
+        : "No Git remote was detected. Repository setup can be completed now or later."
   };
 }
 
@@ -828,12 +1058,22 @@ export function createProjectManifest(rootDir: string, options: InitOptions = {}
     teamsMode: options.teamsMode ?? "off",
     git: normalizeProjectGitConfig(
       options.gitMode
-        ? {
-            mode: options.gitMode,
-            defaultRemote: "origin",
-            workingBranchPrefix: "ai",
-            releaseBranchPrefix: "release"
-          }
+        ? options.gitMode === "on"
+          ? {
+              mode: "on",
+              defaultRemote: "origin",
+              workingBranchPrefix: "ai",
+              releaseBranchPrefix: "release",
+              setupStatus: "deferred",
+              setupMessage: "Git setup can be completed after project initialization."
+            }
+          : {
+              mode: "off",
+              defaultRemote: "origin",
+              workingBranchPrefix: "ai",
+              releaseBranchPrefix: "release",
+              setupStatus: "none"
+            }
         : undefined
     ),
     installedVersion: PGG_VERSION,
@@ -1096,13 +1336,66 @@ export async function updateProjectTeamsMode(rootDir: string, teamsMode: PggTeam
 }
 
 export async function updateProjectGitMode(rootDir: string, gitMode: PggGitMode): Promise<SyncResult> {
+  return updateRegisteredProject(rootDir, (manifest) => {
+    const current = normalizeProjectGitConfig(manifest.git);
+    const next: ProjectGitConfig = {
+      ...current,
+      mode: gitMode,
+      setupStatus: gitMode === "on" ? (current.setupStatus === "none" ? "deferred" : current.setupStatus) : "none"
+    };
+    if (gitMode === "on") {
+      next.setupMessage = current.setupMessage ?? "Git is enabled. Repository connection can be completed later.";
+    } else {
+      delete next.setupMessage;
+    }
+    return {
+      ...manifest,
+      git: normalizeProjectGitConfig(next)
+    };
+  });
+}
+
+export async function deferProjectGitSetup(rootDir: string, setupMessage: string): Promise<SyncResult> {
   return updateRegisteredProject(rootDir, (manifest) => ({
     ...manifest,
-    git: {
+    git: normalizeProjectGitConfig({
       ...normalizeProjectGitConfig(manifest.git),
-      mode: gitMode
-    }
+      mode: "on",
+      setupStatus: "deferred",
+      setupMessage: setupMessage.trim() || "Git setup was deferred and can be completed later."
+    })
   }));
+}
+
+export async function updateProjectGitConnection(
+  rootDir: string,
+  updates: Partial<Pick<
+    ProjectGitConfig,
+    | "provider"
+    | "owner"
+    | "repository"
+    | "remoteUrl"
+    | "authMethod"
+    | "visibility"
+    | "defaultBranch"
+    | "setupMessage"
+  >> & { setupStatus?: PggGitSetupStatus; mode?: PggGitMode; defaultRemote?: string }
+): Promise<SyncResult> {
+  return updateRegisteredProject(rootDir, (manifest) => {
+    const current = normalizeProjectGitConfig(manifest.git);
+    return {
+      ...manifest,
+      git: normalizeProjectGitConfig({
+        ...current,
+        ...updates,
+        mode: updates.mode ?? "on",
+        defaultRemote: updates.defaultRemote ?? current.defaultRemote,
+        workingBranchPrefix: current.workingBranchPrefix,
+        releaseBranchPrefix: current.releaseBranchPrefix,
+        setupStatus: updates.setupStatus ?? current.setupStatus
+      })
+    };
+  });
 }
 
 export async function updateProjectDashboardPort(rootDir: string, defaultPort: number): Promise<SyncResult> {
@@ -2413,8 +2706,18 @@ export async function analyzeProject(rootDir: string, registered = false): Promi
       autoMode: "on",
       teamsMode: "off",
       gitMode: "off",
+      defaultRemote: "origin",
       workingBranchPrefix: "ai",
       releaseBranchPrefix: "release",
+      gitSetupStatus: "none",
+      gitProvider: null,
+      gitOwner: null,
+      gitRepository: null,
+      gitRemoteUrl: null,
+      gitAuthMethod: null,
+      gitVisibility: null,
+      gitDefaultBranch: null,
+      gitSetupMessage: null,
       installedVersion: null,
       pggVersion: null,
       projectVersion: null,
@@ -2440,6 +2743,7 @@ export async function analyzeProject(rootDir: string, registered = false): Promi
   }
 
   const manifest = await loadProjectManifest(rootDir);
+  const git = detectProjectGitConfig(rootDir, normalizeProjectGitConfig(manifest?.git));
   const projectVersion = await readProjectVersion(rootDir);
   const activeTopics = await listTopicSummaries(rootDir, "active");
   const archivedTopics = await listTopicSummaries(rootDir, "archive");
@@ -2458,9 +2762,19 @@ export async function analyzeProject(rootDir: string, registered = false): Promi
     language: manifest?.language ?? "ko",
     autoMode: manifest?.autoMode ?? "on",
     teamsMode: manifest?.teamsMode ?? "off",
-    gitMode: manifest?.git.mode ?? "off",
-    workingBranchPrefix: manifest?.git.workingBranchPrefix ?? "ai",
-    releaseBranchPrefix: manifest?.git.releaseBranchPrefix ?? "release",
+    gitMode: git.mode,
+    defaultRemote: git.defaultRemote,
+    workingBranchPrefix: git.workingBranchPrefix,
+    releaseBranchPrefix: git.releaseBranchPrefix,
+    gitSetupStatus: git.setupStatus,
+    gitProvider: git.provider ?? null,
+    gitOwner: git.owner ?? null,
+    gitRepository: git.repository ?? null,
+    gitRemoteUrl: git.remoteUrl ?? null,
+    gitAuthMethod: git.authMethod ?? null,
+    gitVisibility: git.visibility ?? null,
+    gitDefaultBranch: git.defaultBranch ?? null,
+    gitSetupMessage: git.setupMessage ?? null,
     installedVersion: manifest?.installedVersion ?? null,
     pggVersion: manifest?.installedVersion ?? null,
     projectVersion,

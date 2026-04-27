@@ -8,6 +8,7 @@ import {
   deleteTopicFile,
   deleteRegisteredProject,
   deleteProjectCategory,
+  deferProjectGitSetup,
   moveProjectToCategory,
   readTopicFileDetail,
   registerExistingProject,
@@ -221,6 +222,19 @@ function createDashboardApiPlugin(): Plugin {
               await resolveProjectRootDir(projectGitMatch[1]!),
               body.workingBranchPrefix,
               body.releaseBranchPrefix
+            );
+            writeJson(response, 200, await buildDashboardSnapshot(dashboardRoot));
+            return;
+          }
+
+          const projectGitDeferMatch = url.pathname.match(/^\/api\/dashboard\/projects\/([^/]+)\/git\/defer$/);
+          if (projectGitDeferMatch && request.method === "POST") {
+            const body = await readJsonBody(request);
+            await deferProjectGitSetup(
+              await resolveProjectRootDir(projectGitDeferMatch[1]!),
+              typeof body.message === "string"
+                ? body.message
+                : "Git setup was deferred and can be completed later."
             );
             writeJson(response, 200, await buildDashboardSnapshot(dashboardRoot));
             return;

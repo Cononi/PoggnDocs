@@ -1,0 +1,32 @@
+{
+  "topic": "pgg-project-settings-and-git-onboarding",
+  "version": "2.5.0",
+  "targetVersion": "2.5.0",
+  "changeType": "feat",
+  "versionBump": "minor",
+  "commitTitle": "feat: 2.5.0.git 설정 온보딩",
+  "commitSha": "5beab8385152fbd46bcb9d04bcb0dbb630b6f5c8",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/2.5.0-project-onboarding",
+  "workingBranch": "ai/feat/2.5.0-project-onboarding",
+  "releaseBranch": "release/2.5.0-project-onboarding",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-27T08:09:33Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/2.5.0-project-onboarding'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/pgg-project-settings-and-git-onboarding",
+    "versionFile": "poggn/archive/pgg-project-settings-and-git-onboarding/version.json"
+  }
+}

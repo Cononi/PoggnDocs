@@ -191,13 +191,12 @@ export function ProjectContextSidebar(props: ProjectContextSidebarProps) {
     { id: "main", label: props.dictionary.main, icon: <HomeRounded fontSize="small" /> },
     { id: "history", label: props.dictionary.historySection, icon: <HistoryRounded fontSize="small" /> },
     { id: "report", label: props.dictionary.reportSection, icon: <AssessmentRounded fontSize="small" /> },
-    { id: "files", label: props.dictionary.filesSection, icon: <FolderRounded fontSize="small" /> }
+    { id: "files", label: props.dictionary.filesSection, icon: <FolderRounded fontSize="small" /> },
+    { id: "settings", label: props.dictionary.sidebarProjectSettings, icon: <SettingsRounded fontSize="small" /> }
   ] as const;
   const settingsItems = [
     { id: "main", label: props.dictionary.main },
-    { id: "refresh", label: props.dictionary.refresh },
-    { id: "git", label: props.dictionary.git },
-    { id: "system", label: props.dictionary.system }
+    { id: "refresh", label: props.dictionary.refresh }
   ] as const;
   return (
     <Stack sx={{ minHeight: "100%", p: 2, justifyContent: "space-between" }}>
@@ -258,7 +257,11 @@ export function ProjectContextSidebar(props: ProjectContextSidebarProps) {
           <Button
             variant="outlined"
             startIcon={<SettingsRounded />}
-            onClick={() => props.onSelectSettingsView("main")}
+            onClick={() =>
+              props.activeTopMenu === "projects"
+                ? props.onSelectDetailSection("settings")
+                : props.onSelectSettingsView("main")
+            }
           >
             {props.dictionary.goToSettings}
           </Button>
