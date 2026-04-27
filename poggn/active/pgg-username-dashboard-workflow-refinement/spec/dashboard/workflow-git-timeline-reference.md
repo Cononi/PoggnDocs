@@ -42,7 +42,10 @@ Workflow tab timeline/git UI를 `add-img/git.png`, `add-img/timeline.png` refere
 - 현재 dashboard의 navy/cyan/blue accent tone과 8px 이하 radius 기준을 유지한다.
 - Timeline의 flow 연결선은 overview workflow progress처럼 각 flow node를 끊기지 않는 rail로 이어야 한다.
 - 완료 check node와 완료 rail은 overview workflow progress의 completed 색상 token(`success.main`/`success.light`)을 사용한다.
+- 완료 check node의 배경/테두리/그림자 처리는 overview completed node와 같은 스타일을 사용한다.
 - 완료 rail은 check 원을 관통해 보이면 안 되며, 원 내부는 불투명 배경으로 선과 시각적으로 분리한다.
+- Timeline header의 filter, show more, collapse action button은 제거한다.
+- 우측 file tree는 folder row 자체를 클릭해 접고 펼칠 수 있어야 한다.
 - table/header/body column width는 mobile에서 single-column stack으로 무너지되 text overlap이 없어야 한다.
 - long file path와 commit title은 `overflowWrap: anywhere` 또는 equivalent로 깨지지 않아야 한다.
 
@@ -57,8 +60,11 @@ Workflow tab timeline/git UI를 `add-img/git.png`, `add-img/timeline.png` refere
   - flow row grouping
   - overview flow와 같은 연속 rail 연결
   - completed check 색상은 overview completed 색상과 일치
+  - completed check visual treatment matches the overview completed node
   - completed rail does not visually pass through check circles
   - timeline rows are sorted newest first
+  - no filter/show more/collapse buttons in the timeline header
+  - right file tree folders expand/collapse on folder row click
   - files and commits side-by-side on desktop
   - file tree/detail affordance
   - flow/file token labels are split into LLM actual and Local estimated

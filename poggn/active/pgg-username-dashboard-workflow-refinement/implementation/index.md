@@ -50,6 +50,9 @@ pgg:
 - follow-up request: timeline check circles no longer show the rail through the circle, and timeline rows are sorted newest first
 - `pnpm --filter @pgg/dashboard build`: pass after descending timeline order and rail cutout adjustment, Vite chunk-size warning remains
 - `pnpm test:dashboard`: pass after descending timeline order and rail cutout adjustment
+- follow-up request: completed check node uses overview styling instead of black fill, timeline header filter/show more/collapse buttons are removed, and right file tree folders expand/collapse on folder row click
+- `pnpm --filter @pgg/dashboard build`: pass after timeline control and file tree interaction adjustment, Vite chunk-size warning remains
+- `pnpm test:dashboard`: pass after timeline control and file tree interaction adjustment
 
 ## Additional Diff Records
 
@@ -69,3 +72,5 @@ pgg:
 | 029 | UPDATE | `spec/qa/token-and-reference-regression.md` | `implementation/diffs/029_UPDATE_spec_qa_token_and_reference_regression_md.additional.diff` | `T8` | QA regression criteria require split LLM/Local tokens and timeline rail parity |
 | 030 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx`, `apps/dashboard/src/features/history/historyModel.ts` | `implementation/diffs/030_UPDATE_apps_dashboard_src_features_history_timeline_order_and_rail.diff` | `T4` | prevent rail from visually crossing check circles and sort timeline newest first |
 | 031 | UPDATE | `spec/dashboard/workflow-git-timeline-reference.md` | `implementation/diffs/031_UPDATE_spec_dashboard_workflow_git_timeline_reference_md.order.diff` | `T4,T8` | document newest-first order and rail/check separation criteria |
+| 032 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `implementation/diffs/032_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.timeline_controls.diff` | `T4` | restore overview-style completed check, remove timeline header action buttons, and add clickable folder tree expansion |
+| 033 | UPDATE | `spec/dashboard/workflow-git-timeline-reference.md` | `implementation/diffs/033_UPDATE_spec_dashboard_workflow_git_timeline_reference_md.controls.diff` | `T4,T8` | document overview-style completed check and right file tree click expansion criteria |

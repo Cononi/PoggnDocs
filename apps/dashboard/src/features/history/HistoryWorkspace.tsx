@@ -27,7 +27,6 @@ import DescriptionRounded from "@mui/icons-material/DescriptionRounded";
 import DifferenceRounded from "@mui/icons-material/DifferenceRounded";
 import DownloadRounded from "@mui/icons-material/DownloadRounded";
 import ExpandMoreRounded from "@mui/icons-material/ExpandMoreRounded";
-import FilterListRounded from "@mui/icons-material/FilterListRounded";
 import FolderRounded from "@mui/icons-material/FolderRounded";
 import LockRounded from "@mui/icons-material/LockRounded";
 import MoreVertRounded from "@mui/icons-material/MoreVertRounded";
@@ -1137,7 +1136,7 @@ function HistoryTimeline(props: {
   globalUser: { username: string | null; configured: boolean };
 }) {
   const [fileFilter, setFileFilter] = useState("");
-  const [expanded, setExpanded] = useState(true);
+  const [collapsedFolderIds, setCollapsedFolderIds] = useState<Set<string>>(() => new Set());
   const rows = buildTimelineRows(props.topic, props.language, props.globalUser.username ?? props.dictionary.usernameMissing, props.dictionary);
   const filteredFiles = useMemo(() => {
     const query = fileFilter.trim().toLowerCase();
@@ -1146,6 +1145,17 @@ function HistoryTimeline(props: {
       : props.topic.files;
   }, [fileFilter, props.topic.files]);
   const fileTree = useMemo(() => buildTopicFileTree(filteredFiles), [filteredFiles]);
+  const toggleFolder = (nodeId: string) => {
+    setCollapsedFolderIds((current) => {
+      const next = new Set(current);
+      if (next.has(nodeId)) {
+        next.delete(nodeId);
+      } else {
+        next.add(nodeId);
+      }
+      return next;
+    });
+  };
 
   return (
     <Box
@@ -1163,12 +1173,6 @@ function HistoryTimeline(props: {
               <Typography variant="h6" sx={{ fontWeight: 850 }}>{props.dictionary.timelineView}</Typography>
               <Typography variant="body2" color="text.secondary">{props.dictionary.timelineReferenceHint}</Typography>
             </Box>
-            <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap", alignItems: "center" }}>
-              <Button variant="outlined" size="small" startIcon={<FilterListRounded />}>{props.dictionary.filterAction}</Button>
-              <Button variant="outlined" size="small">2026.04.20 ~ 2026.04.27</Button>
-              <Button variant="outlined" size="small" onClick={() => setExpanded(true)}>{props.dictionary.showMore}</Button>
-              <Button variant="outlined" size="small" onClick={() => setExpanded(false)}>{props.dictionary.showLess}</Button>
-            </Stack>
           </Stack>
         </Paper>
         <Stack spacing={0} sx={{ position: "relative" }}>
@@ -1176,7 +1180,7 @@ function HistoryTimeline(props: {
             <TimelineMilestone
               key={row.id}
               row={row}
-              expanded={expanded}
+              expanded
               dictionary={props.dictionary}
               isLast={index === rows.length - 1}
             />
@@ -1219,7 +1223,13 @@ function HistoryTimeline(props: {
           {fileTree.length ? (
             <Stack spacing={0.4}>
               {fileTree.map((node) => (
-                <TimelineFileNode key={node.id} node={node} depth={0} expanded={expanded} />
+                <TimelineFileNode
+                  key={node.id}
+                  node={node}
+                  depth={0}
+                  collapsedFolderIds={collapsedFolderIds}
+                  onToggleFolder={toggleFolder}
+                />
               ))}
             </Stack>
           ) : (
@@ -1246,7 +1256,6 @@ function TimelineMilestone(props: {
   const theme = useTheme();
   const accent = theme.palette.success.main;
   const accentLight = theme.palette.success.light;
-  const nodeBackground = theme.palette.mode === "dark" ? "#071428" : theme.palette.background.paper;
 
   return (
     <Box
@@ -1263,8 +1272,8 @@ function TimelineMilestone(props: {
           <Box
             sx={{
               position: "absolute",
-              top: 46,
-              bottom: -18,
+              top: 36,
+              bottom: -20,
               width: 3,
               borderRadius: 999,
               bgcolor: accent,
@@ -1281,7 +1290,7 @@ function TimelineMilestone(props: {
             display: "grid",
             placeItems: "center",
             color: "#fff",
-            bgcolor: nodeBackground,
+            bgcolor: alpha(accent, 0.18),
             border: `2px solid ${alpha(accentLight, 0.9)}`,
             boxShadow: `0 0 0 4px ${alpha(accent, 0.16)}, 0 0 22px ${alpha(accent, 0.46)}`,
             position: "relative",
@@ -1387,24 +1396,54 @@ function ChangeBadge(props: { kind: FileChangeKind; label?: string }) {
   return <Chip size="small" color={color} label={props.label ?? props.kind} sx={{ minWidth: props.label ? 0 : 24, height: 20 }} />;
 }
 
-function TimelineFileNode(props: { node: TopicFileTreeNode; depth: number; expanded: boolean }) {
+function TimelineFileNode(props: {
+  node: TopicFileTreeNode;
+  depth: number;
+  collapsedFolderIds: Set<string>;
+  onToggleFolder: (nodeId: string) => void;
+}) {
   const isFolder = props.node.kind === "folder";
+  const expanded = isFolder && !props.collapsedFolderIds.has(props.node.id);
   const Icon = isFolder ? FolderRounded : props.node.file?.kind === "diff" ? DifferenceRounded : DescriptionRounded;
   const changeKind: FileChangeKind = props.node.file?.relativePath.includes("delete") ? "D" : props.node.file?.relativePath.includes("proposal") ? "A" : "M";
+  const rowContent = (
+    <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", pl: props.depth * 1.5, minWidth: 0, width: "100%" }}>
+      {isFolder ? expanded ? <ExpandMoreRounded fontSize="small" /> : <ChevronRightRounded fontSize="small" /> : <Box sx={{ width: 20 }} />}
+      <Icon fontSize="small" color={isFolder ? "primary" : "action"} />
+      <Typography variant="body2" sx={{ flexGrow: 1, minWidth: 0, overflowWrap: "anywhere" }}>
+        {props.node.name}
+      </Typography>
+      {!isFolder ? <ChangeBadge kind={changeKind} /> : null}
+    </Stack>
+  );
 
   return (
     <Stack spacing={0.25}>
-      <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", pl: props.depth * 1.5, minWidth: 0 }}>
-        {isFolder ? props.expanded ? <ExpandMoreRounded fontSize="small" /> : <ChevronRightRounded fontSize="small" /> : <Box sx={{ width: 20 }} />}
-        <Icon fontSize="small" color={isFolder ? "primary" : "action"} />
-        <Typography variant="body2" sx={{ flexGrow: 1, minWidth: 0, overflowWrap: "anywhere" }}>
-          {props.node.name}
-        </Typography>
-        {!isFolder ? <ChangeBadge kind={changeKind} /> : null}
-      </Stack>
-      {isFolder && props.expanded
+      {isFolder ? (
+        <ButtonBase
+          onClick={() => props.onToggleFolder(props.node.id)}
+          sx={{
+            width: "100%",
+            justifyContent: "flex-start",
+            textAlign: "left",
+            borderRadius: 0.75,
+            py: 0.15,
+            "&:hover": { bgcolor: "action.hover" },
+            "&:focus-visible": { outline: "2px solid", outlineColor: "primary.main", outlineOffset: 2 }
+          }}
+        >
+          {rowContent}
+        </ButtonBase>
+      ) : rowContent}
+      {isFolder && expanded
         ? props.node.children.map((child) => (
-            <TimelineFileNode key={child.id} node={child} depth={props.depth + 1} expanded={props.expanded} />
+            <TimelineFileNode
+              key={child.id}
+              node={child}
+              depth={props.depth + 1}
+              collapsedFolderIds={props.collapsedFolderIds}
+              onToggleFolder={props.onToggleFolder}
+            />
           ))
         : null}
     </Stack>

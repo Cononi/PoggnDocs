@@ -68,6 +68,9 @@ implementation
   - 문서는 신규/기존 적용 프로젝트 모두에서 LLM actual과 Local estimated token 사용량을 분리 측정하도록 명시해야 한다.
   - 완료 timeline의 연결선이 check 원을 관통해 보이면 안 된다.
   - timeline 순서는 내림차순이어야 한다.
+  - 완료 check 배경은 검정색이 아니라 overview completed node 모양과 같아야 한다.
+  - timeline header의 필터/더보기/접기 버튼을 제거한다.
+  - 우측 폴더 트리는 폴더를 그대로 클릭해 펼쳐서 볼 수 있어야 한다.
 - additional implementation:
   - token usage contract에 `llmActualTokens`와 `localEstimatedTokens`를 분리 추가했다.
   - LLM actual evidence가 없는 경우 `기록 없음`으로 표시하고 local estimate는 file content 기반 값으로 표시한다.
@@ -76,6 +79,9 @@ implementation
   - token 관련 spec/QA 문서에 모든 project topic snapshot의 LLM actual/Local estimated 분리 측정 계약을 추가했다.
   - check 원 배경을 불투명 처리하고 rail 시작 위치를 원 밖으로 내려 선이 원 내부를 관통해 보이지 않게 했다.
   - timeline row를 최신 timestamp 기준 내림차순으로 정렬했다.
+  - completed check를 overview와 같은 success soft fill로 되돌리고 rail은 원 아래 edge부터 이어지게 했다.
+  - timeline header action button 그룹을 제거했다.
+  - 우측 file tree folder row에 click toggle 상태를 추가했다.
 - residual risk:
   - reference image parity는 browser screenshot/manual visual evidence가 QA/refactor 이후 필요하다
   - project add Stepper remote FAST/SETUP 세부 credential 입력 UX는 후속 polish 여지가 있다
@@ -151,6 +157,8 @@ implementation
 - evidence: follow-up `pnpm test:dashboard` passed
 - evidence: follow-up descending timeline `pnpm --filter @pgg/dashboard build` passed with existing Vite chunk-size warning
 - evidence: follow-up descending timeline `pnpm test:dashboard` passed
+- evidence: follow-up timeline controls `pnpm --filter @pgg/dashboard build` passed with existing Vite chunk-size warning
+- evidence: follow-up timeline controls `pnpm test:dashboard` passed
 
 ## Changed Files
 
@@ -208,6 +216,8 @@ implementation
 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | rail no longer visually crosses completed check circles |
 | UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | timeline rows sorted newest first |
 | UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md` | newest-first timeline and rail/check separation criteria |
+| UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | overview-style completed check, timeline header action removal, clickable file tree folder expansion |
+| UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md` | timeline controls and file tree folder expansion criteria |
 
 ## Dirty Worktree Baseline
 
