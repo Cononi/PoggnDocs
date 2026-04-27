@@ -85,6 +85,9 @@ implementation
   - 완료 표시 색은 flow마다 다른 색이어야 한다.
   - timeline은 workflow 역순으로 표시해야 한다.
   - timeline 생성 파일 row에는 file-level LLM/Local token을 제외하고, 각 flow title/header에는 total LLM/Local token을 유지한다.
+  - timeline 선과 완료 check background는 파란색으로 채워야 하고 뒷선이 check 뒤로 보이면 안 된다.
+  - 마지막/bottom flow는 아래 flow가 없으므로 check 아래로 선이 넘어가면 안 된다.
+  - commit 내용은 flow card에서 최대 3개만 표시하고 모든 커밋 보기는 modal로 추가 commit list를 보여줘야 한다.
 - additional implementation:
   - token usage contract에 `llmActualTokens`와 `localEstimatedTokens`를 분리 추가했다.
   - LLM actual evidence가 없는 경우 `기록 없음`으로 표시하고 local estimate는 file content 기반 값으로 표시한다.
@@ -112,6 +115,9 @@ implementation
   - timeline row 순서를 actual workflow reverse order로 변경했다.
   - completed check node 색상을 row tone별 primary/secondary/success/neutral로 분리했다.
   - generated file row에서 file-level LLM/Local token chip을 제거했고 flow header total token chip은 유지했다.
+  - timeline rail/check를 primary blue로 통일하고 check background를 불투명하게 채워 뒷선이 보이지 않게 했다.
+  - 공통 full-height rail을 제거하고 각 flow row가 다음 flow까지만 blue connector를 그리게 하여 마지막/bottom flow 아래 overshoot를 제거했다.
+  - commit list는 flow card에서 `slice(0, 3)`로 제한하고, 4개 이상일 때 `모든 커밋 보기` modal로 전체 commit list를 표시한다.
 - residual risk:
   - reference image parity는 browser screenshot/manual visual evidence가 QA/refactor 이후 필요하다
   - project add Stepper remote FAST/SETUP 세부 credential 입력 UX는 후속 polish 여지가 있다
@@ -200,6 +206,9 @@ implementation
 - evidence: follow-up order/time `pnpm test:dashboard` passed
 - evidence: follow-up reverse/tone `pnpm --filter @pgg/dashboard build` passed with existing Vite chunk-size warning
 - evidence: follow-up reverse/tone `pnpm test:dashboard` passed
+- evidence: follow-up blue rail/check and commit modal `pnpm --filter @pgg/dashboard build` passed with existing Vite chunk-size warning
+- evidence: follow-up blue rail/check and commit modal `pnpm test:dashboard` passed
+- evidence: `./.codex/sh/pgg-gate.sh pgg-refactor pgg-username-dashboard-workflow-refinement` passed
 
 ## Changed Files
 
@@ -278,6 +287,9 @@ implementation
 | UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | timeline rows follow reverse actual workflow order |
 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | completed checks use flow tone colors and generated file rows hide file-level token chips |
 | UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md` | reverse workflow order, flow-tone checks, flow-header token criteria |
+| UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | blue rail/check, terminal connector cutoff, commit list cap, full commit modal |
+| UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | view all commits i18n label |
+| UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md` | blue rail/check and commit modal acceptance criteria |
 
 ## Dirty Worktree Baseline
 

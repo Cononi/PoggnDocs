@@ -44,10 +44,12 @@ Workflow tab timeline/git UI를 `add-img/git.png`, `add-img/timeline.png` refere
 
 - Reference와 같은 정보 밀도, column grouping, compact spacing을 목표로 한다.
 - 현재 dashboard의 navy/cyan/blue accent tone과 8px 이하 radius 기준을 유지한다.
-- Timeline의 flow 연결선은 overview workflow progress처럼 개별 row 선분이 아니라 단일 수직 rail로 각 flow node를 끊기지 않게 이어야 한다.
-- 완료 rail은 overview workflow progress의 completed 색상 token(`success.main`/`success.light`)을 사용한다.
-- 완료 check node의 배경/테두리/그림자 처리는 flow tone별 색상(`primary`, `secondary`, `success`, neutral)을 사용한다.
+- Timeline의 flow 연결선은 overview workflow progress처럼 위 flow node 하단에서 다음 flow node 상단까지 끊기지 않게 이어야 한다.
+- 완료 rail은 dashboard primary blue 색상 token(`primary.main`/`primary.light`)을 사용한다.
+- 완료 check node는 background를 primary blue로 불투명하게 채워 뒷선이 보이지 않아야 한다.
 - 완료 rail은 check 원을 관통해 보이면 안 되며, 현재 원의 외곽 ring 하단에서 시작해 다음 원의 외곽 ring 상단에 딱 맞게 닿아야 한다.
+- 마지막/bottom flow는 아래 flow가 없으므로 check 원 아래로 rail이 넘어가면 안 된다.
+- Commit UI는 timeline card에서 최대 3개 commit만 직접 표시하고, 4개 이상일 때는 `모든 커밋 보기` modal로 전체 commit list를 보여줘야 한다.
 - Timeline header의 filter, show more, collapse action button은 제거한다.
 - 우측 file tree는 folder row 자체를 클릭해 접고 펼칠 수 있어야 한다.
 - Timeline card의 `모든 파일 보기` action은 timeline card 내용을 더 펼치지 않고, 우측 file tree를 해당 flow에서 생성/수정한 file 목록으로 전환한다.
@@ -66,16 +68,19 @@ Workflow tab timeline/git UI를 `add-img/git.png`, `add-img/timeline.png` refere
   - compact panel rhythm
 - `add-img/timeline.png` 기준 timeline checklist:
   - flow row grouping
-  - overview flow와 같은 단일 연속 rail 연결
-  - completed check 색상은 flow마다 다른 tone color를 사용
-  - completed check visual treatment uses the current flow tone
+  - overview flow와 같은 끊김 없는 blue rail 연결
+  - completed check background is filled with primary blue
+  - completed check visual treatment hides the rail behind the node
   - completed rail touches the circle outer ring exactly without overshooting or leaving a gap
+  - bottom/last flow has no rail overshoot below its check circle
   - timeline rows follow the reverse actual pgg workflow order
   - displayed timeline time comes from flow completion evidence
   - no filter/show more/collapse buttons in the timeline header
   - right file tree folders expand/collapse on folder row click
   - timeline file action changes the right file tree to selected flow files
   - timeline card generated files are capped at 3 rows per flow
+  - timeline card commit rows are capped at 3 rows per flow
+  - viewing all commits opens a modal with the full commit list
   - initial right file tree shows all topic files
   - reset button restores the all-topic file tree and clears search/flow filtering
   - no table/list icon buttons next to file search

@@ -69,6 +69,10 @@ pgg:
 - follow-up request: timeline rows now use reverse actual workflow order, completed check colors vary by flow tone, generated file rows hide file-level LLM/Local chips, and flow total LLM/Local remains in the flow header
 - `pnpm --filter @pgg/dashboard build`: pass after reverse order and flow-tone checks, Vite chunk-size warning remains
 - `pnpm test:dashboard`: pass after reverse order and flow-tone checks
+- follow-up request: timeline rail and completed check use blue fill, rail does not show behind/after terminal checks, commit rows are capped at 3, and all commits open in a modal
+- `pnpm --filter @pgg/dashboard build`: pass after blue rail/check and commit modal, Vite chunk-size warning remains
+- `pnpm test:dashboard`: pass after blue rail/check and commit modal
+- `./.codex/sh/pgg-gate.sh pgg-refactor pgg-username-dashboard-workflow-refinement`: pass
 
 ## Additional Diff Records
 
@@ -102,3 +106,6 @@ pgg:
 | 043 | UPDATE | `spec/dashboard/workflow-git-timeline-reference.md` | `implementation/diffs/043_UPDATE_spec_dashboard_workflow_git_timeline_reference_md.order_preview.diff` | `T4,T8` | document actual workflow order, completion time source, and right file tree preview behavior |
 | 044 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx`, `apps/dashboard/src/features/history/historyModel.ts` | `implementation/diffs/044_UPDATE_apps_dashboard_timeline_reverse_tone_file_tokens.diff` | `T4` | reverse timeline flow order, color completed checks by flow tone, and remove file-level token chips from generated file rows |
 | 045 | UPDATE | `spec/dashboard/workflow-git-timeline-reference.md` | `implementation/diffs/045_UPDATE_spec_dashboard_workflow_git_timeline_reference_md.reverse_tone.diff` | `T4,T8` | document reverse workflow order, flow-tone completed checks, and flow-only token display |
+| 046 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `implementation/diffs/046_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.blue_rail_commit_modal.diff` | `T4` | use blue rail/check, prevent terminal rail overshoot, cap commit rows at 3, and add full commit modal |
+| 047 | UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | `implementation/diffs/047_UPDATE_apps_dashboard_src_shared_locale_dashboardLocale_ts.view_all_commits.diff` | `T7` | add ko/en label for viewing all commits |
+| 048 | UPDATE | `spec/dashboard/workflow-git-timeline-reference.md` | `implementation/diffs/048_UPDATE_spec_dashboard_workflow_git_timeline_reference_md.blue_rail_commit_modal.diff` | `T4,T8` | document blue rail/check, terminal line constraint, and commit modal behavior |

@@ -1,0 +1,44 @@
+diff --git a/apps/dashboard/src/features/history/HistoryWorkspace.tsx b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
+--- a/apps/dashboard/src/features/history/HistoryWorkspace.tsx
++++ b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
+@@
++type TimelineCommitPreview = TimelineRow["commits"];
+@@
++  const [previewCommits, setPreviewCommits] = useState<{ title: string; commits: TimelineCommitPreview } | null>(null);
+@@
+-            {rows.length > 1 ? <TimelineRail /> : null}
+             {rows.map((row, index) => (
+@@
++                onOpenCommits={() => setPreviewCommits({ title: row.step, commits: row.commits })}
+@@
++      <TimelineCommitPreviewDialog preview={previewCommits} dictionary={props.dictionary} onClose={() => setPreviewCommits(null)} />
+@@
+-function TimelineRail() { ... }
+@@
+-  const accent = row-tone-dependent-color;
+-  const accentLight = row-tone-dependent-light-color;
++  const accent = theme.palette.primary.main;
++  const accentLight = theme.palette.primary.light;
+@@
++        {!props.isLast ? (
++          <Box sx={{ position: "absolute", top: 36, bottom: 0, left: "50%", width: 3, bgcolor: accent }} />
++        ) : null}
+@@
+-            bgcolor: alpha(accent, theme.palette.mode === "dark" ? 0.24 : 0.12),
++            bgcolor: accent,
+@@
+-          <CheckRounded fontSize="small" sx={{ color: accent }} />
++          <CheckRounded fontSize="small" />
+@@
+-              {props.row.commits.map((commit) => (
++              {props.row.commits.slice(0, 3).map((commit) => (
+@@
++              {props.row.commits.length > 3 ? (
++                <Button size="small" endIcon={<ChevronRightRounded />} onClick={props.onOpenCommits}>
++                  {props.dictionary.viewAllCommits}
++                </Button>
++              ) : null}
+@@
++function TimelineCommitPreviewDialog(...) {
++  return <Dialog>...full commit list...</Dialog>;
++}

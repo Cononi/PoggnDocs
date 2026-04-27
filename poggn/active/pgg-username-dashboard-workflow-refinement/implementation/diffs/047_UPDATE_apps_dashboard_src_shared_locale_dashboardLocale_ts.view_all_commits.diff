@@ -1,0 +1,13 @@
+diff --git a/apps/dashboard/src/shared/locale/dashboardLocale.ts b/apps/dashboard/src/shared/locale/dashboardLocale.ts
+--- a/apps/dashboard/src/shared/locale/dashboardLocale.ts
++++ b/apps/dashboard/src/shared/locale/dashboardLocale.ts
+@@
+     gitCommit: "Git Commit",
+     gitCommits: "Git Commits",
++    viewAllCommits: "모든 커밋 보기",
+     viewAllFiles: "모든 파일 보기",
+@@
+     gitCommit: "Git Commit",
+     gitCommits: "Git Commits",
++    viewAllCommits: "View all commits",
+     viewAllFiles: "View all files",

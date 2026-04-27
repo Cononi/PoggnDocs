@@ -80,6 +80,7 @@ type TimelineFilePreview = {
   localEstimatedTokens: number;
   content: string | null;
 };
+type TimelineCommitPreview = TimelineRow["commits"];
 
 const HISTORY_TABS: HistoryTab[] = ["overview", "timeline", "relations"];
 const HISTORY_TAB_LABELS: Record<HistoryTab, string> = {
@@ -1142,6 +1143,7 @@ function HistoryTimeline(props: {
   const [fileFilter, setFileFilter] = useState("");
   const [selectedFlowFiles, setSelectedFlowFiles] = useState<{ id: string; step: string; paths: Set<string> } | null>(null);
   const [previewFile, setPreviewFile] = useState<TimelineFilePreview | null>(null);
+  const [previewCommits, setPreviewCommits] = useState<{ title: string; commits: TimelineCommitPreview } | null>(null);
   const [collapsedFolderIds, setCollapsedFolderIds] = useState<Set<string>>(() => new Set());
   const rows = buildTimelineRows(props.topic, props.language, props.globalUser.username ?? props.dictionary.usernameMissing, props.dictionary);
   const treeSourceFiles = useMemo(() => {
@@ -1202,13 +1204,13 @@ function HistoryTimeline(props: {
             </Stack>
           </Paper>
           <Stack spacing={0} sx={{ position: "relative" }}>
-            {rows.length > 1 ? <TimelineRail /> : null}
             {rows.map((row, index) => (
               <TimelineMilestone
                 key={row.id}
                 row={row}
                 dictionary={props.dictionary}
                 isLast={index === rows.length - 1}
+                onOpenCommits={() => setPreviewCommits({ title: row.step, commits: row.commits })}
                 onShowFlowFiles={() => showFlowFiles(row)}
               />
             ))}
@@ -1279,29 +1281,8 @@ function HistoryTimeline(props: {
         </Paper>
       </Box>
       <TimelineFilePreviewDialog file={previewFile} dictionary={props.dictionary} onClose={() => setPreviewFile(null)} />
+      <TimelineCommitPreviewDialog preview={previewCommits} dictionary={props.dictionary} onClose={() => setPreviewCommits(null)} />
     </>
-  );
-}
-
-function TimelineRail() {
-  const theme = useTheme();
-  const accent = theme.palette.success.main;
-
-  return (
-    <Box
-      sx={{
-        position: "absolute",
-        left: { xs: 16.5, md: 20.5 },
-        top: 18,
-        bottom: 18,
-        width: 3,
-        borderRadius: 999,
-        bgcolor: accent,
-        boxShadow: `0 0 12px ${alpha(accent, 0.42)}`,
-        zIndex: 0,
-        pointerEvents: "none"
-      }}
-    />
   );
 }
 
@@ -1309,25 +1290,12 @@ function TimelineMilestone(props: {
   row: TimelineRow;
   dictionary: DashboardLocale;
   isLast: boolean;
+  onOpenCommits: () => void;
   onShowFlowFiles: () => void;
 }) {
   const theme = useTheme();
-  const accent =
-    props.row.tone === "success"
-      ? theme.palette.success.main
-      : props.row.tone === "warning"
-        ? theme.palette.secondary.main
-        : props.row.tone === "primary"
-          ? theme.palette.primary.main
-          : theme.palette.text.secondary;
-  const accentLight =
-    props.row.tone === "success"
-      ? theme.palette.success.light
-      : props.row.tone === "warning"
-        ? theme.palette.secondary.light
-        : props.row.tone === "primary"
-          ? theme.palette.primary.light
-          : theme.palette.text.secondary;
+  const accent = theme.palette.primary.main;
+  const accentLight = theme.palette.primary.light;
 
   return (
     <Box
@@ -1340,6 +1308,23 @@ function TimelineMilestone(props: {
       }}
     >
       <Box sx={{ position: "relative", display: "flex", justifyContent: "center" }}>
+        {!props.isLast ? (
+          <Box
+            sx={{
+              position: "absolute",
+              top: 36,
+              bottom: 0,
+              left: "50%",
+              width: 3,
+              borderRadius: 999,
+              bgcolor: accent,
+              boxShadow: `0 0 12px ${alpha(accent, 0.42)}`,
+              transform: "translateX(-50%)",
+              zIndex: 0,
+              pointerEvents: "none"
+            }}
+          />
+        ) : null}
         <Box
           sx={{
             width: 36,
@@ -1347,15 +1332,15 @@ function TimelineMilestone(props: {
             borderRadius: "50%",
             display: "grid",
             placeItems: "center",
-            color: "#fff",
-            bgcolor: alpha(accent, theme.palette.mode === "dark" ? 0.24 : 0.12),
+            color: theme.palette.primary.contrastText,
+            bgcolor: accent,
             border: `2px solid ${alpha(accentLight, 0.9)}`,
-            boxShadow: `0 0 0 4px ${alpha(accent, 0.16)}, 0 0 22px ${alpha(accent, 0.46)}`,
+            boxShadow: `0 0 0 4px ${alpha(accent, 0.18)}, 0 0 22px ${alpha(accent, 0.46)}`,
             position: "relative",
             zIndex: 2
           }}
         >
-          <CheckRounded fontSize="small" sx={{ color: accent }} />
+          <CheckRounded fontSize="small" />
         </Box>
       </Box>
       <Box
@@ -1419,7 +1404,7 @@ function TimelineMilestone(props: {
               <Typography variant="body2" sx={{ fontWeight: 800 }}>
                 {props.row.commits.length > 1 ? props.dictionary.gitCommits : props.dictionary.gitCommit} ({props.row.commits.length})
               </Typography>
-              {props.row.commits.map((commit) => (
+              {props.row.commits.slice(0, 3).map((commit) => (
                 <Stack key={commit.hash} spacing={0.35}>
                   <Typography variant="caption" color="primary.main" sx={{ fontWeight: 800 }}>{commit.hash}</Typography>
                   <Typography variant="caption" sx={{ overflowWrap: "anywhere" }}>{commit.title}</Typography>
@@ -1433,11 +1418,63 @@ function TimelineMilestone(props: {
               {props.row.commits.length === 0 ? (
                 <Typography variant="caption" color="text.secondary">{props.dictionary.noCommitEvidence}</Typography>
               ) : null}
+              {props.row.commits.length > 3 ? (
+                <Button size="small" endIcon={<ChevronRightRounded />} onClick={props.onOpenCommits} sx={{ alignSelf: "flex-start" }}>
+                  {props.dictionary.viewAllCommits}
+                </Button>
+              ) : null}
             </Stack>
           </Box>
         </Stack>
       </Paper>
     </Box>
+  );
+}
+
+function TimelineCommitPreviewDialog(props: {
+  preview: { title: string; commits: TimelineCommitPreview } | null;
+  dictionary: DashboardLocale;
+  onClose: () => void;
+}) {
+  const open = Boolean(props.preview);
+
+  return (
+    <Dialog open={open} onClose={props.onClose} fullWidth maxWidth="sm">
+      <DialogTitle sx={{ pr: 6 }}>
+        <Stack spacing={0.3}>
+          <Typography variant="h6" sx={{ fontWeight: 850 }}>
+            {props.preview?.title ?? props.dictionary.gitCommits}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {props.dictionary.gitCommits}
+          </Typography>
+        </Stack>
+        <IconButton
+          aria-label="Close"
+          onClick={props.onClose}
+          size="small"
+          sx={{ position: "absolute", right: 12, top: 12 }}
+        >
+          <CloseRounded fontSize="small" />
+        </IconButton>
+      </DialogTitle>
+      <DialogContent dividers>
+        <Stack spacing={1.2}>
+          {(props.preview?.commits ?? []).map((commit) => (
+            <Paper key={`${commit.hash}-${commit.title}`} variant="outlined" sx={{ p: 1.2, borderRadius: 1 }}>
+              <Stack spacing={0.35}>
+                <Typography variant="caption" color="primary.main" sx={{ fontWeight: 850 }}>{commit.hash}</Typography>
+                <Typography variant="body2" sx={{ overflowWrap: "anywhere", fontWeight: 700 }}>{commit.title}</Typography>
+                <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap", color: "text.secondary" }}>
+                  <Typography variant="caption">{commit.author}</Typography>
+                  <Typography variant="caption">{commit.time}</Typography>
+                </Stack>
+              </Stack>
+            </Paper>
+          ))}
+        </Stack>
+      </DialogContent>
+    </Dialog>
   );
 }
 
