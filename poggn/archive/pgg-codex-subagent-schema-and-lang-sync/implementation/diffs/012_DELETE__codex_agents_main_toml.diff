@@ -1,0 +1,119 @@
+diff --git a/.codex/agents/main.toml b/.codex/agents/main.toml
+deleted file mode 100644
+index 640add3..0000000
+--- a/.codex/agents/main.toml
++++ /dev/null
+@@ -1,113 +0,0 @@
+-max_threads = 4
+-max_depth = 1
+-source_of_truth = ".codex/agents/main.toml and .codex/add/EXPERT-ROUTING.md must stay aligned."
+-
+-[token_budget]
+-handoff = "state/current.md or pgg-state-pack output first"
+-full_documents = "only when the parent explicitly needs them"
+-nested_agents = "forbidden"
+-
+-[[roles]]
+-id = "product-manager"
+-name = "Product Manager"
+-purpose = "Frame the user problem, success criteria, scope, and delivery tradeoffs."
+-when_to_use = "Use during proposal and product-scope decisions."
+-
+-[[roles]]
+-id = "ux-ui-expert"
+-name = "UX/UI Expert"
+-purpose = "Evaluate user flows, interaction clarity, visual hierarchy, and accessibility risk."
+-when_to_use = "Use when the change affects screens, workflows, or user-facing behavior."
+-
+-[[roles]]
+-id = "domain-expert"
+-name = "Domain Expert"
+-purpose = "Check terminology, domain assumptions, data meaning, and cross-domain fit."
+-when_to_use = "Use when plans or specs need domain constraints made explicit."
+-
+-[[roles]]
+-id = "software-architect"
+-name = "Software Architect"
+-purpose = "Define system boundaries, integration contracts, sequencing, and long-term structure."
+-when_to_use = "Use during planning and structural refactor decisions."
+-
+-[[roles]]
+-id = "senior-backend-engineer"
+-name = "Senior Backend Engineer"
+-purpose = "Assess implementation paths, data flow, error handling, and maintainability."
+-when_to_use = "Use for implementation planning and code execution risk."
+-
+-[[roles]]
+-id = "tech-lead"
+-name = "Tech Lead"
+-purpose = "Coordinate implementation strategy, ownership, integration risk, and engineering tradeoffs."
+-when_to_use = "Use during code and token-sensitive workflow decisions."
+-
+-[[roles]]
+-id = "code-reviewer"
+-name = "Code Reviewer"
+-purpose = "Find correctness bugs, regressions, missing tests, and maintainability risks."
+-when_to_use = "Use for refactor review, token audit, and code-quality checks."
+-
+-[[roles]]
+-id = "qa-test-engineer"
+-name = "QA/Test Engineer"
+-purpose = "Design verification strategy, acceptance checks, and test evidence."
+-when_to_use = "Use for QA and performance evidence planning."
+-
+-[[roles]]
+-id = "sre-operations-engineer"
+-name = "SRE/Operations Engineer"
+-purpose = "Assess runtime risk, release safety, rollback, observability, and operational constraints."
+-when_to_use = "Use for QA release review and performance/operations risk."
+-
+-[[roles]]
+-id = "project-generalist"
+-name = "Project Generalist"
+-purpose = "Provide broad project context when no specialist role fits."
+-when_to_use = "Use only as an opt-in support role, never as a flow primary."
+-
+-[[roles]]
+-id = "docs-researcher"
+-name = "Docs Researcher"
+-purpose = "Verify external or official documentation and summarize source-backed constraints."
+-when_to_use = "Use only when primary-source documentation needs verification."
+-
+-[[flows]]
+-flow = "pgg-add"
+-primary_agents = ["product-manager", "ux-ui-expert"]
+-purpose = "problem framing and user workflow clarity"
+-
+-[[flows]]
+-flow = "pgg-plan"
+-primary_agents = ["software-architect", "domain-expert"]
+-purpose = "system design and domain constraints"
+-
+-[[flows]]
+-flow = "pgg-code"
+-primary_agents = ["senior-backend-engineer", "tech-lead"]
+-purpose = "implementation path and integration guardrails"
+-
+-[[flows]]
+-flow = "pgg-refactor"
+-primary_agents = ["software-architect", "code-reviewer"]
+-purpose = "structure cleanup and regression risk"
+-
+-[[flows]]
+-flow = "pgg-qa"
+-primary_agents = ["qa-test-engineer", "sre-operations-engineer"]
+-purpose = "test evidence and release/operations risk"
+-
+-[[flows]]
+-flow = "pgg-token"
+-primary_agents = ["tech-lead", "code-reviewer"]
+-purpose = "context budget and duplication review"
+-
+-[[flows]]
+-flow = "pgg-performance"
+-primary_agents = ["qa-test-engineer", "sre-operations-engineer"]
+-purpose = "measurement evidence and operational risk"
+-
+-[support]
+-roles = ["project-generalist", "docs-researcher"]
+-rule = "Support roles are opt-in and never count as flow primary agents."

@@ -1,0 +1,23 @@
+{"ts":"2026-04-26T07:22:23Z","stage":"proposal","event":"topic-created"}
+{"ts":"2026-04-26T07:22:23Z","stage":"proposal","event":"stage-started","source":"pgg-add"}
+{"ts":"2026-04-26T07:23:42Z","stage":"proposal","event":"stage-progress","source":"pgg-add","summary":"Codex multi-agent config, two-agent flow routing, and generic agent file proposal drafted"}
+{"ts":"2026-04-26T07:23:42Z","stage":"proposal","event":"stage-completed","source":"verified","summary":"proposal review and handoff state passed with no blocking issues"}
+{"ts":"2026-04-26T07:54:14Z","stage":"plan","event":"stage-started","source":"pgg-plan"}
+{"ts":"2026-04-26T07:54:14Z","stage":"plan","event":"stage-progress","source":"pgg-plan","summary":"plan, task, six specs, and plan/task reviews drafted"}
+{"ts":"2026-04-26T07:54:14Z","stage":"plan","event":"stage-completed","source":"verified","summary":"plan and task reviews passed with no blocking issues"}
+{"ts":"2026-04-26T13:30:56Z","stage":"implementation","event":"stage-started","source":"pgg-code"}
+{"ts":"2026-04-26T13:49:57Z","stage":"implementation","event":"stage-progress","source":"pgg-code","summary":"generated Codex multi-agent config, agent TOML roster, two-agent routing docs, state-pack routing evidence, and regression tests"}
+{"ts":"2026-04-26T13:49:57Z","stage":"implementation","event":"stage-completed","source":"pgg-code","summary":"implementation and code review completed; required pgg-token audit remains before final QA"}
+{"ts":"2026-04-26T14:32:30Z","stage":"implementation","event":"stage-commit","archiveType":"feat","targetVersion":"2.3.0","projectLanguage":"ko","commitTitle":"feat: 2.3.0.codex 멀티 에이전트 설정","summary":"codex 멀티 에이전트 설정","why":"pgg teams mode와 Codex multi-agent 설정 및 flow별 2-agent routing을 같은 managed asset으로 연결했다","footer":"Refs: codex-multi-agent-orchestration"}
+{"ts":"2026-04-26T14:38:53Z","stage":"token","event":"stage-started","source":"pgg-token"}
+{"ts":"2026-04-26T14:38:53Z","stage":"token","event":"stage-progress","source":"pgg-token","summary":"measured state-pack, topic docs, implementation diffs, generated workflow docs, and agent TOML token surfaces"}
+{"ts":"2026-04-26T14:38:53Z","stage":"token","event":"stage-completed","source":"pgg-token","summary":"token audit passed; state-pack handoff reduces initial two-agent handoff by about 94.8 percent versus proposal/plan/task/spec bundle"}
+{"ts":"2026-04-26T14:46:12Z","stage":"refactor","event":"stage-started","source":"pgg-refactor"}
+{"ts":"2026-04-26T14:52:52Z","stage":"refactor","event":"stage-progress","source":"pgg-refactor","summary":"centralized state-pack primary agent case generation behind FLOW_AGENT_ROUTES and added route alias coverage"}
+{"ts":"2026-04-26T14:58:25Z","stage":"refactor","event":"stage-commit","archiveType":"feat","targetVersion":"2.3.0","projectLanguage":"ko","commitTitle":"feat: 2.3.0.state-pack 라우팅 중복 제거","summary":"state-pack 라우팅 중복 제거","why":"state-pack primary agent 배정을 중앙 FLOW_AGENT_ROUTES에서 생성해 route drift를 줄였다","footer":"Refs: codex-multi-agent-orchestration"}
+{"ts":"2026-04-26T14:59:25Z","stage":"qa","event":"stage-started","source":"pgg-qa"}
+{"ts":"2026-04-26T15:02:17Z","stage":"qa","event":"stage-progress","source":"pgg-qa","summary":"QA checks passed, required token audit verified, qa/report.md drafted with archive decision pass"}
+{"ts":"2026-04-26T15:05:37Z","stage":"qa","event":"stage-commit","archiveType":"feat","targetVersion":"2.3.0","projectLanguage":"ko","commitTitle":"feat: 2.3.0.qa 완료 기록","summary":"qa 완료 기록","why":"QA 산출물과 최종 검증 변경은 archive publish 전에 별도 완료 commit으로 남아야 한다.","footer":"Refs: codex-multi-agent-orchestration"}
+{"ts":"2026-04-26T15:05:38Z","stage":"archive","event":"version-recorded","version":"2.3.0","changeType":"feat","versionBump":"minor","targetVersion":"2.3.0","workingBranch":"ai/feat/2.3.0-codex-orchestration","releaseBranch":"release/2.3.0-codex-orchestration"}
+{"ts":"2026-04-26T15:05:38Z","stage":"archive","event":"archived"}
+{"ts":"2026-04-26T15:05:49Z","stage":"archive","event":"git-publish-complete","resultType":"published","pushStatus":"success","reason":"Release branch push completed successfully.","remote":"origin","workingBranch":"ai/feat/2.3.0-codex-orchestration","releaseBranch":"release/2.3.0-codex-orchestration","publishMode":"first_publish","upstreamStatus":"configured","cleanupStatus":"completed","cleanupReason":"Removed the ai branch after promoting 'release/2.3.0-codex-orchestration'. No remote ai branch existed.","cleanupTiming":"after_release_promotion","notesRef":"refs/notes/pgg-publish","commitSha":"a2d0e09103f2ca9f88f1243da2d9880d0e6870e6"}

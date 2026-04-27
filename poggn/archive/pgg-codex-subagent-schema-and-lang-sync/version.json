@@ -1,0 +1,14 @@
+{
+  "topic": "pgg-codex-subagent-schema-and-lang-sync",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "version": "2.3.3",
+  "targetVersion": "2.3.3",
+  "previousVersion": "2.3.2",
+  "shortName": "codex-sync",
+  "workingBranch": "ai/fix/2.3.3-codex-sync",
+  "releaseBranch": "release/2.3.3-codex-sync",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-27T04:37:34Z",
+  "history": "poggn/version-history.ndjson"
+}

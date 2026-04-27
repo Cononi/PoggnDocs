@@ -1,0 +1,271 @@
+{
+  "topic": "pgg-codex-agents-path-sync",
+  "nodes": [
+    {
+      "id": "proposal",
+      "type": "doc",
+      "position": { "x": 0, "y": 0 },
+      "data": {
+        "label": "proposal.md",
+        "stage": "proposal",
+        "status": "completed",
+        "ref": "proposal.md"
+      }
+    },
+    {
+      "id": "proposal-review",
+      "type": "review",
+      "position": { "x": 260, "y": 0 },
+      "data": {
+        "label": "proposal.review.md",
+        "stage": "proposal",
+        "status": "reviewed",
+        "score": 91,
+        "ref": "reviews/proposal.review.md"
+      }
+    },
+    {
+      "id": "state-current",
+      "type": "state",
+      "position": { "x": 520, "y": 0 },
+      "data": {
+        "label": "state/current.md",
+        "stage": "handoff",
+        "status": "ready",
+        "ref": "state/current.md"
+      }
+    },
+    {
+      "id": "plan",
+      "type": "doc",
+      "position": { "x": 0, "y": 160 },
+      "data": {
+        "label": "plan.md",
+        "stage": "plan",
+        "status": "completed",
+        "ref": "plan.md"
+      }
+    },
+    {
+      "id": "task",
+      "type": "doc",
+      "position": { "x": 260, "y": 160 },
+      "data": {
+        "label": "task.md",
+        "stage": "task",
+        "status": "completed",
+        "ref": "task.md"
+      }
+    },
+    {
+      "id": "specs",
+      "type": "spec",
+      "position": { "x": 520, "y": 160 },
+      "data": {
+        "label": "spec/*/*.md",
+        "stage": "spec",
+        "status": "approved",
+        "refs": [
+          "spec/templates/codex-agent-template-paths.md",
+          "spec/migration/root-agents-retirement.md",
+          "spec/docs/routing-reference-sync.md",
+          "spec/verification/init-update-path-regression.md"
+        ]
+      }
+    },
+    {
+      "id": "plan-task-reviews",
+      "type": "review",
+      "position": { "x": 780, "y": 160 },
+      "data": {
+        "label": "plan/task reviews",
+        "stage": "plan",
+        "status": "reviewed",
+        "score": 93,
+        "refs": [
+          "reviews/plan.review.md",
+          "reviews/task.review.md"
+        ]
+      }
+    },
+    {
+      "id": "implementation",
+      "type": "doc",
+      "position": { "x": 0, "y": 320 },
+      "data": {
+        "label": "implementation/index.md",
+        "stage": "implementation",
+        "status": "completed",
+        "ref": "implementation/index.md"
+      }
+    },
+    {
+      "id": "implementation-diffs",
+      "type": "diff",
+      "position": { "x": 260, "y": 320 },
+      "data": {
+        "label": "implementation/diffs",
+        "stage": "implementation",
+        "status": "recorded",
+        "refs": [
+          "implementation/diffs/001_UPDATE_template_agent_paths.diff",
+          "implementation/diffs/002_UPDATE_agent_path_tests.diff",
+          "implementation/diffs/003_UPDATE_routing_reference_docs.diff",
+          "implementation/diffs/004_MOVE_managed_agent_files.diff"
+        ]
+      }
+    },
+    {
+      "id": "code-review",
+      "type": "review",
+      "position": { "x": 520, "y": 320 },
+      "data": {
+        "label": "code.review.md",
+        "stage": "implementation",
+        "status": "reviewed",
+        "score": 94,
+        "ref": "reviews/code.review.md"
+      }
+    },
+    {
+      "id": "refactor-review",
+      "type": "review",
+      "position": { "x": 780, "y": 320 },
+      "data": {
+        "label": "refactor.review.md",
+        "stage": "refactor",
+        "status": "reviewed",
+        "score": 95,
+        "ref": "reviews/refactor.review.md"
+      }
+    },
+    {
+      "id": "token-report",
+      "type": "audit",
+      "position": { "x": 1040, "y": 320 },
+      "data": {
+        "label": "token/report.md",
+        "stage": "token",
+        "status": "passed",
+        "score": 94,
+        "ref": "token/report.md"
+      }
+    },
+    {
+      "id": "qa-report",
+      "type": "qa",
+      "position": { "x": 1300, "y": 320 },
+      "data": {
+        "label": "qa/report.md",
+        "stage": "qa",
+        "status": "passed",
+        "score": 95,
+        "ref": "qa/report.md"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "proposal-to-review",
+      "source": "proposal",
+      "target": "proposal-review",
+      "label": "review"
+    },
+    {
+      "id": "review-to-state",
+      "source": "proposal-review",
+      "target": "state-current",
+      "label": "handoff"
+    },
+    {
+      "id": "proposal-to-plan",
+      "source": "proposal",
+      "target": "plan",
+      "label": "plan"
+    },
+    {
+      "id": "plan-to-task",
+      "source": "plan",
+      "target": "task",
+      "label": "tasks"
+    },
+    {
+      "id": "task-to-specs",
+      "source": "task",
+      "target": "specs",
+      "label": "spec boundary"
+    },
+    {
+      "id": "specs-to-reviews",
+      "source": "specs",
+      "target": "plan-task-reviews",
+      "label": "review"
+    },
+    {
+      "id": "reviews-to-state",
+      "source": "plan-task-reviews",
+      "target": "state-current",
+      "label": "handoff"
+    },
+    {
+      "id": "task-to-implementation",
+      "source": "task",
+      "target": "implementation",
+      "label": "implement"
+    },
+    {
+      "id": "implementation-to-diffs",
+      "source": "implementation",
+      "target": "implementation-diffs",
+      "label": "diffs"
+    },
+    {
+      "id": "diffs-to-code-review",
+      "source": "implementation-diffs",
+      "target": "code-review",
+      "label": "review"
+    },
+    {
+      "id": "code-review-to-state",
+      "source": "code-review",
+      "target": "state-current",
+      "label": "handoff"
+    },
+    {
+      "id": "code-review-to-refactor-review",
+      "source": "code-review",
+      "target": "refactor-review",
+      "label": "refactor"
+    },
+    {
+      "id": "refactor-review-to-state",
+      "source": "refactor-review",
+      "target": "state-current",
+      "label": "handoff"
+    },
+    {
+      "id": "refactor-review-to-token",
+      "source": "refactor-review",
+      "target": "token-report",
+      "label": "required audit"
+    },
+    {
+      "id": "token-to-state",
+      "source": "token-report",
+      "target": "state-current",
+      "label": "handoff"
+    },
+    {
+      "id": "token-to-qa",
+      "source": "token-report",
+      "target": "qa-report",
+      "label": "qa"
+    },
+    {
+      "id": "qa-to-state",
+      "source": "qa-report",
+      "target": "state-current",
+      "label": "archive decision"
+    }
+  ]
+}

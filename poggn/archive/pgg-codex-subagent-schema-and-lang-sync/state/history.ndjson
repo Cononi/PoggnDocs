@@ -1,0 +1,19 @@
+{"ts":"2026-04-27T01:39:40Z","stage":"proposal","event":"topic-created"}
+{"ts":"2026-04-27T01:39:40Z","stage":"proposal","event":"stage-started","source":"pgg-add"}
+{"ts":"2026-04-27T01:39:54Z","stage":"proposal","event":"stage-completed","source":"verified","score":96}
+{"ts":"2026-04-27T01:46:29Z","stage":"plan","event":"stage-started","source":"pgg-plan"}
+{"ts":"2026-04-27T01:46:29Z","stage":"plan","event":"stage-completed","source":"verified","score":96}
+{"ts":"2026-04-27T01:51:34Z","stage":"implementation","event":"stage-started","source":"pgg-code"}
+{"ts":"2026-04-27T02:00:00Z","stage":"implementation","event":"stage-progress","source":"pgg-code","summary":"implemented Codex custom agent schema, routing manifest relocation, language-aware agent text, generated asset refresh, and regression tests"}
+{"ts":"2026-04-27T02:01:34Z","stage":"implementation","event":"stage-commit","archiveType":"fix","targetVersion":"2.3.3","projectLanguage":"ko","commitTitle":"fix: 2.3.3.Codex agent schema 정합성","summary":"Codex agent schema 정합성","why":"Codex custom agent 파일이 공식 스키마에 맞게 생성되고 pgg routing 정보는 별도 managed manifest로 이동되어 init update lang 결과가 경고 없이 언어 설정을 따릅니다.","footer":"Refs: pgg-codex-subagent-schema-and-lang-sync"}
+{"ts":"2026-04-27T02:03:08Z","stage":"refactor","event":"stage-started","source":"pgg-refactor"}
+{"ts":"2026-04-27T04:18:57Z","stage":"refactor","event":"stage-progress","source":"pgg-refactor","summary":"cleaned Korean generated agent classification wording and refreshed managed assets"}
+{"ts":"2026-04-27T04:18:57Z","stage":"refactor","event":"stage-progress","source":"pgg-refactor","summary":"hardened stage and publish helper staging for deleted ignored candidate paths"}
+{"ts":"2026-04-27T04:29:21Z","stage":"refactor","event":"stage-commit","archiveType":"fix","targetVersion":"2.3.3","projectLanguage":"ko","commitTitle":"fix: 2.3.3.agent 분류 문구 정리","summary":"agent 분류 문구 정리","why":"한국어 generated agent instruction에서 혼합 영어 분류 문구를 제거하고 삭제된 ignored candidate path도 stage helper가 안정적으로 처리하도록 정리했습니다.","footer":"Refs: pgg-codex-subagent-schema-and-lang-sync"}
+{"ts":"2026-04-27T04:30:27Z","stage":"qa","event":"stage-started","source":"pgg-qa"}
+{"ts":"2026-04-27T04:32:02Z","stage":"qa","event":"stage-progress","source":"pgg-qa","summary":"verified pgg-qa gate, build, test, generated Codex agent schema, routing manifest preservation, and language sync regression"}
+{"ts":"2026-04-27T04:32:02Z","stage":"qa","event":"stage-completed","source":"verified","score":99}
+{"ts":"2026-04-27T04:37:34Z","stage":"qa","event":"stage-commit","archiveType":"fix","targetVersion":"2.3.3","projectLanguage":"ko","commitTitle":"fix: 2.3.3.qa 완료 기록","summary":"qa 완료 기록","why":"QA 산출물과 최종 검증 변경은 archive publish 전에 별도 완료 commit으로 남아야 한다.","footer":"Refs: pgg-codex-subagent-schema-and-lang-sync"}
+{"ts":"2026-04-27T04:37:34Z","stage":"archive","event":"version-recorded","version":"2.3.3","changeType":"fix","versionBump":"patch","targetVersion":"2.3.3","workingBranch":"ai/fix/2.3.3-codex-sync","releaseBranch":"release/2.3.3-codex-sync"}
+{"ts":"2026-04-27T04:37:34Z","stage":"archive","event":"archived"}
+{"ts":"2026-04-27T04:37:43Z","stage":"archive","event":"git-publish-complete","resultType":"published","pushStatus":"success","reason":"Release branch push completed successfully.","remote":"origin","workingBranch":"ai/fix/2.3.3-codex-sync","releaseBranch":"release/2.3.3-codex-sync","publishMode":"first_publish","upstreamStatus":"configured","cleanupStatus":"completed","cleanupReason":"Removed the ai branch after promoting 'release/2.3.3-codex-sync'. No remote ai branch existed.","cleanupTiming":"after_release_promotion","notesRef":"refs/notes/pgg-publish","commitSha":"3c12d90ca26f6ff0f12b7a7f4f3b2397700e4265"}

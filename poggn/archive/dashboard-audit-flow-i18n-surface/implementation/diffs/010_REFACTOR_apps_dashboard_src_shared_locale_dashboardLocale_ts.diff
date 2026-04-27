@@ -1,0 +1,36 @@
+diff --git a/apps/dashboard/src/shared/locale/dashboardLocale.ts b/apps/dashboard/src/shared/locale/dashboardLocale.ts
+index 06ec532..6bf40e0 100644
+--- a/apps/dashboard/src/shared/locale/dashboardLocale.ts
++++ b/apps/dashboard/src/shared/locale/dashboardLocale.ts
+@@ -314,6 +314,15 @@ export const dashboardLocale = {
+     workflowProgressFlowPerformance: "Performance",
+     workflowProgressFlowQa: "QA",
+     workflowProgressFlowDone: "Done",
++    workflowProgressPositionOf: "/",
++    workflowProgressSteps: "단계",
++    workflowOverviewStatus: "상태",
++    workflowOverviewStage: "워크플로우 단계",
++    workflowOverviewProgress: "진행률",
++    workflowOverviewPriority: "우선순위",
++    workflowOverviewCreated: "생성",
++    workflowOverviewUpdated: "업데이트",
++    workflowLog: "로그",
+     workflowRecordUnavailable: "기록 없음",
+     workflowArchiveVersionPrefix: "버전",
+     workflowArchiveComplete: "archive 완료",
+@@ -670,6 +679,15 @@ export const dashboardLocale = {
+     workflowProgressFlowPerformance: "Performance",
+     workflowProgressFlowQa: "QA",
+     workflowProgressFlowDone: "Done",
++    workflowProgressPositionOf: "of",
++    workflowProgressSteps: "steps",
++    workflowOverviewStatus: "Status",
++    workflowOverviewStage: "Workflow Stage",
++    workflowOverviewProgress: "Progress",
++    workflowOverviewPriority: "Priority",
++    workflowOverviewCreated: "Created",
++    workflowOverviewUpdated: "Updated",
++    workflowLog: "log",
+     workflowRecordUnavailable: "record unavailable",
+     workflowArchiveVersionPrefix: "version",
+     workflowArchiveComplete: "archive complete",

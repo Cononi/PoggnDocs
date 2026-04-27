@@ -1,0 +1,199 @@
+{
+  "topic": "dashboard-audit-flow-i18n-surface",
+  "nodes": [
+    {
+      "id": "proposal",
+      "type": "document",
+      "data": {
+        "label": "proposal.md",
+        "path": "poggn/active/dashboard-audit-flow-i18n-surface/proposal.md",
+        "stage": "proposal",
+        "status": "reviewed",
+        "summary": "dashboard optional audit flow와 i18n language contract 제안"
+      }
+    },
+    {
+      "id": "proposal-review",
+      "type": "review",
+      "data": {
+        "label": "proposal.review.md",
+        "path": "poggn/active/dashboard-audit-flow-i18n-surface/reviews/proposal.review.md",
+        "stage": "proposal",
+        "status": "reviewed",
+        "summary": "프로덕트 매니저와 UX/UI 전문가 proposal 승인"
+      }
+    },
+    {
+      "id": "state-current",
+      "type": "state",
+      "data": {
+        "label": "state/current.md",
+        "path": "poggn/active/dashboard-audit-flow-i18n-surface/state/current.md",
+        "stage": "plan",
+        "status": "reviewed",
+        "summary": "다음 단계 전달용 최소 컨텍스트"
+      }
+    },
+    {
+      "id": "plan",
+      "type": "document",
+      "data": {
+        "label": "plan.md",
+        "path": "poggn/active/dashboard-audit-flow-i18n-surface/plan.md",
+        "stage": "plan",
+        "status": "reviewed",
+        "summary": "spec 경계와 구현 순서"
+      }
+    },
+    {
+      "id": "task",
+      "type": "document",
+      "data": {
+        "label": "task.md",
+        "path": "poggn/active/dashboard-audit-flow-i18n-surface/task.md",
+        "stage": "task",
+        "status": "reviewed",
+        "summary": "spec 경계별 구현 task"
+      }
+    },
+    {
+      "id": "spec-workflow-optional-audit-flow",
+      "type": "spec",
+      "data": {
+        "label": "spec/workflow/optional-audit-flow-surface.md",
+        "path": "poggn/active/dashboard-audit-flow-i18n-surface/spec/workflow/optional-audit-flow-surface.md",
+        "stage": "plan",
+        "status": "reviewed",
+        "summary": "token/performance optional audit flow 표시 계약"
+      }
+    },
+    {
+      "id": "spec-i18n-dashboard-workflow",
+      "type": "spec",
+      "data": {
+        "label": "spec/i18n/dashboard-workflow-i18n.md",
+        "path": "poggn/active/dashboard-audit-flow-i18n-surface/spec/i18n/dashboard-workflow-i18n.md",
+        "stage": "plan",
+        "status": "reviewed",
+        "summary": "workflow 표시 문자열 i18n 계약"
+      }
+    },
+    {
+      "id": "spec-pgg-language-generated-doc",
+      "type": "spec",
+      "data": {
+        "label": "spec/pgg-language/generated-doc-language-contract.md",
+        "path": "poggn/active/dashboard-audit-flow-i18n-surface/spec/pgg-language/generated-doc-language-contract.md",
+        "stage": "plan",
+        "status": "reviewed",
+        "summary": "pgg lang 기반 generated docs/helper 기록 계약"
+      }
+    },
+    {
+      "id": "spec-qa-audit-flow-i18n-regression",
+      "type": "spec",
+      "data": {
+        "label": "spec/qa/audit-flow-i18n-regression.md",
+        "path": "poggn/active/dashboard-audit-flow-i18n-surface/spec/qa/audit-flow-i18n-regression.md",
+        "stage": "plan",
+        "status": "reviewed",
+        "summary": "optional audit flow와 i18n 회귀 검증 계약"
+      }
+    },
+    {
+      "id": "plan-review",
+      "type": "review",
+      "data": {
+        "label": "plan.review.md",
+        "path": "poggn/active/dashboard-audit-flow-i18n-surface/reviews/plan.review.md",
+        "stage": "plan",
+        "status": "reviewed",
+        "summary": "소프트웨어 아키텍트와 도메인 전문가 plan 승인"
+      }
+    },
+    {
+      "id": "task-review",
+      "type": "review",
+      "data": {
+        "label": "task.review.md",
+        "path": "poggn/active/dashboard-audit-flow-i18n-surface/reviews/task.review.md",
+        "stage": "task",
+        "status": "reviewed",
+        "summary": "소프트웨어 아키텍트와 도메인 전문가 task 승인"
+      }
+    },
+    {
+      "id": "implementation-index",
+      "type": "document",
+      "data": {
+        "label": "implementation/index.md",
+        "path": "poggn/active/dashboard-audit-flow-i18n-surface/implementation/index.md",
+        "stage": "implementation",
+        "status": "reviewed",
+        "summary": "dashboard optional audit flow와 i18n language contract 구현 기록"
+      }
+    },
+    {
+      "id": "code-review",
+      "type": "review",
+      "data": {
+        "label": "code.review.md",
+        "path": "poggn/active/dashboard-audit-flow-i18n-surface/reviews/code.review.md",
+        "stage": "implementation",
+        "status": "reviewed",
+        "summary": "시니어 백엔드 엔지니어와 테크 리드 code review 승인"
+      }
+    },
+    {
+      "id": "refactor-review",
+      "type": "review",
+      "data": {
+        "label": "refactor.review.md",
+        "path": "poggn/active/dashboard-audit-flow-i18n-surface/reviews/refactor.review.md",
+        "stage": "refactor",
+        "status": "reviewed",
+        "summary": "소프트웨어 아키텍트와 코드 리뷰어 refactor 승인"
+      }
+    },
+    {
+      "id": "token-report",
+      "type": "audit",
+      "data": {
+        "label": "token/report.md",
+        "path": "poggn/active/dashboard-audit-flow-i18n-surface/token/report.md",
+        "stage": "token",
+        "status": "reviewed",
+        "summary": "workflow/generated asset token 비용 점검 pass"
+      }
+    },
+    {
+      "id": "qa-report",
+      "type": "qa",
+      "data": {
+        "label": "qa/report.md",
+        "path": "poggn/active/dashboard-audit-flow-i18n-surface/qa/report.md",
+        "stage": "qa",
+        "status": "done",
+        "summary": "QA 최종 판정 pass"
+      }
+    }
+  ],
+  "edges": [
+    { "id": "e-proposal-review", "source": "proposal", "target": "proposal-review" },
+    { "id": "e-proposal-state", "source": "proposal-review", "target": "state-current" },
+    { "id": "e-state-plan", "source": "state-current", "target": "plan" },
+    { "id": "e-plan-task", "source": "plan", "target": "task" },
+    { "id": "e-plan-spec-workflow", "source": "plan", "target": "spec-workflow-optional-audit-flow" },
+    { "id": "e-plan-spec-i18n", "source": "plan", "target": "spec-i18n-dashboard-workflow" },
+    { "id": "e-plan-spec-language", "source": "plan", "target": "spec-pgg-language-generated-doc" },
+    { "id": "e-plan-spec-qa", "source": "plan", "target": "spec-qa-audit-flow-i18n-regression" },
+    { "id": "e-spec-task", "source": "spec-qa-audit-flow-i18n-regression", "target": "task" },
+    { "id": "e-plan-review", "source": "plan", "target": "plan-review" },
+    { "id": "e-task-review", "source": "task", "target": "task-review" },
+    { "id": "e-task-implementation", "source": "task-review", "target": "implementation-index" },
+    { "id": "e-implementation-review", "source": "implementation-index", "target": "code-review" },
+    { "id": "e-code-refactor", "source": "code-review", "target": "refactor-review" },
+    { "id": "e-refactor-token", "source": "refactor-review", "target": "token-report" },
+    { "id": "e-token-qa", "source": "token-report", "target": "qa-report" }
+  ]
+}

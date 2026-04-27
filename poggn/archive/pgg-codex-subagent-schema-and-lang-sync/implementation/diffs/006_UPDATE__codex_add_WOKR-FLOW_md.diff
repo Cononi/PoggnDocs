@@ -1,0 +1,34 @@
+diff --git a/.codex/add/WOKR-FLOW.md b/.codex/add/WOKR-FLOW.md
+index 5fc25f6..79d1fdd 100644
+--- a/.codex/add/WOKR-FLOW.md
++++ b/.codex/add/WOKR-FLOW.md
+@@ -5,7 +5,7 @@ pgg는 core workflow와 필요할 때만 여는 optional audit로 delivery를 
+ ## 절대 원칙
+ 
+ - auto mode가 `off`이면 미확정 요구사항은 선택지와 직접 입력으로 남긴다.
+-- `pgg teams`가 `on`이면 `.codex/agents/main.toml`에 정의된 stage별 2-agent 자동 orchestration을 사용하고, `off`이면 단일 에이전트 흐름을 사용한다.
++- `pgg teams`가 `on`이면 `.codex/add/AGENT-ROUTING.toml`에 정의된 stage별 2-agent 자동 orchestration을 사용하고, `off`이면 단일 에이전트 흐름을 사용한다.
+ - `pgg teams` 상태는 `.codex/config.toml`의 `[features].multi_agent`와 동기화하며, token budget 기본값은 `max_threads=4`, `max_depth=1`이다.
+ - sub-agent handoff는 `state/current.md` 또는 `.codex/sh/pgg-state-pack.sh <topic|topic_dir>` 출력으로 제한하고 전체 문서 bundle을 기본값으로 넘기지 않는다.
+ - 현재 프로젝트 내부 문서 생성, 확인, 기록 절차는 stage 안에서 자동 처리하고, 외부 경로나 전역 상태를 건드리는 작업은 자동 처리하지 않는다.
+@@ -26,13 +26,13 @@ pgg는 core workflow와 필요할 때만 여는 optional audit로 delivery를 
+ ### Multi-Agent Routing
+ 
+ - 모든 core workflow와 optional audit는 아래 2개 primary agent만 자동 사용한다.
+-- `pgg-add`: Product Manager, UX/UI Expert
+-- `pgg-plan`: Software Architect, Domain Expert
+-- `pgg-code`: Senior Backend Engineer, Tech Lead
+-- `pgg-refactor`: Software Architect, Code Reviewer
+-- `pgg-qa`: QA/Test Engineer, SRE/Operations Engineer
+-- `pgg-token`: Tech Lead, Code Reviewer
+-- `pgg-performance`: QA/Test Engineer, SRE/Operations Engineer
++- `pgg-add`: 프로덕트 매니저, UX/UI 전문가
++- `pgg-plan`: 소프트웨어 아키텍트, 도메인 전문가
++- `pgg-code`: 시니어 백엔드 엔지니어, 테크 리드
++- `pgg-refactor`: 소프트웨어 아키텍트, 코드 리뷰어
++- `pgg-qa`: QA/테스트 엔지니어, SRE/운영 엔지니어
++- `pgg-token`: 테크 리드, 코드 리뷰어
++- `pgg-performance`: QA/테스트 엔지니어, SRE/운영 엔지니어
+ - `project-generalist`, `docs-researcher`는 support agent이며 parent가 명시적으로 필요하다고 판단할 때만 사용한다.
+ 
+ ## 전체 실행 흐름

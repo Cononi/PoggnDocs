@@ -1,0 +1,32 @@
+{
+  "topic": "codex-multi-agent-orchestration",
+  "version": "2.3.0",
+  "targetVersion": "2.3.0",
+  "changeType": "feat",
+  "versionBump": "minor",
+  "commitTitle": "feat: 2.3.0.codex 멀티 에이전트",
+  "commitSha": "a2d0e09103f2ca9f88f1243da2d9880d0e6870e6",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/2.3.0-codex-orchestration",
+  "workingBranch": "ai/feat/2.3.0-codex-orchestration",
+  "releaseBranch": "release/2.3.0-codex-orchestration",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-26T15:05:47Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/2.3.0-codex-orchestration'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/codex-multi-agent-orchestration",
+    "versionFile": "poggn/archive/codex-multi-agent-orchestration/version.json"
+  }
+}

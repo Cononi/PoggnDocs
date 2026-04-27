@@ -1,0 +1,22 @@
+{"ts":"2026-04-26T15:10:33Z","stage":"proposal","event":"topic-created"}
+{"ts":"2026-04-26T15:10:33Z","stage":"proposal","event":"stage-started","source":"pgg-add"}
+{"ts":"2026-04-26T15:11:15Z","stage":"proposal","event":"stage-progress","source":"pgg-add","summary":"confirmed current generated agent paths use root agents/ and scoped proposal to init/update templates, manifest, docs, state-pack, and tests"}
+{"ts":"2026-04-26T15:11:15Z","stage":"proposal","event":"stage-completed","source":"verified:pgg-add","summary":"proposal and attributed review completed; handoff state ready for pgg-plan"}
+{"ts":"2026-04-26T15:15:22Z","stage":"plan","event":"stage-started","source":"pgg-plan"}
+{"ts":"2026-04-26T15:15:22Z","stage":"plan","event":"stage-progress","source":"pgg-plan","summary":"created plan, task, four specs, and attributed plan/task reviews for .codex/agents path migration"}
+{"ts":"2026-04-26T15:19:24Z","stage":"plan","event":"stage-completed","source":"verified:pgg-plan","summary":"pgg-code gate passed with plan, task, reviews, and specs present"}
+{"ts":"2026-04-26T15:19:24Z","stage":"implementation","event":"stage-started","source":"pgg-code"}
+{"ts":"2026-04-26T15:27:23Z","stage":"implementation","event":"stage-progress","source":"pgg-code","summary":"implemented .codex/agents path generation, update retirement behavior, routing reference sync, tests, generated update, and implementation diffs"}
+{"ts":"2026-04-27T00:27:01Z","stage":"implementation","event":"stage-commit","archiveType":"fix","targetVersion":"2.3.1","projectLanguage":"ko","commitTitle":"fix: 2.3.1.Codex agents 경로 정렬","summary":"Codex agents 경로 정렬","why":"Codex agent 설정 경로를 .codex/agents로 통일하고 init/update 생성 및 migration 검증을 맞췄다","footer":"Refs: pgg-codex-agents-path-sync"}
+{"ts":"2026-04-27T00:27:59Z","stage":"refactor","event":"stage-started","source":"pgg-refactor"}
+{"ts":"2026-04-27T00:31:04Z","stage":"refactor","event":"stage-progress","source":"pgg-refactor","summary":"centralized .codex/agents path literals in template and test helpers; build/test pass and generated update unchanged"}
+{"ts":"2026-04-27T00:33:20Z","stage":"refactor","event":"stage-commit","archiveType":"fix","targetVersion":"2.3.1","projectLanguage":"ko","commitTitle":"fix: 2.3.1.agents 경로 상수 정리","summary":"agents 경로 상수 정리","why":".codex/agents 경로 계약을 상수와 helper로 모아 template과 test의 중복 문자열 drift를 줄였다","footer":"Refs: pgg-codex-agents-path-sync"}
+{"ts":"2026-04-27T00:34:28Z","stage":"token","event":"stage-started","source":"pgg-token"}
+{"ts":"2026-04-27T00:34:28Z","stage":"token","event":"stage-progress","source":"pgg-token","summary":"measured state-pack handoff, topic docs, specs, implementation diffs, generated agent TOML, workflow docs/helpers, and source/test surfaces"}
+{"ts":"2026-04-27T00:34:28Z","stage":"token","event":"stage-completed","source":"verified:pgg-token","summary":"token audit passed; state-pack handoff is 258 words and about 91.5 percent smaller than topic docs plus specs"}
+{"ts":"2026-04-27T00:39:20Z","stage":"qa","event":"stage-started","source":"pgg-qa"}
+{"ts":"2026-04-27T00:39:20Z","stage":"qa","event":"stage-progress","source":"pgg-qa","summary":"QA report drafted; required token audit verified; manual verification required recorded because no verification command contract is declared"}
+{"ts":"2026-04-27T00:40:22Z","stage":"qa","event":"stage-commit","archiveType":"fix","targetVersion":"2.3.1","projectLanguage":"ko","commitTitle":"fix: 2.3.1.qa 완료 기록","summary":"qa 완료 기록","why":"QA 산출물과 최종 검증 변경은 archive publish 전에 별도 완료 commit으로 남아야 한다.","footer":"Refs: pgg-codex-agents-path-sync"}
+{"ts":"2026-04-27T00:40:22Z","stage":"archive","event":"version-recorded","version":"2.3.1","changeType":"fix","versionBump":"patch","targetVersion":"2.3.1","workingBranch":"ai/fix/2.3.1-codex-sync","releaseBranch":"release/2.3.1-codex-sync"}
+{"ts":"2026-04-27T00:40:22Z","stage":"archive","event":"archived"}
+{"ts":"2026-04-27T00:43:07Z","stage":"archive","event":"git-publish-complete","resultType":"published","pushStatus":"success","reason":"Release branch push completed successfully.","remote":"origin","workingBranch":"ai/fix/2.3.1-codex-sync","releaseBranch":"release/2.3.1-codex-sync","publishMode":"first_publish","upstreamStatus":"configured","cleanupStatus":"completed","cleanupReason":"Removed the ai branch after promoting 'release/2.3.1-codex-sync'. No remote ai branch existed.","cleanupTiming":"after_release_promotion","notesRef":"refs/notes/pgg-publish","commitSha":"c2cb9b7bfb1fc5d867e08f5c9c8245ff625ecac4"}

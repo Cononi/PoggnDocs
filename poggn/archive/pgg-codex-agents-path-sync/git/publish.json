@@ -1,0 +1,32 @@
+{
+  "topic": "pgg-codex-agents-path-sync",
+  "version": "2.3.1",
+  "targetVersion": "2.3.1",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "commitTitle": "fix: 2.3.1.Codex agents 경로 정렬",
+  "commitSha": "c2cb9b7bfb1fc5d867e08f5c9c8245ff625ecac4",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/2.3.1-codex-sync",
+  "workingBranch": "ai/fix/2.3.1-codex-sync",
+  "releaseBranch": "release/2.3.1-codex-sync",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-27T00:43:04Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/2.3.1-codex-sync'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/pgg-codex-agents-path-sync",
+    "versionFile": "poggn/archive/pgg-codex-agents-path-sync/version.json"
+  }
+}

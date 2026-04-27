@@ -1,0 +1,32 @@
+{
+  "topic": "dashboard-audit-flow-i18n-surface",
+  "version": "2.4.0",
+  "targetVersion": "2.4.0",
+  "changeType": "feat",
+  "versionBump": "minor",
+  "commitTitle": "feat: 2.4.0.dashboard audit i18n",
+  "commitSha": "fbb323640de1307f8807ec02d70bee38077600b7",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/2.4.0-dashboard-surface",
+  "workingBranch": "ai/feat/2.4.0-dashboard-surface",
+  "releaseBranch": "release/2.4.0-dashboard-surface",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-27T05:44:32Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/2.4.0-dashboard-surface'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/dashboard-audit-flow-i18n-surface",
+    "versionFile": "poggn/archive/dashboard-audit-flow-i18n-surface/version.json"
+  }
+}

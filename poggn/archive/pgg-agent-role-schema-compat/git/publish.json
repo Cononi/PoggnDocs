@@ -1,0 +1,32 @@
+{
+  "topic": "pgg-agent-role-schema-compat",
+  "version": "2.3.2",
+  "targetVersion": "2.3.2",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "commitTitle": "fix: 2.3.2.agent role schema compat",
+  "commitSha": "af93395fc192eff3f21631d23180687e4799ad22",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/2.3.2-agent-compat",
+  "workingBranch": "ai/fix/2.3.2-agent-compat",
+  "releaseBranch": "release/2.3.2-agent-compat",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-27T01:30:57Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/2.3.2-agent-compat'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/pgg-agent-role-schema-compat",
+    "versionFile": "poggn/archive/pgg-agent-role-schema-compat/version.json"
+  }
+}

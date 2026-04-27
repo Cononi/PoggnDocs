@@ -1,0 +1,136 @@
+max_threads = 4
+max_depth = 1
+source_of_truth = ".codex/add/AGENT-ROUTING.toml and .codex/add/EXPERT-ROUTING.md must stay aligned."
+mode = "single-agent"
+
+[token_budget]
+handoff = "state/current.md or pgg-state-pack output first"
+full_documents = "only when the parent explicitly needs them"
+nested_agents = "forbidden"
+
+[[roles]]
+id = "product-manager"
+agent_name = "product_manager"
+display_name = "프로덕트 매니저"
+category = "primary"
+purpose = "사용자 문제, 성공 기준, 범위, delivery tradeoff를 정리한다."
+when_to_use = "proposal과 product scope 판단에서 사용한다."
+
+[[roles]]
+id = "ux-ui-expert"
+agent_name = "ux_ui_expert"
+display_name = "UX/UI 전문가"
+category = "primary"
+purpose = "사용자 흐름, 상호작용 명확성, 시각 계층, 접근성 위험을 평가한다."
+when_to_use = "화면, workflow, 사용자-facing 동작에 영향이 있을 때 사용한다."
+
+[[roles]]
+id = "domain-expert"
+agent_name = "domain_expert"
+display_name = "도메인 전문가"
+category = "primary"
+purpose = "용어, 도메인 가정, 데이터 의미, cross-domain 적합성을 점검한다."
+when_to_use = "plan이나 spec에서 domain constraint를 명확히 해야 할 때 사용한다."
+
+[[roles]]
+id = "software-architect"
+agent_name = "software_architect"
+display_name = "소프트웨어 아키텍트"
+category = "primary"
+purpose = "시스템 경계, 통합 계약, 순서, 장기 구조를 정의한다."
+when_to_use = "planning과 구조적 refactor 판단에서 사용한다."
+
+[[roles]]
+id = "senior-backend-engineer"
+agent_name = "senior_backend_engineer"
+display_name = "시니어 백엔드 엔지니어"
+category = "primary"
+purpose = "구현 경로, 데이터 흐름, 오류 처리, 유지보수성을 평가한다."
+when_to_use = "implementation planning과 code execution risk 판단에서 사용한다."
+
+[[roles]]
+id = "tech-lead"
+agent_name = "tech_lead"
+display_name = "테크 리드"
+category = "primary"
+purpose = "구현 전략, ownership, 통합 위험, engineering tradeoff를 조율한다."
+when_to_use = "code와 token-sensitive workflow 판단에서 사용한다."
+
+[[roles]]
+id = "code-reviewer"
+agent_name = "code_reviewer"
+display_name = "코드 리뷰어"
+category = "primary"
+purpose = "정확성 버그, 회귀, 누락된 테스트, 유지보수 위험을 찾는다."
+when_to_use = "refactor review, token audit, code-quality check에서 사용한다."
+
+[[roles]]
+id = "qa-test-engineer"
+agent_name = "qa_test_engineer"
+display_name = "QA/테스트 엔지니어"
+category = "primary"
+purpose = "검증 전략, acceptance check, test evidence를 설계한다."
+when_to_use = "QA와 performance evidence planning에서 사용한다."
+
+[[roles]]
+id = "sre-operations-engineer"
+agent_name = "sre_operations_engineer"
+display_name = "SRE/운영 엔지니어"
+category = "primary"
+purpose = "runtime risk, release safety, rollback, observability, operational constraint를 평가한다."
+when_to_use = "QA release review와 performance/operations risk 판단에서 사용한다."
+
+[[roles]]
+id = "project-generalist"
+agent_name = "project_generalist"
+display_name = "프로젝트 제너럴리스트"
+category = "support"
+purpose = "특정 specialist role이 맞지 않을 때 넓은 project context를 제공한다."
+when_to_use = "명시적으로 opt-in된 support role로만 사용하며 flow primary로 사용하지 않는다."
+
+[[roles]]
+id = "docs-researcher"
+agent_name = "docs_researcher"
+display_name = "문서 리서처"
+category = "support"
+purpose = "외부 또는 공식 문서를 확인하고 source-backed constraint를 요약한다."
+when_to_use = "primary-source documentation 확인이 필요할 때만 사용한다."
+
+[[flows]]
+flow = "pgg-add"
+primary_agents = ["product-manager", "ux-ui-expert"]
+purpose = "문제 정의와 사용자 흐름 명확화"
+
+[[flows]]
+flow = "pgg-plan"
+primary_agents = ["software-architect", "domain-expert"]
+purpose = "시스템 설계와 도메인 제약"
+
+[[flows]]
+flow = "pgg-code"
+primary_agents = ["senior-backend-engineer", "tech-lead"]
+purpose = "구현 경로와 통합 guardrail"
+
+[[flows]]
+flow = "pgg-refactor"
+primary_agents = ["software-architect", "code-reviewer"]
+purpose = "구조 정리와 회귀 위험"
+
+[[flows]]
+flow = "pgg-qa"
+primary_agents = ["qa-test-engineer", "sre-operations-engineer"]
+purpose = "테스트 근거와 release/operation 위험"
+
+[[flows]]
+flow = "pgg-token"
+primary_agents = ["tech-lead", "code-reviewer"]
+purpose = "context budget과 중복 검토"
+
+[[flows]]
+flow = "pgg-performance"
+primary_agents = ["qa-test-engineer", "sre-operations-engineer"]
+purpose = "측정 근거와 운영 위험"
+
+[support]
+roles = ["project-generalist", "docs-researcher"]
+rule = "Support role은 opt-in이며 flow primary agent 수에 포함하지 않는다."
