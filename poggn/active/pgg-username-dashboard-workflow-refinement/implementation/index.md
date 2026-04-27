@@ -66,6 +66,9 @@ pgg:
 - follow-up request: timeline rows now follow actual pgg workflow order, displayed time uses flow completion evidence, file preview modal opens from the right file tree, and generated file rows no longer open preview
 - `pnpm --filter @pgg/dashboard build`: pass after timeline order/time and file tree preview adjustment, Vite chunk-size warning remains
 - `pnpm test:dashboard`: pass after timeline order/time and file tree preview adjustment
+- follow-up request: timeline rows now use reverse actual workflow order, completed check colors vary by flow tone, generated file rows hide file-level LLM/Local chips, and flow total LLM/Local remains in the flow header
+- `pnpm --filter @pgg/dashboard build`: pass after reverse order and flow-tone checks, Vite chunk-size warning remains
+- `pnpm test:dashboard`: pass after reverse order and flow-tone checks
 
 ## Additional Diff Records
 
@@ -97,3 +100,5 @@ pgg:
 | 041 | UPDATE | `spec/dashboard/workflow-git-timeline-reference.md` | `implementation/diffs/041_UPDATE_spec_dashboard_workflow_git_timeline_reference_md.file_modal_rail.diff` | `T4,T8` | document file modal token display, single rail behavior, and no tokens in right file tree |
 | 042 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx`, `apps/dashboard/src/features/history/historyModel.ts` | `implementation/diffs/042_UPDATE_apps_dashboard_history_timeline_order_filetree_preview.diff` | `T4` | restore actual workflow order, use completion evidence time, and move file preview opening to right file tree |
 | 043 | UPDATE | `spec/dashboard/workflow-git-timeline-reference.md` | `implementation/diffs/043_UPDATE_spec_dashboard_workflow_git_timeline_reference_md.order_preview.diff` | `T4,T8` | document actual workflow order, completion time source, and right file tree preview behavior |
+| 044 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx`, `apps/dashboard/src/features/history/historyModel.ts` | `implementation/diffs/044_UPDATE_apps_dashboard_timeline_reverse_tone_file_tokens.diff` | `T4` | reverse timeline flow order, color completed checks by flow tone, and remove file-level token chips from generated file rows |
+| 045 | UPDATE | `spec/dashboard/workflow-git-timeline-reference.md` | `implementation/diffs/045_UPDATE_spec_dashboard_workflow_git_timeline_reference_md.reverse_tone.diff` | `T4,T8` | document reverse workflow order, flow-tone completed checks, and flow-only token display |

@@ -82,6 +82,9 @@ implementation
   - flow 순서는 실제 pgg workflow 순서와 같아야 한다.
   - 시간은 실제 flow 완료 시간으로 표기해야 한다.
   - 파일 상세 modal은 timeline 생성 파일이 아니라 우측 file tree의 file 클릭에서 열려야 한다.
+  - 완료 표시 색은 flow마다 다른 색이어야 한다.
+  - timeline은 workflow 역순으로 표시해야 한다.
+  - timeline 생성 파일 row에는 file-level LLM/Local token을 제외하고, 각 flow title/header에는 total LLM/Local token을 유지한다.
 - additional implementation:
   - token usage contract에 `llmActualTokens`와 `localEstimatedTokens`를 분리 추가했다.
   - LLM actual evidence가 없는 경우 `기록 없음`으로 표시하고 local estimate는 file content 기반 값으로 표시한다.
@@ -106,6 +109,9 @@ implementation
   - timeline row 정렬을 timestamp 내림차순에서 실제 workflow definition 순서로 되돌렸다.
   - timeline date/time은 `flowTimestampBundle(...).completedAt`을 우선 사용하고, completion evidence가 없을 때만 trusted updated evidence로 fallback한다.
   - file preview modal trigger를 timeline 생성 파일 row에서 우측 file tree file row로 이동했다.
+  - timeline row 순서를 actual workflow reverse order로 변경했다.
+  - completed check node 색상을 row tone별 primary/secondary/success/neutral로 분리했다.
+  - generated file row에서 file-level LLM/Local token chip을 제거했고 flow header total token chip은 유지했다.
 - residual risk:
   - reference image parity는 browser screenshot/manual visual evidence가 QA/refactor 이후 필요하다
   - project add Stepper remote FAST/SETUP 세부 credential 입력 UX는 후속 polish 여지가 있다
@@ -192,6 +198,8 @@ implementation
 - evidence: follow-up file modal `pnpm test:dashboard` passed
 - evidence: follow-up order/time `pnpm --filter @pgg/dashboard build` passed with existing Vite chunk-size warning
 - evidence: follow-up order/time `pnpm test:dashboard` passed
+- evidence: follow-up reverse/tone `pnpm --filter @pgg/dashboard build` passed with existing Vite chunk-size warning
+- evidence: follow-up reverse/tone `pnpm test:dashboard` passed
 
 ## Changed Files
 
@@ -267,6 +275,9 @@ implementation
 | UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | timeline rows follow actual workflow order and display completion evidence time |
 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | right file tree file click opens preview modal; timeline generated file click removed |
 | UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md` | actual workflow order, completion time, and right file tree preview criteria |
+| UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | timeline rows follow reverse actual workflow order |
+| UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | completed checks use flow tone colors and generated file rows hide file-level token chips |
+| UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md` | reverse workflow order, flow-tone checks, flow-header token criteria |
 
 ## Dirty Worktree Baseline
 

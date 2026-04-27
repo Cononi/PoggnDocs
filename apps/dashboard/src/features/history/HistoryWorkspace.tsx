@@ -1312,8 +1312,22 @@ function TimelineMilestone(props: {
   onShowFlowFiles: () => void;
 }) {
   const theme = useTheme();
-  const accent = theme.palette.success.main;
-  const accentLight = theme.palette.success.light;
+  const accent =
+    props.row.tone === "success"
+      ? theme.palette.success.main
+      : props.row.tone === "warning"
+        ? theme.palette.secondary.main
+        : props.row.tone === "primary"
+          ? theme.palette.primary.main
+          : theme.palette.text.secondary;
+  const accentLight =
+    props.row.tone === "success"
+      ? theme.palette.success.light
+      : props.row.tone === "warning"
+        ? theme.palette.secondary.light
+        : props.row.tone === "primary"
+          ? theme.palette.primary.light
+          : theme.palette.text.secondary;
 
   return (
     <Box
@@ -1334,7 +1348,7 @@ function TimelineMilestone(props: {
             display: "grid",
             placeItems: "center",
             color: "#fff",
-            bgcolor: theme.palette.mode === "dark" ? "#10271f" : "#eaf6ed",
+            bgcolor: alpha(accent, theme.palette.mode === "dark" ? 0.24 : 0.12),
             border: `2px solid ${alpha(accentLight, 0.9)}`,
             boxShadow: `0 0 0 4px ${alpha(accent, 0.16)}, 0 0 22px ${alpha(accent, 0.46)}`,
             position: "relative",
@@ -1393,13 +1407,7 @@ function TimelineMilestone(props: {
               {props.row.files.slice(0, 3).map((file) => (
                 <Stack key={file.path} direction="row" spacing={0.75} sx={{ alignItems: "flex-start", minWidth: 0, p: 0.25 }}>
                   <ChangeBadge kind={file.kind} />
-                  <Stack spacing={0.35} sx={{ flex: 1, minWidth: 0 }}>
-                    <Stack direction="row" spacing={0.5} useFlexGap sx={{ flexWrap: "wrap", minWidth: 0 }}>
-                      <Chip size="small" variant="outlined" label={`${props.dictionary.llmShort}: ${formatTokenValue(file.llmActualTokens, props.dictionary)}`} sx={{ height: 20 }} />
-                      <Chip size="small" variant="outlined" label={`${props.dictionary.localShort}: ${file.localEstimatedTokens.toLocaleString()}`} sx={{ height: 20 }} />
-                    </Stack>
-                    <Typography variant="caption" sx={{ minWidth: 0, overflowWrap: "anywhere", lineHeight: 1.28 }}>{file.path}</Typography>
-                  </Stack>
+                  <Typography variant="caption" sx={{ flex: 1, minWidth: 0, overflowWrap: "anywhere", lineHeight: 1.28 }}>{file.path}</Typography>
                 </Stack>
               ))}
               {props.row.files.length > 3 ? <Typography variant="caption">+ {props.row.files.length - 3} more</Typography> : null}

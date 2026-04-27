@@ -1056,7 +1056,8 @@ export function buildTimelineRows(
         files,
         commits
       };
-    });
+    })
+    .reverse();
 }
 
 function formatTimelineDateLine(value: string | null, language: HistoryLanguage, fallback: string): string {

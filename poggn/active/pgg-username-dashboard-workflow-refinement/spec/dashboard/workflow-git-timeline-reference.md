@@ -24,9 +24,9 @@ Workflow tab timeline/git UI를 `add-img/git.png`, `add-img/timeline.png` refere
 ## Data Requirements
 
 - Timeline row는 flow 단위다.
-- Timeline row 순서는 실제 pgg workflow 순서(`Add -> Plan -> Code -> Refactor -> Token -> Performance -> QA -> Done`)를 따른다.
+- Timeline row 순서는 실제 pgg workflow의 역순(`Done -> QA -> Performance -> Token -> Refactor -> Code -> Plan -> Add`)을 따른다.
 - Flow title에는 flow LLM actual token과 Local estimated token을 분리 표시한다.
-- File row에는 file명 위에 `LLM`과 `Local` token label을 먼저 표시하고, 그 아래 file path/name을 표시한다.
+- Timeline card의 생성 file row에는 file별 `LLM`/`Local` token chip을 표시하지 않는다.
 - Timeline card의 생성 파일 목록은 flow당 최대 3개만 직접 표시한다.
 - Timeline card의 생성 파일 row는 preview modal을 열지 않는다.
 - 우측 file tree의 file row를 클릭하면 modal로 file content를 볼 수 있어야 하며 modal에는 해당 file의 LLM actual token과 Local estimated token을 표시한다.
@@ -45,8 +45,8 @@ Workflow tab timeline/git UI를 `add-img/git.png`, `add-img/timeline.png` refere
 - Reference와 같은 정보 밀도, column grouping, compact spacing을 목표로 한다.
 - 현재 dashboard의 navy/cyan/blue accent tone과 8px 이하 radius 기준을 유지한다.
 - Timeline의 flow 연결선은 overview workflow progress처럼 개별 row 선분이 아니라 단일 수직 rail로 각 flow node를 끊기지 않게 이어야 한다.
-- 완료 check node와 완료 rail은 overview workflow progress의 completed 색상 token(`success.main`/`success.light`)을 사용한다.
-- 완료 check node의 배경/테두리/그림자 처리는 overview completed node와 같은 스타일을 사용한다.
+- 완료 rail은 overview workflow progress의 completed 색상 token(`success.main`/`success.light`)을 사용한다.
+- 완료 check node의 배경/테두리/그림자 처리는 flow tone별 색상(`primary`, `secondary`, `success`, neutral)을 사용한다.
 - 완료 rail은 check 원을 관통해 보이면 안 되며, 현재 원의 외곽 ring 하단에서 시작해 다음 원의 외곽 ring 상단에 딱 맞게 닿아야 한다.
 - Timeline header의 filter, show more, collapse action button은 제거한다.
 - 우측 file tree는 folder row 자체를 클릭해 접고 펼칠 수 있어야 한다.
@@ -67,10 +67,10 @@ Workflow tab timeline/git UI를 `add-img/git.png`, `add-img/timeline.png` refere
 - `add-img/timeline.png` 기준 timeline checklist:
   - flow row grouping
   - overview flow와 같은 단일 연속 rail 연결
-  - completed check 색상은 overview completed 색상과 일치
-  - completed check visual treatment matches the overview completed node
+  - completed check 색상은 flow마다 다른 tone color를 사용
+  - completed check visual treatment uses the current flow tone
   - completed rail touches the circle outer ring exactly without overshooting or leaving a gap
-  - timeline rows follow the actual pgg workflow order
+  - timeline rows follow the reverse actual pgg workflow order
   - displayed timeline time comes from flow completion evidence
   - no filter/show more/collapse buttons in the timeline header
   - right file tree folders expand/collapse on folder row click
@@ -82,8 +82,8 @@ Workflow tab timeline/git UI를 `add-img/git.png`, `add-img/timeline.png` refere
   - clicking a right file tree file opens a modal with file content and LLM/Local token usage
   - clicking a generated file in the timeline card does not open preview
   - right file tree rows do not show LLM/Local token chips
+  - generated file rows do not show file-level LLM/Local token chips
   - files and commits side-by-side on desktop
   - file tree/detail affordance
-  - flow/file token labels are split into LLM actual and Local estimated
-  - file token labels appear above the file path/name
+  - flow total token labels are split into LLM actual and Local estimated
 - No synthetic commit text is displayed as real evidence.
