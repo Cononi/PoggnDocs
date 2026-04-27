@@ -43,6 +43,7 @@ import {
   buildRelationGroups,
   buildTimelineBounds,
   buildTimelineRows,
+  fileEstimatedLocalTokens,
   buildWorkflowSteps,
   changeTypeColor,
   formatTopicDate,
@@ -52,6 +53,7 @@ import {
   topicStatus,
   topicType,
   topicUpdatedSummary,
+  inferFileChangeKind,
   type FileChangeKind,
   type RelationGroup,
   type RelationItem,
@@ -450,7 +452,7 @@ function HistoryOverview(props: {
   const userDisplayName = props.globalUser.username ?? props.dictionary.usernameMissing;
   const localTokenTotal =
     props.topic.tokenUsage?.localEstimatedTokens ??
-    props.topic.files.reduce((sum, file) => sum + (file.localEstimatedTokens ?? file.tokenEstimate ?? 0), 0);
+    props.topic.files.reduce((sum, file) => sum + fileEstimatedLocalTokens(file), 0);
   const llmTokenTotal = props.topic.tokenUsage?.llmActualTokens ?? null;
   const currentStage = progress.current;
   const currentStageLabel = currentStage?.label ?? props.dictionary.workflowProgressFlowAdd;
@@ -1526,12 +1528,12 @@ function TimelineFileNode(props: {
   const isFolder = props.node.kind === "folder";
   const expanded = isFolder && !props.collapsedFolderIds.has(props.node.id);
   const Icon = isFolder ? FolderRounded : props.node.file?.kind === "diff" ? DifferenceRounded : DescriptionRounded;
-  const changeKind: FileChangeKind = props.node.file?.relativePath.includes("delete") ? "D" : props.node.file?.relativePath.includes("proposal") ? "A" : "M";
+  const changeKind: FileChangeKind = inferFileChangeKind(props.node.file?.relativePath ?? "");
   const filePreview = props.node.file
     ? {
         path: props.node.file.relativePath,
         llmActualTokens: props.node.file.llmActualTokens ?? null,
-        localEstimatedTokens: props.node.file.localEstimatedTokens ?? props.node.file.tokenEstimate ?? 0,
+        localEstimatedTokens: fileEstimatedLocalTokens(props.node.file),
         content: props.node.file.content ?? null
       }
     : null;

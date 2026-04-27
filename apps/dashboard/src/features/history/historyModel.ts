@@ -70,6 +70,24 @@ type FlowStatusRuntimeEntry = {
 type FlowStatusRuntimeField = "activeAt" | "updatingAt";
 type ReleaseOutcome = "completed" | "blocked" | "pending";
 
+export function inferFileChangeKind(relativePath: string): FileChangeKind {
+  if (relativePath.includes("delete")) {
+    return "D";
+  }
+
+  if (relativePath.includes("proposal")) {
+    return "A";
+  }
+
+  return "M";
+}
+
+export function fileEstimatedLocalTokens(
+  file: Pick<TopicFileEntry, "localEstimatedTokens" | "tokenEstimate">
+): number {
+  return file.localEstimatedTokens ?? file.tokenEstimate ?? 0;
+}
+
 export type TimelineRow = {
   id: string;
   step: string;
@@ -1031,9 +1049,9 @@ export function buildTimelineRows(
     .map((flow) => {
       const files = flowFiles(topic, flow).map((file) => ({
         path: file.relativePath,
-        kind: file.relativePath.includes("delete") ? "D" as const : file.relativePath.includes("proposal") ? "A" as const : "M" as const,
+        kind: inferFileChangeKind(file.relativePath),
         llmActualTokens: file.llmActualTokens ?? null,
-        localEstimatedTokens: file.localEstimatedTokens ?? file.tokenEstimate ?? 0,
+        localEstimatedTokens: fileEstimatedLocalTokens(file),
         content: file.content ?? null
       }));
       const events = flowHistoryEvents(topic, flow);

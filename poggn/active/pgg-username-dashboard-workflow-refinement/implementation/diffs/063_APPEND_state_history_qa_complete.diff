@@ -1,0 +1,5 @@
+diff --git a/poggn/active/pgg-username-dashboard-workflow-refinement/state/history.ndjson b/poggn/active/pgg-username-dashboard-workflow-refinement/state/history.ndjson
+@@
+-{"ts":"2026-04-27T14:56:10Z","stage":"qa","event":"stage-progress","source":"pgg-qa","summary":"required audits started; pgg-token and pgg-performance required applicability confirmed and reports created; reference parity manual visual evidence remains pending"}
++{"ts":"2026-04-27T14:56:10Z","stage":"qa","event":"stage-progress","source":"pgg-qa","summary":"required audits started; pgg-token and pgg-performance required applicability confirmed and reports created; reference parity manual visual evidence remains pending"}
++{"ts":"2026-04-27T15:18:00Z","stage":"qa","event":"stage-completed","source":"pgg-qa","summary":"reference parity manual evidence note added; qa/report.md set pass; manual audits complete"}

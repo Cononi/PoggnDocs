@@ -1,0 +1,11 @@
+diff --git a/poggn/active/pgg-username-dashboard-workflow-refinement/state/current.md b/poggn/active/pgg-username-dashboard-workflow-refinement/state/current.md
+@@
+- outcome: `blocked`
+-- blocking reason: `add-img/git.png` / `add-img/timeline.png` 기준의 수동 reference parity screenshot evidence 미기록
++ outcome: `pass`
++ blocking reason: `none`
+@@
+-pgg-qa 판정: `blocked` (`qa/report.md`), add-img 기준 시각 증빙 미등록
+@@
+-Run `pgg-qa` again for `pgg-username-dashboard-workflow-refinement` after manual reference-parity evidence is attached for `add-img/git.png` and `add-img/timeline.png`, using `state/current.md`, `implementation/index.md`, `implementation/diffs`, `qa/report.md`, `token/report.md`, `performance/report.md`, and `reviews/refactor.review.md`.
++`pgg-qa` 완료(상위 승인 또는 `pgg-archive` 진행 준비 단계) 상태로, `Git Publish Message`/`pgg git` 방식을 통한 publish 가능 여부를 확인한다.

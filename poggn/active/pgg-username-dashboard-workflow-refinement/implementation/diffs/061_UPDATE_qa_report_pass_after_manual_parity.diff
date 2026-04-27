@@ -1,0 +1,14 @@
+diff --git a/poggn/active/pgg-username-dashboard-workflow-refinement/qa/report.md b/poggn/active/pgg-username-dashboard-workflow-refinement/qa/report.md
+@@
+-status: "blocked"
++status: "done"
+@@
+-- reference parity: `add-img/git.png`, `add-img/timeline.png` 스크린샷/manual note 미수집 상태로 판정 미완료
++- reference parity: `add-img/git.png`, `add-img/timeline.png` 수동 비교 노트(`qa/reference-parity-note.md`) 확인 완료
+@@
+-+ status: `blocked`
+-+- why: `pgg-token`, `pgg-performance`, `reference parity manual check` 모두 충족됨
+-+- next: `pgg-archive` 또는 상위 승인 확인 후 `pgg-qa` 완료 상태 고정
++ - status: `pass`
++ - why: `pgg-token`, `pgg-performance`, `reference parity manual check` 모두 충족됨
++ - next: `pgg-qa` 종료(archive/발행 판단은 `state/current.md`의 `Git Publish Message` 또는 상위 승인 판단에 연동)

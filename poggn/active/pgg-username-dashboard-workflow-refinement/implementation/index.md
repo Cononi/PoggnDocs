@@ -81,6 +81,10 @@ pgg:
 - `pnpm --filter @pgg/dashboard build`: pass after timeline reference CSS restore, Vite chunk-size warning remains
 - `pnpm test:dashboard`: pass after timeline reference CSS restore
 - `./.codex/sh/pgg-gate.sh pgg-refactor pgg-username-dashboard-workflow-refinement`: pass
+- pgg-token audit: `required`이며 `token/report.md` pass
+- pgg-performance audit: `required`이며 `performance/report.md` pass(수동 검토)
+- `qa/reference-parity-note.md` 수동 reference parity note 추가
+- pgg-qa 판정: `pass` (`qa/report.md`)
 
 ## Additional Diff Records
 
@@ -120,3 +124,15 @@ pgg:
 | 049 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx`, `spec/dashboard/workflow-git-timeline-reference.md` | `implementation/diffs/049_UPDATE_dashboard_timeline_vertical_stepper_completed_connector.diff` | `T4,T8` | use MUI vertical Stepper with custom connector/step icon and overview completed success styling |
 | 050 | UPDATE | `packages/core/src/index.ts`, `packages/core/dist/index.d.ts`, `packages/core/dist/index.js`, `packages/core/dist/index.js.map`, `apps/dashboard/vite.config.ts`, `apps/dashboard/src/shared/model/dashboard.ts`, `apps/dashboard/src/shared/api/dashboard.ts`, `apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx`, `apps/dashboard/src/features/history/HistoryWorkspace.tsx`, `apps/dashboard/src/features/history/historyModel.ts`, `apps/dashboard/src/shared/ui/ArtifactDocumentContent.tsx`, `apps/dashboard/src/shared/ui/DiffViewer.tsx`, `apps/dashboard/src/shared/utils/dashboard.tsx`, `apps/dashboard/src/shared/locale/dashboardLocale.ts`, `spec/dashboard/workflow-git-timeline-reference.md` | `implementation/diffs/050_UPDATE_project_files_timeline_preview_start_end.diff` | `T4,T7,T8` | add timeline start/end summary, highlighted file preview modal, and project-wide Project Files tree without topic selector |
 | 051 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx`, `apps/dashboard/src/features/history/historyModel.ts`, `spec/dashboard/workflow-git-timeline-reference.md` | `implementation/diffs/051_UPDATE_timeline_reference_css_and_heading_range.diff` | `T4,T8` | restore timeline CSS to add-img/timeline.png style and move start-end range under Timeline heading |
+| 052 | UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | `implementation/diffs/052_UPDATE_apps_dashboard_src_features_history_historyModel_ts.refactor.diff` | `T3` | 공통 file change kind/token 추정치 헬퍼 추가 |
+| 053 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `implementation/diffs/053_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.refactor.diff` | `T3` | timeline 파일 메타 계산 중복 제거 및 추정치 계산 공통화 |
+| 054 | CREATE | `poggn/active/pgg-username-dashboard-workflow-refinement/qa/report.md` | `implementation/diffs/054_CREATE_qa_report.diff` | `T8` | pgg-qa 판정 보고서 생성 (reference parity screenshot 필요) |
+| 055 | CREATE | `poggn/active/pgg-username-dashboard-workflow-refinement/token/report.md` | `implementation/diffs/055_CREATE_token_report.diff` | `T8` | pgg-token required audit pass and split-token 계약 검토 |
+| 056 | CREATE | `poggn/active/pgg-username-dashboard-workflow-refinement/performance/report.md` | `implementation/diffs/056_CREATE_performance_report.diff` | `T8` | pgg-performance required audit pass(수동 성능 리뷰) |
+| 057 | UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/state/current.md` | `implementation/diffs/057_UPDATE_state_current_for_qa.diff` | `T8` | QA 상태 및 blocking 근거 반영 |
+| 058 | UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/state/history.ndjson` | `implementation/diffs/058_UPDATE_state_history_ndjson.diff` | `T8` | pgg-qa stage-start/progress evidence 추가 |
+| 059 | UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/implementation/index.md` | `implementation/diffs/059_UPDATE_implementation_index_for_qa.diff` | `T8` | QA/audit 산출물 추적 반영 |
+| 060 | CREATE | `poggn/active/pgg-username-dashboard-workflow-refinement/qa/reference-parity-note.md` | `implementation/diffs/060_CREATE_reference_parity_note.diff` | `T8` | add-img/git.png 및 add-img/timeline.png 수동 parity 체크 노트 기록 |
+| 061 | UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/qa/report.md` | `implementation/diffs/061_UPDATE_qa_report_pass_after_manual_parity.diff` | `T8` | pgg-qa 상태를 blocked→pass로 전환하고 manual parity 증빙 반영 |
+| 062 | UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/state/current.md` | `implementation/diffs/062_UPDATE_state_current_for_qa_pass.diff` | `T8` | QA 상태 pass/next action 갱신 |
+| 063 | UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/state/history.ndjson` | `implementation/diffs/063_APPEND_state_history_qa_complete.diff` | `T8` | pgg-qa 완료 이벤트/요약 증적 추가 |

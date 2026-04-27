@@ -1,0 +1,45 @@
+*** Begin Patch
+*** Update File: apps/dashboard/src/features/history/historyModel.ts
+@@
+ export type OverviewStatSummary = {
+   value: string;
+   lines?: string[];
+   helper: string;
+   tone?: "success" | "primary" | "danger";
+ };
+@@
+ type WorkflowStatusRuntimeEntry = {
+   index: number;
+   timestamps: FlowTimestampBundle;
+   activeAt: string | null;
+   updatingAt: string | null;
+ };
+ type FlowStatusRuntimeField = "activeAt" | "updatingAt";
+ type ReleaseOutcome = "completed" | "blocked" | "pending";
++
++export function inferFileChangeKind(relativePath: string): FileChangeKind {
++  if (relativePath.includes("delete")) {
++    return "D";
++  }
++
++  if (relativePath.includes("proposal")) {
++    return "A";
++  }
++
++  return "M";
++}
++
++export function fileEstimatedLocalTokens(file: Pick<TopicFileEntry, "localEstimatedTokens" | "tokenEstimate">): number {
++  return file.localEstimatedTokens ?? file.tokenEstimate ?? 0;
++}
+@@
+       const files = flowFiles(topic, flow).map((file) => ({
+         path: file.relativePath,
+-        kind: file.relativePath.includes("delete") ? "D" as const : file.relativePath.includes("proposal") ? "A" as const : "M" as const,
++        kind: inferFileChangeKind(file.relativePath),
+         llmActualTokens: file.llmActualTokens ?? null,
+-        localEstimatedTokens: file.localEstimatedTokens ?? file.tokenEstimate ?? 0,
++        localEstimatedTokens: fileEstimatedLocalTokens(file),
+         content: file.content ?? null
+       }));
+*** End Patch

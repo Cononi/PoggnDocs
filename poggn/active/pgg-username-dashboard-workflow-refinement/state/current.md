@@ -6,7 +6,15 @@ pgg-username-dashboard-workflow-refinement
 
 ## Current Stage
 
-implementation
+qa
+
+## QA Status
+
+- outcome: `pass`
+- blocking reason: `none`
+- required audits:
+  - `pgg-token`: `required`, status: `pass`
+  - `pgg-performance`: `required`, status: `pass`
 
 ## Goal
 
@@ -229,6 +237,7 @@ implementation
 - evidence: follow-up timeline reference CSS restore `pnpm --filter @pgg/dashboard build` passed with existing Vite chunk-size warning
 - evidence: follow-up timeline reference CSS restore `pnpm test:dashboard` passed
 - evidence: `./.codex/sh/pgg-gate.sh pgg-refactor pgg-username-dashboard-workflow-refinement` passed
+- evidence: qa/reference-parity-note.md (manual screenshot/comparison note)
 
 ## Changed Files
 
@@ -330,6 +339,12 @@ implementation
 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | restore timeline CSS to timeline.png-style date column, neutral rail, and single stage card |
 | UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | format timeline start-end range as YYYY.MM.DD HH:mm:ss |
 | UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md` | document reference CSS and Timeline-heading start/end placement |
+| UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/qa/report.md` | QA 판정 및 근거 기록 |
+| CREATE | `poggn/active/pgg-username-dashboard-workflow-refinement/token/report.md` | 토큰 audit 결과 기록 |
+| CREATE | `poggn/active/pgg-username-dashboard-workflow-refinement/performance/report.md` | 성능 audit 결과 기록 |
+| UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/state/current.md` | QA 상태 및 차단 근거 반영 |
+| UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/state/history.ndjson` | pgg-qa stage evidence append |
+| UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/implementation/index.md` | QA/audit artifacts 반영 |
 
 ## Dirty Worktree Baseline
 
@@ -357,8 +372,8 @@ implementation
 
 ## Next
 
-`pgg-refactor`
+`pgg-qa`
 
 ## Next Action
 
-Run `pgg-refactor` for `pgg-username-dashboard-workflow-refinement` using `state/current.md`, `implementation/index.md`, and `reviews/code.review.md`.
+`pgg-qa` 완료(상위 승인 또는 `pgg-archive` 진행 준비 단계) 상태로, `Git Publish Message`/`pgg git` 방식을 통한 publish 가능 여부를 확인한다.
