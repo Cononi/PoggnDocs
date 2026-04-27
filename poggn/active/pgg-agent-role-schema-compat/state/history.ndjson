@@ -8,3 +8,6 @@
 {"ts":"2026-04-27T01:13:51Z","stage":"implementation","event":"stage-started","source":"pgg-code"}
 {"ts":"2026-04-27T01:19:27Z","stage":"implementation","event":"stage-progress","source":"pgg-code","summary":"removed unsupported agent TOML metadata, refreshed manifest checksums, and recorded implementation evidence"}
 {"ts":"2026-04-27T01:22:23Z","stage":"implementation","event":"stage-commit","archiveType":"fix","targetVersion":"2.3.2","projectLanguage":"ko","commitTitle":"fix: 2.3.2.에이전트 역할 스키마 호환","summary":"에이전트 역할 스키마 호환","why":"Codex가 프로젝트 agent role TOML을 malformed로 무시하지 않도록 거부된 metadata field를 제거하고 managed checksum을 갱신했다","footer":"Refs: pgg-agent-role-schema-compat"}
+{"ts":"2026-04-27T01:23:19Z","stage":"refactor","event":"stage-started","source":"pgg-refactor"}
+{"ts":"2026-04-27T01:23:19Z","stage":"refactor","event":"stage-progress","source":"pgg-refactor","summary":"reviewed schema cleanup boundaries and confirmed no additional refactor required"}
+{"ts":"2026-04-27T01:25:36Z","stage":"refactor","event":"stage-commit","archiveType":"fix","targetVersion":"2.3.2","projectLanguage":"ko","commitTitle":"fix: 2.3.2.리팩터 검토 완료","summary":"리팩터 검토 완료","why":"스키마 호환 구현에 추가 구조 변경이 필요하지 않음을 확인하고 refactor review와 QA handoff 상태를 기록했다","footer":"Refs: pgg-agent-role-schema-compat"}

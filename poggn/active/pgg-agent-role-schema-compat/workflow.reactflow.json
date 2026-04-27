@@ -1,6 +1,6 @@
 {
   "topic": "pgg-agent-role-schema-compat",
-  "stage": "implementation",
+  "stage": "refactor",
   "nodes": [
     {
       "id": "proposal",
@@ -112,6 +112,19 @@
         "x": 280,
         "y": 320
       }
+    },
+    {
+      "id": "refactor-review",
+      "type": "review",
+      "data": {
+        "label": "refactor.review.md",
+        "status": "pass",
+        "score": 96
+      },
+      "position": {
+        "x": 560,
+        "y": 320
+      }
     }
   ],
   "edges": [
@@ -154,6 +167,11 @@
       "id": "implementation-to-code-review",
       "source": "implementation",
       "target": "code-review"
+    },
+    {
+      "id": "code-review-to-refactor-review",
+      "source": "code-review",
+      "target": "refactor-review"
     }
   ]
 }

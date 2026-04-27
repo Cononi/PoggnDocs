@@ -6,11 +6,11 @@ pgg-agent-role-schema-compat
 
 ## Current Stage
 
-implementation
+refactor
 
 ## Goal
 
-Codex가 `.codex/agents/*.toml` role definition을 malformed로 무시하는 warning을 제거하는 구현과 검증을 완료했다.
+Codex agent role schema compatibility 구현의 구조 검토와 cleanup 확인을 완료했다.
 
 ## Constraints
 
@@ -67,6 +67,21 @@ Codex가 `.codex/agents/*.toml` role definition을 malformed로 무시하는 war
 - `codex features list`: pass, no malformed agent role warning observed
 - `./.codex/sh/pgg-gate.sh pgg-code pgg-agent-role-schema-compat`: pass
 
+## Refactor Decision
+
+- status: `reviewed`
+- score: `96`
+- refactor review: `poggn/active/pgg-agent-role-schema-compat/reviews/refactor.review.md`
+- cleanup result: no additional production/config refactor required
+- blocking issues: `none`
+
+## Refactor Verification
+
+- `rg -n "^(category|activation)\\s*=" .codex/agents`: pass, no matches
+- `.codex/agents/main.toml` flow rows: `7`
+- primary agent rows with more than two agents: `0`
+- `codex features list`: pass, no malformed agent role warning observed
+
 ## Scope
 
 - Include `.codex/agents/main.toml` and malformed `.codex/agents/*.toml` role definitions.
@@ -103,7 +118,9 @@ Codex가 `.codex/agents/*.toml` role definition을 malformed로 무시하는 war
 | UPDATE | `poggn/active/pgg-agent-role-schema-compat/task.md` | n/a |
 | UPDATE | `poggn/active/pgg-agent-role-schema-compat/state/current.md` | n/a |
 | UPDATE | `poggn/active/pgg-agent-role-schema-compat/state/history.ndjson` | n/a |
+| CREATE | `poggn/active/pgg-agent-role-schema-compat/reviews/refactor.review.md` | n/a |
+| UPDATE | `poggn/active/pgg-agent-role-schema-compat/workflow.reactflow.json` | n/a |
 
 ## Next Action
 
-Run `pgg-refactor` for `pgg-agent-role-schema-compat`.
+Run `pgg-qa` for `pgg-agent-role-schema-compat`.
