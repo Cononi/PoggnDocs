@@ -134,11 +134,13 @@ archive
 - version file: `version.json`
 - version history: `poggn/version-history.ndjson`
 - qa completion commit: `publish_blocked`, unrelated worktree changes present
-- git publish: `publish_blocked`
-- push status: `not_attempted`
+- git publish: `published`
+- push status: `success`
 - release branch: `release/2.7.0-dashboard-overhaul`
-- publish retryable: `true`
-- blocking reason: unrelated worktree changes are present, so automatic publish was deferred
+- published commit: `22108f710ae2ebfb1c9cbfd9a04e51c66bab380d`
+- published at: `2026-04-27T12:50:02Z`
+- cleanup status: `completed`
+- note: QA completion stage commit remained blocked before archive, but release branch publish completed by manual retry.
 
 ## Requirement Summary
 
@@ -263,11 +265,11 @@ archive
 
 ## Next Step
 
-Archive와 version 기록은 완료됐다. release publish와 QA completion commit은 unrelated worktree change 때문에 보류됐다.
+Archive, version 기록, release branch publish가 완료됐다.
 
 ## Next Action
 
-Resolve unrelated `add-img/git.png`, `add-img/timeline.png` worktree files or include them intentionally, then retry governed publish for `release/2.7.0-dashboard-overhaul`.
+Release branch `release/2.7.0-dashboard-overhaul` is published. Keep or clean unrelated local `add-img/git.png`, `add-img/timeline.png`, and `test.md` separately.
 
 ## Git Publish Message
 

@@ -88,10 +88,11 @@ pass
 - previous version: `2.6.1`
 - version file: `version.json`
 - QA completion commit: `publish_blocked`
-- release publish: `publish_blocked`
-- push status: `not_attempted`
-- reason: unrelated worktree changes are present, so automatic publish was deferred
-- retryable: `true`
+- release publish: `published`
+- push status: `success`
+- published commit: `22108f710ae2ebfb1c9cbfd9a04e51c66bab380d`
+- published at: `2026-04-27T12:50:02Z`
+- note: release push completed by manual retry after temporary unrelated file isolation.
 
 ## Git Publish Message
 
