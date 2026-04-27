@@ -71,6 +71,9 @@ implementation
   - 완료 check 배경은 검정색이 아니라 overview completed node 모양과 같아야 한다.
   - timeline header의 필터/더보기/접기 버튼을 제거한다.
   - 우측 폴더 트리는 폴더를 그대로 클릭해 펼쳐서 볼 수 있어야 한다.
+  - timeline의 모든 파일 보기는 timeline text 확장이 아니라 우측 file tree를 현재 flow 생성 파일 목록으로 전환해야 한다.
+  - 초기 우측 file tree는 전체 파일을 보여준다.
+  - flow file 보기 이후 검색창 옆 두 icon button 대신 reset button을 보여준다.
 - additional implementation:
   - token usage contract에 `llmActualTokens`와 `localEstimatedTokens`를 분리 추가했다.
   - LLM actual evidence가 없는 경우 `기록 없음`으로 표시하고 local estimate는 file content 기반 값으로 표시한다.
@@ -82,6 +85,9 @@ implementation
   - completed check를 overview와 같은 success soft fill로 되돌리고 rail은 원 아래 edge부터 이어지게 했다.
   - timeline header action button 그룹을 제거했다.
   - 우측 file tree folder row에 click toggle 상태를 추가했다.
+  - timeline file action이 선택 flow 파일 목록을 우측 file tree source로 설정하도록 변경했다.
+  - reset button은 flow/search filter를 해제하고 topic 전체 파일 tree로 복구한다.
+  - 우측 file search 옆 table/list icon button을 제거했다.
 - residual risk:
   - reference image parity는 browser screenshot/manual visual evidence가 QA/refactor 이후 필요하다
   - project add Stepper remote FAST/SETUP 세부 credential 입력 UX는 후속 polish 여지가 있다
@@ -159,6 +165,8 @@ implementation
 - evidence: follow-up descending timeline `pnpm test:dashboard` passed
 - evidence: follow-up timeline controls `pnpm --filter @pgg/dashboard build` passed with existing Vite chunk-size warning
 - evidence: follow-up timeline controls `pnpm test:dashboard` passed
+- evidence: follow-up flow file tree `pnpm --filter @pgg/dashboard build` passed with existing Vite chunk-size warning
+- evidence: follow-up flow file tree `pnpm test:dashboard` passed
 
 ## Changed Files
 
@@ -218,6 +226,9 @@ implementation
 | UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md` | newest-first timeline and rail/check separation criteria |
 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | overview-style completed check, timeline header action removal, clickable file tree folder expansion |
 | UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md` | timeline controls and file tree folder expansion criteria |
+| UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | timeline file action scopes right file tree to selected flow and reset restores all files |
+| UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | flow-scoped file tree and reset i18n labels |
+| UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md` | flow file tree/reset behavior criteria |
 
 ## Dirty Worktree Baseline
 

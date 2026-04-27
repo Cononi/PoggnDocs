@@ -53,6 +53,9 @@ pgg:
 - follow-up request: completed check node uses overview styling instead of black fill, timeline header filter/show more/collapse buttons are removed, and right file tree folders expand/collapse on folder row click
 - `pnpm --filter @pgg/dashboard build`: pass after timeline control and file tree interaction adjustment, Vite chunk-size warning remains
 - `pnpm test:dashboard`: pass after timeline control and file tree interaction adjustment
+- follow-up request: timeline file action now switches the right file tree to selected flow files, initial tree shows all topic files, reset appears beside search after filtering, and unused table/list buttons are removed
+- `pnpm --filter @pgg/dashboard build`: pass after flow file tree selection, Vite chunk-size warning remains
+- `pnpm test:dashboard`: pass after flow file tree selection
 
 ## Additional Diff Records
 
@@ -74,3 +77,6 @@ pgg:
 | 031 | UPDATE | `spec/dashboard/workflow-git-timeline-reference.md` | `implementation/diffs/031_UPDATE_spec_dashboard_workflow_git_timeline_reference_md.order.diff` | `T4,T8` | document newest-first order and rail/check separation criteria |
 | 032 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `implementation/diffs/032_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.timeline_controls.diff` | `T4` | restore overview-style completed check, remove timeline header action buttons, and add clickable folder tree expansion |
 | 033 | UPDATE | `spec/dashboard/workflow-git-timeline-reference.md` | `implementation/diffs/033_UPDATE_spec_dashboard_workflow_git_timeline_reference_md.controls.diff` | `T4,T8` | document overview-style completed check and right file tree click expansion criteria |
+| 034 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `implementation/diffs/034_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.flow_file_tree.diff` | `T4` | timeline file action drives right file tree scope and reset clears flow/search filters |
+| 035 | UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | `implementation/diffs/035_UPDATE_apps_dashboard_src_shared_locale_dashboardLocale_ts.flow_file_tree.diff` | `T7` | i18n labels for flow-scoped file tree and reset action |
+| 036 | UPDATE | `spec/dashboard/workflow-git-timeline-reference.md` | `implementation/diffs/036_UPDATE_spec_dashboard_workflow_git_timeline_reference_md.flow_file_tree.diff` | `T4,T8` | document flow file tree scope, initial all files state, and reset button behavior |
