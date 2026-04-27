@@ -1,0 +1,93 @@
+diff --git a/apps/dashboard/src/app/DashboardShellChrome.tsx b/apps/dashboard/src/app/DashboardShellChrome.tsx
+index b2234bf..8651284 100644
+--- a/apps/dashboard/src/app/DashboardShellChrome.tsx
++++ b/apps/dashboard/src/app/DashboardShellChrome.tsx
+@@ -59,6 +59,7 @@ type ProjectContextSidebarProps = {
+   activeSettingsView: DashboardSettingsView;
+   compactShell: boolean;
+   project: ProjectSnapshot | null;
++  globalUser: { username: string | null; configured: boolean };
+   dictionary: DashboardLocale;
+   onSelectDetailSection: (section: DashboardDetailSection) => void;
+   onSelectSettingsView: (view: DashboardSettingsView) => void;
+@@ -80,7 +81,6 @@ type ProjectSelectorDialogProps = {
+ type DashboardSpeedDialProps = {
+   activeTopMenu: DashboardPrimaryMenu;
+   compactShell: boolean;
+-  pggVersion: string | null;
+   dictionary: DashboardLocale;
+   onGoHome: () => void;
+   onAddProject: () => void;
+@@ -205,13 +205,6 @@ export function DashboardSpeedDial(props: DashboardSpeedDialProps) {
+           }
+         ]
+       : []),
+-    {
+-      id: "version",
+-      icon: <Chip size="small" label={props.pggVersion ?? "-"} />,
+-      label: `${props.dictionary.pggVersion}: ${props.pggVersion ?? props.dictionary.unknown}`,
+-      disabled: true,
+-      onClick: undefined
+-    }
+   ];
+ 
+   return (
+@@ -300,11 +293,57 @@ export function ProjectContextSidebar(props: ProjectContextSidebarProps) {
+         )}
+       </Stack>
+ 
+-      <Box />
++      <UserCard globalUser={props.globalUser} dictionary={props.dictionary} />
+     </Stack>
+   );
+ }
+ 
++function UserCard(props: { globalUser: { username: string | null; configured: boolean }; dictionary: DashboardLocale }) {
++  const theme = useTheme();
++  const displayName = props.globalUser.username ?? props.dictionary.usernameMissing;
++  const initials = props.globalUser.username
++    ? props.globalUser.username
++        .split(/\s+/)
++        .map((part) => part[0]?.toUpperCase() ?? "")
++        .join("")
++        .slice(0, 2) || "PG"
++    : "PG";
++
++  return (
++    <Paper
++      variant="outlined"
++      sx={{
++        p: 1.1,
++        borderRadius: 1,
++        bgcolor: alpha(theme.palette.background.default, 0.48)
++      }}
++    >
++      <Stack direction="row" spacing={1} sx={{ alignItems: "center", minWidth: 0 }}>
++        <Avatar
++          sx={{
++            width: 32,
++            height: 32,
++            bgcolor: alpha(theme.palette.primary.main, 0.18),
++            color: "primary.light",
++            fontSize: 12,
++            fontWeight: 800
++          }}
++        >
++          {initials}
++        </Avatar>
++        <Box sx={{ minWidth: 0 }}>
++          <Typography variant="caption" color="text.secondary">
++            {props.dictionary.currentUser}
++          </Typography>
++          <Typography variant="body2" sx={{ fontWeight: 800, overflowWrap: "anywhere" }}>
++            {displayName}
++          </Typography>
++        </Box>
++      </Stack>
++    </Paper>
++  );
++}
++
+ export function DashboardStatePanel(props: { title: string; helper: string }) {
+   return (
+     <Box sx={{ minHeight: "100vh", display: "grid", placeItems: "center", px: 2 }}>

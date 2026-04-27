@@ -77,6 +77,7 @@ type ProjectDetailWorkspaceProps = {
   activeSection: DashboardDetailSection;
   detailSelection: ArtifactSelection | null;
   fileSelection: ArtifactSelection | null;
+  globalUser: { username: string | null; configured: boolean };
   dictionary: DashboardLocale;
   isLiveMode: boolean;
   fileMutationPending: boolean;
@@ -316,6 +317,7 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
           archivedTopics={props.archivedTopics}
           selectedTopicKey={props.selectedTopicKey}
           topicFilter={props.topicFilter}
+          globalUser={props.globalUser}
           dictionary={props.dictionary}
           onTopicFilterChange={props.onTopicFilterChange}
           onSelectTopic={props.onSelectTopic}

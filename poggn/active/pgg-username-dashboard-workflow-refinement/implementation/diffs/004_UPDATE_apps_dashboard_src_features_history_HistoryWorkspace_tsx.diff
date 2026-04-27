@@ -1,0 +1,156 @@
+diff --git a/apps/dashboard/src/features/history/HistoryWorkspace.tsx b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
+index 2ebdfc3..f3fc40f 100644
+--- a/apps/dashboard/src/features/history/HistoryWorkspace.tsx
++++ b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
+@@ -97,6 +97,7 @@ type HistoryWorkspaceProps = {
+   archivedTopics: TopicSummary[];
+   selectedTopicKey: string | null;
+   topicFilter: string;
++  globalUser: { username: string | null; configured: boolean };
+   dictionary: DashboardLocale;
+   onTopicFilterChange: (value: string) => void;
+   onSelectTopic: (topicKey: string) => void;
+@@ -118,9 +119,9 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
+ 
+   const activePanel =
+     activeTab === "overview" ? (
+-      <HistoryOverview topic={selectedTopic} language={language} dictionary={props.dictionary} />
++      <HistoryOverview topic={selectedTopic} language={language} dictionary={props.dictionary} globalUser={props.globalUser} />
+     ) : activeTab === "timeline" ? (
+-      <HistoryTimeline topic={selectedTopic} language={language} dictionary={props.dictionary} />
++      <HistoryTimeline topic={selectedTopic} language={language} dictionary={props.dictionary} globalUser={props.globalUser} />
+     ) : (
+       <HistoryRelations topic={selectedTopic} topics={allTopics} />
+     );
+@@ -429,6 +430,7 @@ function HistoryOverview(props: {
+   topic: TopicSummary;
+   language: "ko" | "en";
+   dictionary: DashboardLocale;
++  globalUser: { username: string | null; configured: boolean };
+ }) {
+   const theme = useTheme();
+   const [selectedStep, setSelectedStep] = useState<WorkflowStep | null>(null);
+@@ -439,6 +441,8 @@ function HistoryOverview(props: {
+   const updated = topicUpdatedSummary(props.topic, props.language, props.dictionary.unknown);
+   const priority = topicPrioritySummary(props.topic);
+   const activity = buildActivitySummary(props.topic, props.language, props.dictionary);
++  const userDisplayName = props.globalUser.username ?? props.dictionary.usernameMissing;
++  const tokenTotal = props.topic.tokenUsage?.total ?? props.topic.files.reduce((sum, file) => sum + (file.tokenEstimate ?? 0), 0);
+   const currentStage = progress.current;
+   const currentStageLabel = currentStage?.label ?? props.dictionary.workflowProgressFlowAdd;
+   const currentStageHelper = currentStage
+@@ -514,9 +518,12 @@ function HistoryOverview(props: {
+               <AutoGraphRounded fontSize="small" />
+             </Box>
+             <Typography variant="h6" sx={{ color: "#f8fbff", fontWeight: 850, lineHeight: 1.08, minWidth: 0 }}>
+-              Workflow Progress
++              {props.dictionary.workflowProgressTitleWithTokens.replace("{tokens}", tokenTotal.toLocaleString())}
+             </Typography>
+           </Stack>
++          <Typography variant="caption" sx={{ color: alpha("#dbeafe", 0.72), fontWeight: 600 }}>
++            {props.dictionary.workflowProgressDetailHint}
++          </Typography>
+           <Box
+             sx={{
+               display: "grid",
+@@ -599,8 +606,8 @@ function HistoryOverview(props: {
+           <KeyValue label="ID" value={topicDisplayId(props.topic)} />
+           <KeyValue label="Title" value={props.topic.name} />
+           <KeyValue label="Description" value={props.topic.goal ?? "Build the main dashboard with widgets, charts, and real-time data visualization."} />
+-          <KeyValue label="Creator" value="john.doe" />
+-          <KeyValue label="Assignee" value="john.doe" />
++          <KeyValue label="Creator" value={userDisplayName} />
++          <KeyValue label="Assignee" value={userDisplayName} />
+           <KeyValue label="Labels" value={`${topicType(props.topic)}, dashboard, ui`} />
+           <KeyValue label="Milestone" value={props.topic.targetVersion ?? props.topic.version ?? "v0.1.0"} />
+           <KeyValue label="Due Date" value="Apr 30, 2026 (7 days left)" />
+@@ -624,26 +631,6 @@ function HistoryOverview(props: {
+         </Stack>
+       </Box>
+ 
+-      <SummaryPanel title="Recent Activity" action={<Button size="small" endIcon={<ChevronRightRounded />}>View all activity</Button>}>
+-        {activity.recent.map((entry, index) => (
+-          <Box
+-            key={entry.id}
+-            sx={{
+-              display: "grid",
+-              gridTemplateColumns: { xs: "32px minmax(0, 1fr)", md: "32px minmax(0, 1fr) 160px 180px" },
+-              gap: 1,
+-              alignItems: "center",
+-              py: 0.75,
+-              borderTop: index === 0 ? 0 : `1px solid ${alpha(theme.palette.divider, 0.7)}`
+-            }}
+-          >
+-            <Typography variant="body2">{index + 1}</Typography>
+-            <Typography variant="body2" sx={{ fontWeight: 600, overflowWrap: "anywhere" }}>{entry.title}</Typography>
+-            <Typography variant="body2">{entry.actor}</Typography>
+-            <Typography variant="caption" color="text.secondary">{entry.time}</Typography>
+-          </Box>
+-        ))}
+-      </SummaryPanel>
+       <WorkflowLogDialog step={selectedStep} dictionary={props.dictionary} onClose={() => setSelectedStep(null)} />
+     </Stack>
+   );
+@@ -1134,10 +1121,15 @@ function ActivityMetric(props: { label: string; value: string }) {
+   );
+ }
+ 
+-function HistoryTimeline(props: { topic: TopicSummary; language: "ko" | "en"; dictionary: DashboardLocale }) {
++function HistoryTimeline(props: {
++  topic: TopicSummary;
++  language: "ko" | "en";
++  dictionary: DashboardLocale;
++  globalUser: { username: string | null; configured: boolean };
++}) {
+   const [fileFilter, setFileFilter] = useState("");
+   const [expanded, setExpanded] = useState(true);
+-  const rows = buildTimelineRows(props.topic, props.language);
++  const rows = buildTimelineRows(props.topic, props.language, props.globalUser.username ?? props.dictionary.usernameMissing, props.dictionary);
+   const filteredFiles = useMemo(() => {
+     const query = fileFilter.trim().toLowerCase();
+     return query
+@@ -1182,7 +1174,7 @@ function HistoryTimeline(props: { topic: TopicSummary; language: "ko" | "en"; di
+           </Box>
+           <Stack>
+             {rows.map((row) => (
+-              <TimelineTableRow key={row.id} row={row} expanded={expanded} />
++              <TimelineTableRow key={row.id} row={row} expanded={expanded} dictionary={props.dictionary} />
+             ))}
+           </Stack>
+         </Paper>
+@@ -1241,7 +1233,7 @@ function HistoryTimeline(props: { topic: TopicSummary; language: "ko" | "en"; di
+   );
+ }
+ 
+-function TimelineTableRow(props: { row: TimelineRow; expanded: boolean }) {
++function TimelineTableRow(props: { row: TimelineRow; expanded: boolean; dictionary: DashboardLocale }) {
+   const theme = useTheme();
+ 
+   return (
+@@ -1271,6 +1263,7 @@ function TimelineTableRow(props: { row: TimelineRow; expanded: boolean }) {
+             <Stack key={file.path} direction="row" spacing={0.75} sx={{ alignItems: "center", minWidth: 0 }}>
+               <ChangeBadge kind={file.kind} />
+               <Typography variant="caption" sx={{ overflowWrap: "anywhere" }}>{file.path}</Typography>
++              <Chip size="small" variant="outlined" label={`${file.tokens.toLocaleString()} ${props.dictionary.tokenLabel}`} sx={{ height: 20, ml: "auto" }} />
+             </Stack>
+           ))}
+           {!props.expanded && props.row.files.length > 2 ? <Typography variant="caption">+ {props.row.files.length - 2} more</Typography> : null}
+@@ -1281,7 +1274,7 @@ function TimelineTableRow(props: { row: TimelineRow; expanded: boolean }) {
+         <Stack spacing={0.85}>
+           <Stack direction="row" spacing={1} sx={{ alignItems: "center", justifyContent: "space-between" }}>
+             <Typography variant="body2" sx={{ fontWeight: 700 }}>
+-              Git Commit{props.row.commits.length > 1 ? "s" : ""} ({props.row.commits.length})
++              {props.row.step} · {props.row.totalTokens.toLocaleString()} {props.dictionary.tokenLabel}
+             </Typography>
+             <MoreVertRounded fontSize="small" sx={{ color: "text.secondary" }} />
+           </Stack>
+@@ -1296,6 +1289,9 @@ function TimelineTableRow(props: { row: TimelineRow; expanded: boolean }) {
+               </Stack>
+             </Stack>
+           ))}
++          {props.row.commits.length === 0 ? (
++            <Typography variant="caption" color="text.secondary">{props.dictionary.noCommitEvidence}</Typography>
++          ) : null}
+         </Stack>
+       </TimelineCell>
+     </Box>

@@ -7,10 +7,13 @@ import { stdin as input, stdout as output } from "node:process";
 import path from "node:path";
 import {
   analyzeProjectStatus,
+  assertGlobalUsernameConfigured,
   buildDashboardSnapshot,
   findWorkspaceRoot,
   initializeProject,
   inspectProjectGitSetup,
+  readGlobalUser,
+  updateGlobalUsername,
   loadProjectManifest,
   MANIFEST_RELATIVE_PATH,
   runProjectGitOnboarding,
@@ -32,11 +35,12 @@ import {
   writeDashboardSnapshotFile
 } from "@pgg/core";
 
-type CommandName = "init" | "update" | "lang" | "auto" | "teams" | "git" | "status" | "dashboard";
+type CommandName = "init" | "update" | "lang" | "auto" | "teams" | "git" | "config" | "settings" | "status" | "dashboard";
 
 interface ParsedArgs {
   command: CommandName | null;
   options: Record<string, string | boolean>;
+  positionals: string[];
 }
 
 class InteractiveCancelError extends Error {
@@ -47,14 +51,19 @@ class InteractiveCancelError extends Error {
 
 function parseArgs(argv: string[]): ParsedArgs {
   const [commandToken, ...rest] = argv;
-  const command = (["init", "update", "lang", "auto", "teams", "git", "status", "dashboard"].includes(commandToken ?? "")
+  const commands = ["init", "update", "lang", "auto", "teams", "git", "config", "settings", "status", "dashboard"];
+  const command = (commands.includes(commandToken ?? "")
     ? commandToken
     : null) as CommandName | null;
   const options: Record<string, string | boolean> = {};
+  const positionals: string[] = [];
 
   for (let index = 0; index < rest.length; index += 1) {
     const token = rest[index];
     if (!token?.startsWith("--")) {
+      if (token) {
+        positionals.push(token);
+      }
       continue;
     }
 
@@ -79,7 +88,7 @@ function parseArgs(argv: string[]): ParsedArgs {
     options[key] = true;
   }
 
-  return { command, options };
+  return { command, options, positionals };
 }
 
 async function choose<T extends string>(question: string, options: Array<{ value: T; label: string }>): Promise<T> {
@@ -323,6 +332,10 @@ function helpText(language: "ko" | "en"): string {
       "    단계별 2-agent orchestration과 .codex multi-agent 설정을 켜거나 끕니다.",
       "  pgg git [--cwd <dir>] [--value on|off]",
       "    task/QA commit, release publish, repository 연결 상태를 project별로 설정합니다.",
+      "  pgg config username {이름}",
+      "    이 PC의 모든 pgg 프로젝트에서 사용할 사용자명을 저장합니다.",
+      "  pgg settings [--username <이름>]",
+      "    기본 설정 메뉴에서 사용자명을 변경합니다.",
       "  pgg status [--cwd <dir>]",
       "    active topic의 다음 workflow와 blocking 상태를 보여 줍니다.",
       "  pgg dashboard [--cwd <dir>] [--host 127.0.0.1] [--port 4173] [--save-port] [--snapshot-only]",
@@ -347,6 +360,10 @@ function helpText(language: "ko" | "en"): string {
     "    Toggle two-agent stage orchestration and .codex multi-agent settings.",
     "  pgg git [--cwd <dir>] [--value on|off]",
     "    Configure project-scoped task/QA commits, release publishing, and repository connection state.",
+    "  pgg config username {name}",
+    "    Store the username shared by every pgg project on this computer.",
+    "  pgg settings [--username <name>]",
+    "    Change the username from the basic settings menu.",
     "  pgg status [--cwd <dir>]",
     "    Show active topic workflow readiness and blockers.",
     "  pgg dashboard [--cwd <dir>] [--host 127.0.0.1] [--port 4173] [--save-port] [--snapshot-only]",
@@ -361,6 +378,12 @@ async function resolveHelpLanguage(rootDir: string, requested?: string | boolean
   }
   const manifest = await loadProjectManifest(rootDir).catch(() => null);
   return manifest?.language === "en" ? "en" : "ko";
+}
+
+function usernameRequiredMessage(language: "ko" | "en"): string {
+  return language === "ko"
+    ? "pgg init을 시작하려면 먼저 사용자명을 설정해야 합니다. `pgg config username {이름}`을 실행하세요."
+    : "Set a username before running pgg init. Run `pgg config username {name}` first.";
 }
 
 function localizedFeatureOptions(language: "ko" | "en", rootDir: string) {
@@ -501,7 +524,7 @@ function formatSyncResult(result: {
 }
 
 async function run(): Promise<void> {
-  const { command, options } = parseArgs(process.argv.slice(2));
+  const { command, options, positionals } = parseArgs(process.argv.slice(2));
   const rootDir = resolveRoot(options);
   if (!command) {
     printHelp(await resolveHelpLanguage(rootDir, options.lang));
@@ -509,7 +532,41 @@ async function run(): Promise<void> {
     return;
   }
 
+  if (command === "config") {
+    const key = positionals[0];
+    if (key !== "username") {
+      throw new Error("Supported config keys: username");
+    }
+    const username = positionals.slice(1).join(" ") || readStringOption(options, "value") || readStringOption(options, "username");
+    if (!username) {
+      throw new Error("Username is required. Run `pgg config username {name}`.");
+    }
+    output.write(`${JSON.stringify({ user: await updateGlobalUsername(username) }, null, 2)}\n`);
+    return;
+  }
+
+  if (command === "settings") {
+    const language = await resolveHelpLanguage(rootDir, options.lang);
+    const current = await readGlobalUser();
+    const username =
+      readStringOption(options, "username") ??
+      readStringOption(options, "value") ??
+      (await askText(
+        language === "ko" ? "사용자명을 입력하세요" : "Enter username",
+        current.username ?? undefined
+      ));
+    output.write(`${JSON.stringify({ user: await updateGlobalUsername(username) }, null, 2)}\n`);
+    return;
+  }
+
   if (command === "init") {
+    const languageForGate = await resolveHelpLanguage(rootDir, options.lang);
+    try {
+      await assertGlobalUsernameConfigured();
+    } catch {
+      throw new Error(usernameRequiredMessage(languageForGate));
+    }
+
     const providerValue =
       typeof options.provider === "string"
         ? options.provider

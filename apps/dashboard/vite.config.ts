@@ -9,6 +9,8 @@ import {
   deleteRegisteredProject,
   deleteProjectCategory,
   deferProjectGitSetup,
+  initializeDashboardProject,
+  inspectProjectFolder,
   moveProjectToCategory,
   readTopicFileDetail,
   registerExistingProject,
@@ -23,6 +25,7 @@ import {
   updateProjectGitMode,
   updateProjectMainSettings,
   updateProjectRefreshInterval,
+  updateGlobalUsername,
   updateProjectTeamsMode
 } from "../../packages/core/src/index";
 
@@ -70,6 +73,63 @@ function createDashboardApiPlugin(): Plugin {
 
         try {
           if (request.method === "GET" && url.pathname === "/api/dashboard/snapshot") {
+            writeJson(response, 200, await buildDashboardSnapshot(dashboardRoot));
+            return;
+          }
+
+          if (request.method === "PATCH" && url.pathname === "/api/dashboard/user") {
+            const body = await readJsonBody(request);
+            if (typeof body.username !== "string") {
+              writeJson(response, 400, { error: "username is required." });
+              return;
+            }
+            await updateGlobalUsername(body.username);
+            writeJson(response, 200, await buildDashboardSnapshot(dashboardRoot));
+            return;
+          }
+
+          if (request.method === "POST" && url.pathname === "/api/dashboard/projects/inspect") {
+            const body = await readJsonBody(request);
+            if (typeof body.rootDir !== "string") {
+              writeJson(response, 400, { error: "rootDir is required." });
+              return;
+            }
+            writeJson(response, 200, await inspectProjectFolder(path.resolve(body.rootDir)));
+            return;
+          }
+
+          if (request.method === "POST" && url.pathname === "/api/dashboard/projects/init") {
+            const body = await readJsonBody(request);
+            if (typeof body.rootDir !== "string") {
+              writeJson(response, 400, { error: "rootDir is required." });
+              return;
+            }
+            await initializeDashboardProject(path.resolve(body.rootDir), {
+              provider: "codex",
+              language: body.language === "en" || body.language === "ko" ? body.language : "ko",
+              autoMode: body.autoMode === "off" ? "off" : "on",
+              teamsMode: body.teamsMode === "on" ? "on" : "off",
+              gitMode: body.gitMode === "on" ? "on" : "off",
+              gitSetup:
+                body.gitSetup && typeof body.gitSetup === "object"
+                  ? {
+                      path:
+                        (body.gitSetup as { path?: unknown }).path === "local" ||
+                        (body.gitSetup as { path?: unknown }).path === "fast" ||
+                        (body.gitSetup as { path?: unknown }).path === "setup" ||
+                        (body.gitSetup as { path?: unknown }).path === "defer"
+                          ? ((body.gitSetup as { path: "local" | "fast" | "setup" | "defer" }).path)
+                          : "defer"
+                    }
+                  : undefined
+            });
+            if (typeof body.targetCategoryId === "string") {
+              const snapshot = await buildDashboardSnapshot(dashboardRoot);
+              const project = snapshot.projects.find((entry) => path.resolve(entry.rootDir) === path.resolve(body.rootDir));
+              if (project) {
+                await moveProjectToCategory(project.id, body.targetCategoryId);
+              }
+            }
             writeJson(response, 200, await buildDashboardSnapshot(dashboardRoot));
             return;
           }

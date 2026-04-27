@@ -4,6 +4,7 @@ export { createProjectVerificationPreset, normalizeProjectVerification, resolveP
 export declare const PGG_VERSION = "0.1.0";
 export declare const MANIFEST_RELATIVE_PATH = ".pgg/project.json";
 export declare const REGISTRY_RELATIVE_PATH = ".pgg/registry.json";
+export declare const USER_CONFIG_RELATIVE_PATH = ".pgg/user.json";
 export type PggLanguage = TemplateLanguage;
 export type PggAutoMode = TemplateAutoMode;
 export type PggProvider = TemplateProvider;
@@ -33,6 +34,15 @@ export interface ProjectGitConfig {
     visibility?: PggGitVisibility;
     defaultBranch?: string;
     setupMessage?: string;
+}
+export interface GlobalUserConfig {
+    username: string | null;
+    updatedAt: string | null;
+}
+export interface GlobalUserSnapshot {
+    username: string | null;
+    configured: boolean;
+    source: string;
 }
 export interface ManagedFileRecord {
     path: string;
@@ -198,6 +208,7 @@ export interface TopicSummary {
     userQuestionRecord: string[];
     historyEvents: TopicHistoryEvent[];
     files: TopicFileEntry[];
+    tokenUsage: TopicTokenUsage;
 }
 export interface TopicHistoryEvent {
     ts: string | null;
@@ -207,6 +218,9 @@ export interface TopicHistoryEvent {
     task?: string | null;
     summary?: string | null;
     source?: string | null;
+    commitTitle?: string | null;
+    commitHash?: string | null;
+    author?: string | null;
 }
 export interface DashboardRecentActivityEntry {
     id: string;
@@ -242,7 +256,13 @@ export interface TopicFileEntry {
     kind: "markdown" | "diff" | "text";
     updatedAt: string | null;
     size: number | null;
+    tokenEstimate: number | null;
+    tokenSource: "estimated" | "none";
     editable: boolean;
+}
+export interface TopicTokenUsage {
+    total: number;
+    source: "estimated" | "none";
 }
 export type TopicProgressStatus = "ready" | "in_progress" | "blocked" | "archive_ready";
 export type TopicNextWorkflow = "pgg-add" | "pgg-plan" | "pgg-code" | "pgg-refactor" | "pgg-token" | "pgg-performance" | "pgg-qa" | "none";
@@ -345,6 +365,7 @@ export interface DashboardSnapshot {
     generatedAt: string;
     currentProjectId: string | null;
     latestActiveProjectId: string | null;
+    globalUser: GlobalUserSnapshot;
     categories: ProjectCategory[];
     recentActivity: DashboardRecentActivityEntry[];
     projects: ProjectSnapshot[];
@@ -370,6 +391,21 @@ export interface InitOptions {
     teamsMode?: PggTeamsMode;
     gitMode?: PggGitMode;
 }
+export interface DashboardProjectInitRequest extends InitOptions {
+    gitSetup?: ProjectGitOnboardingRequest;
+}
+export interface ProjectFolderInspection {
+    rootDir: string;
+    hasPggProject: boolean;
+    hasGitRepository: boolean;
+    globalUsernameConfigured: boolean;
+    username: string | null;
+}
+export declare function normalizeGlobalUsername(value: string): string;
+export declare function loadGlobalUserConfig(): Promise<GlobalUserConfig>;
+export declare function readGlobalUser(): Promise<GlobalUserSnapshot>;
+export declare function updateGlobalUsername(username: string): Promise<GlobalUserSnapshot>;
+export declare function assertGlobalUsernameConfigured(): Promise<GlobalUserSnapshot>;
 export declare function parseGitRemoteUrl(remoteUrl: string): ParsedGitRemote | null;
 export declare function inspectProjectGitSetup(rootDir: string): Promise<ProjectGitSetupInspection>;
 export declare function createProjectManifest(rootDir: string, options?: InitOptions): ProjectManifest;
@@ -410,6 +446,8 @@ export declare function setProjectCategoryVisibility(categoryId: string, visible
 export declare function reorderProjectCategory(categoryId: string, targetIndex: number): Promise<GlobalRegistry>;
 export declare function moveProjectToCategory(projectId: string, targetCategoryId: string, targetIndex?: number): Promise<GlobalRegistry>;
 export declare function registerExistingProject(rootDir: string): Promise<GlobalRegistry>;
+export declare function inspectProjectFolder(rootDir: string): Promise<ProjectFolderInspection>;
+export declare function initializeDashboardProject(rootDir: string, request?: DashboardProjectInitRequest): Promise<GlobalRegistry>;
 export declare function deleteRegisteredProject(projectId: string, options?: {
     deleteRootDir?: boolean;
     currentRootDir?: string;

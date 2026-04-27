@@ -30,6 +30,7 @@ import { normalizeProjectVerification, resolveProjectVerification } from "./veri
 export const PGG_VERSION = "0.1.0";
 export const MANIFEST_RELATIVE_PATH = ".pgg/project.json";
 export const REGISTRY_RELATIVE_PATH = ".pgg/registry.json";
+export const USER_CONFIG_RELATIVE_PATH = ".pgg/user.json";
 
 export type PggLanguage = TemplateLanguage;
 export type PggAutoMode = TemplateAutoMode;
@@ -62,6 +63,17 @@ export interface ProjectGitConfig {
   visibility?: PggGitVisibility;
   defaultBranch?: string;
   setupMessage?: string;
+}
+
+export interface GlobalUserConfig {
+  username: string | null;
+  updatedAt: string | null;
+}
+
+export interface GlobalUserSnapshot {
+  username: string | null;
+  configured: boolean;
+  source: string;
 }
 
 export interface ManagedFileRecord {
@@ -242,6 +254,7 @@ export interface TopicSummary {
   userQuestionRecord: string[];
   historyEvents: TopicHistoryEvent[];
   files: TopicFileEntry[];
+  tokenUsage: TopicTokenUsage;
 }
 
 export interface TopicHistoryEvent {
@@ -252,6 +265,9 @@ export interface TopicHistoryEvent {
   task?: string | null;
   summary?: string | null;
   source?: string | null;
+  commitTitle?: string | null;
+  commitHash?: string | null;
+  author?: string | null;
 }
 
 export interface DashboardRecentActivityEntry {
@@ -291,7 +307,14 @@ export interface TopicFileEntry {
   kind: "markdown" | "diff" | "text";
   updatedAt: string | null;
   size: number | null;
+  tokenEstimate: number | null;
+  tokenSource: "estimated" | "none";
   editable: boolean;
+}
+
+export interface TopicTokenUsage {
+  total: number;
+  source: "estimated" | "none";
 }
 
 export type TopicProgressStatus = "ready" | "in_progress" | "blocked" | "archive_ready";
@@ -412,6 +435,7 @@ export interface DashboardSnapshot {
   generatedAt: string;
   currentProjectId: string | null;
   latestActiveProjectId: string | null;
+  globalUser: GlobalUserSnapshot;
   categories: ProjectCategory[];
   recentActivity: DashboardRecentActivityEntry[];
   projects: ProjectSnapshot[];
@@ -438,6 +462,18 @@ export interface InitOptions {
   autoMode?: PggAutoMode;
   teamsMode?: PggTeamsMode;
   gitMode?: PggGitMode;
+}
+
+export interface DashboardProjectInitRequest extends InitOptions {
+  gitSetup?: ProjectGitOnboardingRequest;
+}
+
+export interface ProjectFolderInspection {
+  rootDir: string;
+  hasPggProject: boolean;
+  hasGitRepository: boolean;
+  globalUsernameConfigured: boolean;
+  username: string | null;
 }
 
 type TopicStageName = "proposal" | "plan" | "task" | "implementation" | "refactor" | "token" | "performance" | "qa";
@@ -793,6 +829,64 @@ function manifestPath(rootDir: string): string {
 
 function registryPath(): string {
   return path.join(process.env.PGG_HOME ?? process.env.HOME ?? os.homedir(), REGISTRY_RELATIVE_PATH);
+}
+
+function userConfigPath(): string {
+  return path.join(process.env.PGG_HOME ?? process.env.HOME ?? os.homedir(), USER_CONFIG_RELATIVE_PATH);
+}
+
+export function normalizeGlobalUsername(value: string): string {
+  const username = value.trim();
+  if (!username) {
+    throw new Error("Username is required. Run `pgg config username {name}` first.");
+  }
+  return username;
+}
+
+function normalizeGlobalUserConfig(config: Partial<GlobalUserConfig> | null | undefined): GlobalUserConfig {
+  const username = typeof config?.username === "string" && config.username.trim()
+    ? config.username.trim()
+    : null;
+  const updatedAt = typeof config?.updatedAt === "string" && config.updatedAt.trim()
+    ? config.updatedAt
+    : null;
+  return { username, updatedAt };
+}
+
+export async function loadGlobalUserConfig(): Promise<GlobalUserConfig> {
+  const raw = await readTextIfExists(userConfigPath());
+  if (!raw) {
+    return { username: null, updatedAt: null };
+  }
+
+  return normalizeGlobalUserConfig(JSON.parse(raw) as Partial<GlobalUserConfig>);
+}
+
+export async function readGlobalUser(): Promise<GlobalUserSnapshot> {
+  const config = await loadGlobalUserConfig();
+  const username = config.username;
+  return {
+    username,
+    configured: Boolean(username),
+    source: username ? userConfigPath() : "missing"
+  };
+}
+
+export async function updateGlobalUsername(username: string): Promise<GlobalUserSnapshot> {
+  const nextConfig: GlobalUserConfig = {
+    username: normalizeGlobalUsername(username),
+    updatedAt: nowIso()
+  };
+  await writeTextFile(userConfigPath(), `${JSON.stringify(nextConfig, null, 2)}\n`);
+  return readGlobalUser();
+}
+
+export async function assertGlobalUsernameConfigured(): Promise<GlobalUserSnapshot> {
+  const user = await readGlobalUser();
+  if (!user.configured) {
+    throw new Error("Username is required. Run `pgg config username {name}` first.");
+  }
+  return user;
 }
 
 function buildTemplateInput(manifest: ProjectManifest): TemplateInput {
@@ -2032,6 +2126,44 @@ export async function registerExistingProject(rootDir: string): Promise<GlobalRe
   return registerProject(manifest);
 }
 
+export async function inspectProjectFolder(rootDir: string): Promise<ProjectFolderInspection> {
+  const user = await readGlobalUser();
+  return {
+    rootDir,
+    hasPggProject: Boolean(await loadProjectManifest(rootDir)),
+    hasGitRepository: existsSync(path.join(rootDir, ".git")),
+    globalUsernameConfigured: user.configured,
+    username: user.username
+  };
+}
+
+export async function initializeDashboardProject(
+  rootDir: string,
+  request: DashboardProjectInitRequest = {}
+): Promise<GlobalRegistry> {
+  await assertGlobalUsernameConfigured();
+  const existing = await loadProjectManifest(rootDir);
+  if (!existing) {
+    await initializeProject(rootDir, {
+      provider: request.provider ?? "codex",
+      language: request.language ?? "ko",
+      autoMode: request.autoMode ?? "on",
+      teamsMode: request.teamsMode ?? "off",
+      gitMode: request.gitMode ?? "off"
+    });
+  }
+
+  if (request.gitSetup) {
+    await runProjectGitOnboarding(rootDir, request.gitSetup);
+  }
+
+  const manifest = await loadProjectManifest(rootDir);
+  if (!manifest) {
+    throw new Error("Project initialization did not create a manifest.");
+  }
+  return registerProject(manifest);
+}
+
 export async function deleteRegisteredProject(
   projectId: string,
   options: {
@@ -2611,7 +2743,10 @@ function parseTopicHistoryEvents(raw: string | null): TopicHistoryEvent[] {
             flow: typeof parsed.flow === "string" ? parsed.flow : null,
             task: typeof parsed.task === "string" ? parsed.task : null,
             summary: typeof parsed.summary === "string" ? parsed.summary : null,
-            source: typeof parsed.source === "string" ? parsed.source : null
+            source: typeof parsed.source === "string" ? parsed.source : null,
+            commitTitle: typeof parsed.commitTitle === "string" ? parsed.commitTitle : null,
+            commitHash: typeof parsed.commitHash === "string" ? parsed.commitHash : null,
+            author: typeof parsed.author === "string" ? parsed.author : null
           }
         ];
       } catch {
@@ -2798,6 +2933,10 @@ function resolveTopicFileKind(absolutePath: string): TopicFileEntry["kind"] {
   return "text";
 }
 
+function estimateTokensFromText(value: string): number {
+  return Math.ceil(Array.from(value).length / 4);
+}
+
 async function listTopicFiles(
   rootDir: string,
   topicDir: string,
@@ -2810,6 +2949,8 @@ async function listTopicFiles(
     files.map(async (absolutePath) => {
       const fileStat = await stat(absolutePath).catch(() => null);
       const relativePath = toRelativePath(topicDir, absolutePath);
+      const content = await readTextIfExists(absolutePath);
+      const tokenEstimate = content === null ? null : estimateTokensFromText(content);
 
       return {
         relativePath,
@@ -2817,12 +2958,22 @@ async function listTopicFiles(
         kind: resolveTopicFileKind(absolutePath),
         updatedAt: fileStat?.mtime.toISOString() ?? null,
         size: fileStat?.size ?? null,
+        tokenEstimate,
+        tokenSource: tokenEstimate === null ? "none" : "estimated",
         editable: true
       } satisfies TopicFileEntry;
     })
   );
 
   return entries.sort((left, right) => left.relativePath.localeCompare(right.relativePath));
+}
+
+function summarizeTopicTokenUsage(files: TopicFileEntry[]): TopicTokenUsage {
+  const total = files.reduce((sum, file) => sum + (file.tokenEstimate ?? 0), 0);
+  return {
+    total,
+    source: total > 0 ? "estimated" : "none"
+  };
 }
 
 function deriveTopicUpdatedAt(artifactSummary: TopicArtifactSummary, archivedAt: string | null): string | null {
@@ -2861,6 +3012,7 @@ async function listTopicSummaries(rootDir: string, bucket: "active" | "archive")
     const artifactSummary = await readTopicArtifactSummary(topicDir);
     const userQuestionRecord = parseUserQuestionRecord(proposalMarkdown);
     const files = await listTopicFiles(rootDir, topicDir, bucket, entry.name);
+    const tokenUsage = summarizeTopicTokenUsage(files);
     const updatedAt = deriveTopicUpdatedAt(artifactSummary, release.archivedAt);
     const stage = stateMarkdown ? parseMarkdownSection(stateMarkdown, "Current Stage") : parseKeyValue(proposalMarkdown ?? "", "stage");
     const goal = stateMarkdown ? parseMarkdownSection(stateMarkdown, "Goal") : null;
@@ -2905,7 +3057,8 @@ async function listTopicSummaries(rootDir: string, bucket: "active" | "archive")
       health: stateMarkdown && workflow ? "ok" : "partial",
       userQuestionRecord,
       historyEvents,
-      files
+      files,
+      tokenUsage
     });
   }
 
@@ -3199,6 +3352,7 @@ function buildRecentActivity(projects: ProjectSnapshot[]): DashboardRecentActivi
 
 export async function buildDashboardSnapshot(currentRootDir: string): Promise<DashboardSnapshot> {
   const registry = await loadPersistedGlobalRegistry();
+  const globalUser = await readGlobalUser();
   const dedupedPaths = new Map<string, boolean>();
   dedupedPaths.set(currentRootDir, registry.projects.some((entry) => entry.rootDir === currentRootDir));
   for (const entry of registry.projects) {
@@ -3232,6 +3386,7 @@ export async function buildDashboardSnapshot(currentRootDir: string): Promise<Da
     generatedAt: nowIso(),
     currentProjectId: currentProject?.id ?? null,
     latestActiveProjectId,
+    globalUser,
     categories,
     recentActivity,
     projects: projectsWithCategories

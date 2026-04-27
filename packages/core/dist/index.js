@@ -11,6 +11,7 @@ import { normalizeProjectVerification, resolveProjectVerification } from "./veri
 export const PGG_VERSION = "0.1.0";
 export const MANIFEST_RELATIVE_PATH = ".pgg/project.json";
 export const REGISTRY_RELATIVE_PATH = ".pgg/registry.json";
+export const USER_CONFIG_RELATIVE_PATH = ".pgg/user.json";
 const STAGE_TO_WORKFLOW = {
     proposal: "pgg-add",
     plan: "pgg-plan",
@@ -287,6 +288,56 @@ function manifestPath(rootDir) {
 }
 function registryPath() {
     return path.join(process.env.PGG_HOME ?? process.env.HOME ?? os.homedir(), REGISTRY_RELATIVE_PATH);
+}
+function userConfigPath() {
+    return path.join(process.env.PGG_HOME ?? process.env.HOME ?? os.homedir(), USER_CONFIG_RELATIVE_PATH);
+}
+export function normalizeGlobalUsername(value) {
+    const username = value.trim();
+    if (!username) {
+        throw new Error("Username is required. Run `pgg config username {name}` first.");
+    }
+    return username;
+}
+function normalizeGlobalUserConfig(config) {
+    const username = typeof config?.username === "string" && config.username.trim()
+        ? config.username.trim()
+        : null;
+    const updatedAt = typeof config?.updatedAt === "string" && config.updatedAt.trim()
+        ? config.updatedAt
+        : null;
+    return { username, updatedAt };
+}
+export async function loadGlobalUserConfig() {
+    const raw = await readTextIfExists(userConfigPath());
+    if (!raw) {
+        return { username: null, updatedAt: null };
+    }
+    return normalizeGlobalUserConfig(JSON.parse(raw));
+}
+export async function readGlobalUser() {
+    const config = await loadGlobalUserConfig();
+    const username = config.username;
+    return {
+        username,
+        configured: Boolean(username),
+        source: username ? userConfigPath() : "missing"
+    };
+}
+export async function updateGlobalUsername(username) {
+    const nextConfig = {
+        username: normalizeGlobalUsername(username),
+        updatedAt: nowIso()
+    };
+    await writeTextFile(userConfigPath(), `${JSON.stringify(nextConfig, null, 2)}\n`);
+    return readGlobalUser();
+}
+export async function assertGlobalUsernameConfigured() {
+    const user = await readGlobalUser();
+    if (!user.configured) {
+        throw new Error("Username is required. Run `pgg config username {name}` first.");
+    }
+    return user;
 }
 function buildTemplateInput(manifest) {
     return {
@@ -1316,6 +1367,37 @@ export async function registerExistingProject(rootDir) {
     }
     return registerProject(manifest);
 }
+export async function inspectProjectFolder(rootDir) {
+    const user = await readGlobalUser();
+    return {
+        rootDir,
+        hasPggProject: Boolean(await loadProjectManifest(rootDir)),
+        hasGitRepository: existsSync(path.join(rootDir, ".git")),
+        globalUsernameConfigured: user.configured,
+        username: user.username
+    };
+}
+export async function initializeDashboardProject(rootDir, request = {}) {
+    await assertGlobalUsernameConfigured();
+    const existing = await loadProjectManifest(rootDir);
+    if (!existing) {
+        await initializeProject(rootDir, {
+            provider: request.provider ?? "codex",
+            language: request.language ?? "ko",
+            autoMode: request.autoMode ?? "on",
+            teamsMode: request.teamsMode ?? "off",
+            gitMode: request.gitMode ?? "off"
+        });
+    }
+    if (request.gitSetup) {
+        await runProjectGitOnboarding(rootDir, request.gitSetup);
+    }
+    const manifest = await loadProjectManifest(rootDir);
+    if (!manifest) {
+        throw new Error("Project initialization did not create a manifest.");
+    }
+    return registerProject(manifest);
+}
 export async function deleteRegisteredProject(projectId, options = {}) {
     const registry = await loadPersistedGlobalRegistry();
     const project = registry.projects.find((entry) => entry.id === projectId) ?? null;
@@ -1708,7 +1790,10 @@ function parseTopicHistoryEvents(raw) {
                     flow: typeof parsed.flow === "string" ? parsed.flow : null,
                     task: typeof parsed.task === "string" ? parsed.task : null,
                     summary: typeof parsed.summary === "string" ? parsed.summary : null,
-                    source: typeof parsed.source === "string" ? parsed.source : null
+                    source: typeof parsed.source === "string" ? parsed.source : null,
+                    commitTitle: typeof parsed.commitTitle === "string" ? parsed.commitTitle : null,
+                    commitHash: typeof parsed.commitHash === "string" ? parsed.commitHash : null,
+                    author: typeof parsed.author === "string" ? parsed.author : null
                 }
             ];
         }
@@ -1851,21 +1936,35 @@ function resolveTopicFileKind(absolutePath) {
     }
     return "text";
 }
+function estimateTokensFromText(value) {
+    return Math.ceil(Array.from(value).length / 4);
+}
 async function listTopicFiles(rootDir, topicDir, bucket, topic) {
     const files = await collectMatchingFiles(topicDir, () => true);
     const entries = await Promise.all(files.map(async (absolutePath) => {
         const fileStat = await stat(absolutePath).catch(() => null);
         const relativePath = toRelativePath(topicDir, absolutePath);
+        const content = await readTextIfExists(absolutePath);
+        const tokenEstimate = content === null ? null : estimateTokensFromText(content);
         return {
             relativePath,
             sourcePath: `poggn/${bucket}/${topic}/${relativePath}`,
             kind: resolveTopicFileKind(absolutePath),
             updatedAt: fileStat?.mtime.toISOString() ?? null,
             size: fileStat?.size ?? null,
+            tokenEstimate,
+            tokenSource: tokenEstimate === null ? "none" : "estimated",
             editable: true
         };
     }));
     return entries.sort((left, right) => left.relativePath.localeCompare(right.relativePath));
+}
+function summarizeTopicTokenUsage(files) {
+    const total = files.reduce((sum, file) => sum + (file.tokenEstimate ?? 0), 0);
+    return {
+        total,
+        source: total > 0 ? "estimated" : "none"
+    };
 }
 function deriveTopicUpdatedAt(artifactSummary, archivedAt) {
     return ([
@@ -1899,6 +1998,7 @@ async function listTopicSummaries(rootDir, bucket) {
         const artifactSummary = await readTopicArtifactSummary(topicDir);
         const userQuestionRecord = parseUserQuestionRecord(proposalMarkdown);
         const files = await listTopicFiles(rootDir, topicDir, bucket, entry.name);
+        const tokenUsage = summarizeTopicTokenUsage(files);
         const updatedAt = deriveTopicUpdatedAt(artifactSummary, release.archivedAt);
         const stage = stateMarkdown ? parseMarkdownSection(stateMarkdown, "Current Stage") : parseKeyValue(proposalMarkdown ?? "", "stage");
         const goal = stateMarkdown ? parseMarkdownSection(stateMarkdown, "Goal") : null;
@@ -1941,7 +2041,8 @@ async function listTopicSummaries(rootDir, bucket) {
             health: stateMarkdown && workflow ? "ok" : "partial",
             userQuestionRecord,
             historyEvents,
-            files
+            files,
+            tokenUsage
         });
     }
     return result;
@@ -2162,6 +2263,7 @@ function buildRecentActivity(projects) {
 }
 export async function buildDashboardSnapshot(currentRootDir) {
     const registry = await loadPersistedGlobalRegistry();
+    const globalUser = await readGlobalUser();
     const dedupedPaths = new Map();
     dedupedPaths.set(currentRootDir, registry.projects.some((entry) => entry.rootDir === currentRootDir));
     for (const entry of registry.projects) {
@@ -2190,6 +2292,7 @@ export async function buildDashboardSnapshot(currentRootDir) {
         generatedAt: nowIso(),
         currentProjectId: currentProject?.id ?? null,
         latestActiveProjectId,
+        globalUser,
         categories,
         recentActivity,
         projects: projectsWithCategories

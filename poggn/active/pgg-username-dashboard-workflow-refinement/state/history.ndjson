@@ -1,0 +1,10 @@
+{"ts":"2026-04-27T12:55:05Z","stage":"proposal","event":"topic-created"}
+{"ts":"2026-04-27T12:55:05Z","stage":"proposal","event":"stage-started","source":"pgg-add"}
+{"ts":"2026-04-27T12:58:00Z","stage":"proposal","event":"stage-progress","source":"pgg-add","summary":"proposal, expert review, state handoff, workflow metadata drafted"}
+{"ts":"2026-04-27T12:58:00Z","stage":"proposal","event":"stage-completed","source":"verified","summary":"proposal reviewed with product manager and UX/UI expert attribution"}
+{"ts":"2026-04-27T13:14:00Z","stage":"plan","event":"stage-started","source":"pgg-plan"}
+{"ts":"2026-04-27T13:14:00Z","stage":"plan","event":"stage-progress","source":"pgg-plan","summary":"plan, task, eight specs, and expert reviews drafted"}
+{"ts":"2026-04-27T13:14:00Z","stage":"plan","event":"stage-completed","source":"verified","summary":"plan/task/spec/review verified and ready for pgg-code"}
+{"ts":"2026-04-27T13:20:00Z","stage":"implementation","event":"stage-started","source":"pgg-code"}
+{"ts":"2026-04-27T13:24:00Z","stage":"implementation","event":"stage-progress","source":"pgg-code","summary":"core CLI dashboard implementation, diffs, and code review recorded"}
+{"ts":"2026-04-27T13:18:13Z","stage":"implementation","event":"stage-commit","archiveType":"feat","targetVersion":"2.8.0","projectLanguage":"ko","commitTitle":"feat: 2.8.0.사용자명 워크플로우 구현","summary":"사용자명 워크플로우 구현","why":"전역 사용자명 설정을 CLI와 dashboard에 연결하고 workflow token 및 git timeline 표시를 구현했습니다","footer":"Refs: pgg-username-dashboard-workflow-refinement"}

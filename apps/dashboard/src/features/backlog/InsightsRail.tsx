@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 import { alpha, useTheme, type Theme } from "@mui/material/styles";
-import { Avatar, Box, Button, IconButton, Paper, Stack, Typography } from "@mui/material";
+import { Avatar, Box, IconButton, Paper, Stack, Typography } from "@mui/material";
 import { BarChart, PieChart } from "@mui/x-charts";
 import AutoGraphRounded from "@mui/icons-material/AutoGraphRounded";
 import BarChartRounded from "@mui/icons-material/BarChartRounded";
@@ -191,10 +191,6 @@ export function InsightsRail(props: InsightsRailProps) {
           </Stack>
         </RailPanel>
       ) : null}
-
-      <Button variant="outlined" onClick={props.onClose}>
-        {props.dictionary.closeInsights}
-      </Button>
 
       {!props.isLiveMode ? (
         <Typography variant="caption" color="text.secondary">

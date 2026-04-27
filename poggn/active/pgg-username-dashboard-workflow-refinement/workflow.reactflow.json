@@ -1,0 +1,108 @@
+{
+  "topic": "pgg-username-dashboard-workflow-refinement",
+  "nodes": [
+    {
+      "id": "proposal",
+      "type": "doc",
+      "position": { "x": 0, "y": 0 },
+      "data": {
+        "label": "proposal.md",
+        "status": "reviewed",
+        "stage": "proposal"
+      }
+    },
+    {
+      "id": "proposal-review",
+      "type": "review",
+      "position": { "x": 260, "y": 0 },
+      "data": {
+        "label": "reviews/proposal.review.md",
+        "status": "reviewed",
+        "score": 96
+      }
+    },
+    {
+      "id": "state-current",
+      "type": "state",
+      "position": { "x": 520, "y": 0 },
+      "data": {
+        "label": "state/current.md",
+        "status": "handoff-ready",
+        "next": "pgg-code"
+      }
+    },
+    {
+      "id": "plan",
+      "type": "doc",
+      "position": { "x": 0, "y": 160 },
+      "data": {
+        "label": "plan.md",
+        "stage": "plan",
+        "status": "reviewed"
+      }
+    },
+    {
+      "id": "task",
+      "type": "doc",
+      "position": { "x": 260, "y": 160 },
+      "data": {
+        "label": "task.md",
+        "stage": "task",
+        "status": "reviewed"
+      }
+    },
+    {
+      "id": "specs",
+      "type": "spec",
+      "position": { "x": 520, "y": 160 },
+      "data": {
+        "label": "spec/*/*.md",
+        "stage": "plan",
+        "status": "reviewed",
+        "count": 8
+      }
+    },
+    {
+      "id": "plan-task-review",
+      "type": "review",
+      "position": { "x": 780, "y": 160 },
+      "data": {
+        "label": "reviews/plan.review.md + reviews/task.review.md",
+        "status": "reviewed",
+        "score": 96
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "proposal-to-review",
+      "source": "proposal",
+      "target": "proposal-review"
+    },
+    {
+      "id": "review-to-state",
+      "source": "proposal-review",
+      "target": "state-current"
+    },
+    {
+      "id": "state-to-plan",
+      "source": "state-current",
+      "target": "plan"
+    },
+    {
+      "id": "plan-to-task",
+      "source": "plan",
+      "target": "task"
+    },
+    {
+      "id": "plan-to-specs",
+      "source": "plan",
+      "target": "specs"
+    },
+    {
+      "id": "task-specs-to-review",
+      "source": "task",
+      "target": "plan-task-review"
+    }
+  ]
+}
