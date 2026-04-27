@@ -1,0 +1,456 @@
+diff --git a/apps/dashboard/src/features/history/HistoryWorkspace.tsx b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
+index 524356e..86d437b 100644
+--- a/apps/dashboard/src/features/history/HistoryWorkspace.tsx
++++ b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
+@@ -13,17 +13,11 @@ import {
+   IconButton,
+   InputAdornment,
+   Paper,
+-  Step,
+-  StepContent,
+-  StepLabel,
+-  Stepper,
+   Stack,
+   TextField,
+   Tooltip,
+   Typography
+ } from "@mui/material";
+-import StepConnector, { stepConnectorClasses } from "@mui/material/StepConnector";
+-import type { StepIconProps } from "@mui/material/StepIcon";
+ import ChevronRightRounded from "@mui/icons-material/ChevronRightRounded";
+ import AutoGraphRounded from "@mui/icons-material/AutoGraphRounded";
+ import CheckRounded from "@mui/icons-material/CheckRounded";
+@@ -1208,70 +1202,26 @@ function HistoryTimeline(props: {
+         }}
+       >
+         <Stack spacing={1.5} sx={{ minWidth: 0 }}>
+-          <Paper sx={{ p: 1.5, borderRadius: 1 }}>
+-            <Stack direction={{ xs: "column", md: "row" }} spacing={1.25} sx={{ justifyContent: "space-between" }}>
+-              <Box>
+-                <Typography variant="h6" sx={{ fontWeight: 850 }}>{props.dictionary.timelineView}</Typography>
+-                <Typography variant="body2" color="text.secondary">{props.dictionary.timelineReferenceHint}</Typography>
+-              </Box>
+-            </Stack>
+-          </Paper>
++          <Box sx={{ px: { xs: 0.25, md: 0.5 } }}>
++            <Typography variant="h6" sx={{ fontWeight: 850 }}>{props.dictionary.timelineView}</Typography>
++            <Typography variant="body2" sx={{ mt: 0.35, color: "text.primary", fontWeight: 750 }}>
++              {timelineBounds.summary}
++            </Typography>
++            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.35 }}>
++              {props.dictionary.timelineReferenceHint}
++            </Typography>
++          </Box>
+           <Stack spacing={0} sx={{ position: "relative" }}>
+-            <Stepper
+-              activeStep={rows.length}
+-              orientation="vertical"
+-              connector={<TimelineFlowConnector />}
+-              sx={{
+-                "& .MuiStep-root": {
+-                  p: 0
+-                },
+-                "& .MuiStepLabel-root": {
+-                  alignItems: "flex-start",
+-                  py: 0
+-                },
+-                "& .MuiStepLabel-iconContainer": {
+-                  pr: { xs: 1.1, md: 1.5 },
+-                  pt: 0
+-                },
+-                "& .MuiStepLabel-labelContainer": {
+-                  minWidth: 0
+-                },
+-                "& .MuiStepLabel-label": {
+-                  width: "100%",
+-                  color: "text.primary"
+-                }
+-              }}
+-            >
+-              {rows.map((row, index) => (
+-                <TimelineMilestone
+-                  key={row.id}
+-                  row={row}
+-                  dictionary={props.dictionary}
+-                  isLast={index === rows.length - 1}
+-                  onOpenCommits={() => setPreviewCommits({ title: row.step, commits: row.commits })}
+-                  onShowFlowFiles={() => showFlowFiles(row)}
+-                />
+-              ))}
+-            </Stepper>
+-            <Paper
+-              variant="outlined"
+-              sx={{
+-                mt: 1.5,
+-                p: 1.25,
+-                borderRadius: 1,
+-                bgcolor: (theme) => alpha(theme.palette.success.main, theme.palette.mode === "dark" ? 0.12 : 0.08),
+-                borderColor: (theme) => alpha(theme.palette.success.light, 0.42)
+-              }}
+-            >
+-              <Stack direction={{ xs: "column", md: "row" }} spacing={1} sx={{ justifyContent: "space-between" }}>
+-                <Typography variant="body2" sx={{ fontWeight: 800 }}>
+-                  {props.dictionary.timelineStartEndSummary}
+-                </Typography>
+-                <Typography variant="body2" color="text.secondary" sx={{ overflowWrap: "anywhere" }}>
+-                  {timelineBounds.summary}
+-                </Typography>
+-              </Stack>
+-            </Paper>
++            {rows.map((row, index) => (
++              <TimelineMilestone
++                key={row.id}
++                row={row}
++                dictionary={props.dictionary}
++                isLast={index === rows.length - 1}
++                onOpenCommits={() => setPreviewCommits({ title: row.step, commits: row.commits })}
++                onShowFlowFiles={() => showFlowFiles(row)}
++              />
++            ))}
+           </Stack>
+         </Stack>
+ 
+@@ -1344,59 +1294,6 @@ function HistoryTimeline(props: {
+   );
+ }
+ 
+-function TimelineFlowConnector() {
+-  const theme = useTheme();
+-  const colors = completedWorkflowSurfaceColors(theme);
+-
+-  return (
+-    <StepConnector
+-      sx={{
+-        ml: { xs: "26px", sm: "28px", md: "30px" },
+-        [`& .${stepConnectorClasses.line}`]: {
+-          minHeight: 18,
+-          borderLeftWidth: 3,
+-          borderRadius: 999,
+-          borderColor: colors.main,
+-          boxShadow: `0 0 12px ${alpha(colors.main, 0.42)}`
+-        }
+-      }}
+-    />
+-  );
+-}
+-
+-function TimelineFlowStepIcon(props: StepIconProps) {
+-  const theme = useTheme();
+-  const colors = completedWorkflowSurfaceColors(theme);
+-  const completed = props.completed || props.active;
+-
+-  return (
+-    <Box
+-      sx={{
+-        width: { xs: 52, sm: 56, md: 60 },
+-        height: { xs: 52, sm: 56, md: 60 },
+-        borderRadius: "50%",
+-        display: "grid",
+-        placeItems: "center",
+-        color: colors.main,
+-        bgcolor: completed ? colors.soft : "#0b1729",
+-        border: `2px solid ${colors.border}`,
+-        boxShadow: [
+-          `0 0 0 4px ${alpha(colors.main, completed ? 0.18 : 0.1)}`,
+-          `0 0 22px ${colors.shadow}`
+-        ].join(", "),
+-        position: "relative",
+-        zIndex: 2
+-      }}
+-    >
+-      {completed ? (
+-        <CheckRounded sx={{ fontSize: { xs: 24, md: 28 } }} />
+-      ) : (
+-        <Box sx={{ width: { xs: 10, md: 12 }, height: { xs: 10, md: 12 }, borderRadius: "50%", bgcolor: colors.main }} />
+-      )}
+-    </Box>
+-  );
+-}
+-
+ function TimelineMilestone(props: {
+   row: TimelineRow;
+   dictionary: DashboardLocale;
+@@ -1405,94 +1302,118 @@ function TimelineMilestone(props: {
+   onShowFlowFiles: () => void;
+ }) {
+   const theme = useTheme();
+-  const colors = completedWorkflowSurfaceColors(theme);
++  const accent =
++    props.row.tone === "success"
++      ? theme.palette.success.main
++      : props.row.tone === "warning"
++        ? theme.palette.secondary.main
++        : theme.palette.primary.main;
++  const accentLight =
++    props.row.tone === "success"
++      ? theme.palette.success.light
++      : props.row.tone === "warning"
++        ? theme.palette.secondary.light
++        : theme.palette.primary.light;
+ 
+   return (
+-    <Step
+-      completed
+-      expanded
++    <Box
+       sx={{
+-        pb: props.isLast ? 0 : 2
++        display: "grid",
++        gridTemplateColumns: { xs: "40px minmax(0, 1fr)", md: "44px 124px minmax(0, 1fr)" },
++        gap: { xs: 1.1, md: 1.55 },
++        position: "relative",
++        pb: props.isLast ? 0 : 1.35
+       }}
+     >
+-      <StepLabel slots={{ stepIcon: TimelineFlowStepIcon }}>
++      <Box sx={{ position: "relative", display: "flex", justifyContent: "center" }}>
++        {!props.isLast ? (
++          <Box
++            sx={{
++              position: "absolute",
++              top: 35,
++              bottom: -12,
++              left: "50%",
++              width: 2,
++              borderRadius: 999,
++              bgcolor: alpha("#d3dbe8", 0.52),
++              transform: "translateX(-50%)",
++              zIndex: 0,
++              pointerEvents: "none"
++            }}
++          />
++        ) : null}
+         <Box
+           sx={{
++            width: 36,
++            height: 36,
++            borderRadius: "50%",
+             display: "grid",
+-            gridTemplateColumns: { xs: "1fr", md: "132px minmax(0, 1fr)" },
+-            gap: { xs: 0.9, md: 1.6 },
+-            alignItems: "start",
+-            minWidth: 0,
+-            width: "100%"
++            placeItems: "center",
++            color: "#f8fbff",
++            bgcolor: alpha(accent, 0.86),
++            border: `1px solid ${alpha(accentLight, 0.82)}`,
++            boxShadow: `0 0 0 3px ${alpha(accent, 0.16)}, 0 0 20px ${alpha(accent, 0.38)}`,
++            position: "relative",
++            zIndex: 2
+           }}
+         >
+-          <Box
+-            sx={{
+-              display: { xs: "none", md: "block" },
+-              pt: 0.7,
+-              color: "text.primary",
+-              fontWeight: 800,
+-              lineHeight: 1.45
+-            }}
+-          >
+-            <Typography variant="body2" sx={{ fontWeight: 850 }}>{props.row.dateLabel}</Typography>
+-            <Typography variant="body2" sx={{ fontWeight: 850 }}>{props.row.timeLabel}</Typography>
+-          </Box>
+-          <Paper
+-            variant="outlined"
+-            sx={{
+-              p: { xs: 1.25, md: 1.4 },
+-              borderRadius: 1,
+-              bgcolor: alpha(theme.palette.background.paper, theme.palette.mode === "dark" ? 0.54 : 0.92),
+-              borderColor: colors.border
+-            }}
+-          >
+-            <Stack direction="row" spacing={1} sx={{ alignItems: "center", justifyContent: "space-between", minWidth: 0 }}>
+-              <Stack direction="row" spacing={1} sx={{ alignItems: "center", minWidth: 0 }}>
+-                <Chip size="small" label={props.row.step} color="success" />
+-                <Box sx={{ minWidth: 0 }}>
+-                  <Typography variant="h6" sx={{ fontSize: { xs: "1rem", md: "1.12rem" }, fontWeight: 850, overflowWrap: "anywhere" }}>
+-                    {props.row.step} {props.dictionary.timelineStageComplete}
+-                  </Typography>
+-                  <Stack direction="row" spacing={0.75} useFlexGap sx={{ flexWrap: "wrap", mt: 0.4 }}>
+-                    <Chip size="small" variant="outlined" label={`${props.dictionary.llmActualTokens}: ${formatTokenValue(props.row.llmActualTokens, props.dictionary)}`} />
+-                    <Chip size="small" variant="outlined" label={`${props.dictionary.localEstimatedTokens}: ${props.row.localEstimatedTokens.toLocaleString()}`} />
+-                  </Stack>
+-                </Box>
+-              </Stack>
+-              <ExpandMoreRounded fontSize="small" sx={{ color: "text.secondary" }} />
+-            </Stack>
+-            <Stack direction="row" spacing={1.5} useFlexGap sx={{ flexWrap: "wrap", color: "text.secondary", mt: 1 }}>
+-              <Typography variant="caption">by {props.row.completedBy}</Typography>
+-              <Typography variant="caption">{props.row.duration}</Typography>
+-              <Typography variant="caption" sx={{ display: { xs: "inline", md: "none" } }}>{props.row.dateLabel} {props.row.timeLabel}</Typography>
+-            </Stack>
+-          </Paper>
++          <CheckRounded fontSize="small" />
+         </Box>
+-      </StepLabel>
+-      <StepContent
+-        transitionDuration={0}
++      </Box>
++      <Box
+         sx={{
+-          ml: { xs: "26px", sm: "28px", md: "30px" },
+-          pl: { xs: 3.4, md: "calc(132px + 43px)" },
+-          pr: 0,
+-          pb: props.isLast ? 0 : 2,
+-          borderLeftWidth: props.isLast ? 0 : 3,
+-          borderLeftStyle: props.isLast ? "none" : "solid",
+-          borderLeftColor: colors.main,
+-          boxShadow: props.isLast ? "none" : `inset 3px 0 0 ${alpha(colors.main, 0.01)}`
++          display: { xs: "none", md: "block" },
++          pt: 0.65,
++          color: "text.primary",
++          fontWeight: 800,
++          lineHeight: 1.45
+         }}
+       >
++        <Typography variant="body2" sx={{ fontWeight: 850 }}>{props.row.dateLabel}</Typography>
++        <Typography variant="body2" sx={{ fontWeight: 850 }}>{props.row.timeLabel}</Typography>
++      </Box>
+       <Paper
+         variant="outlined"
+         sx={{
+-          p: { xs: 1.25, md: 1.5 },
++          p: { xs: 1.2, md: 1.45 },
+           borderRadius: 1,
+-          bgcolor: alpha(theme.palette.background.paper, theme.palette.mode === "dark" ? 0.54 : 0.92),
+-          borderColor: alpha(theme.palette.primary.light, theme.palette.mode === "dark" ? 0.18 : 0.24)
++          bgcolor: alpha(theme.palette.background.paper, theme.palette.mode === "dark" ? 0.5 : 0.92),
++          borderColor: alpha("#8aa7c7", theme.palette.mode === "dark" ? 0.22 : 0.32),
++          boxShadow: `inset 0 1px 0 ${alpha("#fff", 0.03)}`
+         }}
+       >
+         <Stack spacing={1.25}>
++          <Stack direction="row" spacing={1} sx={{ alignItems: "center", justifyContent: "space-between", minWidth: 0 }}>
++            <Stack direction="row" spacing={1} sx={{ alignItems: "center", minWidth: 0 }}>
++              <Chip
++                size="small"
++                label={props.row.step}
++                sx={{
++                  height: 24,
++                  color: accentLight,
++                  border: `1px solid ${alpha(accent, 0.65)}`,
++                  bgcolor: alpha(accent, 0.12),
++                  fontWeight: 800
++                }}
++              />
++              <Box sx={{ minWidth: 0 }}>
++                <Typography variant="h6" sx={{ fontSize: { xs: "1rem", md: "1.1rem" }, fontWeight: 850, overflowWrap: "anywhere" }}>
++                  {props.row.step} {props.dictionary.timelineStageComplete}
++                </Typography>
++                <Stack direction="row" spacing={0.75} useFlexGap sx={{ flexWrap: "wrap", mt: 0.35 }}>
++                  <Chip size="small" variant="outlined" label={`${props.dictionary.llmActualTokens}: ${formatTokenValue(props.row.llmActualTokens, props.dictionary)}`} />
++                  <Chip size="small" variant="outlined" label={`${props.dictionary.localEstimatedTokens}: ${props.row.localEstimatedTokens.toLocaleString()}`} />
++                </Stack>
++              </Box>
++            </Stack>
++            <ExpandMoreRounded fontSize="small" sx={{ color: "text.secondary" }} />
++          </Stack>
++          <Stack direction="row" spacing={1.35} useFlexGap sx={{ flexWrap: "wrap", color: "text.secondary" }}>
++            <Typography variant="caption">by {props.row.completedBy}</Typography>
++            <Typography variant="caption">{props.row.duration}</Typography>
++            <Typography variant="caption" sx={{ display: { xs: "inline", md: "none" } }}>{props.row.dateLabel} {props.row.timeLabel}</Typography>
++          </Stack>
++          <Divider />
+           <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", lg: "minmax(0, 1fr) minmax(0, 1fr)" }, gap: 1.5 }}>
+             <Stack spacing={0.75}>
+               <Typography variant="body2" sx={{ fontWeight: 800 }}>{props.dictionary.timelineGeneratedFiles} ({props.row.files.length})</Typography>
+@@ -1534,8 +1455,7 @@ function TimelineMilestone(props: {
+           </Box>
+         </Stack>
+       </Paper>
+-      </StepContent>
+-    </Step>
++    </Box>
+   );
+ }
+ 
+diff --git a/apps/dashboard/src/features/history/historyModel.ts b/apps/dashboard/src/features/history/historyModel.ts
+index 45a2047..a6b5770 100644
+--- a/apps/dashboard/src/features/history/historyModel.ts
++++ b/apps/dashboard/src/features/history/historyModel.ts
+@@ -1080,16 +1080,35 @@ export function buildTimelineBounds(
+     .sort((left, right) => left.localeCompare(right));
+   const startedAt = timestampValues[0] ?? null;
+   const endedAt = timestampValues[timestampValues.length - 1] ?? null;
+-  const startedLabel = formatDateValue(startedAt, language, dictionary.workflowRecordUnavailable);
+-  const endedLabel = formatDateValue(endedAt, language, dictionary.workflowRecordUnavailable);
++  const startedLabel = formatTimelineRangeValue(startedAt, dictionary.workflowRecordUnavailable);
++  const endedLabel = formatTimelineRangeValue(endedAt, dictionary.workflowRecordUnavailable);
+ 
+   return {
+     startedAt: startedLabel,
+     endedAt: endedLabel,
+-    summary: `${dictionary.timelineStartedAt}: ${startedLabel} - ${dictionary.timelineEndedAt}: ${endedLabel}`
++    summary: `${startedLabel} ~ ${endedLabel}`
+   };
+ }
+ 
++function formatTimelineRangeValue(value: string | null, fallback: string): string {
++  if (!value) {
++    return fallback;
++  }
++
++  const date = new Date(value);
++  if (Number.isNaN(date.getTime())) {
++    return value;
++  }
++
++  const year = date.getFullYear();
++  const month = String(date.getMonth() + 1).padStart(2, "0");
++  const day = String(date.getDate()).padStart(2, "0");
++  const hours = String(date.getHours()).padStart(2, "0");
++  const minutes = String(date.getMinutes()).padStart(2, "0");
++  const seconds = String(date.getSeconds()).padStart(2, "0");
++  return `${year}.${month}.${day} ${hours}:${minutes}:${seconds}`;
++}
++
+ function formatTimelineDateLine(value: string | null, language: HistoryLanguage, fallback: string): string {
+   const lines = formatDateTimeLines(value, language, fallback);
+   return lines[0] ?? fallback;
+diff --git a/poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md b/poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md
+index a3cdcef..2caf9cd 100644
+--- a/poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md
++++ b/poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md
+@@ -31,7 +31,7 @@ Workflow tab timeline/git UI를 `add-img/git.png`, `add-img/timeline.png` refere
+ - Timeline card의 생성 파일 row는 preview modal을 열지 않는다.
+ - 우측 file tree의 file row를 클릭하면 modal로 file content를 볼 수 있어야 하며 modal에는 해당 file의 LLM actual token과 Local estimated token을 표시한다.
+ - Timeline에 표시되는 시간은 file mtime이 아니라 해당 flow의 completion evidence(`stage-commit`, verified `stage-completed`, trusted node completion, release completion)를 우선 사용한다.
+-- Timeline 목록 아래에는 workflow 최초 start와 마지막 end/completion 시간을 별도 요약으로 표시한다.
++- Timeline header의 `Timeline` 제목 바로 아래에는 `YYYY.MM.DD HH:mm:ss ~ YYYY.MM.DD HH:mm:ss` 형식으로 workflow 최초 start와 마지막 end/completion 시간을 표시한다.
+ - Git commit 내용은 실제 evidence와 일치해야 한다.
+ - Commit source priority:
+   1. `state/history.ndjson`의 `stage-commit` evidence
+@@ -45,9 +45,9 @@ Workflow tab timeline/git UI를 `add-img/git.png`, `add-img/timeline.png` refere
+ 
+ - Reference와 같은 정보 밀도, column grouping, compact spacing을 목표로 한다.
+ - 현재 dashboard의 navy/cyan/blue accent tone과 8px 이하 radius 기준을 유지한다.
+-- Timeline은 MUI vertical Stepper 구조를 사용하고 custom connector/step icon 방식으로 flow를 이어야 한다.
+-- Timeline의 flow 연결선은 overview workflow progress처럼 위 flow node 하단에서 다음 flow node 상단까지 끊기지 않게 이어야 한다.
+-- 완료 rail과 완료 check node는 overview completed node와 같은 success color/soft fill/border/shadow token을 사용한다.
++- Timeline CSS는 `add-img/timeline.png`의 날짜 컬럼, 세로 rail, small check node, 단일 stage card 구조를 따른다.
++- Timeline의 flow 연결선은 reference처럼 위 flow node 하단에서 다음 flow node 상단까지 이어야 한다.
++- 완료 rail과 완료 check node는 reference의 small colored node/neutral vertical rail 스타일을 따른다.
+ - 완료 check node는 불투명한 surface로 뒷선이 보이지 않아야 한다.
+ - 완료 rail은 check 원을 관통해 보이면 안 되며, 현재 원의 외곽 ring 하단에서 시작해 다음 원의 외곽 ring 상단에 딱 맞게 닿아야 한다.
+ - 마지막/bottom flow는 아래 flow가 없으므로 check 원 아래로 rail이 넘어가면 안 된다.
+@@ -71,15 +71,14 @@ Workflow tab timeline/git UI를 `add-img/git.png`, `add-img/timeline.png` refere
+   - compact panel rhythm
+ - `add-img/timeline.png` 기준 timeline checklist:
+   - flow row grouping
+-  - vertical Stepper structure with a custom connector and custom step icon
+-  - overview flow와 같은 끊김 없는 completed rail 연결
+-  - completed rail/check visual tokens match the overview completed state
++  - CSS layout matches `add-img/timeline.png` while preserving existing interactions
++  - date column, neutral vertical rail, small colored check nodes, and single stage cards
+   - completed check visual treatment hides the rail behind the node
+   - completed rail touches the circle outer ring exactly without overshooting or leaving a gap
+   - bottom/last flow has no rail overshoot below its check circle
+   - timeline rows follow the reverse actual pgg workflow order
+   - displayed timeline time comes from flow completion evidence
+-  - timeline footer shows first start and final end/completion time
++  - timeline header under the `Timeline` title shows `YYYY.MM.DD HH:mm:ss ~ YYYY.MM.DD HH:mm:ss`
+   - no filter/show more/collapse buttons in the timeline header
+   - right file tree folders expand/collapse on folder row click
+   - timeline file action changes the right file tree to selected flow files

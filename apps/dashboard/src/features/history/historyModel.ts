@@ -70,15 +70,43 @@ type FlowStatusRuntimeEntry = {
 type FlowStatusRuntimeField = "activeAt" | "updatingAt";
 type ReleaseOutcome = "completed" | "blocked" | "pending";
 
+export function inferFileChangeKind(relativePath: string): FileChangeKind {
+  if (relativePath.includes("delete")) {
+    return "D";
+  }
+
+  if (relativePath.includes("proposal")) {
+    return "A";
+  }
+
+  return "M";
+}
+
+export function fileEstimatedLocalTokens(
+  file: Pick<TopicFileEntry, "localEstimatedTokens" | "tokenEstimate">
+): number {
+  return file.localEstimatedTokens ?? file.tokenEstimate ?? 0;
+}
+
 export type TimelineRow = {
   id: string;
   step: string;
+  llmActualTokens: number | null;
+  localEstimatedTokens: number;
   tone: "primary" | "success" | "warning" | "neutral";
   completedBy: string;
   time: string;
+  dateLabel: string;
+  timeLabel: string;
   duration: string;
-  files: Array<{ path: string; kind: FileChangeKind }>;
+  files: Array<{ path: string; kind: FileChangeKind; llmActualTokens: number | null; localEstimatedTokens: number; content: string | null }>;
   commits: Array<{ hash: string; title: string; author: string; time: string }>;
+};
+
+export type TimelineBounds = {
+  startedAt: string;
+  endedAt: string;
+  summary: string;
 };
 
 export type RelationItem = {
@@ -604,31 +632,49 @@ function textIndicatesStageBlocked(value: string | null | undefined): boolean {
   return /blocked|failed|failure|error|invalid|실패|차단|오류/i.test(value ?? "");
 }
 
+function flowBlockedEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition): TimestampEvidence[] {
+  const nodeEvidence = flowNodes(topic, flow)
+    .filter((node) =>
+      [
+        node.data.status,
+        node.data.detail?.status,
+        node.data.detail?.summary,
+        node.data.detail?.title
+      ].some(textIndicatesStageBlocked)
+    )
+    .map((node) => ({
+      value: node.data.detail?.updatedAt ?? node.data.detail?.completedAt ?? null,
+      confidence: "high" as const,
+      source: sourcePathForNode(node)
+    }));
+  const eventEvidence = flowHistoryEvents(topic, flow)
+    .filter((event) => [event.event, event.summary, event.source].some(textIndicatesStageBlocked))
+    .map((event) => ({
+      value: event.ts,
+      confidence: "high" as const,
+      source: `state/history.ndjson:${event.event ?? "blocked"}`
+    }));
+  const currentStatusEvidence =
+    flow.id === normalizeFlowId(topic.stage) &&
+    (hasMeaningfulBlockingIssue(topic) || textIndicatesStageBlocked(topic.status))
+      ? [{ value: topic.updatedAt, confidence: "medium" as const, source: "topic.status" }]
+      : [];
+
+  return [...nodeEvidence, ...eventEvidence, ...currentStatusEvidence];
+}
+
 function flowHasBlockedEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition): boolean {
   if (flow.id === "done") {
     return isDoneFlowBlocked(topic);
   }
 
-  const isCurrentFlow = flow.id === normalizeFlowId(topic.stage);
-  if (isCurrentFlow && (hasMeaningfulBlockingIssue(topic) || textIndicatesStageBlocked(topic.status))) {
-    return true;
+  const blockedAt = latestEvidence(flowBlockedEvidence(topic, flow)).value;
+  if (!blockedAt) {
+    return false;
   }
 
-  const nodeHasBlockedEvidence = flowNodes(topic, flow).some((node) =>
-    [
-      node.data.status,
-      node.data.detail?.status,
-      node.data.detail?.summary,
-      node.data.detail?.title
-    ].some(textIndicatesStageBlocked)
-  );
-  if (nodeHasBlockedEvidence) {
-    return true;
-  }
-
-  return flowHistoryEvents(topic, flow).some((event) =>
-    [event.event, event.summary, event.source].some(textIndicatesStageBlocked)
-  );
+  const completedAt = flowTimestampBundle(topic, flow).completedAt.value;
+  return !completedAt || compareTimestamps(completedAt, blockedAt) < 0;
 }
 
 function flowHasFullCompletionEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition): boolean {
@@ -991,157 +1037,109 @@ export function buildActivitySummary(topic: TopicSummary, language: HistoryLangu
   };
 }
 
-export function buildTimelineRows(topic: TopicSummary, language: HistoryLanguage): TimelineRow[] {
-  const files = topic.files;
-  const updatedLabel = formatTopicDate(topic, language, "Pending");
-  const fileFor = (pattern: RegExp, fallback: string, kind: FileChangeKind) => {
-    const found = files.find((file) => pattern.test(file.relativePath));
-    return { path: found?.relativePath ?? fallback, kind };
-  };
+export function buildTimelineRows(
+  topic: TopicSummary,
+  language: HistoryLanguage,
+  username: string,
+  dictionary: DashboardLocale
+): TimelineRow[] {
+  const fallbackTime = formatTopicDate(topic, language, "Pending");
+  return workflowFlowDefinitions
+    .filter((flow) => topicHasFlowEvidence(topic, flow))
+    .map((flow) => {
+      const files = flowFiles(topic, flow).map((file) => ({
+        path: file.relativePath,
+        kind: inferFileChangeKind(file.relativePath),
+        llmActualTokens: file.llmActualTokens ?? null,
+        localEstimatedTokens: fileEstimatedLocalTokens(file),
+        content: file.content ?? null
+      }));
+      const events = flowHistoryEvents(topic, flow);
+      const timestamps = flowTimestampBundle(topic, flow);
+      const completedAt = timestamps.completedAt.value ? timestamps.completedAt : timestamps.updatedAt;
+      const commits = events
+        .filter((event) => event.event === "stage-commit" && event.commitTitle)
+        .map((event) => ({
+          hash: event.commitHash ?? event.source ?? event.event ?? "stage-commit",
+          title: event.commitTitle ?? "",
+          author: event.author ?? username,
+          time: formatDateValue(event.ts, language, fallbackTime)
+        }));
 
-  return [
-    {
-      id: "qa",
-      step: "QA",
-      tone: "primary",
-      completedBy: "john.doe",
-      time: updatedLabel,
-      duration: "20m",
-      files: [
-        fileFor(/^qa\//, "qa/report.md", "M"),
-        fileFor(/^reviews\/code/, "reviews/code.review.md", "M"),
-        fileFor(/^implementation\//, "implementation/index.md", "A")
-      ],
-      commits: [
-        {
-          hash: "a7c3d2e",
-          title: "test(dashboard): add QA tests for widgets and charts",
-          author: "john.doe",
-          time: updatedLabel
-        }
-      ]
-    },
-    {
-      id: "refactor",
-      step: "Refactor",
-      tone: "warning",
-      completedBy: "john.doe",
-      time: updatedLabel,
-      duration: "34m",
-      files: [
-        fileFor(/^spec\//, "src/dashboard/hooks/useDashboardData.ts", "M"),
-        fileFor(/^reviews\/task/, "src/dashboard/widgets/StatsCard.tsx", "M"),
-        fileFor(/^plan\.md$/, "docs/dashboard-refactor.md", "A")
-      ],
-      commits: [
-        {
-          hash: "b34f8a1",
-          title: "refactor(dashboard): extract hooks and improve types",
-          author: "john.doe",
-          time: updatedLabel
-        },
-        {
-          hash: "91de7a8",
-          title: "chore(dashboard): update docs for refactor",
-          author: "john.doe",
-          time: updatedLabel
-        }
-      ]
-    },
-    {
-      id: "implementation",
-      step: "Implementation",
-      tone: "success",
-      completedBy: "john.doe",
-      time: updatedLabel,
-      duration: "56m",
-      files: [
-        fileFor(/^proposal\.md$/, "src/dashboard/DashboardPage.tsx", "M"),
-        fileFor(/^task\.md$/, "src/dashboard/widgets/StatsCard.tsx", "M"),
-        fileFor(/^workflow\.reactflow\.json$/, "src/dashboard/widgets/ChartsCard.tsx", "M")
-      ],
-      commits: [
-        {
-          hash: "8d2f1c9",
-          title: "feat(dashboard): add dashboard page layout",
-          author: "john.doe",
-          time: updatedLabel
-        },
-        {
-          hash: "c1b94d3",
-          title: "feat(dashboard): implement stats cards",
-          author: "john.doe",
-          time: updatedLabel
-        },
-        {
-          hash: "6a9a9f2",
-          title: "feat(dashboard): add performance chart",
-          author: "john.doe",
-          time: updatedLabel
-        }
-      ]
-    },
-    {
-      id: "plan",
-      step: "Plan",
-      tone: "primary",
-      completedBy: "john.doe",
-      time: updatedLabel,
-      duration: "25m",
-      files: [
-        fileFor(/^plan\.md$/, "docs/dashboard-plan.md", "A"),
-        fileFor(/^task\.md$/, "docs/dashboard/README.md", "M")
-      ],
-      commits: [
-        {
-          hash: "4f1b2c3",
-          title: "docs(dashboard): initial plan and requirements",
-          author: "john.doe",
-          time: updatedLabel
-        }
-      ]
-    },
-    {
-      id: "proposal",
-      step: "Proposal",
-      tone: "neutral",
-      completedBy: "john.doe",
-      time: updatedLabel,
-      duration: "25m",
-      files: [
-        fileFor(/^proposal\.md$/, "docs/feature-proposal-dashboard.md", "A"),
-        fileFor(/^state\/current\.md$/, "wireframes/dashboard-wireframe.png", "A")
-      ],
-      commits: [
-        {
-          hash: "2e6d9b1",
-          title: "docs(proposal): add dashboard feature proposal",
-          author: "john.doe",
-          time: updatedLabel
-        }
-      ]
-    },
-    {
-      id: "requirement",
-      step: "Requirement",
-      tone: "neutral",
-      completedBy: "john.doe",
-      time: updatedLabel,
-      duration: "30m",
-      files: [
-        fileFor(/^state\/history\.ndjson$/, "docs/dashboard-requirements.md", "A"),
-        fileFor(/^state\//, "docs/dashboard-scope.md", "A")
-      ],
-      commits: [
-        {
-          hash: "9b7a2d1",
-          title: "docs(dashboard): add requirements and scope",
-          author: "john.doe",
-          time: updatedLabel
-        }
-      ]
-    }
-  ];
+      return {
+        id: flow.id,
+        step: workflowFlowLabel(flow.id, dictionary),
+        llmActualTokens: sumNullableTokens(files.map((file) => file.llmActualTokens)),
+        localEstimatedTokens: files.reduce((sum, file) => sum + file.localEstimatedTokens, 0),
+        tone: flow.id === "qa" || flow.id === "done" ? "success" : flow.optional ? "warning" : "primary",
+        completedBy: username,
+        time: formatDateValue(completedAt.value, language, fallbackTime),
+        dateLabel: formatTimelineDateLine(completedAt.value, language, fallbackTime),
+        timeLabel: formatTimelineTimeLine(completedAt.value, language),
+        duration: completedAt.source ?? "recorded",
+        files,
+        commits
+      };
+    })
+    .reverse();
+}
+
+export function buildTimelineBounds(
+  topic: TopicSummary,
+  language: HistoryLanguage,
+  dictionary: DashboardLocale
+): TimelineBounds {
+  const timestampValues = workflowFlowDefinitions
+    .filter((flow) => topicHasFlowEvidence(topic, flow))
+    .flatMap((flow) => {
+      const timestamps = flowTimestampBundle(topic, flow);
+      return [timestamps.startedAt.value, timestamps.completedAt.value].filter((value): value is string => Boolean(value));
+    })
+    .sort((left, right) => left.localeCompare(right));
+  const startedAt = timestampValues[0] ?? null;
+  const endedAt = timestampValues[timestampValues.length - 1] ?? null;
+  const startedLabel = formatTimelineRangeValue(startedAt, dictionary.workflowRecordUnavailable);
+  const endedLabel = formatTimelineRangeValue(endedAt, dictionary.workflowRecordUnavailable);
+
+  return {
+    startedAt: startedLabel,
+    endedAt: endedLabel,
+    summary: `${startedLabel} ~ ${endedLabel}`
+  };
+}
+
+function formatTimelineRangeValue(value: string | null, fallback: string): string {
+  if (!value) {
+    return fallback;
+  }
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return value;
+  }
+
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  const hours = String(date.getHours()).padStart(2, "0");
+  const minutes = String(date.getMinutes()).padStart(2, "0");
+  const seconds = String(date.getSeconds()).padStart(2, "0");
+  return `${year}.${month}.${day} ${hours}:${minutes}:${seconds}`;
+}
+
+function formatTimelineDateLine(value: string | null, language: HistoryLanguage, fallback: string): string {
+  const lines = formatDateTimeLines(value, language, fallback);
+  return lines[0] ?? fallback;
+}
+
+function formatTimelineTimeLine(value: string | null, language: HistoryLanguage): string {
+  const lines = formatDateTimeLines(value, language, "");
+  return lines[1] ?? "";
+}
+
+function sumNullableTokens(values: Array<number | null>): number | null {
+  const numeric = values.filter((value): value is number => typeof value === "number");
+  return numeric.length ? numeric.reduce((sum, value) => sum + value, 0) : null;
 }
 
 export function buildRelationGroups(topic: TopicSummary, topics: TopicSummary[]): RelationGroup[] {

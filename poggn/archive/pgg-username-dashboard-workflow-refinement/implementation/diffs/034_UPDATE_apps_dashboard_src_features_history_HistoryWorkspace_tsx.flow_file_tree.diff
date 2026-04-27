@@ -1,0 +1,123 @@
+diff --git a/apps/dashboard/src/features/history/HistoryWorkspace.tsx b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
+index 30e6865..c4f13a7 100644
+--- a/apps/dashboard/src/features/history/HistoryWorkspace.tsx
++++ b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
+@@ -31,8 +31,6 @@ import FolderRounded from "@mui/icons-material/FolderRounded";
+ import LockRounded from "@mui/icons-material/LockRounded";
+ import MoreVertRounded from "@mui/icons-material/MoreVertRounded";
+ import SearchRounded from "@mui/icons-material/SearchRounded";
+-import TableRowsRounded from "@mui/icons-material/TableRowsRounded";
+-import ViewListRounded from "@mui/icons-material/ViewListRounded";
+ import { PieChart } from "@mui/x-charts";
+ import type { DashboardLocale, ProjectSnapshot, TopicSummary } from "../../shared/model/dashboard";
+ import {
+@@ -1136,15 +1134,35 @@ function HistoryTimeline(props: {
+   globalUser: { username: string | null; configured: boolean };
+ }) {
+   const [fileFilter, setFileFilter] = useState("");
++  const [selectedFlowFiles, setSelectedFlowFiles] = useState<{ id: string; step: string; paths: Set<string> } | null>(null);
+   const [collapsedFolderIds, setCollapsedFolderIds] = useState<Set<string>>(() => new Set());
+   const rows = buildTimelineRows(props.topic, props.language, props.globalUser.username ?? props.dictionary.usernameMissing, props.dictionary);
++  const treeSourceFiles = useMemo(() => {
++    return selectedFlowFiles
++      ? props.topic.files.filter((file) => selectedFlowFiles.paths.has(file.relativePath))
++      : props.topic.files;
++  }, [props.topic.files, selectedFlowFiles]);
+   const filteredFiles = useMemo(() => {
+     const query = fileFilter.trim().toLowerCase();
+     return query
+-      ? props.topic.files.filter((file) => file.relativePath.toLowerCase().includes(query))
+-      : props.topic.files;
+-  }, [fileFilter, props.topic.files]);
++      ? treeSourceFiles.filter((file) => file.relativePath.toLowerCase().includes(query))
++      : treeSourceFiles;
++  }, [fileFilter, treeSourceFiles]);
+   const fileTree = useMemo(() => buildTopicFileTree(filteredFiles), [filteredFiles]);
++  const resetFileTree = () => {
++    setSelectedFlowFiles(null);
++    setFileFilter("");
++    setCollapsedFolderIds(new Set());
++  };
++  const showFlowFiles = (row: TimelineRow) => {
++    setSelectedFlowFiles({
++      id: row.id,
++      step: row.step,
++      paths: new Set(row.files.map((file) => file.path))
++    });
++    setFileFilter("");
++    setCollapsedFolderIds(new Set());
++  };
+   const toggleFolder = (nodeId: string) => {
+     setCollapsedFolderIds((current) => {
+       const next = new Set(current);
+@@ -1183,6 +1201,7 @@ function HistoryTimeline(props: {
+               expanded
+               dictionary={props.dictionary}
+               isLast={index === rows.length - 1}
++              onShowFlowFiles={() => showFlowFiles(row)}
+             />
+           ))}
+         </Stack>
+@@ -1191,8 +1210,14 @@ function HistoryTimeline(props: {
+       <Paper sx={{ p: 1.5, borderRadius: 1 }}>
+         <Stack spacing={1.2}>
+           <Box>
+-            <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>Files in this Topic</Typography>
+-            <Typography variant="body2" color="text.secondary">All files created or modified in this topic.</Typography>
++            <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
++              {selectedFlowFiles
++                ? props.dictionary.filesInSelectedFlow.replace("{flow}", selectedFlowFiles.step)
++                : props.dictionary.filesInTopic}
++            </Typography>
++            <Typography variant="body2" color="text.secondary">
++              {selectedFlowFiles ? props.dictionary.selectedFlowFilesHint : props.dictionary.allTopicFilesHint}
++            </Typography>
+           </Box>
+           <Stack direction="row" spacing={0.75}>
+             <TextField
+@@ -1211,12 +1236,11 @@ function HistoryTimeline(props: {
+               }}
+               sx={{ flexGrow: 1 }}
+             />
+-            <IconButton size="small" sx={{ border: 1, borderColor: "divider", borderRadius: 1 }}>
+-              <TableRowsRounded fontSize="small" />
+-            </IconButton>
+-            <IconButton size="small" sx={{ border: 1, borderColor: "divider", borderRadius: 1 }}>
+-              <ViewListRounded fontSize="small" />
+-            </IconButton>
++            {selectedFlowFiles || fileFilter ? (
++              <Button variant="outlined" size="small" onClick={resetFileTree} sx={{ minWidth: 72 }}>
++                {props.dictionary.resetFileTree}
++              </Button>
++            ) : null}
+           </Stack>
+           <Button variant="outlined" size="small" startIcon={<DownloadRounded />}>Download Tree</Button>
+           <Divider />
+@@ -1252,6 +1276,7 @@ function TimelineMilestone(props: {
+   expanded: boolean;
+   dictionary: DashboardLocale;
+   isLast: boolean;
++  onShowFlowFiles: () => void;
+ }) {
+   const theme = useTheme();
+   const accent = theme.palette.success.main;
+@@ -1273,7 +1298,7 @@ function TimelineMilestone(props: {
+             sx={{
+               position: "absolute",
+               top: 36,
+-              bottom: -20,
++              bottom: 0,
+               width: 3,
+               borderRadius: 999,
+               bgcolor: accent,
+@@ -1359,7 +1384,9 @@ function TimelineMilestone(props: {
+                 </Stack>
+               ))}
+               {!props.expanded && props.row.files.length > 3 ? <Typography variant="caption">+ {props.row.files.length - 3} more</Typography> : null}
+-              <Button size="small" endIcon={<ChevronRightRounded />} sx={{ alignSelf: "flex-start" }}>{props.dictionary.viewAllFiles}</Button>
++              <Button size="small" endIcon={<ChevronRightRounded />} onClick={props.onShowFlowFiles} sx={{ alignSelf: "flex-start" }}>
++                {props.dictionary.viewAllFiles}
++              </Button>
+             </Stack>
+             <Stack spacing={0.85} sx={{ borderLeft: { lg: `1px solid ${alpha(theme.palette.divider, 0.8)}` }, pl: { lg: 1.5 } }}>
+               <Typography variant="body2" sx={{ fontWeight: 800 }}>

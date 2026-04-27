@@ -1,0 +1,25 @@
+diff --git a/poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md b/poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md
+index cce6d7d..a9d5694 100644
+--- a/poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md
++++ b/poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md
+@@ -47,6 +47,9 @@ Workflow tab timeline/git UI를 `add-img/git.png`, `add-img/timeline.png` refere
+ - 완료 rail은 check 원을 관통해 보이면 안 되며, 원 내부는 불투명 배경으로 선과 시각적으로 분리한다.
+ - Timeline header의 filter, show more, collapse action button은 제거한다.
+ - 우측 file tree는 folder row 자체를 클릭해 접고 펼칠 수 있어야 한다.
++- Timeline card의 `모든 파일 보기` action은 timeline card 내용을 더 펼치지 않고, 우측 file tree를 해당 flow에서 생성/수정한 file 목록으로 전환한다.
++- 우측 file tree는 초기 상태에서 topic 전체 file을 보여준다.
++- 우측 file tree가 flow file 목록 또는 검색 결과로 좁혀진 경우 검색창 옆에 reset button을 표시하고, 기존 table/list icon button은 표시하지 않는다.
+ - table/header/body column width는 mobile에서 single-column stack으로 무너지되 text overlap이 없어야 한다.
+ - long file path와 commit title은 `overflowWrap: anywhere` 또는 equivalent로 깨지지 않아야 한다.
+ 
+@@ -65,6 +68,10 @@ Workflow tab timeline/git UI를 `add-img/git.png`, `add-img/timeline.png` refere
+   - timeline rows are sorted newest first
+   - no filter/show more/collapse buttons in the timeline header
+   - right file tree folders expand/collapse on folder row click
++  - timeline file action changes the right file tree to selected flow files
++  - initial right file tree shows all topic files
++  - reset button restores the all-topic file tree and clears search/flow filtering
++  - no table/list icon buttons next to file search
+   - files and commits side-by-side on desktop
+   - file tree/detail affordance
+   - flow/file token labels are split into LLM actual and Local estimated

@@ -1,0 +1,385 @@
+diff --git a/apps/dashboard/src/app/DashboardApp.tsx b/apps/dashboard/src/app/DashboardApp.tsx
+index 0c9b5d8..8329d4e 100644
+--- a/apps/dashboard/src/app/DashboardApp.tsx
++++ b/apps/dashboard/src/app/DashboardApp.tsx
+@@ -28,6 +28,7 @@ import {
+   fetchDashboardSnapshot,
+   fetchTopicFileDetail,
+   removeTopicFile,
++  requestDashboardJson,
+   requestDashboardSnapshot,
+   saveTopicFileDetail
+ } from "../shared/api/dashboard";
+@@ -38,7 +39,8 @@ import type {
+   DashboardDetailSection,
+   DashboardQueryResult,
+   DashboardSettingsView,
+-  DashboardSnapshot
++  DashboardSnapshot,
++  ProjectGitSetupRequest
+ } from "../shared/model/dashboard";
+ import { useDashboardStore } from "../shared/store/dashboardStore";
+ import { normalizeDashboardTitleIconSvg, toSvgDataUrl } from "../shared/utils/brand";
+@@ -557,6 +559,29 @@ export default function DashboardApp() {
+     }
+   });
+ 
++  const gitSetupMutation = useMutation({
++    mutationFn: async (input: { projectId: string; request: ProjectGitSetupRequest }) => {
++      if (!isLiveMode) {
++        throw new Error(dictionary.liveEditingDisabled);
++      }
++
++      return requestDashboardJson<{ snapshot: DashboardSnapshot }>(
++        `/api/dashboard/projects/${input.projectId}/git/setup`,
++        {
++          method: "POST",
++          body: JSON.stringify(input.request)
++        }
++      );
++    },
++    onSuccess: ({ snapshot: nextSnapshot }) => {
++      setFeedback(null);
++      updateSnapshotCache(nextSnapshot);
++    },
++    onError: (error) => {
++      setFeedback(error instanceof Error ? error.message : dictionary.dashboardError);
++    }
++  });
++
+   const saveFileMutation = useMutation({
+     mutationFn: async (content: string) => {
+       if (!projectContextId || !fileTopic || !fileSelection?.relativePath) {
+@@ -652,6 +677,10 @@ export default function DashboardApp() {
+     );
+   };
+ 
++  const runProjectGitSetup = (projectId: string, request: ProjectGitSetupRequest) => {
++    gitSetupMutation.mutate({ projectId, request });
++  };
++
+   const focusProjectContext = (projectId: string) => {
+     const shouldResetSelection = selectedProjectId !== projectId;
+     markDashboardInteraction("project-switch", "start");
+@@ -769,6 +798,12 @@ export default function DashboardApp() {
+           deferProjectGitSetup(boardContextProject.id, message);
+         }
+       }}
++      onRunGitSetup={(request) => {
++        if (boardContextProject) {
++          runProjectGitSetup(boardContextProject.id, request);
++        }
++      }}
++      gitSetupPending={gitSetupMutation.isPending}
+     />
+   );
+ 
+diff --git a/apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx b/apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx
+index 28ee8dd..552b189 100644
+--- a/apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx
++++ b/apps/dashboard/src/features/project-detail/ProjectDetailWorkspace.tsx
+@@ -14,6 +14,7 @@ import {
+   FormControlLabel,
+   IconButton,
+   InputAdornment,
++  MenuItem,
+   Paper,
+   Stack,
+   Step,
+@@ -50,6 +51,7 @@ import type {
+   ArtifactSelection,
+   DashboardDetailSection,
+   DashboardLocale,
++  ProjectGitSetupRequest,
+   ProjectSnapshot,
+   TopicSummary
+ } from "../../shared/model/dashboard";
+@@ -89,6 +91,8 @@ type ProjectDetailWorkspaceProps = {
+   onUpdateLanguage: (language: "ko" | "en") => void;
+   onUpdateSystem: (payload: Partial<{ autoMode: "on" | "off"; teamsMode: "on" | "off"; gitMode: "on" | "off" }>) => void;
+   onDeferGitSetup: (message: string) => void;
++  onRunGitSetup: (request: ProjectGitSetupRequest) => void;
++  gitSetupPending: boolean;
+ };
+ 
+ type ReportFilter = "all" | "qa" | "review";
+@@ -299,6 +303,8 @@ export function ProjectDetailWorkspace(props: ProjectDetailWorkspaceProps) {
+           onUpdateLanguage={props.onUpdateLanguage}
+           onUpdateSystem={props.onUpdateSystem}
+           onDeferGitSetup={props.onDeferGitSetup}
++          onRunGitSetup={props.onRunGitSetup}
++          gitSetupPending={props.gitSetupPending}
+         />
+       ) : null}
+ 
+@@ -759,11 +765,22 @@ function ProjectSettingsSection(props: {
+   onUpdateLanguage: (language: "ko" | "en") => void;
+   onUpdateSystem: (payload: Partial<{ autoMode: "on" | "off"; teamsMode: "on" | "off"; gitMode: "on" | "off" }>) => void;
+   onDeferGitSetup: (message: string) => void;
++  onRunGitSetup: (request: ProjectGitSetupRequest) => void;
++  gitSetupPending: boolean;
+ }) {
+   const [activeTab, setActiveTab] = useState<"basic" | "git">("basic");
+   const [workingDraft, setWorkingDraft] = useState(props.project.workingBranchPrefix || "ai");
+   const [releaseDraft, setReleaseDraft] = useState(props.project.releaseBranchPrefix || "release");
+   const [setupOpen, setSetupOpen] = useState(false);
++  const [setupPath, setSetupPath] = useState<ProjectGitSetupRequest["path"]>(props.project.gitRemoteUrl ? "fast" : "setup");
++  const [providerDraft, setProviderDraft] = useState<ProjectGitSetupRequest["provider"]>(props.project.gitProvider ?? "github");
++  const [authDraft, setAuthDraft] = useState<ProjectGitSetupRequest["authMethod"]>(props.project.gitAuthMethod ?? "ssh");
++  const [ownerDraft, setOwnerDraft] = useState(props.project.gitOwner ?? "");
++  const [repositoryDraft, setRepositoryDraft] = useState(props.project.gitRepository ?? props.project.name);
++  const [remoteDraft, setRemoteDraft] = useState(props.project.gitRemoteUrl ?? "");
++  const [branchDraft, setBranchDraft] = useState(props.project.gitDefaultBranch ?? "main");
++  const [confirmRemote, setConfirmRemote] = useState(false);
++  const [confirmPush, setConfirmPush] = useState(false);
+   const gitConnected = isGitConnectionKnown(props.project);
+   const gitDeferred = props.project.gitSetupStatus === "deferred";
+   const gitDetailsDisabled = !gitConnected && !gitDeferred;
+@@ -774,6 +791,39 @@ function ProjectSettingsSection(props: {
+     setReleaseDraft(props.project.releaseBranchPrefix || "release");
+   }, [props.project.releaseBranchPrefix, props.project.workingBranchPrefix]);
+ 
++  useEffect(() => {
++    setSetupPath(props.project.gitRemoteUrl ? "fast" : "setup");
++    setProviderDraft(props.project.gitProvider ?? "github");
++    setAuthDraft(props.project.gitAuthMethod ?? "ssh");
++    setOwnerDraft(props.project.gitOwner ?? "");
++    setRepositoryDraft(props.project.gitRepository ?? props.project.name);
++    setRemoteDraft(props.project.gitRemoteUrl ?? "");
++    setBranchDraft(props.project.gitDefaultBranch ?? "main");
++  }, [
++    props.project.gitAuthMethod,
++    props.project.gitDefaultBranch,
++    props.project.gitOwner,
++    props.project.gitProvider,
++    props.project.gitRemoteUrl,
++    props.project.gitRepository,
++    props.project.name
++  ]);
++
++  const submitGitSetup = () => {
++    props.onRunGitSetup({
++      path: setupPath,
++      provider: providerDraft,
++      authMethod: authDraft,
++      owner: ownerDraft,
++      repository: repositoryDraft,
++      remoteUrl: remoteDraft,
++      defaultBranch: branchDraft,
++      visibility: "private",
++      confirmRemoteMutation: confirmRemote,
++      confirmPush
++    });
++  };
++
+   return (
+     <Paper sx={{ p: 2.25, borderRadius: 1 }}>
+       <Stack spacing={2}>
+@@ -918,6 +968,86 @@ function ProjectSettingsSection(props: {
+                 </Step>
+               ))}
+             </Stepper>
++            <TextField
++              select
++              label={props.dictionary.gitSetupPath}
++              value={setupPath}
++              disabled={!props.isLiveMode || props.gitSetupPending}
++              onChange={(event) => setSetupPath(event.target.value as ProjectGitSetupRequest["path"])}
++            >
++              <MenuItem value="local">{props.dictionary.gitSetupLocal}</MenuItem>
++              <MenuItem value="fast">{props.dictionary.gitSetupFast}</MenuItem>
++              <MenuItem value="setup">{props.dictionary.gitSetupNewRemote}</MenuItem>
++            </TextField>
++            {setupPath !== "local" ? (
++              <Stack spacing={1.25}>
++                <TextField
++                  select
++                  label={props.dictionary.gitProvider}
++                  value={providerDraft}
++                  disabled={!props.isLiveMode || props.gitSetupPending}
++                  onChange={(event) => setProviderDraft(event.target.value as ProjectGitSetupRequest["provider"])}
++                >
++                  <MenuItem value="github">GitHub</MenuItem>
++                  <MenuItem value="gitlab">GitLab</MenuItem>
++                </TextField>
++                <TextField
++                  select
++                  label={props.dictionary.gitAuthMethod}
++                  value={authDraft}
++                  disabled={!props.isLiveMode || props.gitSetupPending}
++                  onChange={(event) => setAuthDraft(event.target.value as ProjectGitSetupRequest["authMethod"])}
++                >
++                  <MenuItem value="ssh">SSH</MenuItem>
++                  <MenuItem value="https-token">HTTPS Token</MenuItem>
++                  <MenuItem value="provider-cli">Provider CLI Login</MenuItem>
++                </TextField>
++                <TextField
++                  label={props.dictionary.gitOwner}
++                  value={ownerDraft}
++                  disabled={!props.isLiveMode || props.gitSetupPending}
++                  onChange={(event) => setOwnerDraft(event.target.value)}
++                />
++                <TextField
++                  label={props.dictionary.gitRepository}
++                  value={repositoryDraft}
++                  disabled={!props.isLiveMode || props.gitSetupPending}
++                  onChange={(event) => setRepositoryDraft(event.target.value)}
++                />
++                <TextField
++                  label={props.dictionary.gitRemoteUrl}
++                  value={remoteDraft}
++                  disabled={!props.isLiveMode || props.gitSetupPending}
++                  onChange={(event) => setRemoteDraft(event.target.value)}
++                />
++              </Stack>
++            ) : null}
++            <TextField
++              label={props.dictionary.gitDefaultBranch}
++              value={branchDraft}
++              disabled={!props.isLiveMode || props.gitSetupPending}
++              onChange={(event) => setBranchDraft(event.target.value)}
++            />
++            <FormControlLabel
++              control={
++                <Switch
++                  checked={confirmRemote}
++                  disabled={!props.isLiveMode || props.gitSetupPending || setupPath === "local"}
++                  onChange={(event) => setConfirmRemote(event.target.checked)}
++                />
++              }
++              label={props.dictionary.gitConfirmRemoteMutation}
++            />
++            <FormControlLabel
++              control={
++                <Switch
++                  checked={confirmPush}
++                  disabled={!props.isLiveMode || props.gitSetupPending || setupPath === "local"}
++                  onChange={(event) => setConfirmPush(event.target.checked)}
++                />
++              }
++              label={props.dictionary.gitConfirmPush}
++            />
+             <Alert severity="info">{props.dictionary.gitDeferredHint}</Alert>
+           </Stack>
+         </DialogContent>
+@@ -930,6 +1060,13 @@ function ProjectSettingsSection(props: {
+           >
+             {props.dictionary.deferGitSetup}
+           </Button>
++          <Button
++            variant="contained"
++            disabled={!props.isLiveMode || props.gitSetupPending}
++            onClick={submitGitSetup}
++          >
++            {props.dictionary.runGitSetup}
++          </Button>
+           <Button variant="contained" onClick={() => setSetupOpen(false)}>
+             {props.dictionary.close}
+           </Button>
+diff --git a/apps/dashboard/src/shared/locale/dashboardLocale.ts b/apps/dashboard/src/shared/locale/dashboardLocale.ts
+index 7b3362b..fbe1522 100644
+--- a/apps/dashboard/src/shared/locale/dashboardLocale.ts
++++ b/apps/dashboard/src/shared/locale/dashboardLocale.ts
+@@ -437,6 +437,15 @@ export const dashboardLocale = {
+     gitSetupPathHint: "연결된 remote가 없습니다. repository 연결 정보를 입력하거나 나중에 등록할 수 있습니다.",
+     gitDeferredHint: "중간에 취소해도 프로젝트 설정은 유지되고 Git 연결만 보류됩니다.",
+     gitDeferredSavedMessage: "Git 설정은 나중에 등록하도록 보류되었습니다.",
++    gitSetupPath: "설정 방식",
++    gitSetupLocal: "Local only",
++    gitSetupFast: "FAST PATH",
++    gitSetupNewRemote: "SETUP PATH",
++    gitProvider: "provider",
++    gitVisibility: "visibility",
++    gitConfirmRemoteMutation: "remote 변경 확인",
++    gitConfirmPush: "push 실행 확인",
++    runGitSetup: "Git 설정 실행",
+     deferGitSetup: "취소하고 나중에 등록",
+     close: "닫기",
+     liveEditingDisabled: "static snapshot에서는 편집할 수 없습니다.",
+@@ -829,6 +838,15 @@ export const dashboardLocale = {
+     gitSetupPathHint: "No connected remote was found. Enter repository details or register them later.",
+     gitDeferredHint: "Cancelling midway keeps the project settings and only defers Git connection.",
+     gitDeferredSavedMessage: "Git setup was deferred and can be registered later.",
++    gitSetupPath: "Setup path",
++    gitSetupLocal: "Local only",
++    gitSetupFast: "FAST PATH",
++    gitSetupNewRemote: "SETUP PATH",
++    gitProvider: "provider",
++    gitVisibility: "visibility",
++    gitConfirmRemoteMutation: "Confirm remote changes",
++    gitConfirmPush: "Confirm push",
++    runGitSetup: "Run Git setup",
+     deferGitSetup: "Cancel and register later",
+     close: "Close",
+     liveEditingDisabled: "Editing is unavailable in static snapshot mode.",
+diff --git a/apps/dashboard/src/shared/model/dashboard.ts b/apps/dashboard/src/shared/model/dashboard.ts
+index ab04c11..517813c 100644
+--- a/apps/dashboard/src/shared/model/dashboard.ts
++++ b/apps/dashboard/src/shared/model/dashboard.ts
+@@ -186,6 +186,20 @@ export type ProjectSnapshot = {
+   archivedTopics: TopicSummary[];
+ };
+ 
++export type ProjectGitSetupRequest = {
++  path: "local" | "fast" | "setup" | "defer";
++  provider?: "github" | "gitlab" | "unknown";
++  owner?: string;
++  repository?: string;
++  remoteUrl?: string;
++  authMethod?: "https-token" | "ssh" | "provider-cli" | "unknown";
++  visibility?: "private" | "public" | "unknown";
++  defaultBranch?: string;
++  confirmRemoteMutation?: boolean;
++  confirmPush?: boolean;
++  deferMessage?: string;
++};
++
+ export type DashboardSnapshot = {
+   generatedAt: string;
+   currentProjectId: string | null;
+diff --git a/apps/dashboard/vite.config.ts b/apps/dashboard/vite.config.ts
+index 413e35e..260ac5d 100644
+--- a/apps/dashboard/vite.config.ts
++++ b/apps/dashboard/vite.config.ts
+@@ -14,6 +14,7 @@ import {
+   registerExistingProject,
+   reorderProjectCategory,
+   renameProjectCategory,
++  runProjectGitOnboarding,
+   setProjectCategoryVisibility,
+   setDefaultProjectCategory,
+   updateTopicFile,
+@@ -240,6 +241,33 @@ function createDashboardApiPlugin(): Plugin {
+             return;
+           }
+ 
++          const projectGitSetupMatch = url.pathname.match(/^\/api\/dashboard\/projects\/([^/]+)\/git\/setup$/);
++          if (projectGitSetupMatch && request.method === "POST") {
++            const body = await readJsonBody(request);
++            const rootDir = await resolveProjectRootDir(projectGitSetupMatch[1]!);
++            const result = await runProjectGitOnboarding(rootDir, {
++              path:
++                body.path === "local" || body.path === "fast" || body.path === "setup" || body.path === "defer"
++                  ? body.path
++                  : "defer",
++              provider: body.provider === "github" || body.provider === "gitlab" || body.provider === "unknown" ? body.provider : undefined,
++              owner: typeof body.owner === "string" ? body.owner : undefined,
++              repository: typeof body.repository === "string" ? body.repository : undefined,
++              remoteUrl: typeof body.remoteUrl === "string" ? body.remoteUrl : undefined,
++              authMethod:
++                body.authMethod === "https-token" || body.authMethod === "ssh" || body.authMethod === "provider-cli" || body.authMethod === "unknown"
++                  ? body.authMethod
++                  : undefined,
++              visibility: body.visibility === "private" || body.visibility === "public" || body.visibility === "unknown" ? body.visibility : undefined,
++              defaultBranch: typeof body.defaultBranch === "string" ? body.defaultBranch : undefined,
++              confirmRemoteMutation: body.confirmRemoteMutation === true,
++              confirmPush: body.confirmPush === true,
++              deferMessage: typeof body.deferMessage === "string" ? body.deferMessage : undefined
++            });
++            writeJson(response, 200, { snapshot: await buildDashboardSnapshot(dashboardRoot), result });
++            return;
++          }
++
+           const projectSystemMatch = url.pathname.match(/^\/api\/dashboard\/projects\/([^/]+)\/system$/);
+           if (projectSystemMatch && request.method === "PATCH") {
+             const body = await readJsonBody(request);

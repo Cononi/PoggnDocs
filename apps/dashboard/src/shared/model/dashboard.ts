@@ -68,7 +68,19 @@ export type TopicFileEntry = {
   kind: "markdown" | "diff" | "text";
   updatedAt: string | null;
   size: number | null;
+  tokenEstimate: number | null;
+  localEstimatedTokens: number | null;
+  llmActualTokens: number | null;
+  tokenSource: "estimated" | "none";
+  content: string | null;
   editable: boolean;
+};
+
+export type TopicTokenUsage = {
+  total: number;
+  llmActualTokens: number | null;
+  localEstimatedTokens: number;
+  source: "estimated" | "none";
 };
 
 export type TopicSummary = {
@@ -103,6 +115,7 @@ export type TopicSummary = {
   userQuestionRecord: string[];
   historyEvents?: TopicHistoryEvent[];
   files: TopicFileEntry[];
+  tokenUsage: TopicTokenUsage;
 };
 
 export type TopicHistoryEvent = {
@@ -113,6 +126,9 @@ export type TopicHistoryEvent = {
   task?: string | null;
   summary?: string | null;
   source?: string | null;
+  commitTitle?: string | null;
+  commitHash?: string | null;
+  author?: string | null;
 };
 
 export type ProjectCategory = {
@@ -182,17 +198,54 @@ export type ProjectSnapshot = {
   latestTopicName: string | null;
   latestTopicStage: string | null;
   latestActivityAt: string | null;
+  files: TopicFileEntry[];
   activeTopics: TopicSummary[];
   archivedTopics: TopicSummary[];
+};
+
+export type ProjectGitSetupRequest = {
+  path: "local" | "fast" | "setup" | "defer";
+  provider?: "github" | "gitlab" | "unknown";
+  owner?: string;
+  repository?: string;
+  remoteUrl?: string;
+  authMethod?: "https-token" | "ssh" | "provider-cli" | "unknown";
+  visibility?: "private" | "public" | "unknown";
+  defaultBranch?: string;
+  confirmRemoteMutation?: boolean;
+  confirmPush?: boolean;
+  deferMessage?: string;
 };
 
 export type DashboardSnapshot = {
   generatedAt: string;
   currentProjectId: string | null;
   latestActiveProjectId: string | null;
+  globalUser: {
+    username: string | null;
+    configured: boolean;
+    source: string;
+  };
   categories: ProjectCategory[];
   recentActivity: DashboardRecentActivityEntry[];
   projects: ProjectSnapshot[];
+};
+
+export type ProjectFolderInspection = {
+  rootDir: string;
+  hasPggProject: boolean;
+  hasGitRepository: boolean;
+  globalUsernameConfigured: boolean;
+  username: string | null;
+};
+
+export type DashboardProjectInitRequest = {
+  provider?: "codex";
+  language?: "ko" | "en";
+  autoMode?: "on" | "off";
+  teamsMode?: "on" | "off";
+  gitMode?: "on" | "off";
+  gitSetup?: ProjectGitSetupRequest;
 };
 
 export type DashboardQueryResult = {
@@ -204,10 +257,6 @@ export type DashboardThemeMode = "light" | "dark";
 
 export type DashboardPrimaryMenu = "projects" | "settings";
 
-export type DashboardBottomNavigationValue = "home" | "projects" | "settings";
-
-export type DashboardSidebarItem = "category";
-
 export type DashboardDetailSection =
   | "main"
   | "history"
@@ -215,7 +264,7 @@ export type DashboardDetailSection =
   | "files"
   | "settings";
 
-export type DashboardSettingsView = "main" | "refresh" | "git" | "system";
+export type DashboardSettingsView = "main" | "refresh" | "category" | "git" | "system";
 
 export type DashboardWorkspaceFilterState = {
   bucket: "all" | "active" | "archive";
@@ -265,7 +314,6 @@ export type ArtifactSelection = {
 
 export type DashboardStore = {
   activeTopMenu: DashboardPrimaryMenu;
-  activeSidebarItem: DashboardSidebarItem;
   projectDetailOpen: boolean;
   activeDetailSection: DashboardDetailSection;
   activeSettingsView: DashboardSettingsView;
@@ -276,7 +324,6 @@ export type DashboardStore = {
   workspaceFilterState: DashboardWorkspaceFilterState;
   insightsRailOpen: boolean;
   setActiveTopMenu: (value: DashboardPrimaryMenu) => void;
-  setActiveSidebarItem: (value: DashboardSidebarItem) => void;
   setProjectDetailOpen: (value: boolean) => void;
   setActiveDetailSection: (value: DashboardDetailSection) => void;
   setActiveSettingsView: (value: DashboardSettingsView) => void;

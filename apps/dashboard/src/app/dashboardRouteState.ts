@@ -1,5 +1,4 @@
 import type {
-  DashboardBottomNavigationValue,
   DashboardDetailSection,
   DashboardPrimaryMenu,
   DashboardSettingsView
@@ -36,7 +35,7 @@ type DashboardRouteInput = {
 };
 
 const detailSections = new Set<DashboardDetailSection>(["main", "history", "report", "files", "settings"]);
-const settingsPanels = new Set<DashboardSettingsView>(["main", "refresh", "git", "system"]);
+const settingsPanels = new Set<DashboardSettingsView>(["main", "refresh", "category", "git", "system"]);
 const routeModals = new Set<Exclude<DashboardRouteModal, null>>(["project-selector", "add-project"]);
 
 export const defaultDashboardRouteState: DashboardRouteState = {
@@ -123,16 +122,6 @@ export function createDashboardRouteState(input: DashboardRouteInput): Dashboard
     insightsOpen: input.activeTopMenu === "projects" && input.insightsRailOpen,
     modal: input.projectDialogOpen ? "add-project" : input.projectSelectorOpen ? "project-selector" : null
   };
-}
-
-export function dashboardBottomNavigationValue(
-  activeTopMenu: DashboardPrimaryMenu,
-  activeRouteScreen: DashboardRouteScreen
-): DashboardBottomNavigationValue {
-  if (activeTopMenu === "settings") {
-    return "settings";
-  }
-  return activeRouteScreen === "home" ? "home" : "projects";
 }
 
 function resolveRouteScreen(

@@ -1,0 +1,23 @@
+diff --git a/apps/dashboard/src/features/backlog/InsightsRail.tsx b/apps/dashboard/src/features/backlog/InsightsRail.tsx
+index 80d8dc2..d75397b 100644
+--- a/apps/dashboard/src/features/backlog/InsightsRail.tsx
++++ b/apps/dashboard/src/features/backlog/InsightsRail.tsx
+@@ -1,6 +1,6 @@
+ import type { ReactNode } from "react";
+ import { alpha, useTheme, type Theme } from "@mui/material/styles";
+-import { Avatar, Box, Button, IconButton, Paper, Stack, Typography } from "@mui/material";
++import { Avatar, Box, IconButton, Paper, Stack, Typography } from "@mui/material";
+ import { BarChart, PieChart } from "@mui/x-charts";
+ import AutoGraphRounded from "@mui/icons-material/AutoGraphRounded";
+ import BarChartRounded from "@mui/icons-material/BarChartRounded";
+@@ -192,10 +192,6 @@ export function InsightsRail(props: InsightsRailProps) {
+         </RailPanel>
+       ) : null}
+ 
+-      <Button variant="outlined" onClick={props.onClose}>
+-        {props.dictionary.closeInsights}
+-      </Button>
+-
+       {!props.isLiveMode ? (
+         <Typography variant="caption" color="text.secondary">
+           {props.dictionary.readOnlyMode}

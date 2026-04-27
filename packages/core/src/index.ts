@@ -30,6 +30,7 @@ import { normalizeProjectVerification, resolveProjectVerification } from "./veri
 export const PGG_VERSION = "0.1.0";
 export const MANIFEST_RELATIVE_PATH = ".pgg/project.json";
 export const REGISTRY_RELATIVE_PATH = ".pgg/registry.json";
+export const USER_CONFIG_RELATIVE_PATH = ".pgg/user.json";
 
 export type PggLanguage = TemplateLanguage;
 export type PggAutoMode = TemplateAutoMode;
@@ -62,6 +63,17 @@ export interface ProjectGitConfig {
   visibility?: PggGitVisibility;
   defaultBranch?: string;
   setupMessage?: string;
+}
+
+export interface GlobalUserConfig {
+  username: string | null;
+  updatedAt: string | null;
+}
+
+export interface GlobalUserSnapshot {
+  username: string | null;
+  configured: boolean;
+  source: string;
 }
 
 export interface ManagedFileRecord {
@@ -101,6 +113,53 @@ export interface ProjectGitSetupInspection {
     gitlab: boolean;
   };
   message: string;
+}
+
+export type PggGitOnboardingPath = "local" | "fast" | "setup" | "defer";
+export type PggGitOnboardingStatus = "configured" | "deferred" | "failed" | "blocked";
+
+export interface GitCommandResult {
+  stdout: string;
+  stderr: string;
+  exitCode: number;
+}
+
+export type GitCommandRunner = (command: string, args: string[], options: { cwd: string }) => Promise<GitCommandResult>;
+
+export interface ProjectGitOnboardingRequest {
+  path: PggGitOnboardingPath;
+  provider?: PggGitProvider;
+  owner?: string;
+  repository?: string;
+  remoteUrl?: string;
+  authMethod?: PggGitAuthMethod;
+  visibility?: PggGitVisibility;
+  defaultBranch?: string;
+  initializeWithReadme?: boolean;
+  createRepository?: boolean;
+  confirmRemoteMutation?: boolean;
+  confirmPush?: boolean;
+  deferMessage?: string;
+}
+
+export interface ProjectGitOnboardingStep {
+  id: string;
+  status: "pending" | "success" | "failed" | "skipped";
+  message: string;
+}
+
+export interface ProjectGitOnboardingResult {
+  path: PggGitOnboardingPath;
+  status: PggGitOnboardingStatus;
+  setupStatus: PggGitSetupStatus;
+  provider: PggGitProvider | null;
+  owner: string | null;
+  repository: string | null;
+  remoteUrl: string | null;
+  authMethod: PggGitAuthMethod | null;
+  defaultBranch: string | null;
+  message: string;
+  steps: ProjectGitOnboardingStep[];
 }
 
 export interface RegistryProjectEntry {
@@ -195,6 +254,7 @@ export interface TopicSummary {
   userQuestionRecord: string[];
   historyEvents: TopicHistoryEvent[];
   files: TopicFileEntry[];
+  tokenUsage: TopicTokenUsage;
 }
 
 export interface TopicHistoryEvent {
@@ -205,6 +265,9 @@ export interface TopicHistoryEvent {
   task?: string | null;
   summary?: string | null;
   source?: string | null;
+  commitTitle?: string | null;
+  commitHash?: string | null;
+  author?: string | null;
 }
 
 export interface DashboardRecentActivityEntry {
@@ -244,7 +307,19 @@ export interface TopicFileEntry {
   kind: "markdown" | "diff" | "text";
   updatedAt: string | null;
   size: number | null;
+  tokenEstimate: number | null;
+  localEstimatedTokens: number | null;
+  llmActualTokens: number | null;
+  tokenSource: "estimated" | "none";
+  content: string | null;
   editable: boolean;
+}
+
+export interface TopicTokenUsage {
+  total: number;
+  llmActualTokens: number | null;
+  localEstimatedTokens: number;
+  source: "estimated" | "none";
 }
 
 export type TopicProgressStatus = "ready" | "in_progress" | "blocked" | "archive_ready";
@@ -357,6 +432,7 @@ export interface ProjectSnapshot {
   latestTopicName: string | null;
   latestTopicStage: string | null;
   latestActivityAt: string | null;
+  files: TopicFileEntry[];
   activeTopics: TopicSummary[];
   archivedTopics: TopicSummary[];
 }
@@ -365,6 +441,7 @@ export interface DashboardSnapshot {
   generatedAt: string;
   currentProjectId: string | null;
   latestActiveProjectId: string | null;
+  globalUser: GlobalUserSnapshot;
   categories: ProjectCategory[];
   recentActivity: DashboardRecentActivityEntry[];
   projects: ProjectSnapshot[];
@@ -391,6 +468,18 @@ export interface InitOptions {
   autoMode?: PggAutoMode;
   teamsMode?: PggTeamsMode;
   gitMode?: PggGitMode;
+}
+
+export interface DashboardProjectInitRequest extends InitOptions {
+  gitSetup?: ProjectGitOnboardingRequest;
+}
+
+export interface ProjectFolderInspection {
+  rootDir: string;
+  hasPggProject: boolean;
+  hasGitRepository: boolean;
+  globalUsernameConfigured: boolean;
+  username: string | null;
 }
 
 type TopicStageName = "proposal" | "plan" | "task" | "implementation" | "refactor" | "token" | "performance" | "qa";
@@ -746,6 +835,64 @@ function manifestPath(rootDir: string): string {
 
 function registryPath(): string {
   return path.join(process.env.PGG_HOME ?? process.env.HOME ?? os.homedir(), REGISTRY_RELATIVE_PATH);
+}
+
+function userConfigPath(): string {
+  return path.join(process.env.PGG_HOME ?? process.env.HOME ?? os.homedir(), USER_CONFIG_RELATIVE_PATH);
+}
+
+export function normalizeGlobalUsername(value: string): string {
+  const username = value.trim();
+  if (!username) {
+    throw new Error("Username is required. Run `pgg config username {name}` first.");
+  }
+  return username;
+}
+
+function normalizeGlobalUserConfig(config: Partial<GlobalUserConfig> | null | undefined): GlobalUserConfig {
+  const username = typeof config?.username === "string" && config.username.trim()
+    ? config.username.trim()
+    : null;
+  const updatedAt = typeof config?.updatedAt === "string" && config.updatedAt.trim()
+    ? config.updatedAt
+    : null;
+  return { username, updatedAt };
+}
+
+export async function loadGlobalUserConfig(): Promise<GlobalUserConfig> {
+  const raw = await readTextIfExists(userConfigPath());
+  if (!raw) {
+    return { username: null, updatedAt: null };
+  }
+
+  return normalizeGlobalUserConfig(JSON.parse(raw) as Partial<GlobalUserConfig>);
+}
+
+export async function readGlobalUser(): Promise<GlobalUserSnapshot> {
+  const config = await loadGlobalUserConfig();
+  const username = config.username;
+  return {
+    username,
+    configured: Boolean(username),
+    source: username ? userConfigPath() : "missing"
+  };
+}
+
+export async function updateGlobalUsername(username: string): Promise<GlobalUserSnapshot> {
+  const nextConfig: GlobalUserConfig = {
+    username: normalizeGlobalUsername(username),
+    updatedAt: nowIso()
+  };
+  await writeTextFile(userConfigPath(), `${JSON.stringify(nextConfig, null, 2)}\n`);
+  return readGlobalUser();
+}
+
+export async function assertGlobalUsernameConfigured(): Promise<GlobalUserSnapshot> {
+  const user = await readGlobalUser();
+  if (!user.configured) {
+    throw new Error("Username is required. Run `pgg config username {name}` first.");
+  }
+  return user;
 }
 
 function buildTemplateInput(manifest: ProjectManifest): TemplateInput {
@@ -1367,6 +1514,313 @@ export async function deferProjectGitSetup(rootDir: string, setupMessage: string
   }));
 }
 
+async function defaultGitCommandRunner(
+  command: string,
+  args: string[],
+  options: { cwd: string }
+): Promise<GitCommandResult> {
+  try {
+    const stdout = execFileSync(command, args, {
+      cwd: options.cwd,
+      encoding: "utf8",
+      stdio: ["ignore", "pipe", "pipe"]
+    });
+    return { stdout: stdout.trim(), stderr: "", exitCode: 0 };
+  } catch (error) {
+    const failure = error as { stdout?: Buffer | string; stderr?: Buffer | string; status?: number };
+    return {
+      stdout: Buffer.isBuffer(failure.stdout) ? failure.stdout.toString("utf8").trim() : String(failure.stdout ?? "").trim(),
+      stderr: Buffer.isBuffer(failure.stderr) ? failure.stderr.toString("utf8").trim() : String(failure.stderr ?? "").trim(),
+      exitCode: typeof failure.status === "number" ? failure.status : 1
+    };
+  }
+}
+
+function sanitizeGitOnboardingString(value: unknown): string | undefined {
+  return typeof value === "string" && value.trim() ? value.trim() : undefined;
+}
+
+function createRemoteUrl(input: {
+  provider: PggGitProvider;
+  owner: string;
+  repository: string;
+  authMethod: PggGitAuthMethod;
+}): string {
+  const host = input.provider === "gitlab" ? "gitlab.com" : "github.com";
+  const repoPath = `${input.owner}/${input.repository}`.replace(/^\/+|\/+$/g, "");
+  return input.authMethod === "ssh" ? `git@${host}:${repoPath}.git` : `https://${host}/${repoPath}.git`;
+}
+
+async function runGitStep(
+  steps: ProjectGitOnboardingStep[],
+  runner: GitCommandRunner,
+  rootDir: string,
+  id: string,
+  message: string,
+  command: string,
+  args: string[]
+): Promise<boolean> {
+  const result = await runner(command, args, { cwd: rootDir });
+  const ok = result.exitCode === 0;
+  steps.push({
+    id,
+    status: ok ? "success" : "failed",
+    message: ok ? message : `${message} failed${result.stderr ? `: ${result.stderr}` : ""}`
+  });
+  return ok;
+}
+
+function createGitOnboardingResult(input: {
+  path: PggGitOnboardingPath;
+  status: PggGitOnboardingStatus;
+  setupStatus: PggGitSetupStatus;
+  message: string;
+  steps: ProjectGitOnboardingStep[];
+  provider?: PggGitProvider | null;
+  owner?: string | null;
+  repository?: string | null;
+  remoteUrl?: string | null;
+  authMethod?: PggGitAuthMethod | null;
+  defaultBranch?: string | null;
+}): ProjectGitOnboardingResult {
+  return {
+    path: input.path,
+    status: input.status,
+    setupStatus: input.setupStatus,
+    provider: input.provider ?? null,
+    owner: input.owner ?? null,
+    repository: input.repository ?? null,
+    remoteUrl: input.remoteUrl ?? null,
+    authMethod: input.authMethod ?? null,
+    defaultBranch: input.defaultBranch ?? null,
+    message: input.message,
+    steps: input.steps
+  };
+}
+
+async function completeGitOnboarding(
+  rootDir: string,
+  request: ProjectGitOnboardingRequest,
+  detected: ProjectGitConfig,
+  steps: ProjectGitOnboardingStep[],
+  message: string
+): Promise<ProjectGitOnboardingResult> {
+  const parsed = request.remoteUrl ? parseGitRemoteUrl(request.remoteUrl) : null;
+  const provider = normalizeGitProvider(request.provider) ?? parsed?.provider ?? detected.provider ?? "unknown";
+  const owner = sanitizeGitOnboardingString(request.owner) ?? parsed?.owner ?? detected.owner ?? null;
+  const repository = sanitizeGitOnboardingString(request.repository) ?? parsed?.repository ?? detected.repository ?? null;
+  const authMethod = normalizeGitAuthMethod(request.authMethod) ?? detected.authMethod ?? "unknown";
+  const remoteUrl = sanitizeGitOnboardingString(request.remoteUrl) ?? detected.remoteUrl ?? null;
+  const defaultBranch = sanitizeGitOnboardingString(request.defaultBranch) ?? detected.defaultBranch ?? "main";
+  const visibility = normalizeGitVisibility(request.visibility) ?? detected.visibility;
+
+  const connectionUpdates: Parameters<typeof updateProjectGitConnection>[1] = {
+    provider,
+    authMethod,
+    defaultBranch,
+    setupStatus: "configured",
+    setupMessage: message
+  };
+  if (owner) connectionUpdates.owner = owner;
+  if (repository) connectionUpdates.repository = repository;
+  if (remoteUrl) connectionUpdates.remoteUrl = remoteUrl;
+  if (visibility) connectionUpdates.visibility = visibility;
+
+  await updateProjectGitConnection(rootDir, connectionUpdates);
+
+  return createGitOnboardingResult({
+    path: request.path,
+    status: "configured",
+    setupStatus: "configured",
+    provider,
+    owner,
+    repository,
+    remoteUrl,
+    authMethod,
+    defaultBranch,
+    message,
+    steps
+  });
+}
+
+export async function runProjectGitOnboarding(
+  rootDir: string,
+  request: ProjectGitOnboardingRequest,
+  runner: GitCommandRunner = defaultGitCommandRunner
+): Promise<ProjectGitOnboardingResult> {
+  const inspection = await inspectProjectGitSetup(rootDir);
+  const steps: ProjectGitOnboardingStep[] = [];
+
+  if (request.path === "defer") {
+    const message = request.deferMessage?.trim() || "Git setup was deferred and can be completed later.";
+    await deferProjectGitSetup(rootDir, message);
+    steps.push({ id: "defer", status: "success", message });
+    return createGitOnboardingResult({
+      path: "defer",
+      status: "deferred",
+      setupStatus: "deferred",
+      provider: inspection.git.provider ?? null,
+      owner: inspection.git.owner ?? null,
+      repository: inspection.git.repository ?? null,
+      remoteUrl: inspection.git.remoteUrl ?? null,
+      authMethod: inspection.git.authMethod ?? null,
+      defaultBranch: inspection.git.defaultBranch ?? null,
+      message,
+      steps
+    });
+  }
+
+  if (request.path === "local") {
+    if (!inspection.hasGitRepository) {
+      const initialized = await runGitStep(steps, runner, rootDir, "git-init", "Initialized local Git repository.", "git", ["init"]);
+      if (!initialized) {
+        return createGitOnboardingResult({
+          path: "local",
+          status: "failed",
+          setupStatus: "failed",
+          message: "Local Git initialization failed.",
+          steps
+        });
+      }
+    } else {
+      steps.push({ id: "git-init", status: "skipped", message: "Local Git repository already exists." });
+    }
+
+    await updateProjectGitConnection(rootDir, {
+      provider: "unknown",
+      authMethod: "unknown",
+      setupStatus: "configured",
+      setupMessage: "Configured local Git repository without a remote.",
+      defaultBranch: request.defaultBranch ?? inspection.git.defaultBranch ?? "main"
+    });
+    return createGitOnboardingResult({
+      path: "local",
+      status: "configured",
+      setupStatus: "configured",
+      provider: "unknown",
+      owner: null,
+      repository: null,
+      remoteUrl: null,
+      authMethod: "unknown",
+      defaultBranch: request.defaultBranch ?? inspection.git.defaultBranch ?? "main",
+      message: "Configured local Git repository without a remote.",
+      steps
+    });
+  }
+
+  if (request.path === "fast" && !inspection.parsedRemote && !request.remoteUrl) {
+    steps.push({ id: "detect-remote", status: "failed", message: "FAST PATH requires an existing or provided remote URL." });
+    return createGitOnboardingResult({
+      path: "fast",
+      status: "failed",
+      setupStatus: "failed",
+      message: "FAST PATH requires an existing or provided remote URL.",
+      steps
+    });
+  }
+
+  if ((request.path === "fast" || request.path === "setup") && !request.confirmRemoteMutation) {
+    steps.push({ id: "confirm", status: "pending", message: "Remote setup requires confirmation before changing git state." });
+    return createGitOnboardingResult({
+      path: request.path,
+      status: "blocked",
+      setupStatus: inspection.git.setupStatus,
+      provider: inspection.git.provider ?? null,
+      owner: inspection.git.owner ?? null,
+      repository: inspection.git.repository ?? null,
+      remoteUrl: inspection.git.remoteUrl ?? null,
+      authMethod: inspection.git.authMethod ?? null,
+      defaultBranch: inspection.git.defaultBranch ?? null,
+      message: "Remote setup requires confirmation before changing git state.",
+      steps
+    });
+  }
+
+  const provider = normalizeGitProvider(request.provider) ?? inspection.parsedRemote?.provider ?? "github";
+  const owner = sanitizeGitOnboardingString(request.owner) ?? inspection.parsedRemote?.owner;
+  const repository = sanitizeGitOnboardingString(request.repository) ?? inspection.parsedRemote?.repository;
+  const authMethod = normalizeGitAuthMethod(request.authMethod) ?? "ssh";
+  const defaultBranch = sanitizeGitOnboardingString(request.defaultBranch) ?? inspection.git.defaultBranch ?? "main";
+  const remoteUrl =
+    sanitizeGitOnboardingString(request.remoteUrl) ??
+    inspection.git.remoteUrl ??
+    (owner && repository ? createRemoteUrl({ provider, owner, repository, authMethod }) : undefined);
+
+  if (!remoteUrl || !owner || !repository) {
+    steps.push({ id: "repository", status: "failed", message: "Provider, owner, repository, and remote URL are required." });
+    return createGitOnboardingResult({
+      path: request.path,
+      status: "failed",
+      setupStatus: "failed",
+      provider,
+      owner: owner ?? null,
+      repository: repository ?? null,
+      remoteUrl: remoteUrl ?? null,
+      authMethod,
+      defaultBranch,
+      message: "Provider, owner, repository, and remote URL are required.",
+      steps
+    });
+  }
+
+  if (!inspection.hasGitRepository) {
+    const initialized = await runGitStep(steps, runner, rootDir, "git-init", "Initialized local Git repository.", "git", ["init"]);
+    if (!initialized) {
+      return createGitOnboardingResult({ path: request.path, status: "failed", setupStatus: "failed", provider, owner, repository, remoteUrl, authMethod, defaultBranch, message: "Git initialization failed.", steps });
+    }
+  } else {
+    steps.push({ id: "git-init", status: "skipped", message: "Local Git repository already exists." });
+  }
+
+  if (request.path === "setup") {
+    const remoteAction = inspection.git.remoteUrl ? "set-url" : "add";
+    const remoteArgs = remoteAction === "set-url" ? ["remote", "set-url", inspection.git.defaultRemote, remoteUrl] : ["remote", "add", inspection.git.defaultRemote, remoteUrl];
+    const remoteConfigured = await runGitStep(steps, runner, rootDir, "remote", `Configured remote '${inspection.git.defaultRemote}'.`, "git", remoteArgs);
+    if (!remoteConfigured) {
+      return createGitOnboardingResult({ path: request.path, status: "failed", setupStatus: "failed", provider, owner, repository, remoteUrl, authMethod, defaultBranch, message: "Remote configuration failed.", steps });
+    }
+  } else {
+    steps.push({ id: "remote", status: "success", message: `Using detected remote '${inspection.git.defaultRemote}'.` });
+  }
+
+  const authOk = authMethod === "provider-cli"
+    ? await runGitStep(steps, runner, rootDir, "auth", `Checked ${provider === "gitlab" ? "glab" : "gh"} authentication.`, provider === "gitlab" ? "glab" : "gh", ["auth", "status"])
+    : await runGitStep(steps, runner, rootDir, "auth", "Checked remote access.", "git", ["ls-remote", remoteUrl, "HEAD"]);
+  if (!authOk) {
+    return createGitOnboardingResult({ path: request.path, status: "failed", setupStatus: "failed", provider, owner, repository, remoteUrl, authMethod, defaultBranch, message: "Git authentication or remote access check failed.", steps });
+  }
+
+  const branchOk = await runGitStep(steps, runner, rootDir, "branch", `Selected default branch '${defaultBranch}'.`, "git", ["branch", "-M", defaultBranch]);
+  if (!branchOk) {
+    return createGitOnboardingResult({ path: request.path, status: "failed", setupStatus: "failed", provider, owner, repository, remoteUrl, authMethod, defaultBranch, message: "Default branch selection failed.", steps });
+  }
+
+  if (request.confirmPush) {
+    const pushOk = await runGitStep(steps, runner, rootDir, "push", `Pushed '${defaultBranch}' to '${inspection.git.defaultRemote}'.`, "git", ["push", "-u", inspection.git.defaultRemote, defaultBranch]);
+    if (!pushOk) {
+      return createGitOnboardingResult({ path: request.path, status: "failed", setupStatus: "failed", provider, owner, repository, remoteUrl, authMethod, defaultBranch, message: "Git push failed.", steps });
+    }
+  } else {
+    steps.push({ id: "push", status: "skipped", message: "Push was skipped because it was not confirmed." });
+  }
+
+  return completeGitOnboarding(
+    rootDir,
+    {
+      ...request,
+      provider,
+      owner,
+      repository,
+      remoteUrl,
+      authMethod,
+      defaultBranch
+    },
+    inspection.git,
+    steps,
+    request.confirmPush ? "Git repository connection completed." : "Git repository connection configured; push was skipped."
+  );
+}
+
 export async function updateProjectGitConnection(
   rootDir: string,
   updates: Partial<Pick<
@@ -1675,6 +2129,44 @@ export async function registerExistingProject(rootDir: string): Promise<GlobalRe
     throw new Error("Target project is not initialized. Run `pgg init` there first.");
   }
 
+  return registerProject(manifest);
+}
+
+export async function inspectProjectFolder(rootDir: string): Promise<ProjectFolderInspection> {
+  const user = await readGlobalUser();
+  return {
+    rootDir,
+    hasPggProject: Boolean(await loadProjectManifest(rootDir)),
+    hasGitRepository: existsSync(path.join(rootDir, ".git")),
+    globalUsernameConfigured: user.configured,
+    username: user.username
+  };
+}
+
+export async function initializeDashboardProject(
+  rootDir: string,
+  request: DashboardProjectInitRequest = {}
+): Promise<GlobalRegistry> {
+  await assertGlobalUsernameConfigured();
+  const existing = await loadProjectManifest(rootDir);
+  if (!existing) {
+    await initializeProject(rootDir, {
+      provider: request.provider ?? "codex",
+      language: request.language ?? "ko",
+      autoMode: request.autoMode ?? "on",
+      teamsMode: request.teamsMode ?? "off",
+      gitMode: request.gitMode ?? "off"
+    });
+  }
+
+  if (request.gitSetup) {
+    await runProjectGitOnboarding(rootDir, request.gitSetup);
+  }
+
+  const manifest = await loadProjectManifest(rootDir);
+  if (!manifest) {
+    throw new Error("Project initialization did not create a manifest.");
+  }
   return registerProject(manifest);
 }
 
@@ -2257,7 +2749,10 @@ function parseTopicHistoryEvents(raw: string | null): TopicHistoryEvent[] {
             flow: typeof parsed.flow === "string" ? parsed.flow : null,
             task: typeof parsed.task === "string" ? parsed.task : null,
             summary: typeof parsed.summary === "string" ? parsed.summary : null,
-            source: typeof parsed.source === "string" ? parsed.source : null
+            source: typeof parsed.source === "string" ? parsed.source : null,
+            commitTitle: typeof parsed.commitTitle === "string" ? parsed.commitTitle : null,
+            commitHash: typeof parsed.commitHash === "string" ? parsed.commitHash : null,
+            author: typeof parsed.author === "string" ? parsed.author : null
           }
         ];
       } catch {
@@ -2444,6 +2939,108 @@ function resolveTopicFileKind(absolutePath: string): TopicFileEntry["kind"] {
   return "text";
 }
 
+const projectFileIgnoredDirectories = new Set([
+  ".git",
+  "node_modules",
+  "dist",
+  "coverage",
+  ".turbo",
+  ".next",
+  ".cache"
+]);
+
+const projectTextExtensions = new Set([
+  ".cjs",
+  ".css",
+  ".html",
+  ".js",
+  ".json",
+  ".jsx",
+  ".md",
+  ".mjs",
+  ".sh",
+  ".toml",
+  ".ts",
+  ".tsx",
+  ".txt",
+  ".yaml",
+  ".yml"
+]);
+
+function isProjectTextFile(absolutePath: string): boolean {
+  const extension = path.extname(absolutePath).toLowerCase();
+  return extension === ".diff" || projectTextExtensions.has(extension);
+}
+
+function estimateTokensFromText(value: string): number {
+  return Math.ceil(Array.from(value).length / 4);
+}
+
+async function collectProjectFiles(rootDir: string, currentDir = rootDir): Promise<string[]> {
+  const entries = await readdir(currentDir, { withFileTypes: true }).catch(() => []);
+  const files: string[] = [];
+
+  for (const entry of entries) {
+    if (entry.name === ".DS_Store") {
+      continue;
+    }
+
+    const absolutePath = path.join(currentDir, entry.name);
+    if (entry.isDirectory()) {
+      if (projectFileIgnoredDirectories.has(entry.name)) {
+        continue;
+      }
+      files.push(...(await collectProjectFiles(rootDir, absolutePath)));
+      continue;
+    }
+
+    if (entry.isFile()) {
+      files.push(absolutePath);
+    }
+  }
+
+  return files;
+}
+
+async function readProjectFileContentForSnapshot(absolutePath: string): Promise<string | null> {
+  if (!isProjectTextFile(absolutePath)) {
+    return null;
+  }
+  const fileStat = await stat(absolutePath).catch(() => null);
+  if (fileStat && fileStat.size > 200_000) {
+    return null;
+  }
+  return readTextIfExists(absolutePath);
+}
+
+async function listProjectFiles(rootDir: string): Promise<TopicFileEntry[]> {
+  const files = await collectProjectFiles(rootDir);
+  const entries = await Promise.all(
+    files.map(async (absolutePath) => {
+      const fileStat = await stat(absolutePath).catch(() => null);
+      const relativePath = toRelativePath(rootDir, absolutePath);
+      const content = await readProjectFileContentForSnapshot(absolutePath);
+      const tokenEstimate = content === null ? null : estimateTokensFromText(content);
+
+      return {
+        relativePath,
+        sourcePath: relativePath,
+        kind: resolveTopicFileKind(absolutePath),
+        updatedAt: fileStat?.mtime.toISOString() ?? null,
+        size: fileStat?.size ?? null,
+        tokenEstimate,
+        localEstimatedTokens: tokenEstimate,
+        llmActualTokens: null,
+        tokenSource: tokenEstimate === null ? "none" : "estimated",
+        content,
+        editable: isProjectTextFile(absolutePath)
+      } satisfies TopicFileEntry;
+    })
+  );
+
+  return entries.sort((left, right) => left.relativePath.localeCompare(right.relativePath));
+}
+
 async function listTopicFiles(
   rootDir: string,
   topicDir: string,
@@ -2456,6 +3053,8 @@ async function listTopicFiles(
     files.map(async (absolutePath) => {
       const fileStat = await stat(absolutePath).catch(() => null);
       const relativePath = toRelativePath(topicDir, absolutePath);
+      const content = await readTextIfExists(absolutePath);
+      const tokenEstimate = content === null ? null : estimateTokensFromText(content);
 
       return {
         relativePath,
@@ -2463,12 +3062,27 @@ async function listTopicFiles(
         kind: resolveTopicFileKind(absolutePath),
         updatedAt: fileStat?.mtime.toISOString() ?? null,
         size: fileStat?.size ?? null,
+        tokenEstimate,
+        localEstimatedTokens: tokenEstimate,
+        llmActualTokens: null,
+        tokenSource: tokenEstimate === null ? "none" : "estimated",
+        content,
         editable: true
       } satisfies TopicFileEntry;
     })
   );
 
   return entries.sort((left, right) => left.relativePath.localeCompare(right.relativePath));
+}
+
+function summarizeTopicTokenUsage(files: TopicFileEntry[]): TopicTokenUsage {
+  const total = files.reduce((sum, file) => sum + (file.tokenEstimate ?? 0), 0);
+  return {
+    total,
+    llmActualTokens: null,
+    localEstimatedTokens: total,
+    source: total > 0 ? "estimated" : "none"
+  };
 }
 
 function deriveTopicUpdatedAt(artifactSummary: TopicArtifactSummary, archivedAt: string | null): string | null {
@@ -2507,6 +3121,7 @@ async function listTopicSummaries(rootDir: string, bucket: "active" | "archive")
     const artifactSummary = await readTopicArtifactSummary(topicDir);
     const userQuestionRecord = parseUserQuestionRecord(proposalMarkdown);
     const files = await listTopicFiles(rootDir, topicDir, bucket, entry.name);
+    const tokenUsage = summarizeTopicTokenUsage(files);
     const updatedAt = deriveTopicUpdatedAt(artifactSummary, release.archivedAt);
     const stage = stateMarkdown ? parseMarkdownSection(stateMarkdown, "Current Stage") : parseKeyValue(proposalMarkdown ?? "", "stage");
     const goal = stateMarkdown ? parseMarkdownSection(stateMarkdown, "Goal") : null;
@@ -2551,7 +3166,8 @@ async function listTopicSummaries(rootDir: string, bucket: "active" | "archive")
       health: stateMarkdown && workflow ? "ok" : "partial",
       userQuestionRecord,
       historyEvents,
-      files
+      files,
+      tokenUsage
     });
   }
 
@@ -2737,6 +3353,7 @@ export async function analyzeProject(rootDir: string, registered = false): Promi
       latestTopicName: null,
       latestTopicStage: null,
       latestActivityAt: null,
+      files: [],
       activeTopics: [],
       archivedTopics: []
     };
@@ -2747,6 +3364,7 @@ export async function analyzeProject(rootDir: string, registered = false): Promi
   const projectVersion = await readProjectVersion(rootDir);
   const activeTopics = await listTopicSummaries(rootDir, "active");
   const archivedTopics = await listTopicSummaries(rootDir, "archive");
+  const files = await listProjectFiles(rootDir);
   const verification = resolveProjectVerification(rootDir, manifest?.verification);
   const latestTopic = [...activeTopics, ...archivedTopics]
     .filter((topic) => topic.updatedAt)
@@ -2795,6 +3413,7 @@ export async function analyzeProject(rootDir: string, registered = false): Promi
     latestTopicName: latestTopic?.name ?? null,
     latestTopicStage: latestTopic?.stage ?? null,
     latestActivityAt: latestTopic?.updatedAt ?? null,
+    files,
     activeTopics,
     archivedTopics
   };
@@ -2845,6 +3464,7 @@ function buildRecentActivity(projects: ProjectSnapshot[]): DashboardRecentActivi
 
 export async function buildDashboardSnapshot(currentRootDir: string): Promise<DashboardSnapshot> {
   const registry = await loadPersistedGlobalRegistry();
+  const globalUser = await readGlobalUser();
   const dedupedPaths = new Map<string, boolean>();
   dedupedPaths.set(currentRootDir, registry.projects.some((entry) => entry.rootDir === currentRootDir));
   for (const entry of registry.projects) {
@@ -2878,6 +3498,7 @@ export async function buildDashboardSnapshot(currentRootDir: string): Promise<Da
     generatedAt: nowIso(),
     currentProjectId: currentProject?.id ?? null,
     latestActiveProjectId,
+    globalUser,
     categories,
     recentActivity,
     projects: projectsWithCategories
@@ -2906,6 +3527,42 @@ function normalizeTopicRelativeFilePath(relativePath: string): string {
   return normalized;
 }
 
+function normalizeProjectRelativeFilePath(relativePath: string): string {
+  const trimmed = relativePath.trim();
+  if (!trimmed) {
+    throw new Error("A project-relative file path is required.");
+  }
+
+  if (path.isAbsolute(trimmed)) {
+    throw new Error("Absolute paths are not allowed.");
+  }
+
+  const normalized = path.posix.normalize(trimmed.replace(/\\/g, "/"));
+  if (!normalized || normalized === "." || normalized.startsWith("../") || normalized.includes("/../")) {
+    throw new Error("The file path must stay inside the project directory.");
+  }
+
+  return normalized;
+}
+
+function resolveProjectFilePath(
+  rootDir: string,
+  relativePath: string
+): { absolutePath: string; normalizedRelativePath: string } {
+  const projectDir = path.resolve(rootDir);
+  const normalizedRelativePath = normalizeProjectRelativeFilePath(relativePath);
+  const absolutePath = path.resolve(projectDir, normalizedRelativePath);
+
+  if (!absolutePath.startsWith(`${projectDir}${path.sep}`) && absolutePath !== projectDir) {
+    throw new Error("The file path must stay inside the project directory.");
+  }
+
+  return {
+    absolutePath,
+    normalizedRelativePath
+  };
+}
+
 function resolveTopicFilePath(
   rootDir: string,
   bucket: "active" | "archive",
@@ -2923,6 +3580,35 @@ function resolveTopicFilePath(
   return {
     absolutePath,
     normalizedRelativePath
+  };
+}
+
+export async function readProjectFileDetail(
+  rootDir: string,
+  relativePath: string
+): Promise<WorkflowDetailPayload> {
+  const { absolutePath, normalizedRelativePath } = resolveProjectFilePath(rootDir, relativePath);
+  if (!isProjectTextFile(absolutePath)) {
+    throw new Error(`Project file '${normalizedRelativePath}' is not a text file.`);
+  }
+
+  const content = await readTextIfExists(absolutePath);
+  if (content === null) {
+    throw new Error(`Project file '${normalizedRelativePath}' was not found.`);
+  }
+
+  const fileStat = await stat(absolutePath).catch(() => null);
+  const kind = resolveTopicFileKind(absolutePath);
+  const contentType =
+    kind === "diff" ? "text/x-diff" : kind === "markdown" ? "text/markdown" : "text/plain";
+
+  return {
+    kind,
+    title: path.basename(absolutePath),
+    sourcePath: normalizedRelativePath,
+    content,
+    contentType,
+    updatedAt: fileStat?.mtime.toISOString() ?? null
   };
 }
 
@@ -2970,6 +3656,25 @@ export async function updateTopicFile(
   return readTopicFileDetail(rootDir, bucket, topic, normalizedRelativePath);
 }
 
+export async function updateProjectFile(
+  rootDir: string,
+  relativePath: string,
+  content: string
+): Promise<WorkflowDetailPayload> {
+  const { absolutePath, normalizedRelativePath } = resolveProjectFilePath(rootDir, relativePath);
+  if (!isProjectTextFile(absolutePath)) {
+    throw new Error(`Project file '${normalizedRelativePath}' is not a text file.`);
+  }
+
+  const current = await readTextIfExists(absolutePath);
+  if (current === null) {
+    throw new Error(`Project file '${normalizedRelativePath}' was not found.`);
+  }
+
+  await writeTextFile(absolutePath, content);
+  return readProjectFileDetail(rootDir, normalizedRelativePath);
+}
+
 export async function deleteTopicFile(
   rootDir: string,
   bucket: "active" | "archive",
@@ -2980,6 +3685,23 @@ export async function deleteTopicFile(
   const current = await readTextIfExists(absolutePath);
   if (current === null) {
     throw new Error(`Topic file '${normalizedRelativePath}' was not found.`);
+  }
+
+  await rm(absolutePath, { force: true });
+}
+
+export async function deleteProjectFile(
+  rootDir: string,
+  relativePath: string
+): Promise<void> {
+  const { absolutePath, normalizedRelativePath } = resolveProjectFilePath(rootDir, relativePath);
+  if (!isProjectTextFile(absolutePath)) {
+    throw new Error(`Project file '${normalizedRelativePath}' is not a text file.`);
+  }
+
+  const current = await readTextIfExists(absolutePath);
+  if (current === null) {
+    throw new Error(`Project file '${normalizedRelativePath}' was not found.`);
   }
 
   await rm(absolutePath, { force: true });

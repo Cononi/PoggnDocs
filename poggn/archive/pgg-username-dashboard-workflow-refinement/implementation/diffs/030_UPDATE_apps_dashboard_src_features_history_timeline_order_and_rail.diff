@@ -1,0 +1,86 @@
+diff --git a/apps/dashboard/src/features/history/HistoryWorkspace.tsx b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
+index af789cd..b399266 100644
+--- a/apps/dashboard/src/features/history/HistoryWorkspace.tsx
++++ b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
+@@ -1246,6 +1246,7 @@ function TimelineMilestone(props: {
+   const theme = useTheme();
+   const accent = theme.palette.success.main;
+   const accentLight = theme.palette.success.light;
++  const nodeBackground = theme.palette.mode === "dark" ? "#071428" : theme.palette.background.paper;
+ 
+   return (
+     <Box
+@@ -1262,12 +1263,13 @@ function TimelineMilestone(props: {
+           <Box
+             sx={{
+               position: "absolute",
+-              top: 34,
+-              bottom: -24,
++              top: 46,
++              bottom: -18,
+               width: 3,
+               borderRadius: 999,
+               bgcolor: accent,
+-              boxShadow: `0 0 12px ${alpha(accent, 0.42)}`
++              boxShadow: `0 0 12px ${alpha(accent, 0.42)}`,
++              zIndex: 0
+             }}
+           />
+         ) : null}
+@@ -1279,11 +1281,11 @@ function TimelineMilestone(props: {
+             display: "grid",
+             placeItems: "center",
+             color: "#fff",
+-            bgcolor: alpha(accent, 0.18),
++            bgcolor: nodeBackground,
+             border: `2px solid ${alpha(accentLight, 0.9)}`,
+             boxShadow: `0 0 0 4px ${alpha(accent, 0.16)}, 0 0 22px ${alpha(accent, 0.46)}`,
+             position: "relative",
+-            zIndex: 1
++            zIndex: 2
+           }}
+         >
+           <CheckRounded fontSize="small" sx={{ color: accent }} />
+diff --git a/apps/dashboard/src/features/history/historyModel.ts b/apps/dashboard/src/features/history/historyModel.ts
+index afe2729..ea2e6fd 100644
+--- a/apps/dashboard/src/features/history/historyModel.ts
++++ b/apps/dashboard/src/features/history/historyModel.ts
+@@ -1048,20 +1048,25 @@ export function buildTimelineRows(
+         }));
+ 
+       return {
+-        id: flow.id,
+-        step: workflowFlowLabel(flow.id, dictionary),
+-        llmActualTokens: sumNullableTokens(files.map((file) => file.llmActualTokens)),
+-        localEstimatedTokens: files.reduce((sum, file) => sum + file.localEstimatedTokens, 0),
+-        tone: flow.id === "qa" || flow.id === "done" ? "success" : flow.optional ? "warning" : "primary",
+-        completedBy: username,
+-        time: formatDateValue(updatedAt.value, language, fallbackTime),
+-        dateLabel: formatTimelineDateLine(updatedAt.value, language, fallbackTime),
+-        timeLabel: formatTimelineTimeLine(updatedAt.value, language),
+-        duration: updatedAt.source ?? "recorded",
+-        files,
+-        commits
++        sortTime: timestampMillis(updatedAt.value) ?? 0,
++        row: {
++          id: flow.id,
++          step: workflowFlowLabel(flow.id, dictionary),
++          llmActualTokens: sumNullableTokens(files.map((file) => file.llmActualTokens)),
++          localEstimatedTokens: files.reduce((sum, file) => sum + file.localEstimatedTokens, 0),
++          tone: flow.id === "qa" || flow.id === "done" ? "success" : flow.optional ? "warning" : "primary",
++          completedBy: username,
++          time: formatDateValue(updatedAt.value, language, fallbackTime),
++          dateLabel: formatTimelineDateLine(updatedAt.value, language, fallbackTime),
++          timeLabel: formatTimelineTimeLine(updatedAt.value, language),
++          duration: updatedAt.source ?? "recorded",
++          files,
++          commits
++        }
+       };
+-    });
++    })
++    .sort((left, right) => right.sortTime - left.sortTime)
++    .map((entry) => entry.row);
+ }
+ 
+ function formatTimelineDateLine(value: string | null, language: HistoryLanguage, fallback: string): string {

@@ -1,0 +1,15 @@
+diff --git a/package.json b/package.json
+index 91944c5..1a3a30e 100644
+--- a/package.json
++++ b/package.json
+@@ -10,8 +10,9 @@
+     "build:readme": "pnpm --filter @pgg/core build && node --input-type=module -e \"import('./packages/core/dist/readme.js').then(({ writeRootReadme }) => writeRootReadme(process.cwd()))\"",
+     "dev:dashboard": "pnpm --filter @pgg/dashboard dev",
+     "build:dashboard": "pnpm --filter @pgg/dashboard build",
+-    "test": "pnpm test:core",
++    "test": "pnpm test:core && pnpm test:dashboard",
+     "test:core": "pnpm --filter @pgg/core test",
++    "test:dashboard": "node --test scripts/dashboard-history-model.test.mjs",
+     "verify:version-history": "node scripts/verify-version-history-preservation.mjs"
+   },
+   "bin": {

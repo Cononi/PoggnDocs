@@ -1,0 +1,14 @@
+{
+  "topic": "dashboard-language-ux-settings-overhaul",
+  "changeType": "feat",
+  "versionBump": "minor",
+  "version": "2.7.0",
+  "targetVersion": "2.7.0",
+  "previousVersion": "2.6.1",
+  "shortName": "dashboard-overhaul",
+  "workingBranch": "ai/feat/2.7.0-dashboard-overhaul",
+  "releaseBranch": "release/2.7.0-dashboard-overhaul",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-27T12:40:41Z",
+  "history": "poggn/version-history.ndjson"
+}

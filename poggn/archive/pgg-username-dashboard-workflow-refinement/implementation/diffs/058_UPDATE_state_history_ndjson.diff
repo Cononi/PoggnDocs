@@ -1,0 +1,6 @@
+*** Begin Patch
+*** Update File: poggn/active/pgg-username-dashboard-workflow-refinement/state/history.ndjson
+@@
+{"ts":"2026-04-27T14:52:14Z","stage":"refactor","event":"stage-progress","source":"pgg-refactor","summary":"history file change-kind and local token estimate extraction shared between model and history workspace"}
++{"ts":"2026-04-27T14:55:00Z","stage":"qa","event":"stage-started","source":"pgg-qa"}
++{"ts":"2026-04-27T14:56:10Z","stage":"qa","event":"stage-progress","source":"pgg-qa","summary":"required audits started; pgg-token and pgg-performance required applicability confirmed and reports created; reference parity manual visual evidence remains pending"}

@@ -1,0 +1,73 @@
+diff --git a/apps/dashboard/src/shared/model/dashboard.ts b/apps/dashboard/src/shared/model/dashboard.ts
+index d15675f..9726c49 100644
+--- a/apps/dashboard/src/shared/model/dashboard.ts
++++ b/apps/dashboard/src/shared/model/dashboard.ts
+@@ -68,9 +68,16 @@ export type TopicFileEntry = {
+   kind: "markdown" | "diff" | "text";
+   updatedAt: string | null;
+   size: number | null;
++  tokenEstimate: number | null;
++  tokenSource: "estimated" | "none";
+   editable: boolean;
+ };
+ 
++export type TopicTokenUsage = {
++  total: number;
++  source: "estimated" | "none";
++};
++
+ export type TopicSummary = {
+   name: string;
+   bucket: "active" | "archive";
+@@ -103,6 +110,7 @@ export type TopicSummary = {
+   userQuestionRecord: string[];
+   historyEvents?: TopicHistoryEvent[];
+   files: TopicFileEntry[];
++  tokenUsage: TopicTokenUsage;
+ };
+ 
+ export type TopicHistoryEvent = {
+@@ -113,6 +121,9 @@ export type TopicHistoryEvent = {
+   task?: string | null;
+   summary?: string | null;
+   source?: string | null;
++  commitTitle?: string | null;
++  commitHash?: string | null;
++  author?: string | null;
+ };
+ 
+ export type ProjectCategory = {
+@@ -204,11 +215,33 @@ export type DashboardSnapshot = {
+   generatedAt: string;
+   currentProjectId: string | null;
+   latestActiveProjectId: string | null;
++  globalUser: {
++    username: string | null;
++    configured: boolean;
++    source: string;
++  };
+   categories: ProjectCategory[];
+   recentActivity: DashboardRecentActivityEntry[];
+   projects: ProjectSnapshot[];
+ };
+ 
++export type ProjectFolderInspection = {
++  rootDir: string;
++  hasPggProject: boolean;
++  hasGitRepository: boolean;
++  globalUsernameConfigured: boolean;
++  username: string | null;
++};
++
++export type DashboardProjectInitRequest = {
++  provider?: "codex";
++  language?: "ko" | "en";
++  autoMode?: "on" | "off";
++  teamsMode?: "on" | "off";
++  gitMode?: "on" | "off";
++  gitSetup?: ProjectGitSetupRequest;
++};
++
+ export type DashboardQueryResult = {
+   snapshot: DashboardSnapshot;
+   source: "live" | "static";

@@ -27,13 +27,10 @@ import DescriptionRounded from "@mui/icons-material/DescriptionRounded";
 import DifferenceRounded from "@mui/icons-material/DifferenceRounded";
 import DownloadRounded from "@mui/icons-material/DownloadRounded";
 import ExpandMoreRounded from "@mui/icons-material/ExpandMoreRounded";
-import FilterListRounded from "@mui/icons-material/FilterListRounded";
 import FolderRounded from "@mui/icons-material/FolderRounded";
 import LockRounded from "@mui/icons-material/LockRounded";
 import MoreVertRounded from "@mui/icons-material/MoreVertRounded";
 import SearchRounded from "@mui/icons-material/SearchRounded";
-import TableRowsRounded from "@mui/icons-material/TableRowsRounded";
-import ViewListRounded from "@mui/icons-material/ViewListRounded";
 import { PieChart } from "@mui/x-charts";
 import type { DashboardLocale, ProjectSnapshot, TopicSummary } from "../../shared/model/dashboard";
 import {
@@ -44,7 +41,9 @@ import {
 import {
   buildActivitySummary,
   buildRelationGroups,
+  buildTimelineBounds,
   buildTimelineRows,
+  fileEstimatedLocalTokens,
   buildWorkflowSteps,
   changeTypeColor,
   formatTopicDate,
@@ -54,12 +53,14 @@ import {
   topicStatus,
   topicType,
   topicUpdatedSummary,
+  inferFileChangeKind,
   type FileChangeKind,
   type RelationGroup,
   type RelationItem,
   type TimelineRow,
   type WorkflowStep
 } from "./historyModel";
+import { ArtifactDocumentContent } from "../../shared/ui/ArtifactDocumentContent";
 
 type HistoryTab = "overview" | "timeline" | "relations";
 type OverviewMetaTone = "success" | "primary" | "danger";
@@ -77,6 +78,13 @@ type WorkflowProgressCountsSummary = {
   blocked: number;
   pending: number;
 };
+type TimelineFilePreview = {
+  path: string;
+  llmActualTokens: number | null;
+  localEstimatedTokens: number;
+  content: string | null;
+};
+type TimelineCommitPreview = TimelineRow["commits"];
 
 const HISTORY_TABS: HistoryTab[] = ["overview", "timeline", "relations"];
 const HISTORY_TAB_LABELS: Record<HistoryTab, string> = {
@@ -97,6 +105,7 @@ type HistoryWorkspaceProps = {
   archivedTopics: TopicSummary[];
   selectedTopicKey: string | null;
   topicFilter: string;
+  globalUser: { username: string | null; configured: boolean };
   dictionary: DashboardLocale;
   onTopicFilterChange: (value: string) => void;
   onSelectTopic: (topicKey: string) => void;
@@ -118,9 +127,9 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
 
   const activePanel =
     activeTab === "overview" ? (
-      <HistoryOverview topic={selectedTopic} language={language} dictionary={props.dictionary} />
+      <HistoryOverview topic={selectedTopic} language={language} dictionary={props.dictionary} globalUser={props.globalUser} />
     ) : activeTab === "timeline" ? (
-      <HistoryTimeline topic={selectedTopic} language={language} dictionary={props.dictionary} />
+      <HistoryTimeline topic={selectedTopic} language={language} dictionary={props.dictionary} globalUser={props.globalUser} />
     ) : (
       <HistoryRelations topic={selectedTopic} topics={allTopics} />
     );
@@ -429,6 +438,7 @@ function HistoryOverview(props: {
   topic: TopicSummary;
   language: "ko" | "en";
   dictionary: DashboardLocale;
+  globalUser: { username: string | null; configured: boolean };
 }) {
   const theme = useTheme();
   const [selectedStep, setSelectedStep] = useState<WorkflowStep | null>(null);
@@ -439,6 +449,11 @@ function HistoryOverview(props: {
   const updated = topicUpdatedSummary(props.topic, props.language, props.dictionary.unknown);
   const priority = topicPrioritySummary(props.topic);
   const activity = buildActivitySummary(props.topic, props.language, props.dictionary);
+  const userDisplayName = props.globalUser.username ?? props.dictionary.usernameMissing;
+  const localTokenTotal =
+    props.topic.tokenUsage?.localEstimatedTokens ??
+    props.topic.files.reduce((sum, file) => sum + fileEstimatedLocalTokens(file), 0);
+  const llmTokenTotal = props.topic.tokenUsage?.llmActualTokens ?? null;
   const currentStage = progress.current;
   const currentStageLabel = currentStage?.label ?? props.dictionary.workflowProgressFlowAdd;
   const currentStageHelper = currentStage
@@ -514,9 +529,14 @@ function HistoryOverview(props: {
               <AutoGraphRounded fontSize="small" />
             </Box>
             <Typography variant="h6" sx={{ color: "#f8fbff", fontWeight: 850, lineHeight: 1.08, minWidth: 0 }}>
-              Workflow Progress
+              {props.dictionary.workflowProgressTitleWithSplitTokens
+                .replace("{llm}", formatTokenValue(llmTokenTotal, props.dictionary))
+                .replace("{local}", localTokenTotal.toLocaleString())}
             </Typography>
           </Stack>
+          <Typography variant="caption" sx={{ color: alpha("#dbeafe", 0.72), fontWeight: 600 }}>
+            {props.dictionary.workflowProgressDetailHint}
+          </Typography>
           <Box
             sx={{
               display: "grid",
@@ -599,8 +619,8 @@ function HistoryOverview(props: {
           <KeyValue label="ID" value={topicDisplayId(props.topic)} />
           <KeyValue label="Title" value={props.topic.name} />
           <KeyValue label="Description" value={props.topic.goal ?? "Build the main dashboard with widgets, charts, and real-time data visualization."} />
-          <KeyValue label="Creator" value="john.doe" />
-          <KeyValue label="Assignee" value="john.doe" />
+          <KeyValue label="Creator" value={userDisplayName} />
+          <KeyValue label="Assignee" value={userDisplayName} />
           <KeyValue label="Labels" value={`${topicType(props.topic)}, dashboard, ui`} />
           <KeyValue label="Milestone" value={props.topic.targetVersion ?? props.topic.version ?? "v0.1.0"} />
           <KeyValue label="Due Date" value="Apr 30, 2026 (7 days left)" />
@@ -624,26 +644,6 @@ function HistoryOverview(props: {
         </Stack>
       </Box>
 
-      <SummaryPanel title="Recent Activity" action={<Button size="small" endIcon={<ChevronRightRounded />}>View all activity</Button>}>
-        {activity.recent.map((entry, index) => (
-          <Box
-            key={entry.id}
-            sx={{
-              display: "grid",
-              gridTemplateColumns: { xs: "32px minmax(0, 1fr)", md: "32px minmax(0, 1fr) 160px 180px" },
-              gap: 1,
-              alignItems: "center",
-              py: 0.75,
-              borderTop: index === 0 ? 0 : `1px solid ${alpha(theme.palette.divider, 0.7)}`
-            }}
-          >
-            <Typography variant="body2">{index + 1}</Typography>
-            <Typography variant="body2" sx={{ fontWeight: 600, overflowWrap: "anywhere" }}>{entry.title}</Typography>
-            <Typography variant="body2">{entry.actor}</Typography>
-            <Typography variant="caption" color="text.secondary">{entry.time}</Typography>
-          </Box>
-        ))}
-      </SummaryPanel>
       <WorkflowLogDialog step={selectedStep} dictionary={props.dictionary} onClose={() => setSelectedStep(null)} />
     </Stack>
   );
@@ -652,11 +652,11 @@ function HistoryOverview(props: {
 function workflowProgressTrackSx(stepCount: number) {
   return {
     display: "grid",
-    gridTemplateColumns: `repeat(${stepCount}, minmax(0, 1fr))`,
-    gap: { xs: 0.65, sm: 0.8, md: 1 },
+    gridTemplateColumns: { xs: "1fr", md: `repeat(${stepCount}, minmax(0, 1fr))` },
+    gap: { xs: 2.2, md: 1 },
     position: "relative",
     minWidth: 0,
-    px: { xs: 0, md: 0.4 },
+    px: { xs: 0.4, md: 0.4 },
     pt: { xs: 0.8, md: 1 },
     overflow: "visible",
     isolation: "isolate"
@@ -764,14 +764,18 @@ function workflowStepSurfaceLabel(step: WorkflowStep, dictionary: DashboardLocal
   return status;
 }
 
+function completedWorkflowSurfaceColors(theme: Theme) {
+  return {
+    main: theme.palette.success.main,
+    soft: alpha(theme.palette.success.main, 0.18),
+    border: alpha(theme.palette.success.light, 0.9),
+    shadow: alpha(theme.palette.success.main, 0.46)
+  };
+}
+
 function workflowStepColors(theme: Theme, step: WorkflowStep) {
   if (step.status === "completed") {
-    return {
-      main: theme.palette.success.main,
-      soft: alpha(theme.palette.success.main, 0.18),
-      border: alpha(theme.palette.success.light, 0.9),
-      shadow: alpha(theme.palette.success.main, 0.46)
-    };
+    return completedWorkflowSurfaceColors(theme);
   }
   if (isUpdatingWorkflowStep(step)) {
     return {
@@ -827,13 +831,15 @@ function connectorSx(theme: Theme, step: WorkflowStep, nextStep: WorkflowStep | 
   return {
     content: "\"\"",
     position: "absolute",
-    left: { xs: "calc(50% + 25px)", sm: "calc(50% + 27px)", md: "calc(50% + 29px)" },
-    right: { xs: "calc(-50% + 20px)", sm: "calc(-50% + 21px)", md: "calc(-50% + 21px)" },
-    top: { xs: 24.5, sm: 26.5, md: 28.5 },
-    height: 3,
+    left: { xs: "calc(50% - 1.5px)", md: "calc(50% + 29px)" },
+    right: { xs: "auto", md: "calc(-50% + 21px)" },
+    top: { xs: 54, md: 28.5 },
+    width: { xs: 3, md: "auto" },
+    height: { xs: "calc(100% + 18px)", md: 3 },
     borderRadius: 999,
     bgcolor: nextStep.status === "pending" && !nextIsLive ? "transparent" : color,
-    borderTop: nextStep.status === "pending" && !nextIsLive ? `3px dotted ${color}` : 0,
+    borderTop: { xs: 0, md: nextStep.status === "pending" && !nextIsLive ? `3px dotted ${color}` : 0 },
+    borderLeft: { xs: nextStep.status === "pending" && !nextIsLive ? `3px dotted ${color}` : 0, md: 0 },
     boxShadow: nextIsLive || step.status === "completed" ? `0 0 12px ${alpha(color, 0.42)}` : "none",
     zIndex: 0,
     pointerEvents: "none"
@@ -1132,171 +1138,373 @@ function ActivityMetric(props: { label: string; value: string }) {
   );
 }
 
-function HistoryTimeline(props: { topic: TopicSummary; language: "ko" | "en"; dictionary: DashboardLocale }) {
+function formatTokenValue(value: number | null, dictionary: DashboardLocale): string {
+  return typeof value === "number" ? value.toLocaleString() : dictionary.tokenNotRecorded;
+}
+
+function HistoryTimeline(props: {
+  topic: TopicSummary;
+  language: "ko" | "en";
+  dictionary: DashboardLocale;
+  globalUser: { username: string | null; configured: boolean };
+}) {
   const [fileFilter, setFileFilter] = useState("");
-  const [expanded, setExpanded] = useState(true);
-  const rows = buildTimelineRows(props.topic, props.language);
+  const [selectedFlowFiles, setSelectedFlowFiles] = useState<{ id: string; step: string; paths: Set<string> } | null>(null);
+  const [previewFile, setPreviewFile] = useState<TimelineFilePreview | null>(null);
+  const [previewCommits, setPreviewCommits] = useState<{ title: string; commits: TimelineCommitPreview } | null>(null);
+  const [collapsedFolderIds, setCollapsedFolderIds] = useState<Set<string>>(() => new Set());
+  const rows = buildTimelineRows(props.topic, props.language, props.globalUser.username ?? props.dictionary.usernameMissing, props.dictionary);
+  const timelineBounds = buildTimelineBounds(props.topic, props.language, props.dictionary);
+  const treeSourceFiles = useMemo(() => {
+    return selectedFlowFiles
+      ? props.topic.files.filter((file) => selectedFlowFiles.paths.has(file.relativePath))
+      : props.topic.files;
+  }, [props.topic.files, selectedFlowFiles]);
   const filteredFiles = useMemo(() => {
     const query = fileFilter.trim().toLowerCase();
     return query
-      ? props.topic.files.filter((file) => file.relativePath.toLowerCase().includes(query))
-      : props.topic.files;
-  }, [fileFilter, props.topic.files]);
+      ? treeSourceFiles.filter((file) => file.relativePath.toLowerCase().includes(query))
+      : treeSourceFiles;
+  }, [fileFilter, treeSourceFiles]);
   const fileTree = useMemo(() => buildTopicFileTree(filteredFiles), [filteredFiles]);
+  const resetFileTree = () => {
+    setSelectedFlowFiles(null);
+    setFileFilter("");
+    setCollapsedFolderIds(new Set());
+  };
+  const showFlowFiles = (row: TimelineRow) => {
+    setSelectedFlowFiles({
+      id: row.id,
+      step: row.step,
+      paths: new Set(row.files.map((file) => file.path))
+    });
+    setFileFilter("");
+    setCollapsedFolderIds(new Set());
+  };
+  const toggleFolder = (nodeId: string) => {
+    setCollapsedFolderIds((current) => {
+      const next = new Set(current);
+      if (next.has(nodeId)) {
+        next.delete(nodeId);
+      } else {
+        next.add(nodeId);
+      }
+      return next;
+    });
+  };
+
+  return (
+    <>
+      <Box
+        sx={{
+          display: "grid",
+          gap: 1.5,
+          gridTemplateColumns: { xs: "1fr", xl: "minmax(0, 1fr) 360px" },
+          alignItems: "start"
+        }}
+      >
+        <Stack spacing={1.5} sx={{ minWidth: 0 }}>
+          <Box sx={{ px: { xs: 0.25, md: 0.5 } }}>
+            <Typography variant="h6" sx={{ fontWeight: 850 }}>{props.dictionary.timelineView}</Typography>
+            <Typography variant="body2" sx={{ mt: 0.35, color: "text.primary", fontWeight: 750 }}>
+              {timelineBounds.summary}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.35 }}>
+              {props.dictionary.timelineReferenceHint}
+            </Typography>
+          </Box>
+          <Stack spacing={0} sx={{ position: "relative" }}>
+            {rows.map((row, index) => (
+              <TimelineMilestone
+                key={row.id}
+                row={row}
+                dictionary={props.dictionary}
+                isLast={index === rows.length - 1}
+                onOpenCommits={() => setPreviewCommits({ title: row.step, commits: row.commits })}
+                onShowFlowFiles={() => showFlowFiles(row)}
+              />
+            ))}
+          </Stack>
+        </Stack>
+
+        <Paper sx={{ p: 1.5, borderRadius: 1 }}>
+          <Stack spacing={1.2}>
+            <Box>
+              <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+                {selectedFlowFiles
+                  ? props.dictionary.filesInSelectedFlow.replace("{flow}", selectedFlowFiles.step)
+                  : props.dictionary.filesInTopic}
+              </Typography>
+              <Typography variant="body2" color="text.secondary">
+                {selectedFlowFiles ? props.dictionary.selectedFlowFilesHint : props.dictionary.allTopicFilesHint}
+              </Typography>
+            </Box>
+            <Stack direction="row" spacing={0.75}>
+              <TextField
+                size="small"
+                value={fileFilter}
+                onChange={(event) => setFileFilter(event.target.value)}
+                placeholder="Search files..."
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchRounded fontSize="small" />
+                      </InputAdornment>
+                    )
+                  }
+                }}
+                sx={{ flexGrow: 1 }}
+              />
+              {selectedFlowFiles || fileFilter ? (
+                <Button variant="outlined" size="small" onClick={resetFileTree} sx={{ minWidth: 72 }}>
+                  {props.dictionary.resetFileTree}
+                </Button>
+              ) : null}
+            </Stack>
+            <Button variant="outlined" size="small" startIcon={<DownloadRounded />}>Download Tree</Button>
+            <Divider />
+            {fileTree.length ? (
+              <Stack spacing={0.4}>
+                {fileTree.map((node) => (
+                  <TimelineFileNode
+                    key={node.id}
+                    node={node}
+                    depth={0}
+                    dictionary={props.dictionary}
+                    collapsedFolderIds={collapsedFolderIds}
+                    onOpenFile={setPreviewFile}
+                    onToggleFolder={toggleFolder}
+                  />
+                ))}
+              </Stack>
+            ) : (
+              <Alert severity="info">{props.dictionary.noFilesForTopic}</Alert>
+            )}
+            <Divider />
+            <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
+              <ChangeBadge kind="A" label="Added" />
+              <ChangeBadge kind="M" label="Modified" />
+              <ChangeBadge kind="D" label="Deleted" />
+            </Stack>
+          </Stack>
+        </Paper>
+      </Box>
+      <TimelineFilePreviewDialog file={previewFile} dictionary={props.dictionary} onClose={() => setPreviewFile(null)} />
+      <TimelineCommitPreviewDialog preview={previewCommits} dictionary={props.dictionary} onClose={() => setPreviewCommits(null)} />
+    </>
+  );
+}
+
+function TimelineMilestone(props: {
+  row: TimelineRow;
+  dictionary: DashboardLocale;
+  isLast: boolean;
+  onOpenCommits: () => void;
+  onShowFlowFiles: () => void;
+}) {
+  const theme = useTheme();
+  const accent =
+    props.row.tone === "success"
+      ? theme.palette.success.main
+      : props.row.tone === "warning"
+        ? theme.palette.secondary.main
+        : theme.palette.primary.main;
+  const accentLight =
+    props.row.tone === "success"
+      ? theme.palette.success.light
+      : props.row.tone === "warning"
+        ? theme.palette.secondary.light
+        : theme.palette.primary.light;
 
   return (
     <Box
       sx={{
         display: "grid",
-        gap: 1.5,
-        gridTemplateColumns: { xs: "1fr", xl: "minmax(0, 1fr) 360px" },
-        alignItems: "start"
+        gridTemplateColumns: { xs: "40px minmax(0, 1fr)", md: "44px 124px minmax(0, 1fr)" },
+        gap: { xs: 1.1, md: 1.55 },
+        position: "relative",
+        pb: props.isLast ? 0 : 1.35
       }}
     >
-      <Stack spacing={1.2} sx={{ minWidth: 0 }}>
-        <Paper sx={{ p: 1.2, borderRadius: 1 }}>
-          <Stack direction={{ xs: "column", md: "row" }} spacing={1} sx={{ justifyContent: "space-between" }}>
-            <Button variant="outlined" size="small" startIcon={<FilterListRounded />}>Filters</Button>
-            <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
-              <Button variant="outlined" size="small">Apr 20, 2026 - Apr 23, 2026</Button>
-              <Button variant="outlined" size="small" onClick={() => setExpanded(true)}>Expand All</Button>
-              <Button variant="outlined" size="small" onClick={() => setExpanded(false)}>Collapse All</Button>
-            </Stack>
-          </Stack>
-        </Paper>
-        <Paper sx={{ borderRadius: 1, overflow: "hidden" }}>
+      <Box sx={{ position: "relative", display: "flex", justifyContent: "center" }}>
+        {!props.isLast ? (
           <Box
             sx={{
-              display: "grid",
-              gridTemplateColumns: { xs: "1fr", lg: "120px 110px 82px minmax(220px, 1fr) minmax(220px, 1fr)" },
-              bgcolor: "action.hover",
-              borderBottom: 1,
-              borderColor: "divider"
+              position: "absolute",
+              top: 35,
+              bottom: -12,
+              left: "50%",
+              width: 2,
+              borderRadius: 999,
+              bgcolor: alpha("#d3dbe8", 0.52),
+              transform: "translateX(-50%)",
+              zIndex: 0,
+              pointerEvents: "none"
             }}
-          >
-            {["Workflow & Step", "Time", "Duration", "Files (Created / Modified)", "Git Commits"].map((header) => (
-              <Typography key={header} variant="caption" sx={{ p: 1.2, fontWeight: 800 }}>{header}</Typography>
-            ))}
-          </Box>
-          <Stack>
-            {rows.map((row) => (
-              <TimelineTableRow key={row.id} row={row} expanded={expanded} />
-            ))}
-          </Stack>
-        </Paper>
-      </Stack>
-
-      <Paper sx={{ p: 1.5, borderRadius: 1 }}>
-        <Stack spacing={1.2}>
-          <Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>Files in this Topic</Typography>
-            <Typography variant="body2" color="text.secondary">All files created or modified in this topic.</Typography>
-          </Box>
-          <Stack direction="row" spacing={0.75}>
-            <TextField
-              size="small"
-              value={fileFilter}
-              onChange={(event) => setFileFilter(event.target.value)}
-              placeholder="Search files..."
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <InputAdornment position="start">
-                      <SearchRounded fontSize="small" />
-                    </InputAdornment>
-                  )
-                }
-              }}
-              sx={{ flexGrow: 1 }}
-            />
-            <IconButton size="small" sx={{ border: 1, borderColor: "divider", borderRadius: 1 }}>
-              <TableRowsRounded fontSize="small" />
-            </IconButton>
-            <IconButton size="small" sx={{ border: 1, borderColor: "divider", borderRadius: 1 }}>
-              <ViewListRounded fontSize="small" />
-            </IconButton>
-          </Stack>
-          <Button variant="outlined" size="small" startIcon={<DownloadRounded />}>Download Tree</Button>
-          <Divider />
-          {fileTree.length ? (
-            <Stack spacing={0.4}>
-              {fileTree.map((node) => (
-                <TimelineFileNode key={node.id} node={node} depth={0} expanded={expanded} />
-              ))}
+          />
+        ) : null}
+        <Box
+          sx={{
+            width: 36,
+            height: 36,
+            borderRadius: "50%",
+            display: "grid",
+            placeItems: "center",
+            color: "#f8fbff",
+            bgcolor: alpha(accent, 0.86),
+            border: `1px solid ${alpha(accentLight, 0.82)}`,
+            boxShadow: `0 0 0 3px ${alpha(accent, 0.16)}, 0 0 20px ${alpha(accent, 0.38)}`,
+            position: "relative",
+            zIndex: 2
+          }}
+        >
+          <CheckRounded fontSize="small" />
+        </Box>
+      </Box>
+      <Box
+        sx={{
+          display: { xs: "none", md: "block" },
+          pt: 0.65,
+          color: "text.primary",
+          fontWeight: 800,
+          lineHeight: 1.45
+        }}
+      >
+        <Typography variant="body2" sx={{ fontWeight: 850 }}>{props.row.dateLabel}</Typography>
+        <Typography variant="body2" sx={{ fontWeight: 850 }}>{props.row.timeLabel}</Typography>
+      </Box>
+      <Paper
+        variant="outlined"
+        sx={{
+          p: { xs: 1.2, md: 1.45 },
+          borderRadius: 1,
+          bgcolor: alpha(theme.palette.background.paper, theme.palette.mode === "dark" ? 0.5 : 0.92),
+          borderColor: alpha("#8aa7c7", theme.palette.mode === "dark" ? 0.22 : 0.32),
+          boxShadow: `inset 0 1px 0 ${alpha("#fff", 0.03)}`
+        }}
+      >
+        <Stack spacing={1.25}>
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center", justifyContent: "space-between", minWidth: 0 }}>
+            <Stack direction="row" spacing={1} sx={{ alignItems: "center", minWidth: 0 }}>
+              <Chip
+                size="small"
+                label={props.row.step}
+                sx={{
+                  height: 24,
+                  color: accentLight,
+                  border: `1px solid ${alpha(accent, 0.65)}`,
+                  bgcolor: alpha(accent, 0.12),
+                  fontWeight: 800
+                }}
+              />
+              <Box sx={{ minWidth: 0 }}>
+                <Typography variant="h6" sx={{ fontSize: { xs: "1rem", md: "1.1rem" }, fontWeight: 850, overflowWrap: "anywhere" }}>
+                  {props.row.step} {props.dictionary.timelineStageComplete}
+                </Typography>
+                <Stack direction="row" spacing={0.75} useFlexGap sx={{ flexWrap: "wrap", mt: 0.35 }}>
+                  <Chip size="small" variant="outlined" label={`${props.dictionary.llmActualTokens}: ${formatTokenValue(props.row.llmActualTokens, props.dictionary)}`} />
+                  <Chip size="small" variant="outlined" label={`${props.dictionary.localEstimatedTokens}: ${props.row.localEstimatedTokens.toLocaleString()}`} />
+                </Stack>
+              </Box>
             </Stack>
-          ) : (
-            <Alert severity="info">{props.dictionary.noFilesForTopic}</Alert>
-          )}
-          <Divider />
-          <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap" }}>
-            <ChangeBadge kind="A" label="Added" />
-            <ChangeBadge kind="M" label="Modified" />
-            <ChangeBadge kind="D" label="Deleted" />
+            <ExpandMoreRounded fontSize="small" sx={{ color: "text.secondary" }} />
           </Stack>
+          <Stack direction="row" spacing={1.35} useFlexGap sx={{ flexWrap: "wrap", color: "text.secondary" }}>
+            <Typography variant="caption">by {props.row.completedBy}</Typography>
+            <Typography variant="caption">{props.row.duration}</Typography>
+            <Typography variant="caption" sx={{ display: { xs: "inline", md: "none" } }}>{props.row.dateLabel} {props.row.timeLabel}</Typography>
+          </Stack>
+          <Divider />
+          <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", lg: "minmax(0, 1fr) minmax(0, 1fr)" }, gap: 1.5 }}>
+            <Stack spacing={0.75}>
+              <Typography variant="body2" sx={{ fontWeight: 800 }}>{props.dictionary.timelineGeneratedFiles} ({props.row.files.length})</Typography>
+              {props.row.files.slice(0, 3).map((file) => (
+                <Stack key={file.path} direction="row" spacing={0.75} sx={{ alignItems: "flex-start", minWidth: 0, p: 0.25 }}>
+                  <ChangeBadge kind={file.kind} />
+                  <Typography variant="caption" sx={{ flex: 1, minWidth: 0, overflowWrap: "anywhere", lineHeight: 1.28 }}>{file.path}</Typography>
+                </Stack>
+              ))}
+              {props.row.files.length > 3 ? <Typography variant="caption">+ {props.row.files.length - 3} more</Typography> : null}
+              <Button size="small" endIcon={<ChevronRightRounded />} onClick={props.onShowFlowFiles} sx={{ alignSelf: "flex-start" }}>
+                {props.dictionary.viewAllFiles}
+              </Button>
+            </Stack>
+            <Stack spacing={0.85} sx={{ borderLeft: { lg: `1px solid ${alpha(theme.palette.divider, 0.8)}` }, pl: { lg: 1.5 } }}>
+              <Typography variant="body2" sx={{ fontWeight: 800 }}>
+                {props.row.commits.length > 1 ? props.dictionary.gitCommits : props.dictionary.gitCommit} ({props.row.commits.length})
+              </Typography>
+              {props.row.commits.slice(0, 3).map((commit) => (
+                <Stack key={commit.hash} spacing={0.35}>
+                  <Typography variant="caption" color="primary.main" sx={{ fontWeight: 800 }}>{commit.hash}</Typography>
+                  <Typography variant="caption" sx={{ overflowWrap: "anywhere" }}>{commit.title}</Typography>
+                  <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+                    <Box sx={{ width: 14, height: 14, borderRadius: "50%", bgcolor: alpha(theme.palette.text.secondary, 0.28) }} />
+                    <Typography variant="caption" color="text.secondary">{commit.author}</Typography>
+                    <Typography variant="caption" color="text.secondary">{commit.time}</Typography>
+                  </Stack>
+                </Stack>
+              ))}
+              {props.row.commits.length === 0 ? (
+                <Typography variant="caption" color="text.secondary">{props.dictionary.noCommitEvidence}</Typography>
+              ) : null}
+              {props.row.commits.length > 3 ? (
+                <Button size="small" endIcon={<ChevronRightRounded />} onClick={props.onOpenCommits} sx={{ alignSelf: "flex-start" }}>
+                  {props.dictionary.viewAllCommits}
+                </Button>
+              ) : null}
+            </Stack>
+          </Box>
         </Stack>
       </Paper>
     </Box>
   );
 }
 
-function TimelineTableRow(props: { row: TimelineRow; expanded: boolean }) {
-  const theme = useTheme();
+function TimelineCommitPreviewDialog(props: {
+  preview: { title: string; commits: TimelineCommitPreview } | null;
+  dictionary: DashboardLocale;
+  onClose: () => void;
+}) {
+  const open = Boolean(props.preview);
 
   return (
-    <Box
-      sx={{
-        display: "grid",
-        gridTemplateColumns: { xs: "1fr", lg: "120px 110px 82px minmax(220px, 1fr) minmax(220px, 1fr)" },
-        borderBottom: 1,
-        borderColor: "divider",
-        position: "relative",
-        "&:last-child": { borderBottom: 0 }
-      }}
-    >
-      <TimelineCell>
-        <Stack spacing={0.9}>
-          <Chip size="small" label={props.row.step} color={props.row.tone === "success" ? "success" : props.row.tone === "warning" ? "warning" : props.row.tone === "primary" ? "primary" : "default"} />
-          <Typography variant="caption" color="text.secondary">Completed</Typography>
-          <Typography variant="caption" color="text.secondary">by {props.row.completedBy}</Typography>
+    <Dialog open={open} onClose={props.onClose} fullWidth maxWidth="sm">
+      <DialogTitle sx={{ pr: 6 }}>
+        <Stack spacing={0.3}>
+          <Typography variant="h6" sx={{ fontWeight: 850 }}>
+            {props.preview?.title ?? props.dictionary.gitCommits}
+          </Typography>
+          <Typography variant="body2" color="text.secondary">
+            {props.dictionary.gitCommits}
+          </Typography>
         </Stack>
-      </TimelineCell>
-      <TimelineCell><Typography variant="body2">{props.row.time}</Typography></TimelineCell>
-      <TimelineCell><Typography variant="body2">{props.row.duration}</Typography></TimelineCell>
-      <TimelineCell>
-        <Stack spacing={0.7}>
-          <Typography variant="body2" sx={{ fontWeight: 700 }}>Created / Modified ({props.row.files.length})</Typography>
-          {(props.expanded ? props.row.files : props.row.files.slice(0, 2)).map((file) => (
-            <Stack key={file.path} direction="row" spacing={0.75} sx={{ alignItems: "center", minWidth: 0 }}>
-              <ChangeBadge kind={file.kind} />
-              <Typography variant="caption" sx={{ overflowWrap: "anywhere" }}>{file.path}</Typography>
-            </Stack>
-          ))}
-          {!props.expanded && props.row.files.length > 2 ? <Typography variant="caption">+ {props.row.files.length - 2} more</Typography> : null}
-          <Button size="small" endIcon={<ChevronRightRounded />} sx={{ alignSelf: "flex-start" }}>View all files</Button>
-        </Stack>
-      </TimelineCell>
-      <TimelineCell>
-        <Stack spacing={0.85}>
-          <Stack direction="row" spacing={1} sx={{ alignItems: "center", justifyContent: "space-between" }}>
-            <Typography variant="body2" sx={{ fontWeight: 700 }}>
-              Git Commit{props.row.commits.length > 1 ? "s" : ""} ({props.row.commits.length})
-            </Typography>
-            <MoreVertRounded fontSize="small" sx={{ color: "text.secondary" }} />
-          </Stack>
-          {(props.expanded ? props.row.commits : props.row.commits.slice(0, 1)).map((commit) => (
-            <Stack key={commit.hash} spacing={0.4}>
-              <Typography variant="caption" color="primary.main" sx={{ fontWeight: 700 }}>{commit.hash}</Typography>
-              <Typography variant="caption" sx={{ overflowWrap: "anywhere" }}>{commit.title}</Typography>
-              <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
-                <Box sx={{ width: 14, height: 14, borderRadius: "50%", bgcolor: alpha(theme.palette.text.secondary, 0.28) }} />
-                <Typography variant="caption" color="text.secondary">{commit.author}</Typography>
-                <Typography variant="caption" color="text.secondary">{commit.time}</Typography>
+        <IconButton
+          aria-label="Close"
+          onClick={props.onClose}
+          size="small"
+          sx={{ position: "absolute", right: 12, top: 12 }}
+        >
+          <CloseRounded fontSize="small" />
+        </IconButton>
+      </DialogTitle>
+      <DialogContent dividers>
+        <Stack spacing={1.2}>
+          {(props.preview?.commits ?? []).map((commit) => (
+            <Paper key={`${commit.hash}-${commit.title}`} variant="outlined" sx={{ p: 1.2, borderRadius: 1 }}>
+              <Stack spacing={0.35}>
+                <Typography variant="caption" color="primary.main" sx={{ fontWeight: 850 }}>{commit.hash}</Typography>
+                <Typography variant="body2" sx={{ overflowWrap: "anywhere", fontWeight: 700 }}>{commit.title}</Typography>
+                <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap", color: "text.secondary" }}>
+                  <Typography variant="caption">{commit.author}</Typography>
+                  <Typography variant="caption">{commit.time}</Typography>
+                </Stack>
               </Stack>
-            </Stack>
+            </Paper>
           ))}
         </Stack>
-      </TimelineCell>
-    </Box>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -1309,27 +1517,140 @@ function ChangeBadge(props: { kind: FileChangeKind; label?: string }) {
   return <Chip size="small" color={color} label={props.label ?? props.kind} sx={{ minWidth: props.label ? 0 : 24, height: 20 }} />;
 }
 
-function TimelineFileNode(props: { node: TopicFileTreeNode; depth: number; expanded: boolean }) {
+function TimelineFileNode(props: {
+  node: TopicFileTreeNode;
+  depth: number;
+  dictionary: DashboardLocale;
+  collapsedFolderIds: Set<string>;
+  onOpenFile: (file: TimelineFilePreview) => void;
+  onToggleFolder: (nodeId: string) => void;
+}) {
   const isFolder = props.node.kind === "folder";
+  const expanded = isFolder && !props.collapsedFolderIds.has(props.node.id);
   const Icon = isFolder ? FolderRounded : props.node.file?.kind === "diff" ? DifferenceRounded : DescriptionRounded;
-  const changeKind: FileChangeKind = props.node.file?.relativePath.includes("delete") ? "D" : props.node.file?.relativePath.includes("proposal") ? "A" : "M";
+  const changeKind: FileChangeKind = inferFileChangeKind(props.node.file?.relativePath ?? "");
+  const filePreview = props.node.file
+    ? {
+        path: props.node.file.relativePath,
+        llmActualTokens: props.node.file.llmActualTokens ?? null,
+        localEstimatedTokens: fileEstimatedLocalTokens(props.node.file),
+        content: props.node.file.content ?? null
+      }
+    : null;
+  const rowContent = (
+    <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", pl: props.depth * 1.5, minWidth: 0, width: "100%" }}>
+      {isFolder ? expanded ? <ExpandMoreRounded fontSize="small" /> : <ChevronRightRounded fontSize="small" /> : <Box sx={{ width: 20 }} />}
+      <Icon fontSize="small" color={isFolder ? "primary" : "action"} />
+      <Typography variant="body2" sx={{ flexGrow: 1, minWidth: 0, overflowWrap: "anywhere" }}>
+        {props.node.name}
+      </Typography>
+      {!isFolder ? <ChangeBadge kind={changeKind} /> : null}
+    </Stack>
+  );
 
   return (
     <Stack spacing={0.25}>
-      <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", pl: props.depth * 1.5, minWidth: 0 }}>
-        {isFolder ? props.expanded ? <ExpandMoreRounded fontSize="small" /> : <ChevronRightRounded fontSize="small" /> : <Box sx={{ width: 20 }} />}
-        <Icon fontSize="small" color={isFolder ? "primary" : "action"} />
-        <Typography variant="body2" sx={{ flexGrow: 1, minWidth: 0, overflowWrap: "anywhere" }}>
-          {props.node.name}
-        </Typography>
-        {!isFolder ? <ChangeBadge kind={changeKind} /> : null}
-      </Stack>
-      {isFolder && props.expanded
+      {isFolder ? (
+        <ButtonBase
+          onClick={() => props.onToggleFolder(props.node.id)}
+          sx={{
+            width: "100%",
+            justifyContent: "flex-start",
+            textAlign: "left",
+            borderRadius: 0.75,
+            py: 0.15,
+            "&:hover": { bgcolor: "action.hover" },
+            "&:focus-visible": { outline: "2px solid", outlineColor: "primary.main", outlineOffset: 2 }
+          }}
+        >
+          {rowContent}
+        </ButtonBase>
+      ) : filePreview ? (
+        <ButtonBase
+          onClick={() => props.onOpenFile(filePreview)}
+          sx={{
+            width: "100%",
+            justifyContent: "flex-start",
+            textAlign: "left",
+            borderRadius: 0.75,
+            py: 0.15,
+            "&:hover": { bgcolor: "action.hover" },
+            "&:focus-visible": { outline: "2px solid", outlineColor: "primary.main", outlineOffset: 2 }
+          }}
+        >
+          {rowContent}
+        </ButtonBase>
+      ) : rowContent}
+      {isFolder && expanded
         ? props.node.children.map((child) => (
-            <TimelineFileNode key={child.id} node={child} depth={props.depth + 1} expanded={props.expanded} />
+            <TimelineFileNode
+              key={child.id}
+              node={child}
+              depth={props.depth + 1}
+              dictionary={props.dictionary}
+              collapsedFolderIds={props.collapsedFolderIds}
+              onOpenFile={props.onOpenFile}
+              onToggleFolder={props.onToggleFolder}
+            />
           ))
         : null}
     </Stack>
+  );
+}
+
+function TimelineFilePreviewDialog(props: {
+  file: TimelineFilePreview | null;
+  dictionary: DashboardLocale;
+  onClose: () => void;
+}) {
+  const open = Boolean(props.file);
+  const content = props.file?.content ?? null;
+  const detail = props.file
+    ? {
+        kind: props.file.path.endsWith(".diff") ? "diff" as const : props.file.path.endsWith(".md") ? "markdown" as const : "text" as const,
+        title: props.file.path.split("/").pop() ?? props.file.path,
+        sourcePath: props.file.path,
+        content: content ?? "",
+        contentType: props.file.path.endsWith(".diff")
+          ? "text/x-diff"
+          : props.file.path.endsWith(".md")
+            ? "text/markdown"
+            : "text/plain",
+        updatedAt: null
+      }
+    : null;
+
+  return (
+    <Dialog open={open} onClose={props.onClose} fullWidth maxWidth="md">
+      <DialogTitle sx={{ pr: 6 }}>
+        <Stack spacing={0.8}>
+          <Typography variant="h6" sx={{ fontWeight: 850, overflowWrap: "anywhere" }}>
+            {props.file?.path ?? props.dictionary.file}
+          </Typography>
+          {props.file ? (
+            <Stack direction="row" spacing={0.75} useFlexGap sx={{ flexWrap: "wrap" }}>
+              <Chip size="small" variant="outlined" label={`${props.dictionary.llmActualTokens}: ${formatTokenValue(props.file.llmActualTokens, props.dictionary)}`} />
+              <Chip size="small" variant="outlined" label={`${props.dictionary.localEstimatedTokens}: ${props.file.localEstimatedTokens.toLocaleString()}`} />
+            </Stack>
+          ) : null}
+        </Stack>
+        <IconButton
+          aria-label="Close"
+          onClick={props.onClose}
+          size="small"
+          sx={{ position: "absolute", right: 12, top: 12 }}
+        >
+          <CloseRounded fontSize="small" />
+        </IconButton>
+      </DialogTitle>
+      <DialogContent dividers>
+        {content && detail ? (
+          <ArtifactDocumentContent detail={detail} maxHeight="68vh" />
+        ) : (
+          <Alert severity="info">{props.dictionary.detailUnavailable}</Alert>
+        )}
+      </DialogContent>
+    </Dialog>
   );
 }
 

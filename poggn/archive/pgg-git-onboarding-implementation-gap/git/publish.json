@@ -1,0 +1,32 @@
+{
+  "topic": "pgg-git-onboarding-implementation-gap",
+  "version": "2.6.1",
+  "targetVersion": "2.6.1",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "commitTitle": "fix: 2.6.1.git 온보딩 실행 흐름 보완",
+  "commitSha": "c6eb03a9cad4bf6039defef64831deace18d1204",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/2.6.1-git-gap",
+  "workingBranch": "ai/fix/2.6.1-git-gap",
+  "releaseBranch": "release/2.6.1-git-gap",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-27T11:53:18Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/2.6.1-git-gap'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/pgg-git-onboarding-implementation-gap",
+    "versionFile": "poggn/archive/pgg-git-onboarding-implementation-gap/version.json"
+  }
+}

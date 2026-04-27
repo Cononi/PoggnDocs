@@ -1,0 +1,70 @@
+{
+  "topic": "pgg-git-onboarding-implementation-gap",
+  "version": 1,
+  "nodes": [
+    {
+      "id": "proposal",
+      "type": "doc",
+      "position": { "x": 0, "y": 0 },
+      "data": {
+        "label": "proposal.md",
+        "stage": "proposal",
+        "status": "reviewed",
+        "score": 96,
+        "artifact": "proposal.md"
+      }
+    },
+    {
+      "id": "plan",
+      "type": "doc",
+      "position": { "x": 360, "y": 0 },
+      "data": {
+        "label": "plan.md",
+        "stage": "plan",
+        "status": "reviewed",
+        "score": 96,
+        "artifact": "plan.md"
+      }
+    },
+    {
+      "id": "task",
+      "type": "doc",
+      "position": { "x": 720, "y": 0 },
+      "data": {
+        "label": "task.md",
+        "stage": "task",
+        "status": "reviewed",
+        "score": 96,
+        "artifact": "task.md"
+      }
+    },
+    {
+      "id": "code",
+      "type": "next",
+      "position": { "x": 1080, "y": 0 },
+      "data": {
+        "label": "pgg-code",
+        "stage": "implementation",
+        "status": "ready",
+        "artifact": "state/current.md"
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "proposal-to-plan",
+      "source": "proposal",
+      "target": "plan"
+    },
+    {
+      "id": "plan-to-task",
+      "source": "plan",
+      "target": "task"
+    },
+    {
+      "id": "task-to-code",
+      "source": "task",
+      "target": "code"
+    }
+  ]
+}

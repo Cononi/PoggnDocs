@@ -1,0 +1,162 @@
+diff --git a/apps/dashboard/src/features/backlog/InsightsRail.tsx b/apps/dashboard/src/features/backlog/InsightsRail.tsx
+index 1a31dbc..80d8dc2 100644
+--- a/apps/dashboard/src/features/backlog/InsightsRail.tsx
++++ b/apps/dashboard/src/features/backlog/InsightsRail.tsx
+@@ -22,6 +22,25 @@ type InsightsRailProps = {
+ 
+ type InsightItem = InsightsSummaryModel["widgets"][number]["items"][number];
+ 
++function dedupeInsightItems(items: InsightItem[]): InsightItem[] {
++  const merged = new Map<string, InsightItem>();
++  for (const item of items) {
++    const key = `${item.label.trim().toLowerCase()}-${item.tone}`;
++    const previous = merged.get(key);
++    if (!previous) {
++      merged.set(key, item);
++      continue;
++    }
++    const value = previous.value + item.value;
++    merged.set(key, {
++      ...previous,
++      value,
++      displayValue: String(value)
++    });
++  }
++  return [...merged.values()];
++}
++
+ export function InsightsRail(props: InsightsRailProps) {
+   const theme = useTheme();
+   const backlogWidget = props.summary.widgets.find((widget) => widget.id === "workload") ?? props.summary.widgets[0] ?? null;
+@@ -40,6 +59,7 @@ export function InsightsRail(props: InsightsRailProps) {
+     }
+   ];
+   const progressWidget = props.summary.widgets.find((widget) => widget.id === "progress") ?? props.summary.widgets.at(-1) ?? null;
++  const progressItems = progressWidget ? dedupeInsightItems(progressWidget.items) : [];
+ 
+   return (
+     <Stack spacing={1.5}>
+@@ -146,9 +166,9 @@ export function InsightsRail(props: InsightsRailProps) {
+           <Stack spacing={1.2}>
+             <RailSectionTitle icon={<DonutLargeRounded fontSize="small" />} title={props.dictionary.sprintProgressTitle} />
+             <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
+-              <ProgressDonut items={progressWidget.items} totalLabel={props.dictionary.totalLabel} />
++              <ProgressDonut items={progressItems} totalLabel={props.dictionary.totalLabel} />
+               <Stack spacing={0.9} sx={{ flex: 1 }}>
+-                {progressWidget.items.map((item) => (
++                {progressItems.map((item) => (
+                   <Stack key={item.id} direction="row" spacing={1} sx={{ justifyContent: "space-between", alignItems: "center" }}>
+                     <Stack direction="row" spacing={0.8} sx={{ alignItems: "center" }}>
+                       <Box
+diff --git a/apps/dashboard/src/features/history/HistoryWorkspace.tsx b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
+index 0015ab2..2ebdfc3 100644
+--- a/apps/dashboard/src/features/history/HistoryWorkspace.tsx
++++ b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
+@@ -652,11 +652,11 @@ function HistoryOverview(props: {
+ function workflowProgressTrackSx(stepCount: number) {
+   return {
+     display: "grid",
+-    gridTemplateColumns: `repeat(${stepCount}, minmax(0, 1fr))`,
+-    gap: { xs: 0.65, sm: 0.8, md: 1 },
++    gridTemplateColumns: { xs: "1fr", md: `repeat(${stepCount}, minmax(0, 1fr))` },
++    gap: { xs: 2.2, md: 1 },
+     position: "relative",
+     minWidth: 0,
+-    px: { xs: 0, md: 0.4 },
++    px: { xs: 0.4, md: 0.4 },
+     pt: { xs: 0.8, md: 1 },
+     overflow: "visible",
+     isolation: "isolate"
+@@ -827,13 +827,15 @@ function connectorSx(theme: Theme, step: WorkflowStep, nextStep: WorkflowStep |
+   return {
+     content: "\"\"",
+     position: "absolute",
+-    left: { xs: "calc(50% + 25px)", sm: "calc(50% + 27px)", md: "calc(50% + 29px)" },
+-    right: { xs: "calc(-50% + 20px)", sm: "calc(-50% + 21px)", md: "calc(-50% + 21px)" },
+-    top: { xs: 24.5, sm: 26.5, md: 28.5 },
+-    height: 3,
++    left: { xs: "calc(50% - 1.5px)", md: "calc(50% + 29px)" },
++    right: { xs: "auto", md: "calc(-50% + 21px)" },
++    top: { xs: 54, md: 28.5 },
++    width: { xs: 3, md: "auto" },
++    height: { xs: "calc(100% + 18px)", md: 3 },
+     borderRadius: 999,
+     bgcolor: nextStep.status === "pending" && !nextIsLive ? "transparent" : color,
+-    borderTop: nextStep.status === "pending" && !nextIsLive ? `3px dotted ${color}` : 0,
++    borderTop: { xs: 0, md: nextStep.status === "pending" && !nextIsLive ? `3px dotted ${color}` : 0 },
++    borderLeft: { xs: nextStep.status === "pending" && !nextIsLive ? `3px dotted ${color}` : 0, md: 0 },
+     boxShadow: nextIsLive || step.status === "completed" ? `0 0 12px ${alpha(color, 0.42)}` : "none",
+     zIndex: 0,
+     pointerEvents: "none"
+diff --git a/apps/dashboard/src/features/history/historyModel.ts b/apps/dashboard/src/features/history/historyModel.ts
+index 13a3cbf..85ae498 100644
+--- a/apps/dashboard/src/features/history/historyModel.ts
++++ b/apps/dashboard/src/features/history/historyModel.ts
+@@ -604,31 +604,49 @@ function textIndicatesStageBlocked(value: string | null | undefined): boolean {
+   return /blocked|failed|failure|error|invalid|실패|차단|오류/i.test(value ?? "");
+ }
+ 
++function flowBlockedEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition): TimestampEvidence[] {
++  const nodeEvidence = flowNodes(topic, flow)
++    .filter((node) =>
++      [
++        node.data.status,
++        node.data.detail?.status,
++        node.data.detail?.summary,
++        node.data.detail?.title
++      ].some(textIndicatesStageBlocked)
++    )
++    .map((node) => ({
++      value: node.data.detail?.updatedAt ?? node.data.detail?.completedAt ?? null,
++      confidence: "high" as const,
++      source: sourcePathForNode(node)
++    }));
++  const eventEvidence = flowHistoryEvents(topic, flow)
++    .filter((event) => [event.event, event.summary, event.source].some(textIndicatesStageBlocked))
++    .map((event) => ({
++      value: event.ts,
++      confidence: "high" as const,
++      source: `state/history.ndjson:${event.event ?? "blocked"}`
++    }));
++  const currentStatusEvidence =
++    flow.id === normalizeFlowId(topic.stage) &&
++    (hasMeaningfulBlockingIssue(topic) || textIndicatesStageBlocked(topic.status))
++      ? [{ value: topic.updatedAt, confidence: "medium" as const, source: "topic.status" }]
++      : [];
++
++  return [...nodeEvidence, ...eventEvidence, ...currentStatusEvidence];
++}
++
+ function flowHasBlockedEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition): boolean {
+   if (flow.id === "done") {
+     return isDoneFlowBlocked(topic);
+   }
+ 
+-  const isCurrentFlow = flow.id === normalizeFlowId(topic.stage);
+-  if (isCurrentFlow && (hasMeaningfulBlockingIssue(topic) || textIndicatesStageBlocked(topic.status))) {
+-    return true;
+-  }
+-
+-  const nodeHasBlockedEvidence = flowNodes(topic, flow).some((node) =>
+-    [
+-      node.data.status,
+-      node.data.detail?.status,
+-      node.data.detail?.summary,
+-      node.data.detail?.title
+-    ].some(textIndicatesStageBlocked)
+-  );
+-  if (nodeHasBlockedEvidence) {
+-    return true;
++  const blockedAt = latestEvidence(flowBlockedEvidence(topic, flow)).value;
++  if (!blockedAt) {
++    return false;
+   }
+ 
+-  return flowHistoryEvents(topic, flow).some((event) =>
+-    [event.event, event.summary, event.source].some(textIndicatesStageBlocked)
+-  );
++  const completedAt = flowTimestampBundle(topic, flow).completedAt.value;
++  return !completedAt || compareTimestamps(completedAt, blockedAt) < 0;
+ }
+ 
+ function flowHasFullCompletionEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition): boolean {

@@ -1,0 +1,32 @@
+diff --git a/poggn/active/pgg-username-dashboard-workflow-refinement/spec/qa/token-and-reference-regression.md b/poggn/active/pgg-username-dashboard-workflow-refinement/spec/qa/token-and-reference-regression.md
+index e5e9e50..d76a8cd 100644
+--- a/poggn/active/pgg-username-dashboard-workflow-refinement/spec/qa/token-and-reference-regression.md
++++ b/poggn/active/pgg-username-dashboard-workflow-refinement/spec/qa/token-and-reference-regression.md
+@@ -25,13 +25,18 @@ QA와 optional audit에서 검증할 token, reference image, i18n, CLI/dashboard
+   - global username shared across project roots
+ - Dashboard data:
+   - snapshot exposes global username
+-  - token totals deterministic fallback calculation
+-  - flow/file token aggregation
++  - every active/archive project topic snapshot exposes separate `llmActualTokens` and `localEstimatedTokens`
++  - LLM actual token values come only from measured Codex usage evidence or `token/report.md`; missing evidence remains `null`
++  - Local token totals use deterministic fallback calculation and are never merged into LLM actual totals
++  - flow/file token aggregation keeps LLM actual and Local estimated values separate
+   - commit evidence parity with source
+ - Dashboard UI:
+   - Workflow overview Recent Activity removed
+-  - Workflow Progress token heading/helper present
++  - Workflow Progress split LLM/Local token heading/helper present
+   - git/timeline reference checklist against `add-img/git.png`, `add-img/timeline.png`
++  - timeline rail connects each flow like the overview workflow progress rail
++  - timeline completed check/rail uses the same completed color as overview
++  - generated file rows display LLM/Local labels above the file name/path
+   - project add Stepper for non-pgg/non-git folder
+   - Sprint Progress dedupe
+   - speed dial version removed and labels visible
+@@ -50,4 +55,4 @@ QA와 optional audit에서 검증할 token, reference image, i18n, CLI/dashboard
+ 
+ - Required audits are completed before QA pass.
+ - QA does not mark visual reference parity as pass without direct screenshot/manual evidence.
+-- Token numbers are reproducible from documented source/fallback rules.
++- LLM actual and Local estimated token numbers are reproducible from documented source/fallback rules and remain separated in every supported project snapshot.

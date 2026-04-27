@@ -1,0 +1,21 @@
+diff --git a/apps/dashboard/src/shared/model/dashboard.ts b/apps/dashboard/src/shared/model/dashboard.ts
+index 9726c49..f2590ec 100644
+--- a/apps/dashboard/src/shared/model/dashboard.ts
++++ b/apps/dashboard/src/shared/model/dashboard.ts
+@@ -69,12 +69,16 @@ export type TopicFileEntry = {
+   updatedAt: string | null;
+   size: number | null;
+   tokenEstimate: number | null;
++  localEstimatedTokens: number | null;
++  llmActualTokens: number | null;
+   tokenSource: "estimated" | "none";
+   editable: boolean;
+ };
+ 
+ export type TopicTokenUsage = {
+   total: number;
++  llmActualTokens: number | null;
++  localEstimatedTokens: number;
+   source: "estimated" | "none";
+ };
+ 

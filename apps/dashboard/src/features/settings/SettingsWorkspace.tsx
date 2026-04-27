@@ -11,12 +11,12 @@ import {
   Typography
 } from "@mui/material";
 import { useEffect, useState } from "react";
-import type { DashboardLocale, DashboardThemeMode, ProjectSnapshot } from "../../shared/model/dashboard";
+import type { DashboardLocale, DashboardSettingsView, DashboardThemeMode, ProjectSnapshot } from "../../shared/model/dashboard";
 import { normalizeDashboardTitleIconSvg, toSvgDataUrl } from "../../shared/utils/brand";
 
 type SettingsWorkspaceProps = {
   project: ProjectSnapshot | null;
-  panel: "main" | "refresh" | "git" | "system";
+  panel: DashboardSettingsView;
   dictionary: DashboardLocale;
   isLiveMode: boolean;
   themeMode: DashboardThemeMode;

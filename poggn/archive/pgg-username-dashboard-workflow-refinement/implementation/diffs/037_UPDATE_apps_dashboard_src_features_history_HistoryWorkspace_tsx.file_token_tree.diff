@@ -1,0 +1,88 @@
+diff --git a/apps/dashboard/src/features/history/HistoryWorkspace.tsx b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
+index c4f13a7..ab83247 100644
+--- a/apps/dashboard/src/features/history/HistoryWorkspace.tsx
++++ b/apps/dashboard/src/features/history/HistoryWorkspace.tsx
+@@ -1198,7 +1198,6 @@ function HistoryTimeline(props: {
+             <TimelineMilestone
+               key={row.id}
+               row={row}
+-              expanded
+               dictionary={props.dictionary}
+               isLast={index === rows.length - 1}
+               onShowFlowFiles={() => showFlowFiles(row)}
+@@ -1251,6 +1250,7 @@ function HistoryTimeline(props: {
+                   key={node.id}
+                   node={node}
+                   depth={0}
++                  dictionary={props.dictionary}
+                   collapsedFolderIds={collapsedFolderIds}
+                   onToggleFolder={toggleFolder}
+                 />
+@@ -1273,7 +1273,6 @@ function HistoryTimeline(props: {
+ 
+ function TimelineMilestone(props: {
+   row: TimelineRow;
+-  expanded: boolean;
+   dictionary: DashboardLocale;
+   isLast: boolean;
+   onShowFlowFiles: () => void;
+@@ -1297,8 +1296,8 @@ function TimelineMilestone(props: {
+           <Box
+             sx={{
+               position: "absolute",
+-              top: 36,
+-              bottom: 0,
++              top: 40,
++              bottom: -4,
+               width: 3,
+               borderRadius: 999,
+               bgcolor: accent,
+@@ -1371,7 +1370,7 @@ function TimelineMilestone(props: {
+           <Box sx={{ display: "grid", gridTemplateColumns: { xs: "1fr", lg: "minmax(0, 1fr) minmax(0, 1fr)" }, gap: 1.5 }}>
+             <Stack spacing={0.75}>
+               <Typography variant="body2" sx={{ fontWeight: 800 }}>{props.dictionary.timelineGeneratedFiles} ({props.row.files.length})</Typography>
+-              {(props.expanded ? props.row.files : props.row.files.slice(0, 3)).map((file) => (
++              {props.row.files.slice(0, 3).map((file) => (
+                 <Stack key={file.path} direction="row" spacing={0.75} sx={{ alignItems: "flex-start", minWidth: 0 }}>
+                   <ChangeBadge kind={file.kind} />
+                   <Stack spacing={0.35} sx={{ flex: 1, minWidth: 0 }}>
+@@ -1383,7 +1382,7 @@ function TimelineMilestone(props: {
+                   </Stack>
+                 </Stack>
+               ))}
+-              {!props.expanded && props.row.files.length > 3 ? <Typography variant="caption">+ {props.row.files.length - 3} more</Typography> : null}
++              {props.row.files.length > 3 ? <Typography variant="caption">+ {props.row.files.length - 3} more</Typography> : null}
+               <Button size="small" endIcon={<ChevronRightRounded />} onClick={props.onShowFlowFiles} sx={{ alignSelf: "flex-start" }}>
+                 {props.dictionary.viewAllFiles}
+               </Button>
+@@ -1426,6 +1425,7 @@ function ChangeBadge(props: { kind: FileChangeKind; label?: string }) {
+ function TimelineFileNode(props: {
+   node: TopicFileTreeNode;
+   depth: number;
++  dictionary: DashboardLocale;
+   collapsedFolderIds: Set<string>;
+   onToggleFolder: (nodeId: string) => void;
+ }) {
+@@ -1440,7 +1440,13 @@ function TimelineFileNode(props: {
+       <Typography variant="body2" sx={{ flexGrow: 1, minWidth: 0, overflowWrap: "anywhere" }}>
+         {props.node.name}
+       </Typography>
+-      {!isFolder ? <ChangeBadge kind={changeKind} /> : null}
++      {!isFolder && props.node.file ? (
++        <Stack direction="row" spacing={0.5} useFlexGap sx={{ flexWrap: "wrap", justifyContent: "flex-end" }}>
++          <Chip size="small" variant="outlined" label={`${props.dictionary.llmShort}: ${formatTokenValue(props.node.file.llmActualTokens, props.dictionary)}`} sx={{ height: 20 }} />
++          <Chip size="small" variant="outlined" label={`${props.dictionary.localShort}: ${(props.node.file.localEstimatedTokens ?? props.node.file.tokenEstimate ?? 0).toLocaleString()}`} sx={{ height: 20 }} />
++          <ChangeBadge kind={changeKind} />
++        </Stack>
++      ) : null}
+     </Stack>
+   );
+ 
+@@ -1468,6 +1474,7 @@ function TimelineFileNode(props: {
+               key={child.id}
+               node={child}
+               depth={props.depth + 1}
++              dictionary={props.dictionary}
+               collapsedFolderIds={props.collapsedFolderIds}
+               onToggleFolder={props.onToggleFolder}
+             />

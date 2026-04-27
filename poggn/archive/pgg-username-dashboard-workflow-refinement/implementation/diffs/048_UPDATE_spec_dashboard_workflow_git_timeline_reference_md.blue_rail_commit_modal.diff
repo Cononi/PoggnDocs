@@ -1,0 +1,8 @@
+diff --git a/poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md b/poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md
+--- a/poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md
++++ b/poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md
+@@
+- 완료 rail/check는 flow tone별 색상을 사용한다.
++ 완료 rail은 primary blue를 사용하고, check node background도 불투명한 primary blue로 채운다.
++ 완료 rail은 check 원 뒤에서 보이면 안 되며 마지막/bottom flow 아래로 overshoot되면 안 된다.
++ Commit UI는 timeline card에서 최대 3개 commit만 표시하고 `모든 커밋 보기` modal에서 전체 commit list를 보여준다.

@@ -1,0 +1,284 @@
+diff --git a/apps/dashboard/src/app/DashboardApp.tsx b/apps/dashboard/src/app/DashboardApp.tsx
+index 26320d9..e843451 100644
+--- a/apps/dashboard/src/app/DashboardApp.tsx
++++ b/apps/dashboard/src/app/DashboardApp.tsx
+@@ -14,7 +14,11 @@ import {
+   FormControlLabel,
+   MenuItem,
+   Paper,
++  Step,
++  StepLabel,
++  Stepper,
+   Stack,
++  Switch,
+   TextField,
+   Typography
+ } from "@mui/material";
+@@ -36,9 +40,11 @@ import { dashboardLocale } from "../shared/locale/dashboardLocale";
+ import type {
+   ArtifactSelection,
+   DashboardDetailSection,
++  DashboardProjectInitRequest,
+   DashboardQueryResult,
+   DashboardSettingsView,
+   DashboardSnapshot,
++  ProjectFolderInspection,
+   ProjectGitSetupRequest
+ } from "../shared/model/dashboard";
+ import { useDashboardStore } from "../shared/store/dashboardStore";
+@@ -113,6 +119,13 @@ export default function DashboardApp() {
+   const [projectDialogOpen, setProjectDialogOpen] = useState(() => initialRouteState.modal === "add-project");
+   const [projectRootDirDraft, setProjectRootDirDraft] = useState("");
+   const [projectCategoryDraft, setProjectCategoryDraft] = useState("");
++  const [projectInitLanguage, setProjectInitLanguage] = useState<"ko" | "en">("ko");
++  const [projectInitAutoMode, setProjectInitAutoMode] = useState<"on" | "off">("on");
++  const [projectInitTeamsMode, setProjectInitTeamsMode] = useState<"on" | "off">("off");
++  const [projectInitGitMode, setProjectInitGitMode] = useState<"on" | "off">("off");
++  const [projectInitGitSetupPath, setProjectInitGitSetupPath] = useState<"local" | "defer">("defer");
++  const [projectInspection, setProjectInspection] = useState<ProjectFolderInspection | null>(null);
++  const [usernameDraft, setUsernameDraft] = useState("");
+   const [pendingDeleteProjectId, setPendingDeleteProjectId] = useState<string | null>(null);
+   const [dangerousDeleteRoot, setDangerousDeleteRoot] = useState(false);
+   const [confirmedNoExternalBackup, setConfirmedNoExternalBackup] = useState(false);
+@@ -132,6 +145,7 @@ export default function DashboardApp() {
+ 
+   const snapshot = snapshotQuery.data?.snapshot ?? null;
+   const snapshotSource = snapshotQuery.data?.source ?? "static";
++  const globalUser = snapshot?.globalUser ?? { username: null, configured: false, source: "missing" };
+   const currentProject = resolveCurrentProject(snapshot);
+   const selectedProject = resolveSelectedProject(snapshot, selectedProjectId, currentProject);
+   const latestActiveProject = resolveLatestActiveProject(snapshot, currentProject);
+@@ -557,6 +571,28 @@ export default function DashboardApp() {
+     }
+   });
+ 
++  const projectInspectMutation = useMutation({
++    mutationFn: async (rootDir: string) => {
++      if (!isLiveMode) {
++        throw new Error(dictionary.liveEditingDisabled);
++      }
++
++      return requestDashboardJson<ProjectFolderInspection>("/api/dashboard/projects/inspect", {
++        method: "POST",
++        body: JSON.stringify({ rootDir })
++      });
++    },
++    onSuccess: (inspection) => {
++      setProjectInspection(inspection);
++      setFeedback(null);
++      setProjectInitGitMode(inspection.hasGitRepository ? "on" : "off");
++      setProjectInitGitSetupPath(inspection.hasGitRepository ? "defer" : "local");
++    },
++    onError: (error) => {
++      setFeedback(error instanceof Error ? error.message : dictionary.dashboardError);
++    }
++  });
++
+   const saveFileMutation = useMutation({
+     mutationFn: async (content: string) => {
+       if (!projectContextId || !fileTopic || !fileSelection?.relativePath) {
+@@ -724,6 +760,7 @@ export default function DashboardApp() {
+       activeSection={section}
+       detailSelection={detailSelection}
+       fileSelection={fileSelection}
++      globalUser={globalUser}
+       dictionary={dictionary}
+       isLiveMode={isLiveMode}
+       fileMutationPending={saveFileMutation.isPending || deleteFileMutation.isPending}
+@@ -856,6 +893,13 @@ export default function DashboardApp() {
+     setProjectDialogOpen(false);
+     setProjectRootDirDraft("");
+     setProjectCategoryDraft("");
++    setProjectInspection(null);
++    setUsernameDraft("");
++    setProjectInitLanguage("ko");
++    setProjectInitAutoMode("on");
++    setProjectInitTeamsMode("off");
++    setProjectInitGitMode("off");
++    setProjectInitGitSetupPath("defer");
+   };
+ 
+   const closeDeleteProjectDialog = () => {
+@@ -865,15 +909,44 @@ export default function DashboardApp() {
+   };
+ 
+   const handleCreateProject = () => {
++    const request: DashboardProjectInitRequest = {
++      provider: "codex",
++      language: projectInitLanguage,
++      autoMode: projectInitAutoMode,
++      teamsMode: projectInitTeamsMode,
++      gitMode: projectInitGitMode,
++      gitSetup:
++        projectInitGitMode === "on" && projectInitGitSetupPath !== "defer"
++          ? { path: projectInitGitSetupPath }
++          : projectInitGitMode === "on"
++            ? { path: "defer", deferMessage: dictionary.gitDeferredSavedMessage }
++            : undefined
++    };
+     mutateSnapshot(
+-      createMutationPayload("/api/dashboard/projects", "POST", {
++      createMutationPayload("/api/dashboard/projects/init", "POST", {
+         rootDir: projectRootDirDraft,
++        ...request,
+         targetCategoryId: projectCategoryDraft || undefined
+       })
+     );
+     closeProjectDialog();
+   };
+ 
++  const handleInspectProjectRoot = () => {
++    if (!projectRootDirDraft.trim()) {
++      return;
++    }
++    projectInspectMutation.mutate(projectRootDirDraft);
++  };
++
++  const handleSaveGlobalUsername = () => {
++    if (!usernameDraft.trim()) {
++      return;
++    }
++    mutateSnapshot(createMutationPayload("/api/dashboard/user", "PATCH", { username: usernameDraft }));
++    setUsernameDraft("");
++  };
++
+   const handleDeleteProject = () => {
+     if (!pendingDeleteProject) {
+       return;
+@@ -971,6 +1044,7 @@ export default function DashboardApp() {
+               activeSettingsView={activeSettingsView}
+               compactShell={false}
+               project={boardContextProject}
++              globalUser={globalUser}
+               dictionary={dictionary}
+               onSelectDetailSection={openManagementSection}
+               onSelectSettingsView={openSettingsPanel}
+@@ -1032,6 +1106,7 @@ export default function DashboardApp() {
+           activeSettingsView={activeSettingsView}
+           compactShell={isCompactShell}
+           project={boardContextProject}
++          globalUser={globalUser}
+           dictionary={dictionary}
+           onSelectDetailSection={(section) => {
+             openManagementSection(section);
+@@ -1060,7 +1135,6 @@ export default function DashboardApp() {
+       <DashboardSpeedDial
+         activeTopMenu={activeTopMenu}
+         compactShell={isCompactShell}
+-        pggVersion={projectSurfaceProject?.pggVersion ?? currentProject?.pggVersion ?? null}
+         dictionary={dictionary}
+         onGoHome={goHome}
+         onAddProject={() => openRouteModal("add-project")}
+@@ -1101,6 +1175,20 @@ export default function DashboardApp() {
+             <Typography variant="body2" color="text.secondary">
+               {dictionary.addProjectHint}
+             </Typography>
++            <Stepper activeStep={projectInspection ? (globalUser.configured ? 2 : 1) : 0} orientation="vertical">
++              <Step>
++                <StepLabel>{dictionary.projectAddStepInspect}</StepLabel>
++              </Step>
++              <Step>
++                <StepLabel>{dictionary.projectAddStepUsername}</StepLabel>
++              </Step>
++              <Step>
++                <StepLabel>{dictionary.projectAddStepInit}</StepLabel>
++              </Step>
++              <Step>
++                <StepLabel>{dictionary.projectAddStepRegister}</StepLabel>
++              </Step>
++            </Stepper>
+             <Paper
+               variant="outlined"
+               sx={{
+@@ -1117,8 +1205,81 @@ export default function DashboardApp() {
+                   size="small"
+                   label={dictionary.projectRootDir}
+                   value={projectRootDirDraft}
+-                  onChange={(event) => setProjectRootDirDraft(event.target.value)}
++                  onChange={(event) => {
++                    setProjectRootDirDraft(event.target.value);
++                    setProjectInspection(null);
++                  }}
+                 />
++                <Button
++                  variant="outlined"
++                  disabled={!isLiveMode || !projectRootDirDraft.trim() || projectInspectMutation.isPending}
++                  onClick={handleInspectProjectRoot}
++                >
++                  {dictionary.inspectProject}
++                </Button>
++                {projectInspection ? (
++                  <Alert severity={projectInspection.hasPggProject ? "info" : "warning"}>
++                    {projectInspection.hasPggProject ? dictionary.projectAlreadyInitialized : dictionary.projectNeedsInit}
++                  </Alert>
++                ) : null}
++                {!globalUser.configured ? (
++                  <Paper variant="outlined" sx={{ p: 1.25, borderRadius: 1 }}>
++                    <Stack spacing={1}>
++                      <Alert severity="warning">{dictionary.usernameRequiredForInit}</Alert>
++                      <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
++                        <TextField
++                          fullWidth
++                          size="small"
++                          label={dictionary.username}
++                          value={usernameDraft}
++                          onChange={(event) => setUsernameDraft(event.target.value)}
++                        />
++                        <Button variant="contained" disabled={!isLiveMode || !usernameDraft.trim()} onClick={handleSaveGlobalUsername}>
++                          {dictionary.save}
++                        </Button>
++                      </Stack>
++                    </Stack>
++                  </Paper>
++                ) : null}
++                <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
++                  <TextField
++                    select
++                    fullWidth
++                    size="small"
++                    label={dictionary.language}
++                    value={projectInitLanguage}
++                    onChange={(event) => setProjectInitLanguage(event.target.value === "en" ? "en" : "ko")}
++                  >
++                    <MenuItem value="ko">Korean / 한국어</MenuItem>
++                    <MenuItem value="en">English</MenuItem>
++                  </TextField>
++                  <TextField
++                    select
++                    fullWidth
++                    size="small"
++                    label={dictionary.gitSetupPath}
++                    value={projectInitGitSetupPath}
++                    disabled={projectInitGitMode === "off"}
++                    onChange={(event) => setProjectInitGitSetupPath(event.target.value === "local" ? "local" : "defer")}
++                  >
++                    <MenuItem value="local">{dictionary.gitSetupLocal}</MenuItem>
++                    <MenuItem value="defer">{dictionary.deferGitSetup}</MenuItem>
++                  </TextField>
++                </Stack>
++                <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
++                  <FormControlLabel
++                    control={<Switch checked={projectInitAutoMode === "on"} onChange={(event) => setProjectInitAutoMode(event.target.checked ? "on" : "off")} />}
++                    label={dictionary.autoMode}
++                  />
++                  <FormControlLabel
++                    control={<Switch checked={projectInitTeamsMode === "on"} onChange={(event) => setProjectInitTeamsMode(event.target.checked ? "on" : "off")} />}
++                    label={dictionary.teamsMode}
++                  />
++                  <FormControlLabel
++                    control={<Switch checked={projectInitGitMode === "on"} onChange={(event) => setProjectInitGitMode(event.target.checked ? "on" : "off")} />}
++                    label={dictionary.gitMode}
++                  />
++                </Stack>
+                 <TextField
+                   select
+                   fullWidth
+@@ -1139,7 +1300,7 @@ export default function DashboardApp() {
+         </DialogContent>
+         <DialogActions>
+           <Button onClick={closeProjectDialog}>{dictionary.cancel}</Button>
+-          <Button variant="contained" disabled={!isLiveMode} onClick={handleCreateProject}>
++          <Button variant="contained" disabled={!isLiveMode || !globalUser.configured || !projectRootDirDraft.trim()} onClick={handleCreateProject}>
+             {dictionary.save}
+           </Button>
+         </DialogActions>
