@@ -38,10 +38,15 @@ dashboard route state, responsive actions, project selector deletion, i18n cover
 | UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | `implementation/diffs/006_UPDATE_apps_dashboard_src_shared_locale_dashboardLocale_ts.diff` |
 | UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | `implementation/diffs/007_UPDATE_apps_dashboard_src_features_history_historyModel_ts.diff` |
 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `implementation/diffs/008_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.diff` |
+| UPDATE | `apps/dashboard/src/app/dashboardRouteState.ts` | `implementation/diffs/009_REFACTOR_apps_dashboard_src_app_dashboardRouteState_ts.diff` |
+| UPDATE | `apps/dashboard/src/app/DashboardApp.tsx` | `implementation/diffs/010_REFACTOR_apps_dashboard_src_app_DashboardApp_tsx.diff` |
+| UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `implementation/diffs/011_REFACTOR_apps_dashboard_src_features_history_HistoryWorkspace_tsx.diff` |
+| UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | `implementation/diffs/012_REFACTOR_apps_dashboard_src_shared_locale_dashboardLocale_ts.diff` |
 
 ## Verification
 
 - `pnpm --filter @pgg/dashboard build`: pass
+- refactor `pnpm --filter @pgg/dashboard build`: pass
 - current-project verification contract: `manual verification required`
 
 ## Notes
@@ -49,3 +54,4 @@ dashboard route state, responsive actions, project selector deletion, i18n cover
 - Route-state is implemented without adding a router dependency.
 - LocalStorage no longer persists route-level fields such as section, settings panel, selected topic, and insights state.
 - `stage-blocked` remains compatible with existing blocked counting/rendering predicates.
+- Refactor moved route-state UI projection helpers into `dashboardRouteState.ts` and removed unused route repair locale copy.

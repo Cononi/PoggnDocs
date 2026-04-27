@@ -1,4 +1,9 @@
-import type { DashboardDetailSection, DashboardPrimaryMenu, DashboardSettingsView } from "../shared/model/dashboard";
+import type {
+  DashboardBottomNavigationValue,
+  DashboardDetailSection,
+  DashboardPrimaryMenu,
+  DashboardSettingsView
+} from "../shared/model/dashboard";
 
 export type DashboardRouteScreen = "home" | "projects" | "settings";
 export type DashboardRouteModal = "project-selector" | "add-project" | null;
@@ -16,6 +21,19 @@ export type DashboardRouteState = {
 };
 
 type DashboardRouteWriteMode = "push" | "replace";
+
+type DashboardRouteInput = {
+  activeRouteScreen: DashboardRouteScreen;
+  activeTopMenu: DashboardPrimaryMenu;
+  selectedProjectId: string | null;
+  activeDetailSection: DashboardDetailSection;
+  activeSettingsView: DashboardSettingsView;
+  selectedTopicKey: string | null;
+  filePath: string | null;
+  insightsRailOpen: boolean;
+  projectDialogOpen: boolean;
+  projectSelectorOpen: boolean;
+};
 
 const detailSections = new Set<DashboardDetailSection>(["main", "history", "report", "files", "settings"]);
 const settingsPanels = new Set<DashboardSettingsView>(["main", "refresh", "git", "system"]);
@@ -93,8 +111,39 @@ export function buildDashboardRouteUrl(state: DashboardRouteState): string {
   return withSearch(path, params);
 }
 
-export function dashboardScreenFromMenu(menu: DashboardPrimaryMenu): DashboardRouteScreen {
-  return menu === "settings" ? "settings" : "projects";
+export function createDashboardRouteState(input: DashboardRouteInput): DashboardRouteState {
+  return {
+    screen: resolveRouteScreen(input.activeTopMenu, input.activeRouteScreen, input.activeDetailSection),
+    activeTopMenu: input.activeTopMenu,
+    projectId: input.selectedProjectId,
+    section: input.activeDetailSection,
+    panel: input.activeSettingsView,
+    topicKey: input.selectedTopicKey,
+    filePath: input.filePath,
+    insightsOpen: input.activeTopMenu === "projects" && input.insightsRailOpen,
+    modal: input.projectDialogOpen ? "add-project" : input.projectSelectorOpen ? "project-selector" : null
+  };
+}
+
+export function dashboardBottomNavigationValue(
+  activeTopMenu: DashboardPrimaryMenu,
+  activeRouteScreen: DashboardRouteScreen
+): DashboardBottomNavigationValue {
+  if (activeTopMenu === "settings") {
+    return "settings";
+  }
+  return activeRouteScreen === "home" ? "home" : "projects";
+}
+
+function resolveRouteScreen(
+  activeTopMenu: DashboardPrimaryMenu,
+  activeRouteScreen: DashboardRouteScreen,
+  activeDetailSection: DashboardDetailSection
+): DashboardRouteScreen {
+  if (activeTopMenu === "settings") {
+    return "settings";
+  }
+  return activeRouteScreen === "home" && activeDetailSection === "main" ? "home" : "projects";
 }
 
 function routeScreenFromPath(pathname: string): DashboardRouteScreen {

@@ -744,6 +744,9 @@ function workflowStatusLabel(step: WorkflowStep, dictionary: DashboardLocale): s
   if (isUpdatingWorkflowStep(step)) {
     return dictionary.workflowProgressStatusUpdating;
   }
+  if (step.status === "stage-blocked") {
+    return dictionary.workflowProgressStatusStageBlocked;
+  }
   if (isBlockedWorkflowStep(step)) {
     return dictionary.workflowProgressStatusBlocked;
   }

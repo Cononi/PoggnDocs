@@ -1,0 +1,20 @@
+diff --git a/apps/dashboard/src/shared/locale/dashboardLocale.ts b/apps/dashboard/src/shared/locale/dashboardLocale.ts
+index 73b72bf..7b3362b 100644
+--- a/apps/dashboard/src/shared/locale/dashboardLocale.ts
++++ b/apps/dashboard/src/shared/locale/dashboardLocale.ts
+@@ -449,7 +449,6 @@ export const dashboardLocale = {
+     deleteProjectRootHint: "체크 없이 삭제하면 dashboard 등록만 제거되고 파일 시스템은 유지됩니다.",
+     deleteProjectConfirm: "삭제 진행",
+     deleteProjectBlockedCurrent: "현재 dashboard root 프로젝트는 삭제할 수 없습니다.",
+-    routeStateRepaired: "주소 상태를 사용 가능한 화면으로 조정했습니다.",
+     dashboardError: "dashboard 요청 처리 중 오류가 발생했습니다."
+   },
+   en: {
+@@ -842,7 +841,6 @@ export const dashboardLocale = {
+     deleteProjectRootHint: "Without enabling this option, only the dashboard registration is removed.",
+     deleteProjectConfirm: "Delete now",
+     deleteProjectBlockedCurrent: "The current dashboard root project cannot be deleted.",
+-    routeStateRepaired: "The address state was adjusted to an available screen.",
+     dashboardError: "The dashboard request failed."
+   }
+ } as const;
