@@ -7,3 +7,6 @@
 {"ts":"2026-04-27T04:55:08Z","stage":"implementation","event":"stage-started","source":"pgg-code"}
 {"ts":"2026-04-27T04:55:08Z","stage":"implementation","event":"stage-progress","source":"pgg-code","summary":"T1-T4 구현, diff 기록, build/test 검증 완료"}
 {"ts":"2026-04-27T05:17:45Z","stage":"implementation","event":"stage-commit","archiveType":"feat","targetVersion":"2.4.0","projectLanguage":"ko","commitTitle":"feat: 2.4.0.audit flow i18n 구현","summary":"audit flow i18n 구현","why":"dashboard workflow에서 token/performance audit 실행 evidence를 표시하고 pgg lang 기반 문구 생성을 맞추기 위한 구현입니다.","footer":"Refs: dashboard-audit-flow-i18n-surface"}
+{"ts":"2026-04-27T05:21:03Z","stage":"refactor","event":"stage-started","source":"pgg-refactor"}
+{"ts":"2026-04-27T05:21:03Z","stage":"refactor","event":"stage-progress","source":"pgg-refactor","summary":"flow label 중복 제거와 overview i18n key 정리"}
+{"ts":"2026-04-27T05:30:38Z","stage":"refactor","event":"stage-commit","archiveType":"feat","targetVersion":"2.4.0","projectLanguage":"ko","commitTitle":"feat: 2.4.0.workflow i18n 중복 정리","summary":"workflow i18n 중복 정리","why":"workflow label source를 단일화하고 overview 고정 문구를 locale key로 옮겨 표시 계층 중복과 언어 혼합 위험을 줄였습니다.","footer":"Refs: dashboard-audit-flow-i18n-surface"}

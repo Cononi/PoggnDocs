@@ -55,6 +55,12 @@ dashboard workflow model에 `token` optional flow를 추가하고, token/perform
 - `pnpm --filter @pgg/core build`: pass
 - `pnpm --filter @pgg/core test`: pass, 41 tests
 
+## Refactor
+
+- `HistoryWorkspace`가 `WorkflowStep.label`을 사용하도록 정리해 flow label dictionary mapping 중복을 제거했다.
+- workflow overview meta title, progress helper, log title 문구를 locale key로 이동해 표시 계층 i18n 경계를 더 일관되게 만들었다.
+- 추가 검증: `pnpm --filter @pgg/dashboard build` pass
+
 ## Notes
 
 - current-project verification contract는 manual mode라 자동 검증 명령 후보로 선언하지 않았다.

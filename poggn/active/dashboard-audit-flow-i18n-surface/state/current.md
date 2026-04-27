@@ -6,7 +6,7 @@ dashboard-audit-flow-i18n-surface
 
 ## Current Stage
 
-implementation
+refactor
 
 ## Goal
 
@@ -72,6 +72,7 @@ dashboard workflow가 실행된 token/performance optional audit를 flow에 표�
 - `pnpm --filter @pgg/dashboard build`: pass
 - `pnpm --filter @pgg/core build`: pass
 - `pnpm --filter @pgg/core test`: pass, 41 tests
+- refactor `pnpm --filter @pgg/dashboard build`: pass
 - current-project verification contract: manual verification required
 
 ## Git Publish Message
@@ -86,13 +87,14 @@ dashboard workflow가 실행된 token/performance optional audit를 flow에 표�
 - plan review: approved
 - task review: approved
 - code review: approved
-- score: `95`
-- experts: 시니어 백엔드 엔지니어, 테크 리드
+- refactor review: approved
+- score: `96`
+- experts: 소프트웨어 아키텍트, 코드 리뷰어
 - blocking issues: 없음
 
 ## Next Workflow
 
-- `pgg-refactor`
+- `pgg-token`
 
 ## Changed Files
 
@@ -129,4 +131,7 @@ dashboard workflow가 실행된 token/performance optional audit를 flow에 표�
 | ADD | `poggn/active/dashboard-audit-flow-i18n-surface/implementation/diffs/006_UPDATE_packages_core_dist_templates_js.diff` | pending |
 | ADD | `poggn/active/dashboard-audit-flow-i18n-surface/implementation/diffs/007_UPDATE_packages_core_dist_templates_js_map.diff` | pending |
 | ADD | `poggn/active/dashboard-audit-flow-i18n-surface/implementation/diffs/008_UPDATE_packages_core_test_version-history_test_mjs.diff` | pending |
+| ADD | `poggn/active/dashboard-audit-flow-i18n-surface/implementation/diffs/009_REFACTOR_apps_dashboard_src_features_history_HistoryWorkspace_tsx.diff` | pending |
+| ADD | `poggn/active/dashboard-audit-flow-i18n-surface/implementation/diffs/010_REFACTOR_apps_dashboard_src_shared_locale_dashboardLocale_ts.diff` | pending |
 | ADD | `poggn/active/dashboard-audit-flow-i18n-surface/reviews/code.review.md` | pending |
+| ADD | `poggn/active/dashboard-audit-flow-i18n-surface/reviews/refactor.review.md` | pending |

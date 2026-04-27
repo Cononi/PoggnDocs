@@ -143,6 +143,17 @@
         "status": "reviewed",
         "summary": "시니어 백엔드 엔지니어와 테크 리드 code review 승인"
       }
+    },
+    {
+      "id": "refactor-review",
+      "type": "review",
+      "data": {
+        "label": "refactor.review.md",
+        "path": "poggn/active/dashboard-audit-flow-i18n-surface/reviews/refactor.review.md",
+        "stage": "refactor",
+        "status": "reviewed",
+        "summary": "소프트웨어 아키텍트와 코드 리뷰어 refactor 승인"
+      }
     }
   ],
   "edges": [
@@ -158,6 +169,7 @@
     { "id": "e-plan-review", "source": "plan", "target": "plan-review" },
     { "id": "e-task-review", "source": "task", "target": "task-review" },
     { "id": "e-task-implementation", "source": "task-review", "target": "implementation-index" },
-    { "id": "e-implementation-review", "source": "implementation-index", "target": "code-review" }
+    { "id": "e-implementation-review", "source": "implementation-index", "target": "code-review" },
+    { "id": "e-code-refactor", "source": "code-review", "target": "refactor-review" }
   ]
 }

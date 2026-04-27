@@ -439,44 +439,44 @@ function HistoryOverview(props: {
   const priority = topicPrioritySummary(props.topic);
   const activity = buildActivitySummary(props.topic, props.language, props.dictionary);
   const currentStage = progress.current;
-  const currentStageLabel = currentStage ? workflowFlowLabel(currentStage.id, props.dictionary) : props.dictionary.workflowProgressFlowAdd;
+  const currentStageLabel = currentStage?.label ?? props.dictionary.workflowProgressFlowAdd;
   const currentStageHelper = currentStage
-    ? `${workflowStatusLabel(currentStage, props.dictionary)} · ${progress.position} of ${steps.length} steps`
-    : `0 of ${steps.length} steps`;
-  const currentFlowLabel = currentStage ? workflowFlowLabel(currentStage.id, props.dictionary) : props.dictionary.workflowProgressFlowAdd;
+    ? `${workflowStatusLabel(currentStage, props.dictionary)} · ${progress.position} ${props.dictionary.workflowProgressPositionOf} ${steps.length} ${props.dictionary.workflowProgressSteps}`
+    : `0 ${props.dictionary.workflowProgressPositionOf} ${steps.length} ${props.dictionary.workflowProgressSteps}`;
+  const currentFlowLabel = currentStage?.label ?? props.dictionary.workflowProgressFlowAdd;
   const overviewMetaItems: OverviewMetaItem[] = [
     {
-      title: "Status",
+      title: props.dictionary.workflowOverviewStatus,
       value: topicStatus(props.topic),
       helper: props.topic.bucket === "archive" ? props.dictionary.archive : props.dictionary.statusInProgress,
       tone: "success"
     },
     {
-      title: "Workflow Stage",
+      title: props.dictionary.workflowOverviewStage,
       value: currentStageLabel,
       helper: currentStageHelper,
       tone: "primary"
     },
     {
-      title: "Progress",
+      title: props.dictionary.workflowOverviewProgress,
       value: `${progress.completion}%`,
       helper: `${progress.completed}/${steps.length}`,
       tone: "primary"
     },
     {
-      title: "Priority",
+      title: props.dictionary.workflowOverviewPriority,
       value: priority.value,
       helper: priority.helper,
       tone: priority.tone
     },
     {
-      title: "Created",
+      title: props.dictionary.workflowOverviewCreated,
       value: created.value,
       lines: created.lines,
       helper: created.helper
     },
     {
-      title: "Updated",
+      title: props.dictionary.workflowOverviewUpdated,
       value: updated.value,
       lines: updated.lines,
       helper: currentFlowLabel
@@ -736,20 +736,6 @@ function OverviewMeta(props: {
   );
 }
 
-function workflowFlowLabel(id: WorkflowStep["id"], dictionary: DashboardLocale): string {
-  const labels: Record<WorkflowStep["id"], string> = {
-    add: dictionary.workflowProgressFlowAdd,
-    plan: dictionary.workflowProgressFlowPlan,
-    code: dictionary.workflowProgressFlowCode,
-    refactor: dictionary.workflowProgressFlowRefactor,
-    token: dictionary.workflowProgressFlowToken,
-    performance: dictionary.workflowProgressFlowPerformance,
-    qa: dictionary.workflowProgressFlowQa,
-    done: dictionary.workflowProgressFlowDone
-  };
-  return labels[id] ?? id;
-}
-
 function workflowStatusLabel(step: WorkflowStep, dictionary: DashboardLocale): string {
   if (step.status === "completed") {
     return dictionary.workflowProgressStatusCompleted;
@@ -769,7 +755,7 @@ function workflowStatusLabel(step: WorkflowStep, dictionary: DashboardLocale): s
 function workflowStepSurfaceLabel(step: WorkflowStep, dictionary: DashboardLocale): string {
   const status = workflowStatusLabel(step, dictionary);
   if (isLiveWorkflowStep(step) && step.activeTaskIds.length) {
-    return `${workflowFlowLabel(step.id, dictionary)} ${step.activeTaskIds.join(",")} ${status}`;
+    return `${step.label} ${step.activeTaskIds.join(",")} ${status}`;
   }
   return status;
 }
@@ -859,7 +845,7 @@ function WorkflowStepNode(props: {
 }) {
   const theme = useTheme();
   const colors = workflowStepColors(theme, props.step);
-  const label = workflowFlowLabel(props.step.id, props.dictionary);
+  const label = props.step.label;
   const statusLabel = workflowStepSurfaceLabel(props.step, props.dictionary);
   const tooltipTitle = `${label} ${props.dictionary.workflowProgressTooltip}`;
   const isLive = isLiveWorkflowStep(props.step);
@@ -1057,7 +1043,7 @@ function WorkflowLogDialog(props: { step: WorkflowStep | null; dictionary: Dashb
       <DialogTitle sx={{ pr: 6 }}>
         <Stack spacing={0.4}>
           <Typography variant="h6" sx={{ fontWeight: 800 }}>
-            {step ? workflowFlowLabel(step.id, props.dictionary) : props.dictionary.workflow} log
+            {step ? step.label : props.dictionary.workflow} {props.dictionary.workflowLog}
           </Typography>
           {step ? <Typography variant="body2" color="text.secondary">{workflowStatusLabel(step, props.dictionary)}</Typography> : null}
         </Stack>
