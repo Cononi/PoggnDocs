@@ -1,0 +1,14 @@
+{
+  "topic": "pgg-git-onboarding-implementation-gap",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "version": "2.6.1",
+  "targetVersion": "2.6.1",
+  "previousVersion": "2.6.0",
+  "shortName": "git-gap",
+  "workingBranch": "ai/fix/2.6.1-git-gap",
+  "releaseBranch": "release/2.6.1-git-gap",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-27T11:53:14Z",
+  "history": "poggn/version-history.ndjson"
+}
