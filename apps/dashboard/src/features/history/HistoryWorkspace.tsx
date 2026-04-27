@@ -652,11 +652,11 @@ function HistoryOverview(props: {
 function workflowProgressTrackSx(stepCount: number) {
   return {
     display: "grid",
-    gridTemplateColumns: `repeat(${stepCount}, minmax(0, 1fr))`,
-    gap: { xs: 0.65, sm: 0.8, md: 1 },
+    gridTemplateColumns: { xs: "1fr", md: `repeat(${stepCount}, minmax(0, 1fr))` },
+    gap: { xs: 2.2, md: 1 },
     position: "relative",
     minWidth: 0,
-    px: { xs: 0, md: 0.4 },
+    px: { xs: 0.4, md: 0.4 },
     pt: { xs: 0.8, md: 1 },
     overflow: "visible",
     isolation: "isolate"
@@ -827,13 +827,15 @@ function connectorSx(theme: Theme, step: WorkflowStep, nextStep: WorkflowStep | 
   return {
     content: "\"\"",
     position: "absolute",
-    left: { xs: "calc(50% + 25px)", sm: "calc(50% + 27px)", md: "calc(50% + 29px)" },
-    right: { xs: "calc(-50% + 20px)", sm: "calc(-50% + 21px)", md: "calc(-50% + 21px)" },
-    top: { xs: 24.5, sm: 26.5, md: 28.5 },
-    height: 3,
+    left: { xs: "calc(50% - 1.5px)", md: "calc(50% + 29px)" },
+    right: { xs: "auto", md: "calc(-50% + 21px)" },
+    top: { xs: 54, md: 28.5 },
+    width: { xs: 3, md: "auto" },
+    height: { xs: "calc(100% + 18px)", md: 3 },
     borderRadius: 999,
     bgcolor: nextStep.status === "pending" && !nextIsLive ? "transparent" : color,
-    borderTop: nextStep.status === "pending" && !nextIsLive ? `3px dotted ${color}` : 0,
+    borderTop: { xs: 0, md: nextStep.status === "pending" && !nextIsLive ? `3px dotted ${color}` : 0 },
+    borderLeft: { xs: nextStep.status === "pending" && !nextIsLive ? `3px dotted ${color}` : 0, md: 0 },
     boxShadow: nextIsLive || step.status === "completed" ? `0 0 12px ${alpha(color, 0.42)}` : "none",
     zIndex: 0,
     pointerEvents: "none"

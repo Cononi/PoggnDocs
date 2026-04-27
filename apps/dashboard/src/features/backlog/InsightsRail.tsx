@@ -22,6 +22,25 @@ type InsightsRailProps = {
 
 type InsightItem = InsightsSummaryModel["widgets"][number]["items"][number];
 
+function dedupeInsightItems(items: InsightItem[]): InsightItem[] {
+  const merged = new Map<string, InsightItem>();
+  for (const item of items) {
+    const key = `${item.label.trim().toLowerCase()}-${item.tone}`;
+    const previous = merged.get(key);
+    if (!previous) {
+      merged.set(key, item);
+      continue;
+    }
+    const value = previous.value + item.value;
+    merged.set(key, {
+      ...previous,
+      value,
+      displayValue: String(value)
+    });
+  }
+  return [...merged.values()];
+}
+
 export function InsightsRail(props: InsightsRailProps) {
   const theme = useTheme();
   const backlogWidget = props.summary.widgets.find((widget) => widget.id === "workload") ?? props.summary.widgets[0] ?? null;
@@ -40,6 +59,7 @@ export function InsightsRail(props: InsightsRailProps) {
     }
   ];
   const progressWidget = props.summary.widgets.find((widget) => widget.id === "progress") ?? props.summary.widgets.at(-1) ?? null;
+  const progressItems = progressWidget ? dedupeInsightItems(progressWidget.items) : [];
 
   return (
     <Stack spacing={1.5}>
@@ -146,9 +166,9 @@ export function InsightsRail(props: InsightsRailProps) {
           <Stack spacing={1.2}>
             <RailSectionTitle icon={<DonutLargeRounded fontSize="small" />} title={props.dictionary.sprintProgressTitle} />
             <Stack direction="row" spacing={1.5} sx={{ alignItems: "center" }}>
-              <ProgressDonut items={progressWidget.items} totalLabel={props.dictionary.totalLabel} />
+              <ProgressDonut items={progressItems} totalLabel={props.dictionary.totalLabel} />
               <Stack spacing={0.9} sx={{ flex: 1 }}>
-                {progressWidget.items.map((item) => (
+                {progressItems.map((item) => (
                   <Stack key={item.id} direction="row" spacing={1} sx={{ justifyContent: "space-between", alignItems: "center" }}>
                     <Stack direction="row" spacing={0.8} sx={{ alignItems: "center" }}>
                       <Box

@@ -35,7 +35,6 @@ import {
 import { dashboardLocale } from "../shared/locale/dashboardLocale";
 import type {
   ArtifactSelection,
-  DashboardBottomNavigationValue,
   DashboardDetailSection,
   DashboardQueryResult,
   DashboardSettingsView,
@@ -52,7 +51,6 @@ import {
   splitVisibleTopics
 } from "../shared/utils/dashboard";
 import {
-  DashboardMobileBottomNavigation,
   DashboardSpeedDial,
   DashboardStatePanel,
   ProjectContextSidebar,
@@ -61,7 +59,6 @@ import {
 } from "./DashboardShellChrome";
 import {
   createDashboardRouteState,
-  dashboardBottomNavigationValue,
   readDashboardRouteState,
   writeDashboardRouteState,
   type DashboardRouteModal,
@@ -87,7 +84,6 @@ export default function DashboardApp() {
   const theme = useTheme();
   const isCompactShell = useMediaQuery(theme.breakpoints.down("lg"));
   const activeTopMenu = useDashboardStore((state) => state.activeTopMenu);
-  const activeSidebarItem = useDashboardStore((state) => state.activeSidebarItem);
   const projectDetailOpen = useDashboardStore((state) => state.projectDetailOpen);
   const activeDetailSection = useDashboardStore((state) => state.activeDetailSection);
   const activeSettingsView = useDashboardStore((state) => state.activeSettingsView);
@@ -119,6 +115,7 @@ export default function DashboardApp() {
   const [projectCategoryDraft, setProjectCategoryDraft] = useState("");
   const [pendingDeleteProjectId, setPendingDeleteProjectId] = useState<string | null>(null);
   const [dangerousDeleteRoot, setDangerousDeleteRoot] = useState(false);
+  const [confirmedNoExternalBackup, setConfirmedNoExternalBackup] = useState(false);
   const [detailSelection, setDetailSelection] = useState<ArtifactSelection | null>(null);
   const [fileSelection, setFileSelection] = useState<ArtifactSelection | null>(null);
   const [detailDialogOpen, setDetailDialogOpen] = useState(false);
@@ -185,13 +182,7 @@ export default function DashboardApp() {
     [boardContextProject, dictionary, snapshot?.recentActivity]
   );
   const isDeletingCurrentProject = pendingDeleteProject?.id === currentProject?.id;
-  const latestProjectSummary = `${latestActiveProject?.name ?? "-"} · ${
-    latestActiveProject?.projectVersion ?? latestActiveProject?.pggVersion ?? dictionary.unknown
-  }`;
-  const bottomNavigationValue: DashboardBottomNavigationValue = dashboardBottomNavigationValue(
-    activeTopMenu,
-    activeRouteScreen
-  );
+  const deleteRootAllowed = !dangerousDeleteRoot || confirmedNoExternalBackup;
   const routeStateForUi: DashboardRouteState = createDashboardRouteState({
     activeRouteScreen,
     activeTopMenu,
@@ -246,22 +237,6 @@ export default function DashboardApp() {
       setInsightsRailOpen(false);
       setSidebarDrawerOpen(false);
     });
-  };
-
-  const handleBottomNavigationChange = (value: DashboardBottomNavigationValue) => {
-    if (value === "home") {
-      goHome();
-      return;
-    }
-    if (value === "settings") {
-      setActiveRouteScreen("settings");
-      setActiveTopMenu("settings");
-      setSidebarDrawerOpen(false);
-      return;
-    }
-    setActiveRouteScreen("projects");
-    setActiveTopMenu("projects");
-    setSidebarDrawerOpen(false);
   };
 
   useEffect(() => {
@@ -851,6 +826,32 @@ export default function DashboardApp() {
     mutateSnapshot(createMutationPayload(`/api/dashboard/categories/${categoryId}`, "PATCH", { name }));
   };
 
+  const renderCategoryManagementPanel = () => (
+    <CategoryManagementPanel
+      categories={categories}
+      dictionary={dictionary}
+      isLiveMode={isLiveMode}
+      onCreateCategory={handleCreateCategory}
+      onEditCategory={handleEditCategory}
+      onSetDefaultCategory={(categoryId) =>
+        mutateSnapshot(createMutationPayload(`/api/dashboard/categories/${categoryId}/default`, "POST"))
+      }
+      onDeleteCategory={(categoryId) =>
+        mutateSnapshot(createMutationPayload(`/api/dashboard/categories/${categoryId}`, "DELETE"))
+      }
+      onToggleCategory={(categoryId, visible) =>
+        mutateSnapshot(
+          createMutationPayload(`/api/dashboard/categories/${categoryId}/visibility`, "PATCH", { visible })
+        )
+      }
+      onMoveCategory={(categoryId, targetIndex) =>
+        mutateSnapshot(
+          createMutationPayload(`/api/dashboard/categories/${categoryId}/reorder`, "POST", { targetIndex })
+        )
+      }
+    />
+  );
+
   const closeProjectDialog = () => {
     setProjectDialogOpen(false);
     setProjectRootDirDraft("");
@@ -860,6 +861,7 @@ export default function DashboardApp() {
   const closeDeleteProjectDialog = () => {
     setPendingDeleteProjectId(null);
     setDangerousDeleteRoot(false);
+    setConfirmedNoExternalBackup(false);
   };
 
   const handleCreateProject = () => {
@@ -879,7 +881,7 @@ export default function DashboardApp() {
 
     mutateSnapshot(
       createMutationPayload(`/api/dashboard/projects/${pendingDeleteProject.id}`, "DELETE", {
-        dangerousDeleteRoot
+        dangerousDeleteRoot: dangerousDeleteRoot && confirmedNoExternalBackup
       })
     );
     closeDeleteProjectDialog();
@@ -887,6 +889,10 @@ export default function DashboardApp() {
 
   const renderMainSurface = () => {
     if (activeTopMenu === "settings") {
+      if (activeSettingsView === "category") {
+        return renderCategoryManagementPanel();
+      }
+
       return (
         <SettingsWorkspace
           project={currentProject}
@@ -900,34 +906,6 @@ export default function DashboardApp() {
             mutateCurrentProject("refresh", { refreshIntervalMs })
           }
           onUpdateThemeMode={setThemeMode}
-        />
-      );
-    }
-
-    if (activeSidebarItem === "category" && !projectDetailOpen) {
-      return (
-        <CategoryManagementPanel
-          categories={categories}
-          dictionary={dictionary}
-          isLiveMode={isLiveMode}
-          onCreateCategory={handleCreateCategory}
-          onEditCategory={handleEditCategory}
-          onSetDefaultCategory={(categoryId) =>
-            mutateSnapshot(createMutationPayload(`/api/dashboard/categories/${categoryId}/default`, "POST"))
-          }
-          onDeleteCategory={(categoryId) =>
-            mutateSnapshot(createMutationPayload(`/api/dashboard/categories/${categoryId}`, "DELETE"))
-          }
-          onToggleCategory={(categoryId, visible) =>
-            mutateSnapshot(
-              createMutationPayload(`/api/dashboard/categories/${categoryId}/visibility`, "PATCH", { visible })
-            )
-          }
-          onMoveCategory={(categoryId, targetIndex) =>
-            mutateSnapshot(
-              createMutationPayload(`/api/dashboard/categories/${categoryId}/reorder`, "POST", { targetIndex })
-            )
-          }
         />
       );
     }
@@ -991,6 +969,7 @@ export default function DashboardApp() {
               projectDetailOpen={projectDetailOpen}
               activeDetailSection={activeDetailSection}
               activeSettingsView={activeSettingsView}
+              compactShell={false}
               project={boardContextProject}
               dictionary={dictionary}
               onSelectDetailSection={openManagementSection}
@@ -1051,6 +1030,7 @@ export default function DashboardApp() {
           projectDetailOpen={projectDetailOpen}
           activeDetailSection={activeDetailSection}
           activeSettingsView={activeSettingsView}
+          compactShell={isCompactShell}
           project={boardContextProject}
           dictionary={dictionary}
           onSelectDetailSection={(section) => {
@@ -1080,18 +1060,12 @@ export default function DashboardApp() {
       <DashboardSpeedDial
         activeTopMenu={activeTopMenu}
         compactShell={isCompactShell}
-        latestProjectSummary={latestProjectSummary}
+        pggVersion={projectSurfaceProject?.pggVersion ?? currentProject?.pggVersion ?? null}
         dictionary={dictionary}
         onGoHome={goHome}
         onAddProject={() => openRouteModal("add-project")}
         onToggleInsights={() => setInsightsRailOpen(!insightsRailOpen)}
         onOpenProjectSelector={() => openRouteModal("project-selector")}
-      />
-
-      <DashboardMobileBottomNavigation
-        value={bottomNavigationValue}
-        dictionary={dictionary}
-        onChange={handleBottomNavigationChange}
       />
 
       <Drawer
@@ -1123,29 +1097,44 @@ export default function DashboardApp() {
       <Dialog open={projectDialogOpen} onClose={closeProjectDialog} fullWidth maxWidth="sm">
         <DialogTitle>{dictionary.addProjectTitle}</DialogTitle>
         <DialogContent>
-          <Stack spacing={2} sx={{ pt: 1 }}>
+          <Stack spacing={2} sx={{ pt: 1.25 }}>
             <Typography variant="body2" color="text.secondary">
               {dictionary.addProjectHint}
             </Typography>
-            <TextField
-              autoFocus
-              fullWidth
-              label={dictionary.projectRootDir}
-              value={projectRootDirDraft}
-              onChange={(event) => setProjectRootDirDraft(event.target.value)}
-            />
-            <TextField
-              select
-              label={dictionary.targetCategory}
-              value={projectCategoryDraft}
-              onChange={(event) => setProjectCategoryDraft(event.target.value)}
+            <Paper
+              variant="outlined"
+              sx={{
+                p: 2,
+                borderRadius: 2,
+                background: (theme) =>
+                  `linear-gradient(135deg, ${alpha(theme.palette.background.paper, 0.96)}, ${alpha(theme.palette.primary.main, 0.05)})`
+              }}
             >
-              {categories.map((category) => (
-                <MenuItem key={category.id} value={category.id}>
-                  {category.name}
-                </MenuItem>
-              ))}
-            </TextField>
+              <Stack spacing={1.5}>
+                <TextField
+                  autoFocus
+                  fullWidth
+                  size="small"
+                  label={dictionary.projectRootDir}
+                  value={projectRootDirDraft}
+                  onChange={(event) => setProjectRootDirDraft(event.target.value)}
+                />
+                <TextField
+                  select
+                  fullWidth
+                  size="small"
+                  label={dictionary.targetCategory}
+                  value={projectCategoryDraft}
+                  onChange={(event) => setProjectCategoryDraft(event.target.value)}
+                >
+                  {categories.map((category) => (
+                    <MenuItem key={category.id} value={category.id}>
+                      {category.name}
+                    </MenuItem>
+                  ))}
+                </TextField>
+              </Stack>
+            </Paper>
           </Stack>
         </DialogContent>
         <DialogActions>
@@ -1188,7 +1177,12 @@ export default function DashboardApp() {
                     checked={dangerousDeleteRoot}
                     color="error"
                     disabled={isDeletingCurrentProject}
-                    onChange={(event) => setDangerousDeleteRoot(event.target.checked)}
+                    onChange={(event) => {
+                      setDangerousDeleteRoot(event.target.checked);
+                      if (!event.target.checked) {
+                        setConfirmedNoExternalBackup(false);
+                      }
+                    }}
                   />
                 }
                 label={
@@ -1202,6 +1196,31 @@ export default function DashboardApp() {
                 sx={{ m: 0, alignItems: "flex-start" }}
               />
             </Paper>
+            {dangerousDeleteRoot ? (
+              <Paper variant="outlined" sx={{ p: 1.5, borderRadius: 1, borderColor: "error.main" }}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      checked={confirmedNoExternalBackup}
+                      color="error"
+                      disabled={isDeletingCurrentProject}
+                      onChange={(event) => setConfirmedNoExternalBackup(event.target.checked)}
+                    />
+                  }
+                  label={
+                    <Stack spacing={0.35}>
+                      <Typography variant="body2" color="error.main">
+                        {dictionary.deleteProjectBackupConfirm}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary">
+                        {dictionary.deleteProjectBackupConfirmHint}
+                      </Typography>
+                    </Stack>
+                  }
+                  sx={{ m: 0, alignItems: "flex-start" }}
+                />
+              </Paper>
+            ) : null}
           </Stack>
         </DialogContent>
         <DialogActions>
@@ -1209,7 +1228,7 @@ export default function DashboardApp() {
           <Button
             color="error"
             variant="contained"
-            disabled={!pendingDeleteProject || isDeletingCurrentProject || !isLiveMode}
+            disabled={!pendingDeleteProject || isDeletingCurrentProject || !isLiveMode || !deleteRootAllowed}
             onClick={handleDeleteProject}
           >
             {dictionary.deleteProjectConfirm}

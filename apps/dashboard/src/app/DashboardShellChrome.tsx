@@ -6,8 +6,6 @@ import {
   Box,
   Button,
   ButtonBase,
-  BottomNavigation,
-  BottomNavigationAction,
   Chip,
   Dialog,
   DialogActions,
@@ -30,11 +28,9 @@ import FolderRounded from "@mui/icons-material/FolderRounded";
 import HomeRounded from "@mui/icons-material/HomeRounded";
 import HistoryRounded from "@mui/icons-material/HistoryRounded";
 import InsightsRounded from "@mui/icons-material/InsightsRounded";
-import InfoRounded from "@mui/icons-material/InfoRounded";
 import MenuRounded from "@mui/icons-material/MenuRounded";
 import SettingsRounded from "@mui/icons-material/SettingsRounded";
 import type {
-  DashboardBottomNavigationValue,
   DashboardDetailSection,
   DashboardLocale,
   DashboardPrimaryMenu,
@@ -61,6 +57,7 @@ type ProjectContextSidebarProps = {
   projectDetailOpen: boolean;
   activeDetailSection: DashboardDetailSection;
   activeSettingsView: DashboardSettingsView;
+  compactShell: boolean;
   project: ProjectSnapshot | null;
   dictionary: DashboardLocale;
   onSelectDetailSection: (section: DashboardDetailSection) => void;
@@ -83,18 +80,12 @@ type ProjectSelectorDialogProps = {
 type DashboardSpeedDialProps = {
   activeTopMenu: DashboardPrimaryMenu;
   compactShell: boolean;
-  latestProjectSummary: string;
+  pggVersion: string | null;
   dictionary: DashboardLocale;
   onGoHome: () => void;
   onAddProject: () => void;
   onToggleInsights: () => void;
   onOpenProjectSelector: () => void;
-};
-
-type DashboardMobileBottomNavigationProps = {
-  value: DashboardBottomNavigationValue;
-  dictionary: DashboardLocale;
-  onChange: (value: DashboardBottomNavigationValue) => void;
 };
 
 type ProjectVersionMeta = {
@@ -142,7 +133,7 @@ export function TopNavigation(props: TopNavigationProps) {
           </Stack>
 
           {!props.compactShell ? (
-            <Stack direction="row" spacing={0.5} sx={{ alignItems: "center", ml: 1 }}>
+            <Stack direction="row" spacing={1} sx={{ alignItems: "center", ml: 1.5 }}>
               {navItems.map((item) => {
                 const active = item.id === props.activeTopMenu;
                 return (
@@ -151,6 +142,7 @@ export function TopNavigation(props: TopNavigationProps) {
                     onClick={item.onClick}
                     sx={{
                       px: 1.1,
+                      minWidth: 96,
                       py: 1,
                       borderRadius: 1,
                       color: active ? "text.primary" : "text.secondary",
@@ -159,7 +151,7 @@ export function TopNavigation(props: TopNavigationProps) {
                         : "2px solid transparent"
                     }}
                   >
-                    <Typography variant="body1" sx={{ fontWeight: active ? 700 : 500 }}>
+                    <Typography variant="body1" sx={{ fontWeight: active ? 700 : 500, whiteSpace: "nowrap" }}>
                       {item.label}
                     </Typography>
                   </ButtonBase>
@@ -178,13 +170,6 @@ export function TopNavigation(props: TopNavigationProps) {
 export function DashboardSpeedDial(props: DashboardSpeedDialProps) {
   const actions = [
     {
-      id: "latest",
-      icon: <InfoRounded />,
-      label: `${props.dictionary.latestProject}: ${props.latestProjectSummary}`,
-      disabled: true,
-      onClick: undefined
-    },
-    {
       id: "home",
       icon: <HomeRounded />,
       label: props.dictionary.homeNavigation,
@@ -201,13 +186,6 @@ export function DashboardSpeedDial(props: DashboardSpeedDialProps) {
     ...(props.activeTopMenu === "projects"
       ? [
           {
-            id: "select-project",
-            icon: <FolderRounded />,
-            label: props.dictionary.changeProjectAction,
-            disabled: false,
-            onClick: props.onOpenProjectSelector
-          },
-          {
             id: "insights",
             icon: <InsightsRounded />,
             label: props.dictionary.openInsights,
@@ -215,7 +193,25 @@ export function DashboardSpeedDial(props: DashboardSpeedDialProps) {
             onClick: props.onToggleInsights
           }
         ]
-      : [])
+      : []),
+    ...(props.activeTopMenu === "projects" && props.compactShell
+      ? [
+          {
+            id: "select-project",
+            icon: <FolderRounded />,
+            label: props.dictionary.changeProjectAction,
+            disabled: false,
+            onClick: props.onOpenProjectSelector
+          }
+        ]
+      : []),
+    {
+      id: "version",
+      icon: <Chip size="small" label={props.pggVersion ?? "-"} />,
+      label: `${props.dictionary.pggVersion}: ${props.pggVersion ?? props.dictionary.unknown}`,
+      disabled: true,
+      onClick: undefined
+    }
   ];
 
   return (
@@ -225,7 +221,7 @@ export function DashboardSpeedDial(props: DashboardSpeedDialProps) {
       sx={{
         position: "fixed",
         right: { xs: 16, md: 24 },
-        bottom: props.compactShell ? 88 : 24,
+        bottom: 24,
         zIndex: 20
       }}
     >
@@ -234,6 +230,7 @@ export function DashboardSpeedDial(props: DashboardSpeedDialProps) {
           key={action.id}
           icon={action.icon}
           tooltipTitle={action.label}
+          tooltipOpen
           FabProps={{ disabled: action.disabled, size: "small" }}
           onClick={action.onClick}
         />
@@ -242,36 +239,7 @@ export function DashboardSpeedDial(props: DashboardSpeedDialProps) {
   );
 }
 
-export function DashboardMobileBottomNavigation(props: DashboardMobileBottomNavigationProps) {
-  return (
-    <Paper
-      square
-      elevation={8}
-      sx={{
-        display: { xs: "block", lg: "none" },
-        position: "fixed",
-        left: 0,
-        right: 0,
-        bottom: 0,
-        zIndex: 18,
-        borderTop: (theme) => `1px solid ${theme.palette.divider}`
-      }}
-    >
-      <BottomNavigation
-        showLabels
-        value={props.value}
-        onChange={(_event, value: DashboardBottomNavigationValue) => props.onChange(value)}
-      >
-        <BottomNavigationAction label={props.dictionary.homeNavigation} value="home" icon={<HomeRounded />} />
-        <BottomNavigationAction label={props.dictionary.projectMenu} value="projects" icon={<FolderRounded />} />
-        <BottomNavigationAction label={props.dictionary.settings} value="settings" icon={<SettingsRounded />} />
-      </BottomNavigation>
-    </Paper>
-  );
-}
-
 export function ProjectContextSidebar(props: ProjectContextSidebarProps) {
-  const theme = useTheme();
   const detailItems = [
     { id: "main", label: props.dictionary.main, icon: <HomeRounded fontSize="small" /> },
     { id: "history", label: props.dictionary.historySection, icon: <HistoryRounded fontSize="small" /> },
@@ -281,20 +249,25 @@ export function ProjectContextSidebar(props: ProjectContextSidebarProps) {
   ] as const;
   const settingsItems = [
     { id: "main", label: props.dictionary.main },
-    { id: "refresh", label: props.dictionary.refresh }
+    { id: "refresh", label: props.dictionary.refresh },
+    { id: "category", label: props.dictionary.categoryMenu }
   ] as const;
   return (
     <Stack sx={{ minHeight: "100%", p: 2, justifyContent: "space-between" }}>
       <Stack spacing={2}>
         {props.activeTopMenu === "projects" ? (
           <>
-            <SidebarSectionLabel label={props.dictionary.workspaceSectionTitle} />
-            {props.project ? (
-              <ProjectSelectorTriggerCard
-                project={props.project}
-                dictionary={props.dictionary}
-                onClick={props.onOpenProjectSelector}
-              />
+            {!props.compactShell ? (
+              <>
+                <SidebarSectionLabel label={props.dictionary.workspaceSectionTitle} />
+                {props.project ? (
+                  <ProjectSelectorTriggerCard
+                    project={props.project}
+                    dictionary={props.dictionary}
+                    onClick={props.onOpenProjectSelector}
+                  />
+                ) : null}
+              </>
             ) : null}
 
             <SidebarSectionLabel label={props.dictionary.sidebarManagement} />
@@ -327,31 +300,7 @@ export function ProjectContextSidebar(props: ProjectContextSidebarProps) {
         )}
       </Stack>
 
-      <Paper
-        sx={{
-          p: 1.5,
-          borderRadius: 1,
-          bgcolor: alpha(theme.palette.background.default, theme.palette.mode === "dark" ? 0.58 : 0.38),
-          borderColor: alpha(theme.palette.primary.main, 0.2)
-        }}
-      >
-        <Stack spacing={1.15}>
-          <Typography variant="body2" color="text.secondary">
-            {props.dictionary.statusSyncManaged}
-          </Typography>
-          <Button
-            variant="outlined"
-            startIcon={<SettingsRounded />}
-            onClick={() =>
-              props.activeTopMenu === "projects"
-                ? props.onSelectDetailSection("settings")
-                : props.onSelectSettingsView("main")
-            }
-          >
-            {props.dictionary.goToSettings}
-          </Button>
-        </Stack>
-      </Paper>
+      <Box />
     </Stack>
   );
 }

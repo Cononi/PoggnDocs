@@ -604,31 +604,49 @@ function textIndicatesStageBlocked(value: string | null | undefined): boolean {
   return /blocked|failed|failure|error|invalid|실패|차단|오류/i.test(value ?? "");
 }
 
+function flowBlockedEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition): TimestampEvidence[] {
+  const nodeEvidence = flowNodes(topic, flow)
+    .filter((node) =>
+      [
+        node.data.status,
+        node.data.detail?.status,
+        node.data.detail?.summary,
+        node.data.detail?.title
+      ].some(textIndicatesStageBlocked)
+    )
+    .map((node) => ({
+      value: node.data.detail?.updatedAt ?? node.data.detail?.completedAt ?? null,
+      confidence: "high" as const,
+      source: sourcePathForNode(node)
+    }));
+  const eventEvidence = flowHistoryEvents(topic, flow)
+    .filter((event) => [event.event, event.summary, event.source].some(textIndicatesStageBlocked))
+    .map((event) => ({
+      value: event.ts,
+      confidence: "high" as const,
+      source: `state/history.ndjson:${event.event ?? "blocked"}`
+    }));
+  const currentStatusEvidence =
+    flow.id === normalizeFlowId(topic.stage) &&
+    (hasMeaningfulBlockingIssue(topic) || textIndicatesStageBlocked(topic.status))
+      ? [{ value: topic.updatedAt, confidence: "medium" as const, source: "topic.status" }]
+      : [];
+
+  return [...nodeEvidence, ...eventEvidence, ...currentStatusEvidence];
+}
+
 function flowHasBlockedEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition): boolean {
   if (flow.id === "done") {
     return isDoneFlowBlocked(topic);
   }
 
-  const isCurrentFlow = flow.id === normalizeFlowId(topic.stage);
-  if (isCurrentFlow && (hasMeaningfulBlockingIssue(topic) || textIndicatesStageBlocked(topic.status))) {
-    return true;
+  const blockedAt = latestEvidence(flowBlockedEvidence(topic, flow)).value;
+  if (!blockedAt) {
+    return false;
   }
 
-  const nodeHasBlockedEvidence = flowNodes(topic, flow).some((node) =>
-    [
-      node.data.status,
-      node.data.detail?.status,
-      node.data.detail?.summary,
-      node.data.detail?.title
-    ].some(textIndicatesStageBlocked)
-  );
-  if (nodeHasBlockedEvidence) {
-    return true;
-  }
-
-  return flowHistoryEvents(topic, flow).some((event) =>
-    [event.event, event.summary, event.source].some(textIndicatesStageBlocked)
-  );
+  const completedAt = flowTimestampBundle(topic, flow).completedAt.value;
+  return !completedAt || compareTimestamps(completedAt, blockedAt) < 0;
 }
 
 function flowHasFullCompletionEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition): boolean {

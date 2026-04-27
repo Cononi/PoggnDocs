@@ -218,10 +218,6 @@ export type DashboardThemeMode = "light" | "dark";
 
 export type DashboardPrimaryMenu = "projects" | "settings";
 
-export type DashboardBottomNavigationValue = "home" | "projects" | "settings";
-
-export type DashboardSidebarItem = "category";
-
 export type DashboardDetailSection =
   | "main"
   | "history"
@@ -229,7 +225,7 @@ export type DashboardDetailSection =
   | "files"
   | "settings";
 
-export type DashboardSettingsView = "main" | "refresh" | "git" | "system";
+export type DashboardSettingsView = "main" | "refresh" | "category" | "git" | "system";
 
 export type DashboardWorkspaceFilterState = {
   bucket: "all" | "active" | "archive";
@@ -279,7 +275,6 @@ export type ArtifactSelection = {
 
 export type DashboardStore = {
   activeTopMenu: DashboardPrimaryMenu;
-  activeSidebarItem: DashboardSidebarItem;
   projectDetailOpen: boolean;
   activeDetailSection: DashboardDetailSection;
   activeSettingsView: DashboardSettingsView;
@@ -290,7 +285,6 @@ export type DashboardStore = {
   workspaceFilterState: DashboardWorkspaceFilterState;
   insightsRailOpen: boolean;
   setActiveTopMenu: (value: DashboardPrimaryMenu) => void;
-  setActiveSidebarItem: (value: DashboardSidebarItem) => void;
   setProjectDetailOpen: (value: boolean) => void;
   setActiveDetailSection: (value: DashboardDetailSection) => void;
   setActiveSettingsView: (value: DashboardSettingsView) => void;

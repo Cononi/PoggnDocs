@@ -1,7 +1,6 @@
 import { create } from "zustand";
 import type {
   DashboardSettingsView,
-  DashboardSidebarItem,
   DashboardStore,
   DashboardThemeMode,
   DashboardWorkspaceFilterState
@@ -13,7 +12,6 @@ const DASHBOARD_UI_STATE_STORAGE_KEY = "pgg.dashboard.ui-state";
 type DashboardUiState = Pick<
   DashboardStore,
   | "activeTopMenu"
-  | "activeSidebarItem"
   | "selectedProjectId"
   | "topicFilter"
   | "workspaceFilterState"
@@ -26,7 +24,6 @@ const defaultWorkspaceFilterState: DashboardWorkspaceFilterState = {
 
 const defaultUiState: DashboardUiState = {
   activeTopMenu: "projects",
-  activeSidebarItem: "category",
   selectedProjectId: null,
   topicFilter: "",
   workspaceFilterState: defaultWorkspaceFilterState
@@ -64,7 +61,6 @@ function readInitialUiState(): DashboardUiState {
     return {
       ...defaultUiState,
       ...parsed,
-      activeSidebarItem: "category",
       workspaceFilterState: {
         ...defaultWorkspaceFilterState,
         ...(parsed.workspaceFilterState ?? {})
@@ -86,7 +82,6 @@ function persistUiState(state: DashboardUiState): void {
 function toUiState(store: DashboardStore): DashboardUiState {
   return {
     activeTopMenu: store.activeTopMenu,
-    activeSidebarItem: store.activeSidebarItem,
     selectedProjectId: store.selectedProjectId,
     topicFilter: store.topicFilter,
     workspaceFilterState: store.workspaceFilterState
@@ -117,17 +112,10 @@ export const useDashboardStore = create<DashboardStore>((set, get) => {
 
       setAndPersist({
         activeTopMenu: "projects",
-        activeSidebarItem: "category",
         projectDetailOpen: true,
         activeDetailSection: "main"
       });
     },
-    setActiveSidebarItem: (value: DashboardSidebarItem) =>
-      setAndPersist({
-        activeTopMenu: "projects",
-        activeSidebarItem: value,
-        projectDetailOpen: false
-      }),
     setProjectDetailOpen: (value) => setAndPersist({ projectDetailOpen: value }),
     setActiveDetailSection: (value) => setAndPersist({ activeDetailSection: value }),
     setActiveSettingsView: (value: DashboardSettingsView) =>

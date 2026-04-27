@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { existsSync } from "node:fs";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
@@ -234,6 +235,58 @@ test("project language changes update generated agent and routing text", async (
       assert.match(englishRouting, /`pgg-add`: Product Manager, UX\/UI Expert/);
       assert.equal(updatedManifest.language, "en");
       assert.equal(updatedManifest.managedFiles.some((entry) => entry.path === AGENT_ROUTING_PATH), true);
+    });
+  } finally {
+    await rm(rootDir, { recursive: true, force: true });
+  }
+});
+
+test("new topic helper localizes generated workflow document skeletons", async () => {
+  const rootDir = await mkdtemp(path.join(os.tmpdir(), "pgg-topic-language-"));
+
+  try {
+    await withTemporaryPggHome(rootDir, async () => {
+      await initializeProject(rootDir, {
+        provider: "codex",
+        language: "en",
+        autoMode: "on",
+        teamsMode: "off"
+      });
+
+      execFileSync(path.join(rootDir, ".codex/sh/pgg-new-topic.sh"), ["english-topic", "on", "feat", "minor"], {
+        encoding: "utf8"
+      });
+
+      const englishTopicDir = path.join(rootDir, "poggn/active/english-topic");
+      const englishProposal = await readFile(path.join(englishTopicDir, "proposal.md"), "utf8");
+      const englishReview = await readFile(path.join(englishTopicDir, "reviews/proposal.review.md"), "utf8");
+      const englishState = await readFile(path.join(englishTopicDir, "state/current.md"), "utf8");
+
+      assert.match(englishProposal, /## 1\. Title/);
+      assert.match(englishProposal, /## 2\. Change Classification/);
+      assert.match(englishProposal, /## 3\. User Input Question Record/);
+      assert.match(englishReview, /# Proposal Review/);
+      assert.match(englishState, /# Current State/);
+      assert.match(englishState, /## Goal/);
+      assert.doesNotMatch(englishProposal, /사용자 입력 질문 기록/);
+
+      await updateProjectLanguage(rootDir, "ko");
+      execFileSync(path.join(rootDir, ".codex/sh/pgg-new-topic.sh"), ["korean-topic", "on", "fix", "patch"], {
+        encoding: "utf8"
+      });
+
+      const koreanTopicDir = path.join(rootDir, "poggn/active/korean-topic");
+      const koreanProposal = await readFile(path.join(koreanTopicDir, "proposal.md"), "utf8");
+      const koreanReview = await readFile(path.join(koreanTopicDir, "reviews/proposal.review.md"), "utf8");
+      const koreanState = await readFile(path.join(koreanTopicDir, "state/current.md"), "utf8");
+
+      assert.match(koreanProposal, /## 1\. 제목/);
+      assert.match(koreanProposal, /## 2\. 변경 분류/);
+      assert.match(koreanProposal, /## 3\. 사용자 입력 질문 기록/);
+      assert.match(koreanReview, /## 전문가 메모/);
+      assert.match(koreanState, /# Current State/);
+      assert.match(koreanState, /## Goal/);
+      assert.doesNotMatch(koreanProposal, /User Input Question Record/);
     });
   } finally {
     await rm(rootDir, { recursive: true, force: true });
