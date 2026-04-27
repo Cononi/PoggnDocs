@@ -1,0 +1,14 @@
+{
+  "topic": "pgg-codex-agents-path-sync",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "version": "2.3.1",
+  "targetVersion": "2.3.1",
+  "previousVersion": "2.3.0",
+  "shortName": "codex-sync",
+  "workingBranch": "ai/fix/2.3.1-codex-sync",
+  "releaseBranch": "release/2.3.1-codex-sync",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-27T00:40:22Z",
+  "history": "poggn/version-history.ndjson"
+}
