@@ -24,11 +24,13 @@ Workflow tab timeline/git UI를 `add-img/git.png`, `add-img/timeline.png` refere
 ## Data Requirements
 
 - Timeline row는 flow 단위다.
-- Timeline row 순서는 최신 flow가 위에 오도록 timestamp 내림차순으로 정렬한다.
+- Timeline row 순서는 실제 pgg workflow 순서(`Add -> Plan -> Code -> Refactor -> Token -> Performance -> QA -> Done`)를 따른다.
 - Flow title에는 flow LLM actual token과 Local estimated token을 분리 표시한다.
 - File row에는 file명 위에 `LLM`과 `Local` token label을 먼저 표시하고, 그 아래 file path/name을 표시한다.
 - Timeline card의 생성 파일 목록은 flow당 최대 3개만 직접 표시한다.
-- Timeline card의 생성 파일 row를 클릭하면 modal로 file content를 볼 수 있어야 하며 modal에는 해당 file의 LLM actual token과 Local estimated token을 표시한다.
+- Timeline card의 생성 파일 row는 preview modal을 열지 않는다.
+- 우측 file tree의 file row를 클릭하면 modal로 file content를 볼 수 있어야 하며 modal에는 해당 file의 LLM actual token과 Local estimated token을 표시한다.
+- Timeline에 표시되는 시간은 file mtime이 아니라 해당 flow의 completion evidence(`stage-commit`, verified `stage-completed`, trusted node completion, release completion)를 우선 사용한다.
 - Git commit 내용은 실제 evidence와 일치해야 한다.
 - Commit source priority:
   1. `state/history.ndjson`의 `stage-commit` evidence
@@ -68,7 +70,8 @@ Workflow tab timeline/git UI를 `add-img/git.png`, `add-img/timeline.png` refere
   - completed check 색상은 overview completed 색상과 일치
   - completed check visual treatment matches the overview completed node
   - completed rail touches the circle outer ring exactly without overshooting or leaving a gap
-  - timeline rows are sorted newest first
+  - timeline rows follow the actual pgg workflow order
+  - displayed timeline time comes from flow completion evidence
   - no filter/show more/collapse buttons in the timeline header
   - right file tree folders expand/collapse on folder row click
   - timeline file action changes the right file tree to selected flow files
@@ -76,7 +79,8 @@ Workflow tab timeline/git UI를 `add-img/git.png`, `add-img/timeline.png` refere
   - initial right file tree shows all topic files
   - reset button restores the all-topic file tree and clears search/flow filtering
   - no table/list icon buttons next to file search
-  - clicking a generated file opens a modal with file content and LLM/Local token usage
+  - clicking a right file tree file opens a modal with file content and LLM/Local token usage
+  - clicking a generated file in the timeline card does not open preview
   - right file tree rows do not show LLM/Local token chips
   - files and commits side-by-side on desktop
   - file tree/detail affordance

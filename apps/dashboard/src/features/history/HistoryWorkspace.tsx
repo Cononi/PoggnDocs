@@ -74,7 +74,12 @@ type WorkflowProgressCountsSummary = {
   blocked: number;
   pending: number;
 };
-type TimelineFilePreview = TimelineRow["files"][number];
+type TimelineFilePreview = {
+  path: string;
+  llmActualTokens: number | null;
+  localEstimatedTokens: number;
+  content: string | null;
+};
 
 const HISTORY_TABS: HistoryTab[] = ["overview", "timeline", "relations"];
 const HISTORY_TAB_LABELS: Record<HistoryTab, string> = {
@@ -1204,7 +1209,6 @@ function HistoryTimeline(props: {
                 row={row}
                 dictionary={props.dictionary}
                 isLast={index === rows.length - 1}
-                onOpenFile={setPreviewFile}
                 onShowFlowFiles={() => showFlowFiles(row)}
               />
             ))}
@@ -1257,6 +1261,7 @@ function HistoryTimeline(props: {
                     depth={0}
                     dictionary={props.dictionary}
                     collapsedFolderIds={collapsedFolderIds}
+                    onOpenFile={setPreviewFile}
                     onToggleFolder={toggleFolder}
                   />
                 ))}
@@ -1304,7 +1309,6 @@ function TimelineMilestone(props: {
   row: TimelineRow;
   dictionary: DashboardLocale;
   isLast: boolean;
-  onOpenFile: (file: TimelineFilePreview) => void;
   onShowFlowFiles: () => void;
 }) {
   const theme = useTheme();
@@ -1330,7 +1334,7 @@ function TimelineMilestone(props: {
             display: "grid",
             placeItems: "center",
             color: "#fff",
-            bgcolor: alpha(accent, 0.18),
+            bgcolor: theme.palette.mode === "dark" ? "#10271f" : "#eaf6ed",
             border: `2px solid ${alpha(accentLight, 0.9)}`,
             boxShadow: `0 0 0 4px ${alpha(accent, 0.16)}, 0 0 22px ${alpha(accent, 0.46)}`,
             position: "relative",
@@ -1387,30 +1391,16 @@ function TimelineMilestone(props: {
             <Stack spacing={0.75}>
               <Typography variant="body2" sx={{ fontWeight: 800 }}>{props.dictionary.timelineGeneratedFiles} ({props.row.files.length})</Typography>
               {props.row.files.slice(0, 3).map((file) => (
-                <ButtonBase
-                  key={file.path}
-                  onClick={() => props.onOpenFile(file)}
-                  sx={{
-                    width: "100%",
-                    justifyContent: "flex-start",
-                    textAlign: "left",
-                    borderRadius: 0.75,
-                    p: 0.25,
-                    "&:hover": { bgcolor: "action.hover" },
-                    "&:focus-visible": { outline: "2px solid", outlineColor: "primary.main", outlineOffset: 2 }
-                  }}
-                >
-                  <Stack direction="row" spacing={0.75} sx={{ alignItems: "flex-start", minWidth: 0, width: "100%" }}>
-                    <ChangeBadge kind={file.kind} />
-                    <Stack spacing={0.35} sx={{ flex: 1, minWidth: 0 }}>
-                      <Stack direction="row" spacing={0.5} useFlexGap sx={{ flexWrap: "wrap", minWidth: 0 }}>
-                        <Chip size="small" variant="outlined" label={`${props.dictionary.llmShort}: ${formatTokenValue(file.llmActualTokens, props.dictionary)}`} sx={{ height: 20 }} />
-                        <Chip size="small" variant="outlined" label={`${props.dictionary.localShort}: ${file.localEstimatedTokens.toLocaleString()}`} sx={{ height: 20 }} />
-                      </Stack>
-                      <Typography variant="caption" sx={{ minWidth: 0, overflowWrap: "anywhere", lineHeight: 1.28 }}>{file.path}</Typography>
+                <Stack key={file.path} direction="row" spacing={0.75} sx={{ alignItems: "flex-start", minWidth: 0, p: 0.25 }}>
+                  <ChangeBadge kind={file.kind} />
+                  <Stack spacing={0.35} sx={{ flex: 1, minWidth: 0 }}>
+                    <Stack direction="row" spacing={0.5} useFlexGap sx={{ flexWrap: "wrap", minWidth: 0 }}>
+                      <Chip size="small" variant="outlined" label={`${props.dictionary.llmShort}: ${formatTokenValue(file.llmActualTokens, props.dictionary)}`} sx={{ height: 20 }} />
+                      <Chip size="small" variant="outlined" label={`${props.dictionary.localShort}: ${file.localEstimatedTokens.toLocaleString()}`} sx={{ height: 20 }} />
                     </Stack>
+                    <Typography variant="caption" sx={{ minWidth: 0, overflowWrap: "anywhere", lineHeight: 1.28 }}>{file.path}</Typography>
                   </Stack>
-                </ButtonBase>
+                </Stack>
               ))}
               {props.row.files.length > 3 ? <Typography variant="caption">+ {props.row.files.length - 3} more</Typography> : null}
               <Button size="small" endIcon={<ChevronRightRounded />} onClick={props.onShowFlowFiles} sx={{ alignSelf: "flex-start" }}>
@@ -1457,12 +1447,21 @@ function TimelineFileNode(props: {
   depth: number;
   dictionary: DashboardLocale;
   collapsedFolderIds: Set<string>;
+  onOpenFile: (file: TimelineFilePreview) => void;
   onToggleFolder: (nodeId: string) => void;
 }) {
   const isFolder = props.node.kind === "folder";
   const expanded = isFolder && !props.collapsedFolderIds.has(props.node.id);
   const Icon = isFolder ? FolderRounded : props.node.file?.kind === "diff" ? DifferenceRounded : DescriptionRounded;
   const changeKind: FileChangeKind = props.node.file?.relativePath.includes("delete") ? "D" : props.node.file?.relativePath.includes("proposal") ? "A" : "M";
+  const filePreview = props.node.file
+    ? {
+        path: props.node.file.relativePath,
+        llmActualTokens: props.node.file.llmActualTokens ?? null,
+        localEstimatedTokens: props.node.file.localEstimatedTokens ?? props.node.file.tokenEstimate ?? 0,
+        content: props.node.file.content ?? null
+      }
+    : null;
   const rowContent = (
     <Stack direction="row" spacing={0.75} sx={{ alignItems: "center", pl: props.depth * 1.5, minWidth: 0, width: "100%" }}>
       {isFolder ? expanded ? <ExpandMoreRounded fontSize="small" /> : <ChevronRightRounded fontSize="small" /> : <Box sx={{ width: 20 }} />}
@@ -1491,6 +1490,21 @@ function TimelineFileNode(props: {
         >
           {rowContent}
         </ButtonBase>
+      ) : filePreview ? (
+        <ButtonBase
+          onClick={() => props.onOpenFile(filePreview)}
+          sx={{
+            width: "100%",
+            justifyContent: "flex-start",
+            textAlign: "left",
+            borderRadius: 0.75,
+            py: 0.15,
+            "&:hover": { bgcolor: "action.hover" },
+            "&:focus-visible": { outline: "2px solid", outlineColor: "primary.main", outlineOffset: 2 }
+          }}
+        >
+          {rowContent}
+        </ButtonBase>
       ) : rowContent}
       {isFolder && expanded
         ? props.node.children.map((child) => (
@@ -1500,6 +1514,7 @@ function TimelineFileNode(props: {
               depth={props.depth + 1}
               dictionary={props.dictionary}
               collapsedFolderIds={props.collapsedFolderIds}
+              onOpenFile={props.onOpenFile}
               onToggleFolder={props.onToggleFolder}
             />
           ))

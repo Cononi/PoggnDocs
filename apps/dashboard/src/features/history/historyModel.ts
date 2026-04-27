@@ -1031,14 +1031,8 @@ export function buildTimelineRows(
         content: file.content ?? null
       }));
       const events = flowHistoryEvents(topic, flow);
-      const completedAt = latestEvidence(timestampEvidenceFromEvents(events, [/stage-completed/i, /stage-commit/i, /archived$/i], "timeline"));
-      const updatedAt = latestEvidence([
-        completedAt,
-        ...files
-          .map((file) => topic.files.find((entry) => entry.relativePath === file.path)?.updatedAt ?? null)
-          .filter((value): value is string => Boolean(value))
-          .map((value) => ({ value, confidence: "medium" as const, source: "file" }))
-      ]);
+      const timestamps = flowTimestampBundle(topic, flow);
+      const completedAt = timestamps.completedAt.value ? timestamps.completedAt : timestamps.updatedAt;
       const commits = events
         .filter((event) => event.event === "stage-commit" && event.commitTitle)
         .map((event) => ({
@@ -1049,25 +1043,20 @@ export function buildTimelineRows(
         }));
 
       return {
-        sortTime: timestampMillis(updatedAt.value) ?? 0,
-        row: {
-          id: flow.id,
-          step: workflowFlowLabel(flow.id, dictionary),
-          llmActualTokens: sumNullableTokens(files.map((file) => file.llmActualTokens)),
-          localEstimatedTokens: files.reduce((sum, file) => sum + file.localEstimatedTokens, 0),
-          tone: flow.id === "qa" || flow.id === "done" ? "success" : flow.optional ? "warning" : "primary",
-          completedBy: username,
-          time: formatDateValue(updatedAt.value, language, fallbackTime),
-          dateLabel: formatTimelineDateLine(updatedAt.value, language, fallbackTime),
-          timeLabel: formatTimelineTimeLine(updatedAt.value, language),
-          duration: updatedAt.source ?? "recorded",
-          files,
-          commits
-        }
+        id: flow.id,
+        step: workflowFlowLabel(flow.id, dictionary),
+        llmActualTokens: sumNullableTokens(files.map((file) => file.llmActualTokens)),
+        localEstimatedTokens: files.reduce((sum, file) => sum + file.localEstimatedTokens, 0),
+        tone: flow.id === "qa" || flow.id === "done" ? "success" : flow.optional ? "warning" : "primary",
+        completedBy: username,
+        time: formatDateValue(completedAt.value, language, fallbackTime),
+        dateLabel: formatTimelineDateLine(completedAt.value, language, fallbackTime),
+        timeLabel: formatTimelineTimeLine(completedAt.value, language),
+        duration: completedAt.source ?? "recorded",
+        files,
+        commits
       };
-    })
-    .sort((left, right) => right.sortTime - left.sortTime)
-    .map((entry) => entry.row);
+    });
 }
 
 function formatTimelineDateLine(value: string | null, language: HistoryLanguage, fallback: string): string {
