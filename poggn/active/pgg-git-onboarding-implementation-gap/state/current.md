@@ -6,7 +6,7 @@ pgg-git-onboarding-implementation-gap
 
 ## Current Stage
 
-refactor
+qa
 
 ## Goal
 
@@ -100,6 +100,24 @@ refactor
   - `pgg-stage-commit branch recovery`: `main` -> `ai/fix/2.6.1-git-gap`
   - `pgg-gate pgg-qa`: pass
 
+## QA Decision
+
+- status: `done`
+- score: `96`
+- next: `archive`
+- qa report: `qa/report.md`
+- decision: `pass`
+- automatic verification:
+  - `pnpm build`: pass, dashboard chunk-size warning only
+  - `pnpm test`: pass, 49 tests
+  - `pgg-gate pgg-qa`: pass
+- manual verification required:
+  - GitHub HTTPS token login and push
+  - GitHub SSH auth and push
+  - GitLab HTTPS/SSH path
+  - real repository creation with sandbox account
+  - destructive command confirmation in a real terminal/dashboard session
+
 ## Audit Applicability
 
 - `pgg-token`: `not_required` | workflow handoff 구조 변경이 아니라 CLI/dashboard git setup 기능 gap 보완이다
@@ -135,6 +153,7 @@ refactor
 | CREATE | `poggn/active/pgg-git-onboarding-implementation-gap/implementation/diffs/*.diff` | implementation diffs |
 | CREATE | `poggn/active/pgg-git-onboarding-implementation-gap/reviews/code.review.md` | code 전문가 review |
 | CREATE | `poggn/active/pgg-git-onboarding-implementation-gap/reviews/refactor.review.md` | refactor 전문가 review |
+| CREATE | `poggn/active/pgg-git-onboarding-implementation-gap/qa/report.md` | QA report and publish message |
 | UPDATE | `packages/core/src/index.ts` | git onboarding engine/result contract |
 | UPDATE | `packages/cli/src/index.ts` | init/git onboarding flow |
 | UPDATE | `apps/dashboard/vite.config.ts` | git setup execution endpoint |
@@ -152,8 +171,14 @@ refactor
 
 ## Next Step
 
-`pgg-qa`에서 자동 검증 결과와 실제 GitHub/GitLab credential 기반 manual verification 제약을 분리해 최종 판정한다.
+QA pass 상태이므로 archive helper를 실행해 version 기록과 git publish outcome을 남긴다.
 
 ## Next Action
 
-Run `pgg-qa` for `pgg-git-onboarding-implementation-gap`.
+Run `.codex/sh/pgg-archive.sh pgg-git-onboarding-implementation-gap`.
+
+## Git Publish Message
+
+- title: fix: 2.6.1.git 온보딩 실행 흐름 보완
+- why: CLI와 dashboard git setup 경로가 deferred placeholder에서 실제 onboarding 실행 흐름으로 이어져야 한다
+- footer: Refs: pgg-git-onboarding-implementation-gap
