@@ -1,0 +1,140 @@
+{
+  "topic": "pgg-codex-subagent-schema-and-lang-sync",
+  "nodes": [
+    {
+      "id": "proposal",
+      "type": "doc",
+      "data": {
+        "label": "proposal.md",
+        "status": "reviewed",
+        "score": 96
+      }
+    },
+    {
+      "id": "proposal-review",
+      "type": "review",
+      "data": {
+        "label": "reviews/proposal.review.md",
+        "status": "reviewed",
+        "score": 96
+      }
+    },
+    {
+      "id": "state",
+      "type": "state",
+      "data": {
+        "label": "state/current.md",
+        "next": "pgg-code"
+      }
+    },
+    {
+      "id": "plan",
+      "type": "doc",
+      "data": {
+        "label": "plan.md",
+        "status": "reviewed",
+        "score": 96
+      }
+    },
+    {
+      "id": "task",
+      "type": "doc",
+      "data": {
+        "label": "task.md",
+        "status": "reviewed",
+        "score": 96
+      }
+    },
+    {
+      "id": "specs",
+      "type": "spec",
+      "data": {
+        "label": "spec/*/*.md",
+        "count": 5
+      }
+    },
+    {
+      "id": "plan-review",
+      "type": "review",
+      "data": {
+        "label": "reviews/plan.review.md",
+        "status": "reviewed",
+        "score": 96
+      }
+    },
+    {
+      "id": "task-review",
+      "type": "review",
+      "data": {
+        "label": "reviews/task.review.md",
+        "status": "reviewed",
+        "score": 96
+      }
+    },
+    {
+      "id": "implementation",
+      "type": "implementation",
+      "data": {
+        "label": "implementation/index.md",
+        "status": "reviewed",
+        "score": 97
+      }
+    },
+    {
+      "id": "code-review",
+      "type": "review",
+      "data": {
+        "label": "reviews/code.review.md",
+        "status": "reviewed",
+        "score": 97
+      }
+    }
+  ],
+  "edges": [
+    {
+      "id": "proposal-to-review",
+      "source": "proposal",
+      "target": "proposal-review"
+    },
+    {
+      "id": "review-to-state",
+      "source": "proposal-review",
+      "target": "state"
+    },
+    {
+      "id": "state-to-plan",
+      "source": "state",
+      "target": "plan"
+    },
+    {
+      "id": "plan-to-specs",
+      "source": "plan",
+      "target": "specs"
+    },
+    {
+      "id": "specs-to-task",
+      "source": "specs",
+      "target": "task"
+    },
+    {
+      "id": "plan-to-plan-review",
+      "source": "plan",
+      "target": "plan-review"
+    },
+    {
+      "id": "task-to-task-review",
+      "source": "task",
+      "target": "task-review"
+    },
+    {
+      "id": "task-review-to-implementation",
+      "source": "task-review",
+      "target": "implementation"
+    },
+    {
+      "id": "implementation-to-code-review",
+      "source": "implementation",
+      "target": "code-review"
+    }
+  ]
+}

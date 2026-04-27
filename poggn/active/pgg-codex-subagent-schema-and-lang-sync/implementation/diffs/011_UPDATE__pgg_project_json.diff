@@ -1,0 +1,129 @@
+diff --git a/.pgg/project.json b/.pgg/project.json
+index 67b274b..198baa6 100644
+--- a/.pgg/project.json
++++ b/.pgg/project.json
+@@ -6,7 +6,7 @@
+   "language": "ko",
+   "autoMode": "on",
+   "installedVersion": "0.1.0",
+-  "updatedAt": "2026-04-27T01:13:51.000Z",
++  "updatedAt": "2026-04-27T01:57:42.017Z",
+   "dashboard": {
+     "title": "POGGN",
+     "titleIconSvg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 48 48\"><defs><linearGradient id=\"pgg-dashboard-icon\" x1=\"10%\" y1=\"10%\" x2=\"90%\" y2=\"90%\"><stop offset=\"0%\" stop-color=\"#2467d6\" /><stop offset=\"55%\" stop-color=\"#4f92ff\" /><stop offset=\"100%\" stop-color=\"#f59e0b\" /></linearGradient></defs><rect x=\"6\" y=\"6\" width=\"36\" height=\"36\" rx=\"14\" fill=\"#0f172a\" /><path d=\"M24 11l5.2 7.9 9.3 2.7-5.9 7.3.2 9.9-8.8-3.4-8.8 3.4.2-9.9-5.9-7.3 9.3-2.7L24 11z\" fill=\"url(#pgg-dashboard-icon)\" /><circle cx=\"24\" cy=\"24\" r=\"4.8\" fill=\"#f8fafc\" fill-opacity=\"0.9\" /></svg>",
+@@ -16,7 +16,7 @@
+   "managedFiles": [
+     {
+       "path": "AGENTS.md",
+-      "checksum": "1ed32120f97188c088dd1d00002b56fc1401c73a85dcf9924bc80f648be59055",
++      "checksum": "ac3da1c399421099449b6c69426a581f5e698274a3c6af8443f75f5720b56a16",
+       "executable": false
+     },
+     {
+@@ -26,17 +26,17 @@
+     },
+     {
+       "path": ".codex/add/WOKR-FLOW.md",
+-      "checksum": "b1e53274f92e905f7b8a616cd71a7e1264acba3b978dc90bb63b767759dbc80b",
++      "checksum": "1adcaeef452bb9555d3c2d98eb9212f4a2a35d0016b859a258a5373cc309b4c1",
+       "executable": false
+     },
+     {
+       "path": ".codex/add/STATE-CONTRACT.md",
+-      "checksum": "f3a49c528879350007689eef3a06b0dd0508bc04d678c3f96247d33356ef2ea3",
++      "checksum": "a09aab3d3f07e2df68f00d0dc6df26f885ac72b37f30df8e7f9204c76eb34aa1",
+       "executable": false
+     },
+     {
+       "path": ".codex/add/EXPERT-ROUTING.md",
+-      "checksum": "a3ac7a03ce85a16df8c827556acfabe6d2b3b136c98af1d965ba1b1950b8599a",
++      "checksum": "4db55462e856e31eefcc35687305d5cad4bf723d28cc885f0e55d500532bf579",
+       "executable": false
+     },
+     {
+@@ -55,63 +55,63 @@
+       "executable": false
+     },
+     {
+-      "path": ".codex/agents/main.toml",
+-      "checksum": "b9c502b18969cb8608ed96cbdd6b5a0fe448774194d873854c4cc55ee0a25a9b",
++      "path": ".codex/add/AGENT-ROUTING.toml",
++      "checksum": "399db166a20fdf50196b22b357970032035debbc6f59c0880599072780af76cd",
+       "executable": false
+     },
+     {
+       "path": ".codex/agents/product-manager.toml",
+-      "checksum": "626f663072a98f1beb0d9ea47ac426f34cbc0c7fb6a1984c534c714aa458b674",
++      "checksum": "f338b9208da4f2fca17d14fb9985c6eed20a57963de8e19854ee20d0eb6f4708",
+       "executable": false
+     },
+     {
+       "path": ".codex/agents/ux-ui-expert.toml",
+-      "checksum": "65672f0c6b0703814a56df8f315f420b01c152813aa9343327ee3cc23db47ef2",
++      "checksum": "07f11599ea4034d64185c67e34de3b50252524cabaed7fbb6f092217d68ef1c6",
+       "executable": false
+     },
+     {
+       "path": ".codex/agents/domain-expert.toml",
+-      "checksum": "bcf14f71a154fd42a70018b28a9d943cf67f95d55771de79bc4355cdacbde004",
++      "checksum": "4be77591866ad3ad744530e588b637f841d617e35e41fa196dc0a2bbf08e1c25",
+       "executable": false
+     },
+     {
+       "path": ".codex/agents/software-architect.toml",
+-      "checksum": "800aa02b58b36a10df73d4cfa2d7d2a7cbc4101e1cb1dc025d0d2397c6287ec9",
++      "checksum": "c83f81c636c792b939617d449d4f017ce4a79ff7acf9049280e863de6f0fc61e",
+       "executable": false
+     },
+     {
+       "path": ".codex/agents/senior-backend-engineer.toml",
+-      "checksum": "3aebe1a475e4f1001c20e8ffbba3109842d2d079ef1b21355b565d7606567501",
++      "checksum": "44224b6a3490e2a8056700d6282e69109bde83eb87777acdc2fa37c208304321",
+       "executable": false
+     },
+     {
+       "path": ".codex/agents/tech-lead.toml",
+-      "checksum": "54e9c252441c36362691ad711e5e753ace7fda14af3880e715d175c047fc8031",
++      "checksum": "14d678202c0fb6aea63e495629d83b757d10cebfb530038294b9e69622908b3a",
+       "executable": false
+     },
+     {
+       "path": ".codex/agents/code-reviewer.toml",
+-      "checksum": "d26dc9d3b22600b93472893cdf301f3acd31a2029d0feab188302f9dd017eedf",
++      "checksum": "20aa2983571df57aa0d1cb3e5adee9054c6bb9a56c63d62bef2aaf09dc01bbc8",
+       "executable": false
+     },
+     {
+       "path": ".codex/agents/qa-test-engineer.toml",
+-      "checksum": "312e94e377d8043586343e53768dfff5ab38e408d61667093dbb729f3daa4c3b",
++      "checksum": "c12776432894efcef98208abeaaa9aefe0a834a82bb648f969b43a10e2e66af3",
+       "executable": false
+     },
+     {
+       "path": ".codex/agents/sre-operations-engineer.toml",
+-      "checksum": "99e0146434c3ce9d576c659d861dafc796f49b8d9445ea08bf18c1fde3650f2e",
++      "checksum": "3a0b7534ce2f76cd35d90ee277c47b2c7d60e86c2908a74eaac6e66edce86b27",
+       "executable": false
+     },
+     {
+       "path": ".codex/agents/project-generalist.toml",
+-      "checksum": "5d71d0636794d00acf1c2e883250d44af6eaf129d3902734a8077f3c37e29e86",
++      "checksum": "14e919f692dd5084fd6d35264a4b0f2024dc0a5eba210165ae4f54122d167992",
+       "executable": false
+     },
+     {
+       "path": ".codex/agents/docs-researcher.toml",
+-      "checksum": "d8d471eb6198acb51c32fbf38a4f8a0222f6bd382b292440f2345ef0bdfe02a1",
++      "checksum": "6202ebe5988c84e0db34593d4021e343d04207b463dd8f71076335fc8c6514f1",
+       "executable": false
+     },
+     {
+@@ -186,7 +186,7 @@
+     },
+     {
+       "path": ".codex/sh/pgg-state-pack.sh",
+-      "checksum": "0fbe1fa25f700052be0fa8b118d26b6d480927fc50557e831d39bb9f4c8880e9",
++      "checksum": "9025cb59f6242bdf23e55898203ea908e89bc1250bac6dfa4564ba8972e35390",
+       "executable": true
+     },
+     {

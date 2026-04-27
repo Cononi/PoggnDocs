@@ -6,13 +6,32 @@ import os from "node:os";
 import path from "node:path";
 import test from "node:test";
 
-import { buildRootReadme, initializeProject, updateProject, updateProjectTeamsMode } from "../dist/index.js";
+import {
+  buildRootReadme,
+  initializeProject,
+  updateProject,
+  updateProjectLanguage,
+  updateProjectTeamsMode
+} from "../dist/index.js";
 
 const STANDALONE_SKILL_PATH = ".codex/skills/pgg-status/SKILL.md";
 const CODEX_CONFIG_PATH = ".codex/config.toml";
 const CODEX_AGENTS_DIR = ".codex/agents";
-const AGENTS_MAIN_PATH = `${CODEX_AGENTS_DIR}/main.toml`;
+const AGENT_ROUTING_PATH = ".codex/add/AGENT-ROUTING.toml";
 const STATE_PACK_PATH = ".codex/sh/pgg-state-pack.sh";
+const GENERATED_AGENT_ROLE_IDS = [
+  "product-manager",
+  "ux-ui-expert",
+  "domain-expert",
+  "software-architect",
+  "senior-backend-engineer",
+  "tech-lead",
+  "code-reviewer",
+  "qa-test-engineer",
+  "sre-operations-engineer",
+  "project-generalist",
+  "docs-researcher"
+];
 
 function checksum(content) {
   return createHash("sha256").update(content).digest("hex");
@@ -100,7 +119,7 @@ test("teams mode controls managed Codex multi-agent config and two-agent routing
       });
 
       const disabledConfig = await readFile(path.join(rootDir, CODEX_CONFIG_PATH), "utf8");
-      const agentsMain = await readFile(path.join(rootDir, AGENTS_MAIN_PATH), "utf8");
+      const agentRouting = await readFile(path.join(rootDir, AGENT_ROUTING_PATH), "utf8");
       const routing = await readFile(path.join(rootDir, ".codex/add/EXPERT-ROUTING.md"), "utf8");
       const codeSkill = await readFile(path.join(rootDir, ".codex/skills/pgg-code/SKILL.md"), "utf8");
       const statePack = await readFile(path.join(rootDir, STATE_PACK_PATH), "utf8");
@@ -108,9 +127,10 @@ test("teams mode controls managed Codex multi-agent config and two-agent routing
 
       assert.match(disabledConfig, /\[features\]\nmulti_agent = false/);
       assert.match(disabledConfig, /\[agents\]\nmax_threads = 4\nmax_depth = 1/);
-      assert.match(agentsMain, /flow = "pgg-code"\nprimary_agents = \["senior-backend-engineer", "tech-lead"\]/);
-      assert.match(agentsMain, /roles = \["project-generalist", "docs-researcher"\]/);
-      assert.match(routing, /`pgg-code`: Senior Backend Engineer, Tech Lead/);
+      assert.equal(existsSync(path.join(rootDir, CODEX_AGENTS_DIR, "main.toml")), false);
+      assert.match(agentRouting, /flow = "pgg-code"\nprimary_agents = \["senior-backend-engineer", "tech-lead"\]/);
+      assert.match(agentRouting, /roles = \["project-generalist", "docs-researcher"\]/);
+      assert.match(routing, /`pgg-code`: 시니어 백엔드 엔지니어, 테크 리드/);
       assert.doesNotMatch(routing, /`pgg-code`: .*Code Reviewer/);
       assert.match(codeSkill, /아래 2개 primary agent/);
       assert.match(codeSkill, /- 시니어 백엔드 엔지니어: 주 구현 작업/);
@@ -120,9 +140,10 @@ test("teams mode controls managed Codex multi-agent config and two-agent routing
       assert.match(statePack, /PRIMARY_AGENTS="senior-backend-engineer,tech-lead"/);
       assert.match(statePack, /token\|pgg-token\)/);
       assert.match(statePack, /PRIMARY_AGENTS="tech-lead,code-reviewer"/);
-      assert.match(statePack, /agent_routing_ref: \.codex\/agents\/main\.toml/);
+      assert.match(statePack, /agent_routing_ref: \.codex\/add\/AGENT-ROUTING\.toml/);
       assert.equal(initialManifest.managedFiles.some((entry) => entry.path === CODEX_CONFIG_PATH), true);
-      assert.equal(initialManifest.managedFiles.some((entry) => entry.path === AGENTS_MAIN_PATH), true);
+      assert.equal(initialManifest.managedFiles.some((entry) => entry.path === AGENT_ROUTING_PATH), true);
+      assert.equal(initialManifest.managedFiles.some((entry) => entry.path === `${CODEX_AGENTS_DIR}/main.toml`), false);
       assert.equal(initialManifest.managedFiles.some((entry) => entry.path === "agents/main.toml"), false);
 
       await updateProjectTeamsMode(rootDir, "on");
@@ -134,6 +155,85 @@ test("teams mode controls managed Codex multi-agent config and two-agent routing
       assert.equal(updatedManifest.teamsMode, "on");
       assert.equal(updatedManifest.managedFiles.some((entry) => entry.path === codexAgentRolePath("docs-researcher")), true);
       assert.equal(updatedManifest.managedFiles.some((entry) => entry.path === codexAgentRolePath("qa-test-engineer")), true);
+      assert.equal(updatedManifest.managedFiles.some((entry) => entry.path === `${CODEX_AGENTS_DIR}/main.toml`), false);
+    });
+  } finally {
+    await rm(rootDir, { recursive: true, force: true });
+  }
+});
+
+test("generated Codex custom agents use the supported standalone schema", async () => {
+  const rootDir = await mkdtemp(path.join(os.tmpdir(), "pgg-custom-agent-schema-"));
+
+  try {
+    await withTemporaryPggHome(rootDir, async () => {
+      await initializeProject(rootDir, {
+        provider: "codex",
+        language: "ko",
+        autoMode: "on",
+        teamsMode: "off"
+      });
+
+      for (const roleId of GENERATED_AGENT_ROLE_IDS) {
+        const roleToml = await readFile(path.join(rootDir, codexAgentRolePath(roleId)), "utf8");
+        assert.match(roleToml, /^name = "[a-z_]+"/m);
+        assert.match(roleToml, /^description = "/m);
+        assert.match(roleToml, /^developer_instructions = """/m);
+        assert.doesNotMatch(roleToml, /^id = /m);
+        assert.doesNotMatch(roleToml, /^category = /m);
+        assert.doesNotMatch(roleToml, /^purpose = /m);
+        assert.doesNotMatch(roleToml, /^when_to_use = /m);
+        assert.doesNotMatch(roleToml, /^input_contract = /m);
+        assert.doesNotMatch(roleToml, /^output_contract = /m);
+        assert.doesNotMatch(roleToml, /^constraints = /m);
+        assert.doesNotMatch(roleToml, /^forbidden_actions = /m);
+        assert.doesNotMatch(roleToml, /^handoff = /m);
+      }
+
+      const productManager = await readFile(path.join(rootDir, codexAgentRolePath("product-manager")), "utf8");
+      const docsResearcher = await readFile(path.join(rootDir, codexAgentRolePath("docs-researcher")), "utf8");
+
+      assert.match(productManager, /name = "product_manager"/);
+      assert.match(productManager, /프로덕트 매니저/);
+      assert.match(productManager, /primary agent roster/);
+      assert.match(docsResearcher, /name = "docs_researcher"/);
+      assert.match(docsResearcher, /support agent/);
+    });
+  } finally {
+    await rm(rootDir, { recursive: true, force: true });
+  }
+});
+
+test("project language changes update generated agent and routing text", async () => {
+  const rootDir = await mkdtemp(path.join(os.tmpdir(), "pgg-agent-language-"));
+
+  try {
+    await withTemporaryPggHome(rootDir, async () => {
+      await initializeProject(rootDir, {
+        provider: "codex",
+        language: "ko",
+        autoMode: "on",
+        teamsMode: "off"
+      });
+
+      const koreanAgent = await readFile(path.join(rootDir, codexAgentRolePath("product-manager")), "utf8");
+      const koreanRouting = await readFile(path.join(rootDir, ".codex/add/EXPERT-ROUTING.md"), "utf8");
+      assert.match(koreanAgent, /프로덕트 매니저/);
+      assert.match(koreanAgent, /사용자 문제/);
+      assert.match(koreanRouting, /`pgg-add`: 프로덕트 매니저, UX\/UI 전문가/);
+
+      await updateProjectLanguage(rootDir, "en");
+
+      const englishAgent = await readFile(path.join(rootDir, codexAgentRolePath("product-manager")), "utf8");
+      const englishRouting = await readFile(path.join(rootDir, ".codex/add/EXPERT-ROUTING.md"), "utf8");
+      const updatedManifest = await readManifest(rootDir);
+
+      assert.match(englishAgent, /Product Manager/);
+      assert.match(englishAgent, /Frame the user problem/);
+      assert.doesNotMatch(englishAgent, /사용자 문제/);
+      assert.match(englishRouting, /`pgg-add`: Product Manager, UX\/UI Expert/);
+      assert.equal(updatedManifest.language, "en");
+      assert.equal(updatedManifest.managedFiles.some((entry) => entry.path === AGENT_ROUTING_PATH), true);
     });
   } finally {
     await rm(rootDir, { recursive: true, force: true });
@@ -185,7 +285,8 @@ test("updateProject retires old managed root agents while preserving user-owned 
       assert.equal(existsSync(path.join(rootDir, "agents/custom.toml")), true);
       assert.equal(updatedManifest.managedFiles.some((entry) => entry.path === "agents/main.toml"), false);
       assert.equal(updatedManifest.managedFiles.some((entry) => entry.path === "agents/product-manager.toml"), false);
-      assert.equal(updatedManifest.managedFiles.some((entry) => entry.path === AGENTS_MAIN_PATH), true);
+      assert.equal(updatedManifest.managedFiles.some((entry) => entry.path === AGENT_ROUTING_PATH), true);
+      assert.equal(updatedManifest.managedFiles.some((entry) => entry.path === `${CODEX_AGENTS_DIR}/main.toml`), false);
       assert.equal(result.conflicts.some((conflict) => conflict.path === "agents/product-manager.toml"), true);
       assert.equal(
         existsSync(path.join(rootDir, result.conflicts.find((conflict) => conflict.path === "agents/product-manager.toml").backupPath)),

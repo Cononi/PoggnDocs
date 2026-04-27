@@ -7,7 +7,7 @@
 - 구현 전에는 반드시 `proposal.md`, `plan.md`, `task.md`를 확인한다.
 - 구현 단계에서는 `spec/*/*.md` 기준을 위반하지 않는다.
 - 다음 단계로 넘길 때는 전체 문맥이 아니라 `state/current.md`만 우선 전달한다.
-- `pgg teams`가 `on`이면 stage 시작 전에 `pgg-state-pack.sh`로 최소 컨텍스트를 만들고 `.codex/agents/main.toml`의 flow별 2-agent routing 기반 자동 orchestration을 사용한다.
+- `pgg teams`가 `on`이면 stage 시작 전에 `pgg-state-pack.sh`로 최소 컨텍스트를 만들고 `.codex/add/AGENT-ROUTING.toml`의 flow별 2-agent routing 기반 자동 orchestration을 사용한다.
 - `pgg teams`가 `on`이면 `.codex/config.toml`의 `[features].multi_agent=true`, `off`이면 `false`로 유지하며, 기본 agent budget은 `max_threads=4`, `max_depth=1`이다.
 - Codex sub-agent는 parent가 명시적으로 맡긴 bounded side task만 수행하고, child agent가 다시 agent를 만들지 않는다.
 - 각 flow의 primary agent는 정확히 2개이며 support agent는 opt-in으로만 사용한다.

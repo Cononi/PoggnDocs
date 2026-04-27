@@ -1,0 +1,8 @@
+{"ts":"2026-04-27T01:39:40Z","stage":"proposal","event":"topic-created"}
+{"ts":"2026-04-27T01:39:40Z","stage":"proposal","event":"stage-started","source":"pgg-add"}
+{"ts":"2026-04-27T01:39:54Z","stage":"proposal","event":"stage-completed","source":"verified","score":96}
+{"ts":"2026-04-27T01:46:29Z","stage":"plan","event":"stage-started","source":"pgg-plan"}
+{"ts":"2026-04-27T01:46:29Z","stage":"plan","event":"stage-completed","source":"verified","score":96}
+{"ts":"2026-04-27T01:51:34Z","stage":"implementation","event":"stage-started","source":"pgg-code"}
+{"ts":"2026-04-27T02:00:00Z","stage":"implementation","event":"stage-progress","source":"pgg-code","summary":"implemented Codex custom agent schema, routing manifest relocation, language-aware agent text, generated asset refresh, and regression tests"}
+{"ts":"2026-04-27T02:01:34Z","stage":"implementation","event":"stage-commit","archiveType":"fix","targetVersion":"2.3.3","projectLanguage":"ko","commitTitle":"fix: 2.3.3.Codex agent schema 정합성","summary":"Codex agent schema 정합성","why":"Codex custom agent 파일이 공식 스키마에 맞게 생성되고 pgg routing 정보는 별도 managed manifest로 이동되어 init update lang 결과가 경고 없이 언어 설정을 따릅니다.","footer":"Refs: pgg-codex-subagent-schema-and-lang-sync"}
