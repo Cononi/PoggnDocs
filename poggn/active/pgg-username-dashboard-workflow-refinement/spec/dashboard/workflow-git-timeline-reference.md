@@ -44,9 +44,10 @@ Workflow tab timeline/git UI를 `add-img/git.png`, `add-img/timeline.png` refere
 
 - Reference와 같은 정보 밀도, column grouping, compact spacing을 목표로 한다.
 - 현재 dashboard의 navy/cyan/blue accent tone과 8px 이하 radius 기준을 유지한다.
+- Timeline은 MUI vertical Stepper 구조를 사용하고 custom connector/step icon 방식으로 flow를 이어야 한다.
 - Timeline의 flow 연결선은 overview workflow progress처럼 위 flow node 하단에서 다음 flow node 상단까지 끊기지 않게 이어야 한다.
-- 완료 rail은 dashboard primary blue 색상 token(`primary.main`/`primary.light`)을 사용한다.
-- 완료 check node는 background를 primary blue로 불투명하게 채워 뒷선이 보이지 않아야 한다.
+- 완료 rail과 완료 check node는 overview completed node와 같은 success color/soft fill/border/shadow token을 사용한다.
+- 완료 check node는 불투명한 surface로 뒷선이 보이지 않아야 한다.
 - 완료 rail은 check 원을 관통해 보이면 안 되며, 현재 원의 외곽 ring 하단에서 시작해 다음 원의 외곽 ring 상단에 딱 맞게 닿아야 한다.
 - 마지막/bottom flow는 아래 flow가 없으므로 check 원 아래로 rail이 넘어가면 안 된다.
 - Commit UI는 timeline card에서 최대 3개 commit만 직접 표시하고, 4개 이상일 때는 `모든 커밋 보기` modal로 전체 commit list를 보여줘야 한다.
@@ -68,8 +69,9 @@ Workflow tab timeline/git UI를 `add-img/git.png`, `add-img/timeline.png` refere
   - compact panel rhythm
 - `add-img/timeline.png` 기준 timeline checklist:
   - flow row grouping
-  - overview flow와 같은 끊김 없는 blue rail 연결
-  - completed check background is filled with primary blue
+  - vertical Stepper structure with a custom connector and custom step icon
+  - overview flow와 같은 끊김 없는 completed rail 연결
+  - completed rail/check visual tokens match the overview completed state
   - completed check visual treatment hides the rail behind the node
   - completed rail touches the circle outer ring exactly without overshooting or leaving a gap
   - bottom/last flow has no rail overshoot below its check circle

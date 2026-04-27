@@ -88,6 +88,7 @@ implementation
   - timeline 선과 완료 check background는 파란색으로 채워야 하고 뒷선이 check 뒤로 보이면 안 된다.
   - 마지막/bottom flow는 아래 flow가 없으므로 check 아래로 선이 넘어가면 안 된다.
   - commit 내용은 flow card에서 최대 3개만 표시하고 모든 커밋 보기는 modal로 추가 commit list를 보여줘야 한다.
+  - timeline flow check line은 overview completed 상태와 같은 색/표면으로 이어지고, MUI custom connector/step icon 방식의 vertical Stepper로 적용해야 한다.
 - additional implementation:
   - token usage contract에 `llmActualTokens`와 `localEstimatedTokens`를 분리 추가했다.
   - LLM actual evidence가 없는 경우 `기록 없음`으로 표시하고 local estimate는 file content 기반 값으로 표시한다.
@@ -115,8 +116,8 @@ implementation
   - timeline row 순서를 actual workflow reverse order로 변경했다.
   - completed check node 색상을 row tone별 primary/secondary/success/neutral로 분리했다.
   - generated file row에서 file-level LLM/Local token chip을 제거했고 flow header total token chip은 유지했다.
-  - timeline rail/check를 primary blue로 통일하고 check background를 불투명하게 채워 뒷선이 보이지 않게 했다.
-  - 공통 full-height rail을 제거하고 각 flow row가 다음 flow까지만 blue connector를 그리게 하여 마지막/bottom flow 아래 overshoot를 제거했다.
+  - timeline rail/check를 MUI vertical Stepper 구조로 전환하고 custom connector/step icon이 overview completed success 색/soft fill/border/shadow를 공유하게 했다.
+  - StepContent connector가 마지막/bottom flow 아래로 이어지지 않게 하여 terminal overshoot를 제거했다.
   - commit list는 flow card에서 `slice(0, 3)`로 제한하고, 4개 이상일 때 `모든 커밋 보기` modal로 전체 commit list를 표시한다.
 - residual risk:
   - reference image parity는 browser screenshot/manual visual evidence가 QA/refactor 이후 필요하다
@@ -208,6 +209,8 @@ implementation
 - evidence: follow-up reverse/tone `pnpm test:dashboard` passed
 - evidence: follow-up blue rail/check and commit modal `pnpm --filter @pgg/dashboard build` passed with existing Vite chunk-size warning
 - evidence: follow-up blue rail/check and commit modal `pnpm test:dashboard` passed
+- evidence: follow-up vertical Stepper overview-completed connector `pnpm --filter @pgg/dashboard build` passed with existing Vite chunk-size warning
+- evidence: follow-up vertical Stepper overview-completed connector `pnpm test:dashboard` passed
 - evidence: `./.codex/sh/pgg-gate.sh pgg-refactor pgg-username-dashboard-workflow-refinement` passed
 
 ## Changed Files
@@ -290,6 +293,8 @@ implementation
 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | blue rail/check, terminal connector cutoff, commit list cap, full commit modal |
 | UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | view all commits i18n label |
 | UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md` | blue rail/check and commit modal acceptance criteria |
+| UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | MUI vertical Stepper timeline with overview completed connector/check styling |
+| UPDATE | `poggn/active/pgg-username-dashboard-workflow-refinement/spec/dashboard/workflow-git-timeline-reference.md` | vertical Stepper and overview completed connector/check criteria |
 
 ## Dirty Worktree Baseline
 

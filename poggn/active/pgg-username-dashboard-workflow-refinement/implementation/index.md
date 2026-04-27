@@ -5,7 +5,7 @@ pgg:
   status: "reviewed"
   skill: "pgg-code"
   score: 94
-  updated_at: "2026-04-27T13:24:00Z"
+  updated_at: "2026-04-27T14:28:42Z"
 ---
 
 # Implementation Index
@@ -72,6 +72,8 @@ pgg:
 - follow-up request: timeline rail and completed check use blue fill, rail does not show behind/after terminal checks, commit rows are capped at 3, and all commits open in a modal
 - `pnpm --filter @pgg/dashboard build`: pass after blue rail/check and commit modal, Vite chunk-size warning remains
 - `pnpm test:dashboard`: pass after blue rail/check and commit modal
+- `pnpm --filter @pgg/dashboard build`: pass after vertical Stepper overview-completed connector adjustment, Vite chunk-size warning remains
+- `pnpm test:dashboard`: pass after vertical Stepper overview-completed connector adjustment
 - `./.codex/sh/pgg-gate.sh pgg-refactor pgg-username-dashboard-workflow-refinement`: pass
 
 ## Additional Diff Records
@@ -109,3 +111,4 @@ pgg:
 | 046 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `implementation/diffs/046_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.blue_rail_commit_modal.diff` | `T4` | use blue rail/check, prevent terminal rail overshoot, cap commit rows at 3, and add full commit modal |
 | 047 | UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | `implementation/diffs/047_UPDATE_apps_dashboard_src_shared_locale_dashboardLocale_ts.view_all_commits.diff` | `T7` | add ko/en label for viewing all commits |
 | 048 | UPDATE | `spec/dashboard/workflow-git-timeline-reference.md` | `implementation/diffs/048_UPDATE_spec_dashboard_workflow_git_timeline_reference_md.blue_rail_commit_modal.diff` | `T4,T8` | document blue rail/check, terminal line constraint, and commit modal behavior |
+| 049 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx`, `spec/dashboard/workflow-git-timeline-reference.md` | `implementation/diffs/049_UPDATE_dashboard_timeline_vertical_stepper_completed_connector.diff` | `T4,T8` | use MUI vertical Stepper with custom connector/step icon and overview completed success styling |
