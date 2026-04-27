@@ -6,11 +6,11 @@ dashboard-mobile-routing
 
 ## Current Stage
 
-refactor
+qa
 
 ## Goal
 
-dashboard URL/mobile action 구현의 구조를 정리하고 dead code를 제거한 뒤 `pgg-qa`로 넘긴다.
+dashboard URL/mobile action 구현, refactor, QA 결과를 검증하고 archive한다.
 
 ## Confirmed Scope
 
@@ -110,6 +110,8 @@ dashboard URL/mobile action 구현의 구조를 정리하고 dead code를 제거
 - implementation stage commit: `017e6a279fecee4dfccf0c7b98276856cf58aeb7`
 - refactor `pnpm --filter @pgg/dashboard build`: pass
 - `./.codex/sh/pgg-gate.sh pgg-refactor dashboard-mobile-routing`: pass
+- `./.codex/sh/pgg-gate.sh pgg-qa dashboard-mobile-routing`: pass
+- QA report: pass
 - current-project verification contract: `manual verification required`
 
 ## Git Publish Message
@@ -152,13 +154,14 @@ dashboard URL/mobile action 구현의 구조를 정리하고 dead code를 제거
 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `implementation/diffs/011_REFACTOR_apps_dashboard_src_features_history_HistoryWorkspace_tsx.diff` |
 | UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | `implementation/diffs/012_REFACTOR_apps_dashboard_src_shared_locale_dashboardLocale_ts.diff` |
 | CREATE | `poggn/active/dashboard-mobile-routing/reviews/refactor.review.md` | 없음 |
+| CREATE | `poggn/active/dashboard-mobile-routing/qa/report.md` | 없음 |
 
 ## Last Expert Score
 
-- phase: refactor
+- phase: qa
 - score: 94
 - blocking issues: 없음
 
 ## Next Action
 
-`pgg-qa`
+archive allowed

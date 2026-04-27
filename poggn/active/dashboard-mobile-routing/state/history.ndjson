@@ -12,3 +12,6 @@
 {"ts":"2026-04-27T11:01:48Z","stage":"refactor","event":"stage-started","source":"pgg-refactor"}
 {"ts":"2026-04-27T11:01:48Z","stage":"refactor","event":"stage-progress","source":"pgg-refactor","summary":"moved route-state UI projection into adapter and removed unused route repair locale copy"}
 {"ts":"2026-04-27T11:08:46Z","stage":"refactor","event":"stage-commit","archiveType":"feat","targetVersion":"2.6.0","projectLanguage":"ko","commitTitle":"feat: 2.6.0.dashboard route state 구조 정리","summary":"dashboard route state 구조 정리","why":"route-state UI projection을 adapter로 이동하고 stage-blocked label 사용과 미사용 locale copy 제거로 구현 구조를 정리했다.","footer":"Refs: dashboard-mobile-routing"}
+{"ts":"2026-04-27T11:10:03Z","stage":"qa","event":"stage-started","source":"pgg-qa"}
+{"ts":"2026-04-27T11:10:03Z","stage":"qa","event":"stage-progress","source":"pgg-qa","summary":"qa report created with build evidence, gate evidence, manual verification contract, and archive allowed decision"}
+{"ts":"2026-04-27T11:12:04Z","stage":"qa","event":"stage-commit","archiveType":"feat","targetVersion":"2.6.0","projectLanguage":"ko","commitTitle":"feat: 2.6.0.qa 완료 기록","summary":"qa 완료 기록","why":"QA 산출물과 최종 검증 변경은 archive publish 전에 별도 완료 commit으로 남아야 한다.","footer":"Refs: dashboard-mobile-routing"}
