@@ -1,0 +1,32 @@
+{
+  "topic": "pgg-username-dashboard-workflow-refinement",
+  "version": "2.8.0",
+  "targetVersion": "2.8.0",
+  "changeType": "feat",
+  "versionBump": "minor",
+  "commitTitle": "feat: 2.8.0.사용자명과 워크플로우 정리",
+  "commitSha": "5e33efb80f1ae5d60f487f43b9aa66099227f010",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/2.8.0-username-dashboard-refinement",
+  "workingBranch": "ai/feat/2.8.0-username-dashboard-refinement",
+  "releaseBranch": "release/2.8.0-username-dashboard-refinement",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-27T14:59:12Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/2.8.0-username-dashboard-refinement'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/pgg-username-dashboard-workflow-refinement",
+    "versionFile": "poggn/archive/pgg-username-dashboard-workflow-refinement/version.json"
+  }
+}

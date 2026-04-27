@@ -1,0 +1,14 @@
+{
+  "topic": "pgg-username-dashboard-workflow-refinement",
+  "changeType": "feat",
+  "versionBump": "minor",
+  "version": "2.8.0",
+  "targetVersion": "2.8.0",
+  "previousVersion": "2.7.0",
+  "shortName": "username-dashboard-refinement",
+  "workingBranch": "ai/feat/2.8.0-username-dashboard-refinement",
+  "releaseBranch": "release/2.8.0-username-dashboard-refinement",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-27T14:59:07Z",
+  "history": "poggn/version-history.ndjson"
+}
