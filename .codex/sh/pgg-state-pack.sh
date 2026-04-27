@@ -113,7 +113,7 @@ printf 'teams_mode: %s\n' "${TEAMS_MODE:-off}"
 printf 'multi_agent: %s\n' "$MULTI_AGENT"
 printf 'agent_max_threads: 4\n'
 printf 'agent_max_depth: 1\n'
-printf 'agent_routing_ref: agents/main.toml\n'
+printf 'agent_routing_ref: .codex/agents/main.toml\n'
 if [[ -n "$PRIMARY_AGENTS" ]]; then
   printf 'primary_agents: %s\n' "$PRIMARY_AGENTS"
 fi

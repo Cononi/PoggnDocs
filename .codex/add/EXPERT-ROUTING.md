@@ -4,7 +4,7 @@
 
 - `pgg teams=on`: stage 시작 시 아래 전문가 roster를 자동 orchestration한다.
 - `pgg teams=off`: 동일한 문서 계약을 유지하되 단일 에이전트 흐름으로 진행한다.
-- `agents/main.toml`과 이 문서는 같은 2-agent routing matrix를 유지해야 한다.
+- `.codex/agents/main.toml`과 이 문서는 같은 2-agent routing matrix를 유지해야 한다.
 - `.codex/config.toml`은 teams mode에 맞춰 `[features].multi_agent`를 동기화하고 `max_threads=4`, `max_depth=1`을 기본값으로 둔다.
 
 ## Core Workflow Primary Agents

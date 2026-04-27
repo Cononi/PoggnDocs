@@ -1,0 +1,107 @@
+diff --git a/packages/core/test/skill-generation.test.mjs b/packages/core/test/skill-generation.test.mjs
+index 3cc7aee..ebdbd60 100644
+--- a/packages/core/test/skill-generation.test.mjs
++++ b/packages/core/test/skill-generation.test.mjs
+@@ -1,5 +1,7 @@
+ import assert from "node:assert/strict";
+-import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
++import { createHash } from "node:crypto";
++import { existsSync } from "node:fs";
++import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
+ import os from "node:os";
+ import path from "node:path";
+ import test from "node:test";
+@@ -8,9 +10,13 @@ import { buildRootReadme, initializeProject, updateProject, updateProjectTeamsMo
+ 
+ const STANDALONE_SKILL_PATH = ".codex/skills/pgg-status/SKILL.md";
+ const CODEX_CONFIG_PATH = ".codex/config.toml";
+-const AGENTS_MAIN_PATH = "agents/main.toml";
++const AGENTS_MAIN_PATH = ".codex/agents/main.toml";
+ const STATE_PACK_PATH = ".codex/sh/pgg-state-pack.sh";
+ 
++function checksum(content) {
++  return createHash("sha256").update(content).digest("hex");
++}
++
+ async function readManifest(rootDir) {
+   return JSON.parse(await readFile(path.join(rootDir, ".pgg", "project.json"), "utf8"));
+ }
+@@ -109,8 +115,10 @@ test("teams mode controls managed Codex multi-agent config and two-agent routing
+       assert.match(statePack, /PRIMARY_AGENTS="senior-backend-engineer,tech-lead"/);
+       assert.match(statePack, /token\|pgg-token\)/);
+       assert.match(statePack, /PRIMARY_AGENTS="tech-lead,code-reviewer"/);
++      assert.match(statePack, /agent_routing_ref: \.codex\/agents\/main\.toml/);
+       assert.equal(initialManifest.managedFiles.some((entry) => entry.path === CODEX_CONFIG_PATH), true);
+       assert.equal(initialManifest.managedFiles.some((entry) => entry.path === AGENTS_MAIN_PATH), true);
++      assert.equal(initialManifest.managedFiles.some((entry) => entry.path === "agents/main.toml"), false);
+ 
+       await updateProjectTeamsMode(rootDir, "on");
+ 
+@@ -119,8 +127,65 @@ test("teams mode controls managed Codex multi-agent config and two-agent routing
+ 
+       assert.match(enabledConfig, /\[features\]\nmulti_agent = true/);
+       assert.equal(updatedManifest.teamsMode, "on");
+-      assert.equal(updatedManifest.managedFiles.some((entry) => entry.path === "agents/docs-researcher.toml"), true);
+-      assert.equal(updatedManifest.managedFiles.some((entry) => entry.path === "agents/qa-test-engineer.toml"), true);
++      assert.equal(updatedManifest.managedFiles.some((entry) => entry.path === ".codex/agents/docs-researcher.toml"), true);
++      assert.equal(updatedManifest.managedFiles.some((entry) => entry.path === ".codex/agents/qa-test-engineer.toml"), true);
++    });
++  } finally {
++    await rm(rootDir, { recursive: true, force: true });
++  }
++});
++
++test("updateProject retires old managed root agents while preserving user-owned files", async () => {
++  const rootDir = await mkdtemp(path.join(os.tmpdir(), "pgg-agent-path-migration-"));
++
++  try {
++    await withTemporaryPggHome(rootDir, async () => {
++      await initializeProject(rootDir, {
++        provider: "codex",
++        language: "ko",
++        autoMode: "on",
++        teamsMode: "off"
++      });
++
++      const managedMain = "old managed main\n";
++      const originalManagedRole = "old managed role\n";
++      const modifiedManagedRole = "user modified role\n";
++
++      await mkdir(path.join(rootDir, "agents"), { recursive: true });
++      await writeFile(path.join(rootDir, "agents/main.toml"), managedMain, "utf8");
++      await writeFile(path.join(rootDir, "agents/product-manager.toml"), modifiedManagedRole, "utf8");
++      await writeFile(path.join(rootDir, "agents/custom.toml"), "user custom agent\n", "utf8");
++
++      const manifest = await readManifest(rootDir);
++      manifest.managedFiles = [
++        ...manifest.managedFiles.filter((entry) => !entry.path.startsWith("agents/")),
++        {
++          path: "agents/main.toml",
++          checksum: checksum(managedMain),
++          executable: false
++        },
++        {
++          path: "agents/product-manager.toml",
++          checksum: checksum(originalManagedRole),
++          executable: false
++        }
++      ];
++      await writeFile(path.join(rootDir, ".pgg", "project.json"), `${JSON.stringify(manifest, null, 2)}\n`, "utf8");
++
++      const result = await updateProject(rootDir);
++      const updatedManifest = await readManifest(rootDir);
++
++      assert.equal(existsSync(path.join(rootDir, "agents/main.toml")), false);
++      assert.equal(existsSync(path.join(rootDir, "agents/product-manager.toml")), false);
++      assert.equal(existsSync(path.join(rootDir, "agents/custom.toml")), true);
++      assert.equal(updatedManifest.managedFiles.some((entry) => entry.path === "agents/main.toml"), false);
++      assert.equal(updatedManifest.managedFiles.some((entry) => entry.path === "agents/product-manager.toml"), false);
++      assert.equal(updatedManifest.managedFiles.some((entry) => entry.path === ".codex/agents/main.toml"), true);
++      assert.equal(result.conflicts.some((conflict) => conflict.path === "agents/product-manager.toml"), true);
++      assert.equal(
++        existsSync(path.join(rootDir, result.conflicts.find((conflict) => conflict.path === "agents/product-manager.toml").backupPath)),
++        true
++      );
+     });
+   } finally {
+     await rm(rootDir, { recursive: true, force: true });

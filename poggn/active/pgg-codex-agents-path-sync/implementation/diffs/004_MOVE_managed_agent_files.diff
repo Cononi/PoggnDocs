@@ -1,0 +1,1336 @@
+diff --git a/.pgg/project.json b/.pgg/project.json
+index 4e207fc..d8d4f09 100644
+--- a/.pgg/project.json
++++ b/.pgg/project.json
+@@ -6,7 +6,7 @@
+   "language": "ko",
+   "autoMode": "on",
+   "installedVersion": "0.1.0",
+-  "updatedAt": "2026-04-26T14:51:41.735Z",
++  "updatedAt": "2026-04-26T15:23:31.410Z",
+   "dashboard": {
+     "title": "POGGN",
+     "titleIconSvg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 48 48\"><defs><linearGradient id=\"pgg-dashboard-icon\" x1=\"10%\" y1=\"10%\" x2=\"90%\" y2=\"90%\"><stop offset=\"0%\" stop-color=\"#2467d6\" /><stop offset=\"55%\" stop-color=\"#4f92ff\" /><stop offset=\"100%\" stop-color=\"#f59e0b\" /></linearGradient></defs><rect x=\"6\" y=\"6\" width=\"36\" height=\"36\" rx=\"14\" fill=\"#0f172a\" /><path d=\"M24 11l5.2 7.9 9.3 2.7-5.9 7.3.2 9.9-8.8-3.4-8.8 3.4.2-9.9-5.9-7.3 9.3-2.7L24 11z\" fill=\"url(#pgg-dashboard-icon)\" /><circle cx=\"24\" cy=\"24\" r=\"4.8\" fill=\"#f8fafc\" fill-opacity=\"0.9\" /></svg>",
+@@ -16,7 +16,7 @@
+   "managedFiles": [
+     {
+       "path": "AGENTS.md",
+-      "checksum": "8461ef06e01ac91c39c3f8bc8a493b6a72dd4d43171f5707d16977a0911f8ab8",
++      "checksum": "1ed32120f97188c088dd1d00002b56fc1401c73a85dcf9924bc80f648be59055",
+       "executable": false
+     },
+     {
+@@ -26,17 +26,17 @@
+     },
+     {
+       "path": ".codex/add/WOKR-FLOW.md",
+-      "checksum": "0481dc847a567b74a0f3e62e6da05782e8ee5b9f1d21c8af28b6116662889255",
++      "checksum": "b1e53274f92e905f7b8a616cd71a7e1264acba3b978dc90bb63b767759dbc80b",
+       "executable": false
+     },
+     {
+       "path": ".codex/add/STATE-CONTRACT.md",
+-      "checksum": "7eedc830631fecfa4b698ac48761e5d71fb3944153b799370b129180f030d9ab",
++      "checksum": "f3a49c528879350007689eef3a06b0dd0508bc04d678c3f96247d33356ef2ea3",
+       "executable": false
+     },
+     {
+       "path": ".codex/add/EXPERT-ROUTING.md",
+-      "checksum": "abbe8023510b1df7d73f767fb5f014ac07ce8c3322954b466e525326ba23d425",
++      "checksum": "a3ac7a03ce85a16df8c827556acfabe6d2b3b136c98af1d965ba1b1950b8599a",
+       "executable": false
+     },
+     {
+@@ -55,62 +55,62 @@
+       "executable": false
+     },
+     {
+-      "path": "agents/main.toml",
+-      "checksum": "de4a75a44c58f25f3529ae5572dee4d55051e456f47b1730e117075a281fa27e",
++      "path": ".codex/agents/main.toml",
++      "checksum": "1d59a0f194823e030296f763f3186da0b81db0174918f87eb648afe55de79c34",
+       "executable": false
+     },
+     {
+-      "path": "agents/product-manager.toml",
++      "path": ".codex/agents/product-manager.toml",
+       "checksum": "da6a6043bd7e965e5a997254e7fd0c2215117fc01862b3e0b1b0f93ea15c29c2",
+       "executable": false
+     },
+     {
+-      "path": "agents/ux-ui-expert.toml",
++      "path": ".codex/agents/ux-ui-expert.toml",
+       "checksum": "73a63996bfe28202247edc1dd17d860d7ce77f3f926bc74adb0e422e9de1f467",
+       "executable": false
+     },
+     {
+-      "path": "agents/domain-expert.toml",
++      "path": ".codex/agents/domain-expert.toml",
+       "checksum": "afb0e3806754d990cb7038525f3318a5ffbc5db9575431e56e4398f76b734e7b",
+       "executable": false
+     },
+     {
+-      "path": "agents/software-architect.toml",
++      "path": ".codex/agents/software-architect.toml",
+       "checksum": "4858a6a66fb0acf5b2c6de6a3cf422dc426c8ed59ddb92d2b50aefc74e6cddc2",
+       "executable": false
+     },
+     {
+-      "path": "agents/senior-backend-engineer.toml",
++      "path": ".codex/agents/senior-backend-engineer.toml",
+       "checksum": "3a12a6aed21a95e6f35677fdd62d0fed1e2a6eeebc8818643a1d51e7459bdadb",
+       "executable": false
+     },
+     {
+-      "path": "agents/tech-lead.toml",
++      "path": ".codex/agents/tech-lead.toml",
+       "checksum": "6b6f1b529e73bdce3efd6b2705450e6179e57ac60535fdae134bd5ea797a3687",
+       "executable": false
+     },
+     {
+-      "path": "agents/code-reviewer.toml",
++      "path": ".codex/agents/code-reviewer.toml",
+       "checksum": "9ee2e93c1cfdcf47c1a5fb18adcb2763841cecb68a247ae49302bacdc91d4c94",
+       "executable": false
+     },
+     {
+-      "path": "agents/qa-test-engineer.toml",
++      "path": ".codex/agents/qa-test-engineer.toml",
+       "checksum": "db0a265b1d486035e3583a263c40cccf70f6b5222fc3a97ed1dfc0484b3b1790",
+       "executable": false
+     },
+     {
+-      "path": "agents/sre-operations-engineer.toml",
++      "path": ".codex/agents/sre-operations-engineer.toml",
+       "checksum": "d499aee3f3adb0308a68da96023cdbbd19764da478cb495cf7a0ee6463971a35",
+       "executable": false
+     },
+     {
+-      "path": "agents/project-generalist.toml",
++      "path": ".codex/agents/project-generalist.toml",
+       "checksum": "16f7454ad4da24b264a9a5eabd23a7a586b938a2c3f594409eaf43bb6eab85b2",
+       "executable": false
+     },
+     {
+-      "path": "agents/docs-researcher.toml",
++      "path": ".codex/agents/docs-researcher.toml",
+       "checksum": "54e1673cd549da3fae0b1daf4b7527c69c135d7b0513b66f7df5c866c0fe2a20",
+       "executable": false
+     },
+@@ -186,7 +186,7 @@
+     },
+     {
+       "path": ".codex/sh/pgg-state-pack.sh",
+-      "checksum": "6abd3fc9b1885e687435f554d3a2ec37226c8c532eba2111bed4c87b6e93673b",
++      "checksum": "0fbe1fa25f700052be0fa8b118d26b6d480927fc50557e831d39bb9f4c8880e9",
+       "executable": true
+     },
+     {
+diff --git a/agents/code-reviewer.toml b/agents/code-reviewer.toml
+deleted file mode 100644
+index 04e051c..0000000
+--- a/agents/code-reviewer.toml
++++ /dev/null
+@@ -1,37 +0,0 @@
+-id = "code-reviewer"
+-name = "Code Reviewer"
+-category = "primary"
+-purpose = "Find correctness bugs, regressions, missing tests, and maintainability risks."
+-when_to_use = "Use for refactor review, token audit, and code-quality checks."
+-
+-input_contract = [
+-  "Prefer state/current.md or pgg-state-pack output over full topic documents.",
+-  "Read only the files explicitly assigned by the parent Codex process.",
+-  "Ask the parent for missing critical context instead of broad-scanning by default."
+-]
+-
+-output_contract = [
+-  "Return concise findings with file/path evidence when applicable.",
+-  "Separate decisions, risks, and open questions.",
+-  "Make the result easy to summarize into pgg review notes."
+-]
+-
+-constraints = [
+-  "Stay inside the current project unless the parent explicitly provides a wider scope.",
+-  "Do not duplicate work assigned to another agent.",
+-  "Respect disjoint write ownership for code-edit tasks.",
+-  "Do not spawn nested agents; max_depth is one."
+-]
+-
+-forbidden_actions = [
+-  "Do not run destructive git or filesystem commands.",
+-  "Do not modify global user configuration.",
+-  "Do not treat unsupported Codex config behavior as guaranteed.",
+-  "Do not paste full source files when a summary or diff is sufficient."
+-]
+-
+-handoff = [
+-  "Use state/current.md first.",
+-  "Use pgg-state-pack.sh output for teams-mode context.",
+-  "Return only the minimum context needed by the parent to decide next steps."
+-]
+diff --git a/agents/docs-researcher.toml b/agents/docs-researcher.toml
+deleted file mode 100644
+index 0bf3b03..0000000
+--- a/agents/docs-researcher.toml
++++ /dev/null
+@@ -1,37 +0,0 @@
+-id = "docs-researcher"
+-name = "Docs Researcher"
+-category = "support"
+-purpose = "Verify external or official documentation and summarize source-backed constraints."
+-when_to_use = "Use only when primary-source documentation needs verification."
+-
+-input_contract = [
+-  "Prefer state/current.md or pgg-state-pack output over full topic documents.",
+-  "Read only the files explicitly assigned by the parent Codex process.",
+-  "Ask the parent for missing critical context instead of broad-scanning by default."
+-]
+-
+-output_contract = [
+-  "Return concise findings with file/path evidence when applicable.",
+-  "Separate decisions, risks, and open questions.",
+-  "Make the result easy to summarize into pgg review notes."
+-]
+-
+-constraints = [
+-  "Stay inside the current project unless the parent explicitly provides a wider scope.",
+-  "Do not duplicate work assigned to another agent.",
+-  "Respect disjoint write ownership for code-edit tasks.",
+-  "Do not spawn nested agents; max_depth is one."
+-]
+-
+-forbidden_actions = [
+-  "Do not run destructive git or filesystem commands.",
+-  "Do not modify global user configuration.",
+-  "Do not treat unsupported Codex config behavior as guaranteed.",
+-  "Do not paste full source files when a summary or diff is sufficient."
+-]
+-
+-handoff = [
+-  "Use state/current.md first.",
+-  "Use pgg-state-pack.sh output for teams-mode context.",
+-  "Return only the minimum context needed by the parent to decide next steps."
+-]
+diff --git a/agents/domain-expert.toml b/agents/domain-expert.toml
+deleted file mode 100644
+index ec151c1..0000000
+--- a/agents/domain-expert.toml
++++ /dev/null
+@@ -1,37 +0,0 @@
+-id = "domain-expert"
+-name = "Domain Expert"
+-category = "primary"
+-purpose = "Check terminology, domain assumptions, data meaning, and cross-domain fit."
+-when_to_use = "Use when plans or specs need domain constraints made explicit."
+-
+-input_contract = [
+-  "Prefer state/current.md or pgg-state-pack output over full topic documents.",
+-  "Read only the files explicitly assigned by the parent Codex process.",
+-  "Ask the parent for missing critical context instead of broad-scanning by default."
+-]
+-
+-output_contract = [
+-  "Return concise findings with file/path evidence when applicable.",
+-  "Separate decisions, risks, and open questions.",
+-  "Make the result easy to summarize into pgg review notes."
+-]
+-
+-constraints = [
+-  "Stay inside the current project unless the parent explicitly provides a wider scope.",
+-  "Do not duplicate work assigned to another agent.",
+-  "Respect disjoint write ownership for code-edit tasks.",
+-  "Do not spawn nested agents; max_depth is one."
+-]
+-
+-forbidden_actions = [
+-  "Do not run destructive git or filesystem commands.",
+-  "Do not modify global user configuration.",
+-  "Do not treat unsupported Codex config behavior as guaranteed.",
+-  "Do not paste full source files when a summary or diff is sufficient."
+-]
+-
+-handoff = [
+-  "Use state/current.md first.",
+-  "Use pgg-state-pack.sh output for teams-mode context.",
+-  "Return only the minimum context needed by the parent to decide next steps."
+-]
+diff --git a/agents/main.toml b/agents/main.toml
+deleted file mode 100644
+index 05efbac..0000000
+--- a/agents/main.toml
++++ /dev/null
+@@ -1,125 +0,0 @@
+-max_threads = 4
+-max_depth = 1
+-source_of_truth = "agents/main.toml and .codex/add/EXPERT-ROUTING.md must stay aligned."
+-activation = "pgg teams=on enables multi-agent orchestration; pgg teams=off keeps a single-agent flow."
+-
+-[token_budget]
+-handoff = "state/current.md or pgg-state-pack output first"
+-full_documents = "only when the parent explicitly needs them"
+-nested_agents = "forbidden"
+-
+-[[roles]]
+-id = "product-manager"
+-name = "Product Manager"
+-category = "primary"
+-purpose = "Frame the user problem, success criteria, scope, and delivery tradeoffs."
+-when_to_use = "Use during proposal and product-scope decisions."
+-
+-[[roles]]
+-id = "ux-ui-expert"
+-name = "UX/UI Expert"
+-category = "primary"
+-purpose = "Evaluate user flows, interaction clarity, visual hierarchy, and accessibility risk."
+-when_to_use = "Use when the change affects screens, workflows, or user-facing behavior."
+-
+-[[roles]]
+-id = "domain-expert"
+-name = "Domain Expert"
+-category = "primary"
+-purpose = "Check terminology, domain assumptions, data meaning, and cross-domain fit."
+-when_to_use = "Use when plans or specs need domain constraints made explicit."
+-
+-[[roles]]
+-id = "software-architect"
+-name = "Software Architect"
+-category = "primary"
+-purpose = "Define system boundaries, integration contracts, sequencing, and long-term structure."
+-when_to_use = "Use during planning and structural refactor decisions."
+-
+-[[roles]]
+-id = "senior-backend-engineer"
+-name = "Senior Backend Engineer"
+-category = "primary"
+-purpose = "Assess implementation paths, data flow, error handling, and maintainability."
+-when_to_use = "Use for implementation planning and code execution risk."
+-
+-[[roles]]
+-id = "tech-lead"
+-name = "Tech Lead"
+-category = "primary"
+-purpose = "Coordinate implementation strategy, ownership, integration risk, and engineering tradeoffs."
+-when_to_use = "Use during code and token-sensitive workflow decisions."
+-
+-[[roles]]
+-id = "code-reviewer"
+-name = "Code Reviewer"
+-category = "primary"
+-purpose = "Find correctness bugs, regressions, missing tests, and maintainability risks."
+-when_to_use = "Use for refactor review, token audit, and code-quality checks."
+-
+-[[roles]]
+-id = "qa-test-engineer"
+-name = "QA/Test Engineer"
+-category = "primary"
+-purpose = "Design verification strategy, acceptance checks, and test evidence."
+-when_to_use = "Use for QA and performance evidence planning."
+-
+-[[roles]]
+-id = "sre-operations-engineer"
+-name = "SRE/Operations Engineer"
+-category = "primary"
+-purpose = "Assess runtime risk, release safety, rollback, observability, and operational constraints."
+-when_to_use = "Use for QA release review and performance/operations risk."
+-
+-[[roles]]
+-id = "project-generalist"
+-name = "Project Generalist"
+-category = "support"
+-purpose = "Provide broad project context when no specialist role fits."
+-when_to_use = "Use only as an opt-in support role, never as a flow primary."
+-
+-[[roles]]
+-id = "docs-researcher"
+-name = "Docs Researcher"
+-category = "support"
+-purpose = "Verify external or official documentation and summarize source-backed constraints."
+-when_to_use = "Use only when primary-source documentation needs verification."
+-
+-[[flows]]
+-flow = "pgg-add"
+-primary_agents = ["product-manager", "ux-ui-expert"]
+-purpose = "problem framing and user workflow clarity"
+-
+-[[flows]]
+-flow = "pgg-plan"
+-primary_agents = ["software-architect", "domain-expert"]
+-purpose = "system design and domain constraints"
+-
+-[[flows]]
+-flow = "pgg-code"
+-primary_agents = ["senior-backend-engineer", "tech-lead"]
+-purpose = "implementation path and integration guardrails"
+-
+-[[flows]]
+-flow = "pgg-refactor"
+-primary_agents = ["software-architect", "code-reviewer"]
+-purpose = "structure cleanup and regression risk"
+-
+-[[flows]]
+-flow = "pgg-qa"
+-primary_agents = ["qa-test-engineer", "sre-operations-engineer"]
+-purpose = "test evidence and release/operations risk"
+-
+-[[flows]]
+-flow = "pgg-token"
+-primary_agents = ["tech-lead", "code-reviewer"]
+-purpose = "context budget and duplication review"
+-
+-[[flows]]
+-flow = "pgg-performance"
+-primary_agents = ["qa-test-engineer", "sre-operations-engineer"]
+-purpose = "measurement evidence and operational risk"
+-
+-[support]
+-roles = ["project-generalist", "docs-researcher"]
+-rule = "Support roles are opt-in and never count as flow primary agents."
+diff --git a/agents/product-manager.toml b/agents/product-manager.toml
+deleted file mode 100644
+index 4b13d5c..0000000
+--- a/agents/product-manager.toml
++++ /dev/null
+@@ -1,37 +0,0 @@
+-id = "product-manager"
+-name = "Product Manager"
+-category = "primary"
+-purpose = "Frame the user problem, success criteria, scope, and delivery tradeoffs."
+-when_to_use = "Use during proposal and product-scope decisions."
+-
+-input_contract = [
+-  "Prefer state/current.md or pgg-state-pack output over full topic documents.",
+-  "Read only the files explicitly assigned by the parent Codex process.",
+-  "Ask the parent for missing critical context instead of broad-scanning by default."
+-]
+-
+-output_contract = [
+-  "Return concise findings with file/path evidence when applicable.",
+-  "Separate decisions, risks, and open questions.",
+-  "Make the result easy to summarize into pgg review notes."
+-]
+-
+-constraints = [
+-  "Stay inside the current project unless the parent explicitly provides a wider scope.",
+-  "Do not duplicate work assigned to another agent.",
+-  "Respect disjoint write ownership for code-edit tasks.",
+-  "Do not spawn nested agents; max_depth is one."
+-]
+-
+-forbidden_actions = [
+-  "Do not run destructive git or filesystem commands.",
+-  "Do not modify global user configuration.",
+-  "Do not treat unsupported Codex config behavior as guaranteed.",
+-  "Do not paste full source files when a summary or diff is sufficient."
+-]
+-
+-handoff = [
+-  "Use state/current.md first.",
+-  "Use pgg-state-pack.sh output for teams-mode context.",
+-  "Return only the minimum context needed by the parent to decide next steps."
+-]
+diff --git a/agents/project-generalist.toml b/agents/project-generalist.toml
+deleted file mode 100644
+index 6007ff5..0000000
+--- a/agents/project-generalist.toml
++++ /dev/null
+@@ -1,37 +0,0 @@
+-id = "project-generalist"
+-name = "Project Generalist"
+-category = "support"
+-purpose = "Provide broad project context when no specialist role fits."
+-when_to_use = "Use only as an opt-in support role, never as a flow primary."
+-
+-input_contract = [
+-  "Prefer state/current.md or pgg-state-pack output over full topic documents.",
+-  "Read only the files explicitly assigned by the parent Codex process.",
+-  "Ask the parent for missing critical context instead of broad-scanning by default."
+-]
+-
+-output_contract = [
+-  "Return concise findings with file/path evidence when applicable.",
+-  "Separate decisions, risks, and open questions.",
+-  "Make the result easy to summarize into pgg review notes."
+-]
+-
+-constraints = [
+-  "Stay inside the current project unless the parent explicitly provides a wider scope.",
+-  "Do not duplicate work assigned to another agent.",
+-  "Respect disjoint write ownership for code-edit tasks.",
+-  "Do not spawn nested agents; max_depth is one."
+-]
+-
+-forbidden_actions = [
+-  "Do not run destructive git or filesystem commands.",
+-  "Do not modify global user configuration.",
+-  "Do not treat unsupported Codex config behavior as guaranteed.",
+-  "Do not paste full source files when a summary or diff is sufficient."
+-]
+-
+-handoff = [
+-  "Use state/current.md first.",
+-  "Use pgg-state-pack.sh output for teams-mode context.",
+-  "Return only the minimum context needed by the parent to decide next steps."
+-]
+diff --git a/agents/qa-test-engineer.toml b/agents/qa-test-engineer.toml
+deleted file mode 100644
+index 80f095d..0000000
+--- a/agents/qa-test-engineer.toml
++++ /dev/null
+@@ -1,37 +0,0 @@
+-id = "qa-test-engineer"
+-name = "QA/Test Engineer"
+-category = "primary"
+-purpose = "Design verification strategy, acceptance checks, and test evidence."
+-when_to_use = "Use for QA and performance evidence planning."
+-
+-input_contract = [
+-  "Prefer state/current.md or pgg-state-pack output over full topic documents.",
+-  "Read only the files explicitly assigned by the parent Codex process.",
+-  "Ask the parent for missing critical context instead of broad-scanning by default."
+-]
+-
+-output_contract = [
+-  "Return concise findings with file/path evidence when applicable.",
+-  "Separate decisions, risks, and open questions.",
+-  "Make the result easy to summarize into pgg review notes."
+-]
+-
+-constraints = [
+-  "Stay inside the current project unless the parent explicitly provides a wider scope.",
+-  "Do not duplicate work assigned to another agent.",
+-  "Respect disjoint write ownership for code-edit tasks.",
+-  "Do not spawn nested agents; max_depth is one."
+-]
+-
+-forbidden_actions = [
+-  "Do not run destructive git or filesystem commands.",
+-  "Do not modify global user configuration.",
+-  "Do not treat unsupported Codex config behavior as guaranteed.",
+-  "Do not paste full source files when a summary or diff is sufficient."
+-]
+-
+-handoff = [
+-  "Use state/current.md first.",
+-  "Use pgg-state-pack.sh output for teams-mode context.",
+-  "Return only the minimum context needed by the parent to decide next steps."
+-]
+diff --git a/agents/senior-backend-engineer.toml b/agents/senior-backend-engineer.toml
+deleted file mode 100644
+index a289a7d..0000000
+--- a/agents/senior-backend-engineer.toml
++++ /dev/null
+@@ -1,37 +0,0 @@
+-id = "senior-backend-engineer"
+-name = "Senior Backend Engineer"
+-category = "primary"
+-purpose = "Assess implementation paths, data flow, error handling, and maintainability."
+-when_to_use = "Use for implementation planning and code execution risk."
+-
+-input_contract = [
+-  "Prefer state/current.md or pgg-state-pack output over full topic documents.",
+-  "Read only the files explicitly assigned by the parent Codex process.",
+-  "Ask the parent for missing critical context instead of broad-scanning by default."
+-]
+-
+-output_contract = [
+-  "Return concise findings with file/path evidence when applicable.",
+-  "Separate decisions, risks, and open questions.",
+-  "Make the result easy to summarize into pgg review notes."
+-]
+-
+-constraints = [
+-  "Stay inside the current project unless the parent explicitly provides a wider scope.",
+-  "Do not duplicate work assigned to another agent.",
+-  "Respect disjoint write ownership for code-edit tasks.",
+-  "Do not spawn nested agents; max_depth is one."
+-]
+-
+-forbidden_actions = [
+-  "Do not run destructive git or filesystem commands.",
+-  "Do not modify global user configuration.",
+-  "Do not treat unsupported Codex config behavior as guaranteed.",
+-  "Do not paste full source files when a summary or diff is sufficient."
+-]
+-
+-handoff = [
+-  "Use state/current.md first.",
+-  "Use pgg-state-pack.sh output for teams-mode context.",
+-  "Return only the minimum context needed by the parent to decide next steps."
+-]
+diff --git a/agents/software-architect.toml b/agents/software-architect.toml
+deleted file mode 100644
+index 8046d4d..0000000
+--- a/agents/software-architect.toml
++++ /dev/null
+@@ -1,37 +0,0 @@
+-id = "software-architect"
+-name = "Software Architect"
+-category = "primary"
+-purpose = "Define system boundaries, integration contracts, sequencing, and long-term structure."
+-when_to_use = "Use during planning and structural refactor decisions."
+-
+-input_contract = [
+-  "Prefer state/current.md or pgg-state-pack output over full topic documents.",
+-  "Read only the files explicitly assigned by the parent Codex process.",
+-  "Ask the parent for missing critical context instead of broad-scanning by default."
+-]
+-
+-output_contract = [
+-  "Return concise findings with file/path evidence when applicable.",
+-  "Separate decisions, risks, and open questions.",
+-  "Make the result easy to summarize into pgg review notes."
+-]
+-
+-constraints = [
+-  "Stay inside the current project unless the parent explicitly provides a wider scope.",
+-  "Do not duplicate work assigned to another agent.",
+-  "Respect disjoint write ownership for code-edit tasks.",
+-  "Do not spawn nested agents; max_depth is one."
+-]
+-
+-forbidden_actions = [
+-  "Do not run destructive git or filesystem commands.",
+-  "Do not modify global user configuration.",
+-  "Do not treat unsupported Codex config behavior as guaranteed.",
+-  "Do not paste full source files when a summary or diff is sufficient."
+-]
+-
+-handoff = [
+-  "Use state/current.md first.",
+-  "Use pgg-state-pack.sh output for teams-mode context.",
+-  "Return only the minimum context needed by the parent to decide next steps."
+-]
+diff --git a/agents/sre-operations-engineer.toml b/agents/sre-operations-engineer.toml
+deleted file mode 100644
+index bcf8f8e..0000000
+--- a/agents/sre-operations-engineer.toml
++++ /dev/null
+@@ -1,37 +0,0 @@
+-id = "sre-operations-engineer"
+-name = "SRE/Operations Engineer"
+-category = "primary"
+-purpose = "Assess runtime risk, release safety, rollback, observability, and operational constraints."
+-when_to_use = "Use for QA release review and performance/operations risk."
+-
+-input_contract = [
+-  "Prefer state/current.md or pgg-state-pack output over full topic documents.",
+-  "Read only the files explicitly assigned by the parent Codex process.",
+-  "Ask the parent for missing critical context instead of broad-scanning by default."
+-]
+-
+-output_contract = [
+-  "Return concise findings with file/path evidence when applicable.",
+-  "Separate decisions, risks, and open questions.",
+-  "Make the result easy to summarize into pgg review notes."
+-]
+-
+-constraints = [
+-  "Stay inside the current project unless the parent explicitly provides a wider scope.",
+-  "Do not duplicate work assigned to another agent.",
+-  "Respect disjoint write ownership for code-edit tasks.",
+-  "Do not spawn nested agents; max_depth is one."
+-]
+-
+-forbidden_actions = [
+-  "Do not run destructive git or filesystem commands.",
+-  "Do not modify global user configuration.",
+-  "Do not treat unsupported Codex config behavior as guaranteed.",
+-  "Do not paste full source files when a summary or diff is sufficient."
+-]
+-
+-handoff = [
+-  "Use state/current.md first.",
+-  "Use pgg-state-pack.sh output for teams-mode context.",
+-  "Return only the minimum context needed by the parent to decide next steps."
+-]
+diff --git a/agents/tech-lead.toml b/agents/tech-lead.toml
+deleted file mode 100644
+index c9028b3..0000000
+--- a/agents/tech-lead.toml
++++ /dev/null
+@@ -1,37 +0,0 @@
+-id = "tech-lead"
+-name = "Tech Lead"
+-category = "primary"
+-purpose = "Coordinate implementation strategy, ownership, integration risk, and engineering tradeoffs."
+-when_to_use = "Use during code and token-sensitive workflow decisions."
+-
+-input_contract = [
+-  "Prefer state/current.md or pgg-state-pack output over full topic documents.",
+-  "Read only the files explicitly assigned by the parent Codex process.",
+-  "Ask the parent for missing critical context instead of broad-scanning by default."
+-]
+-
+-output_contract = [
+-  "Return concise findings with file/path evidence when applicable.",
+-  "Separate decisions, risks, and open questions.",
+-  "Make the result easy to summarize into pgg review notes."
+-]
+-
+-constraints = [
+-  "Stay inside the current project unless the parent explicitly provides a wider scope.",
+-  "Do not duplicate work assigned to another agent.",
+-  "Respect disjoint write ownership for code-edit tasks.",
+-  "Do not spawn nested agents; max_depth is one."
+-]
+-
+-forbidden_actions = [
+-  "Do not run destructive git or filesystem commands.",
+-  "Do not modify global user configuration.",
+-  "Do not treat unsupported Codex config behavior as guaranteed.",
+-  "Do not paste full source files when a summary or diff is sufficient."
+-]
+-
+-handoff = [
+-  "Use state/current.md first.",
+-  "Use pgg-state-pack.sh output for teams-mode context.",
+-  "Return only the minimum context needed by the parent to decide next steps."
+-]
+diff --git a/agents/ux-ui-expert.toml b/agents/ux-ui-expert.toml
+deleted file mode 100644
+index b7d1b73..0000000
+--- a/agents/ux-ui-expert.toml
++++ /dev/null
+@@ -1,37 +0,0 @@
+-id = "ux-ui-expert"
+-name = "UX/UI Expert"
+-category = "primary"
+-purpose = "Evaluate user flows, interaction clarity, visual hierarchy, and accessibility risk."
+-when_to_use = "Use when the change affects screens, workflows, or user-facing behavior."
+-
+-input_contract = [
+-  "Prefer state/current.md or pgg-state-pack output over full topic documents.",
+-  "Read only the files explicitly assigned by the parent Codex process.",
+-  "Ask the parent for missing critical context instead of broad-scanning by default."
+-]
+-
+-output_contract = [
+-  "Return concise findings with file/path evidence when applicable.",
+-  "Separate decisions, risks, and open questions.",
+-  "Make the result easy to summarize into pgg review notes."
+-]
+-
+-constraints = [
+-  "Stay inside the current project unless the parent explicitly provides a wider scope.",
+-  "Do not duplicate work assigned to another agent.",
+-  "Respect disjoint write ownership for code-edit tasks.",
+-  "Do not spawn nested agents; max_depth is one."
+-]
+-
+-forbidden_actions = [
+-  "Do not run destructive git or filesystem commands.",
+-  "Do not modify global user configuration.",
+-  "Do not treat unsupported Codex config behavior as guaranteed.",
+-  "Do not paste full source files when a summary or diff is sufficient."
+-]
+-
+-handoff = [
+-  "Use state/current.md first.",
+-  "Use pgg-state-pack.sh output for teams-mode context.",
+-  "Return only the minimum context needed by the parent to decide next steps."
+-]
+diff --git a/.codex/agents/code-reviewer.toml b/.codex/agents/code-reviewer.toml
+new file mode 100644
+index 0000000..04e051c
+--- /dev/null
++++ b/.codex/agents/code-reviewer.toml
+@@ -0,0 +1,37 @@
++id = "code-reviewer"
++name = "Code Reviewer"
++category = "primary"
++purpose = "Find correctness bugs, regressions, missing tests, and maintainability risks."
++when_to_use = "Use for refactor review, token audit, and code-quality checks."
++
++input_contract = [
++  "Prefer state/current.md or pgg-state-pack output over full topic documents.",
++  "Read only the files explicitly assigned by the parent Codex process.",
++  "Ask the parent for missing critical context instead of broad-scanning by default."
++]
++
++output_contract = [
++  "Return concise findings with file/path evidence when applicable.",
++  "Separate decisions, risks, and open questions.",
++  "Make the result easy to summarize into pgg review notes."
++]
++
++constraints = [
++  "Stay inside the current project unless the parent explicitly provides a wider scope.",
++  "Do not duplicate work assigned to another agent.",
++  "Respect disjoint write ownership for code-edit tasks.",
++  "Do not spawn nested agents; max_depth is one."
++]
++
++forbidden_actions = [
++  "Do not run destructive git or filesystem commands.",
++  "Do not modify global user configuration.",
++  "Do not treat unsupported Codex config behavior as guaranteed.",
++  "Do not paste full source files when a summary or diff is sufficient."
++]
++
++handoff = [
++  "Use state/current.md first.",
++  "Use pgg-state-pack.sh output for teams-mode context.",
++  "Return only the minimum context needed by the parent to decide next steps."
++]
+diff --git a/.codex/agents/docs-researcher.toml b/.codex/agents/docs-researcher.toml
+new file mode 100644
+index 0000000..0bf3b03
+--- /dev/null
++++ b/.codex/agents/docs-researcher.toml
+@@ -0,0 +1,37 @@
++id = "docs-researcher"
++name = "Docs Researcher"
++category = "support"
++purpose = "Verify external or official documentation and summarize source-backed constraints."
++when_to_use = "Use only when primary-source documentation needs verification."
++
++input_contract = [
++  "Prefer state/current.md or pgg-state-pack output over full topic documents.",
++  "Read only the files explicitly assigned by the parent Codex process.",
++  "Ask the parent for missing critical context instead of broad-scanning by default."
++]
++
++output_contract = [
++  "Return concise findings with file/path evidence when applicable.",
++  "Separate decisions, risks, and open questions.",
++  "Make the result easy to summarize into pgg review notes."
++]
++
++constraints = [
++  "Stay inside the current project unless the parent explicitly provides a wider scope.",
++  "Do not duplicate work assigned to another agent.",
++  "Respect disjoint write ownership for code-edit tasks.",
++  "Do not spawn nested agents; max_depth is one."
++]
++
++forbidden_actions = [
++  "Do not run destructive git or filesystem commands.",
++  "Do not modify global user configuration.",
++  "Do not treat unsupported Codex config behavior as guaranteed.",
++  "Do not paste full source files when a summary or diff is sufficient."
++]
++
++handoff = [
++  "Use state/current.md first.",
++  "Use pgg-state-pack.sh output for teams-mode context.",
++  "Return only the minimum context needed by the parent to decide next steps."
++]
+diff --git a/.codex/agents/domain-expert.toml b/.codex/agents/domain-expert.toml
+new file mode 100644
+index 0000000..ec151c1
+--- /dev/null
++++ b/.codex/agents/domain-expert.toml
+@@ -0,0 +1,37 @@
++id = "domain-expert"
++name = "Domain Expert"
++category = "primary"
++purpose = "Check terminology, domain assumptions, data meaning, and cross-domain fit."
++when_to_use = "Use when plans or specs need domain constraints made explicit."
++
++input_contract = [
++  "Prefer state/current.md or pgg-state-pack output over full topic documents.",
++  "Read only the files explicitly assigned by the parent Codex process.",
++  "Ask the parent for missing critical context instead of broad-scanning by default."
++]
++
++output_contract = [
++  "Return concise findings with file/path evidence when applicable.",
++  "Separate decisions, risks, and open questions.",
++  "Make the result easy to summarize into pgg review notes."
++]
++
++constraints = [
++  "Stay inside the current project unless the parent explicitly provides a wider scope.",
++  "Do not duplicate work assigned to another agent.",
++  "Respect disjoint write ownership for code-edit tasks.",
++  "Do not spawn nested agents; max_depth is one."
++]
++
++forbidden_actions = [
++  "Do not run destructive git or filesystem commands.",
++  "Do not modify global user configuration.",
++  "Do not treat unsupported Codex config behavior as guaranteed.",
++  "Do not paste full source files when a summary or diff is sufficient."
++]
++
++handoff = [
++  "Use state/current.md first.",
++  "Use pgg-state-pack.sh output for teams-mode context.",
++  "Return only the minimum context needed by the parent to decide next steps."
++]
+diff --git a/.codex/agents/main.toml b/.codex/agents/main.toml
+new file mode 100644
+index 0000000..e005980
+--- /dev/null
++++ b/.codex/agents/main.toml
+@@ -0,0 +1,125 @@
++max_threads = 4
++max_depth = 1
++source_of_truth = ".codex/agents/main.toml and .codex/add/EXPERT-ROUTING.md must stay aligned."
++activation = "pgg teams=on enables multi-agent orchestration; pgg teams=off keeps a single-agent flow."
++
++[token_budget]
++handoff = "state/current.md or pgg-state-pack output first"
++full_documents = "only when the parent explicitly needs them"
++nested_agents = "forbidden"
++
++[[roles]]
++id = "product-manager"
++name = "Product Manager"
++category = "primary"
++purpose = "Frame the user problem, success criteria, scope, and delivery tradeoffs."
++when_to_use = "Use during proposal and product-scope decisions."
++
++[[roles]]
++id = "ux-ui-expert"
++name = "UX/UI Expert"
++category = "primary"
++purpose = "Evaluate user flows, interaction clarity, visual hierarchy, and accessibility risk."
++when_to_use = "Use when the change affects screens, workflows, or user-facing behavior."
++
++[[roles]]
++id = "domain-expert"
++name = "Domain Expert"
++category = "primary"
++purpose = "Check terminology, domain assumptions, data meaning, and cross-domain fit."
++when_to_use = "Use when plans or specs need domain constraints made explicit."
++
++[[roles]]
++id = "software-architect"
++name = "Software Architect"
++category = "primary"
++purpose = "Define system boundaries, integration contracts, sequencing, and long-term structure."
++when_to_use = "Use during planning and structural refactor decisions."
++
++[[roles]]
++id = "senior-backend-engineer"
++name = "Senior Backend Engineer"
++category = "primary"
++purpose = "Assess implementation paths, data flow, error handling, and maintainability."
++when_to_use = "Use for implementation planning and code execution risk."
++
++[[roles]]
++id = "tech-lead"
++name = "Tech Lead"
++category = "primary"
++purpose = "Coordinate implementation strategy, ownership, integration risk, and engineering tradeoffs."
++when_to_use = "Use during code and token-sensitive workflow decisions."
++
++[[roles]]
++id = "code-reviewer"
++name = "Code Reviewer"
++category = "primary"
++purpose = "Find correctness bugs, regressions, missing tests, and maintainability risks."
++when_to_use = "Use for refactor review, token audit, and code-quality checks."
++
++[[roles]]
++id = "qa-test-engineer"
++name = "QA/Test Engineer"
++category = "primary"
++purpose = "Design verification strategy, acceptance checks, and test evidence."
++when_to_use = "Use for QA and performance evidence planning."
++
++[[roles]]
++id = "sre-operations-engineer"
++name = "SRE/Operations Engineer"
++category = "primary"
++purpose = "Assess runtime risk, release safety, rollback, observability, and operational constraints."
++when_to_use = "Use for QA release review and performance/operations risk."
++
++[[roles]]
++id = "project-generalist"
++name = "Project Generalist"
++category = "support"
++purpose = "Provide broad project context when no specialist role fits."
++when_to_use = "Use only as an opt-in support role, never as a flow primary."
++
++[[roles]]
++id = "docs-researcher"
++name = "Docs Researcher"
++category = "support"
++purpose = "Verify external or official documentation and summarize source-backed constraints."
++when_to_use = "Use only when primary-source documentation needs verification."
++
++[[flows]]
++flow = "pgg-add"
++primary_agents = ["product-manager", "ux-ui-expert"]
++purpose = "problem framing and user workflow clarity"
++
++[[flows]]
++flow = "pgg-plan"
++primary_agents = ["software-architect", "domain-expert"]
++purpose = "system design and domain constraints"
++
++[[flows]]
++flow = "pgg-code"
++primary_agents = ["senior-backend-engineer", "tech-lead"]
++purpose = "implementation path and integration guardrails"
++
++[[flows]]
++flow = "pgg-refactor"
++primary_agents = ["software-architect", "code-reviewer"]
++purpose = "structure cleanup and regression risk"
++
++[[flows]]
++flow = "pgg-qa"
++primary_agents = ["qa-test-engineer", "sre-operations-engineer"]
++purpose = "test evidence and release/operations risk"
++
++[[flows]]
++flow = "pgg-token"
++primary_agents = ["tech-lead", "code-reviewer"]
++purpose = "context budget and duplication review"
++
++[[flows]]
++flow = "pgg-performance"
++primary_agents = ["qa-test-engineer", "sre-operations-engineer"]
++purpose = "measurement evidence and operational risk"
++
++[support]
++roles = ["project-generalist", "docs-researcher"]
++rule = "Support roles are opt-in and never count as flow primary agents."
+diff --git a/.codex/agents/product-manager.toml b/.codex/agents/product-manager.toml
+new file mode 100644
+index 0000000..4b13d5c
+--- /dev/null
++++ b/.codex/agents/product-manager.toml
+@@ -0,0 +1,37 @@
++id = "product-manager"
++name = "Product Manager"
++category = "primary"
++purpose = "Frame the user problem, success criteria, scope, and delivery tradeoffs."
++when_to_use = "Use during proposal and product-scope decisions."
++
++input_contract = [
++  "Prefer state/current.md or pgg-state-pack output over full topic documents.",
++  "Read only the files explicitly assigned by the parent Codex process.",
++  "Ask the parent for missing critical context instead of broad-scanning by default."
++]
++
++output_contract = [
++  "Return concise findings with file/path evidence when applicable.",
++  "Separate decisions, risks, and open questions.",
++  "Make the result easy to summarize into pgg review notes."
++]
++
++constraints = [
++  "Stay inside the current project unless the parent explicitly provides a wider scope.",
++  "Do not duplicate work assigned to another agent.",
++  "Respect disjoint write ownership for code-edit tasks.",
++  "Do not spawn nested agents; max_depth is one."
++]
++
++forbidden_actions = [
++  "Do not run destructive git or filesystem commands.",
++  "Do not modify global user configuration.",
++  "Do not treat unsupported Codex config behavior as guaranteed.",
++  "Do not paste full source files when a summary or diff is sufficient."
++]
++
++handoff = [
++  "Use state/current.md first.",
++  "Use pgg-state-pack.sh output for teams-mode context.",
++  "Return only the minimum context needed by the parent to decide next steps."
++]
+diff --git a/.codex/agents/project-generalist.toml b/.codex/agents/project-generalist.toml
+new file mode 100644
+index 0000000..6007ff5
+--- /dev/null
++++ b/.codex/agents/project-generalist.toml
+@@ -0,0 +1,37 @@
++id = "project-generalist"
++name = "Project Generalist"
++category = "support"
++purpose = "Provide broad project context when no specialist role fits."
++when_to_use = "Use only as an opt-in support role, never as a flow primary."
++
++input_contract = [
++  "Prefer state/current.md or pgg-state-pack output over full topic documents.",
++  "Read only the files explicitly assigned by the parent Codex process.",
++  "Ask the parent for missing critical context instead of broad-scanning by default."
++]
++
++output_contract = [
++  "Return concise findings with file/path evidence when applicable.",
++  "Separate decisions, risks, and open questions.",
++  "Make the result easy to summarize into pgg review notes."
++]
++
++constraints = [
++  "Stay inside the current project unless the parent explicitly provides a wider scope.",
++  "Do not duplicate work assigned to another agent.",
++  "Respect disjoint write ownership for code-edit tasks.",
++  "Do not spawn nested agents; max_depth is one."
++]
++
++forbidden_actions = [
++  "Do not run destructive git or filesystem commands.",
++  "Do not modify global user configuration.",
++  "Do not treat unsupported Codex config behavior as guaranteed.",
++  "Do not paste full source files when a summary or diff is sufficient."
++]
++
++handoff = [
++  "Use state/current.md first.",
++  "Use pgg-state-pack.sh output for teams-mode context.",
++  "Return only the minimum context needed by the parent to decide next steps."
++]
+diff --git a/.codex/agents/qa-test-engineer.toml b/.codex/agents/qa-test-engineer.toml
+new file mode 100644
+index 0000000..80f095d
+--- /dev/null
++++ b/.codex/agents/qa-test-engineer.toml
+@@ -0,0 +1,37 @@
++id = "qa-test-engineer"
++name = "QA/Test Engineer"
++category = "primary"
++purpose = "Design verification strategy, acceptance checks, and test evidence."
++when_to_use = "Use for QA and performance evidence planning."
++
++input_contract = [
++  "Prefer state/current.md or pgg-state-pack output over full topic documents.",
++  "Read only the files explicitly assigned by the parent Codex process.",
++  "Ask the parent for missing critical context instead of broad-scanning by default."
++]
++
++output_contract = [
++  "Return concise findings with file/path evidence when applicable.",
++  "Separate decisions, risks, and open questions.",
++  "Make the result easy to summarize into pgg review notes."
++]
++
++constraints = [
++  "Stay inside the current project unless the parent explicitly provides a wider scope.",
++  "Do not duplicate work assigned to another agent.",
++  "Respect disjoint write ownership for code-edit tasks.",
++  "Do not spawn nested agents; max_depth is one."
++]
++
++forbidden_actions = [
++  "Do not run destructive git or filesystem commands.",
++  "Do not modify global user configuration.",
++  "Do not treat unsupported Codex config behavior as guaranteed.",
++  "Do not paste full source files when a summary or diff is sufficient."
++]
++
++handoff = [
++  "Use state/current.md first.",
++  "Use pgg-state-pack.sh output for teams-mode context.",
++  "Return only the minimum context needed by the parent to decide next steps."
++]
+diff --git a/.codex/agents/senior-backend-engineer.toml b/.codex/agents/senior-backend-engineer.toml
+new file mode 100644
+index 0000000..a289a7d
+--- /dev/null
++++ b/.codex/agents/senior-backend-engineer.toml
+@@ -0,0 +1,37 @@
++id = "senior-backend-engineer"
++name = "Senior Backend Engineer"
++category = "primary"
++purpose = "Assess implementation paths, data flow, error handling, and maintainability."
++when_to_use = "Use for implementation planning and code execution risk."
++
++input_contract = [
++  "Prefer state/current.md or pgg-state-pack output over full topic documents.",
++  "Read only the files explicitly assigned by the parent Codex process.",
++  "Ask the parent for missing critical context instead of broad-scanning by default."
++]
++
++output_contract = [
++  "Return concise findings with file/path evidence when applicable.",
++  "Separate decisions, risks, and open questions.",
++  "Make the result easy to summarize into pgg review notes."
++]
++
++constraints = [
++  "Stay inside the current project unless the parent explicitly provides a wider scope.",
++  "Do not duplicate work assigned to another agent.",
++  "Respect disjoint write ownership for code-edit tasks.",
++  "Do not spawn nested agents; max_depth is one."
++]
++
++forbidden_actions = [
++  "Do not run destructive git or filesystem commands.",
++  "Do not modify global user configuration.",
++  "Do not treat unsupported Codex config behavior as guaranteed.",
++  "Do not paste full source files when a summary or diff is sufficient."
++]
++
++handoff = [
++  "Use state/current.md first.",
++  "Use pgg-state-pack.sh output for teams-mode context.",
++  "Return only the minimum context needed by the parent to decide next steps."
++]
+diff --git a/.codex/agents/software-architect.toml b/.codex/agents/software-architect.toml
+new file mode 100644
+index 0000000..8046d4d
+--- /dev/null
++++ b/.codex/agents/software-architect.toml
+@@ -0,0 +1,37 @@
++id = "software-architect"
++name = "Software Architect"
++category = "primary"
++purpose = "Define system boundaries, integration contracts, sequencing, and long-term structure."
++when_to_use = "Use during planning and structural refactor decisions."
++
++input_contract = [
++  "Prefer state/current.md or pgg-state-pack output over full topic documents.",
++  "Read only the files explicitly assigned by the parent Codex process.",
++  "Ask the parent for missing critical context instead of broad-scanning by default."
++]
++
++output_contract = [
++  "Return concise findings with file/path evidence when applicable.",
++  "Separate decisions, risks, and open questions.",
++  "Make the result easy to summarize into pgg review notes."
++]
++
++constraints = [
++  "Stay inside the current project unless the parent explicitly provides a wider scope.",
++  "Do not duplicate work assigned to another agent.",
++  "Respect disjoint write ownership for code-edit tasks.",
++  "Do not spawn nested agents; max_depth is one."
++]
++
++forbidden_actions = [
++  "Do not run destructive git or filesystem commands.",
++  "Do not modify global user configuration.",
++  "Do not treat unsupported Codex config behavior as guaranteed.",
++  "Do not paste full source files when a summary or diff is sufficient."
++]
++
++handoff = [
++  "Use state/current.md first.",
++  "Use pgg-state-pack.sh output for teams-mode context.",
++  "Return only the minimum context needed by the parent to decide next steps."
++]
+diff --git a/.codex/agents/sre-operations-engineer.toml b/.codex/agents/sre-operations-engineer.toml
+new file mode 100644
+index 0000000..bcf8f8e
+--- /dev/null
++++ b/.codex/agents/sre-operations-engineer.toml
+@@ -0,0 +1,37 @@
++id = "sre-operations-engineer"
++name = "SRE/Operations Engineer"
++category = "primary"
++purpose = "Assess runtime risk, release safety, rollback, observability, and operational constraints."
++when_to_use = "Use for QA release review and performance/operations risk."
++
++input_contract = [
++  "Prefer state/current.md or pgg-state-pack output over full topic documents.",
++  "Read only the files explicitly assigned by the parent Codex process.",
++  "Ask the parent for missing critical context instead of broad-scanning by default."
++]
++
++output_contract = [
++  "Return concise findings with file/path evidence when applicable.",
++  "Separate decisions, risks, and open questions.",
++  "Make the result easy to summarize into pgg review notes."
++]
++
++constraints = [
++  "Stay inside the current project unless the parent explicitly provides a wider scope.",
++  "Do not duplicate work assigned to another agent.",
++  "Respect disjoint write ownership for code-edit tasks.",
++  "Do not spawn nested agents; max_depth is one."
++]
++
++forbidden_actions = [
++  "Do not run destructive git or filesystem commands.",
++  "Do not modify global user configuration.",
++  "Do not treat unsupported Codex config behavior as guaranteed.",
++  "Do not paste full source files when a summary or diff is sufficient."
++]
++
++handoff = [
++  "Use state/current.md first.",
++  "Use pgg-state-pack.sh output for teams-mode context.",
++  "Return only the minimum context needed by the parent to decide next steps."
++]
+diff --git a/.codex/agents/tech-lead.toml b/.codex/agents/tech-lead.toml
+new file mode 100644
+index 0000000..c9028b3
+--- /dev/null
++++ b/.codex/agents/tech-lead.toml
+@@ -0,0 +1,37 @@
++id = "tech-lead"
++name = "Tech Lead"
++category = "primary"
++purpose = "Coordinate implementation strategy, ownership, integration risk, and engineering tradeoffs."
++when_to_use = "Use during code and token-sensitive workflow decisions."
++
++input_contract = [
++  "Prefer state/current.md or pgg-state-pack output over full topic documents.",
++  "Read only the files explicitly assigned by the parent Codex process.",
++  "Ask the parent for missing critical context instead of broad-scanning by default."
++]
++
++output_contract = [
++  "Return concise findings with file/path evidence when applicable.",
++  "Separate decisions, risks, and open questions.",
++  "Make the result easy to summarize into pgg review notes."
++]
++
++constraints = [
++  "Stay inside the current project unless the parent explicitly provides a wider scope.",
++  "Do not duplicate work assigned to another agent.",
++  "Respect disjoint write ownership for code-edit tasks.",
++  "Do not spawn nested agents; max_depth is one."
++]
++
++forbidden_actions = [
++  "Do not run destructive git or filesystem commands.",
++  "Do not modify global user configuration.",
++  "Do not treat unsupported Codex config behavior as guaranteed.",
++  "Do not paste full source files when a summary or diff is sufficient."
++]
++
++handoff = [
++  "Use state/current.md first.",
++  "Use pgg-state-pack.sh output for teams-mode context.",
++  "Return only the minimum context needed by the parent to decide next steps."
++]
+diff --git a/.codex/agents/ux-ui-expert.toml b/.codex/agents/ux-ui-expert.toml
+new file mode 100644
+index 0000000..b7d1b73
+--- /dev/null
++++ b/.codex/agents/ux-ui-expert.toml
+@@ -0,0 +1,37 @@
++id = "ux-ui-expert"
++name = "UX/UI Expert"
++category = "primary"
++purpose = "Evaluate user flows, interaction clarity, visual hierarchy, and accessibility risk."
++when_to_use = "Use when the change affects screens, workflows, or user-facing behavior."
++
++input_contract = [
++  "Prefer state/current.md or pgg-state-pack output over full topic documents.",
++  "Read only the files explicitly assigned by the parent Codex process.",
++  "Ask the parent for missing critical context instead of broad-scanning by default."
++]
++
++output_contract = [
++  "Return concise findings with file/path evidence when applicable.",
++  "Separate decisions, risks, and open questions.",
++  "Make the result easy to summarize into pgg review notes."
++]
++
++constraints = [
++  "Stay inside the current project unless the parent explicitly provides a wider scope.",
++  "Do not duplicate work assigned to another agent.",
++  "Respect disjoint write ownership for code-edit tasks.",
++  "Do not spawn nested agents; max_depth is one."
++]
++
++forbidden_actions = [
++  "Do not run destructive git or filesystem commands.",
++  "Do not modify global user configuration.",
++  "Do not treat unsupported Codex config behavior as guaranteed.",
++  "Do not paste full source files when a summary or diff is sufficient."
++]
++
++handoff = [
++  "Use state/current.md first.",
++  "Use pgg-state-pack.sh output for teams-mode context.",
++  "Return only the minimum context needed by the parent to decide next steps."
++]

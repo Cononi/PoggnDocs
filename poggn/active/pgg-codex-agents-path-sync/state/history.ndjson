@@ -1,0 +1,10 @@
+{"ts":"2026-04-26T15:10:33Z","stage":"proposal","event":"topic-created"}
+{"ts":"2026-04-26T15:10:33Z","stage":"proposal","event":"stage-started","source":"pgg-add"}
+{"ts":"2026-04-26T15:11:15Z","stage":"proposal","event":"stage-progress","source":"pgg-add","summary":"confirmed current generated agent paths use root agents/ and scoped proposal to init/update templates, manifest, docs, state-pack, and tests"}
+{"ts":"2026-04-26T15:11:15Z","stage":"proposal","event":"stage-completed","source":"verified:pgg-add","summary":"proposal and attributed review completed; handoff state ready for pgg-plan"}
+{"ts":"2026-04-26T15:15:22Z","stage":"plan","event":"stage-started","source":"pgg-plan"}
+{"ts":"2026-04-26T15:15:22Z","stage":"plan","event":"stage-progress","source":"pgg-plan","summary":"created plan, task, four specs, and attributed plan/task reviews for .codex/agents path migration"}
+{"ts":"2026-04-26T15:19:24Z","stage":"plan","event":"stage-completed","source":"verified:pgg-plan","summary":"pgg-code gate passed with plan, task, reviews, and specs present"}
+{"ts":"2026-04-26T15:19:24Z","stage":"implementation","event":"stage-started","source":"pgg-code"}
+{"ts":"2026-04-26T15:27:23Z","stage":"implementation","event":"stage-progress","source":"pgg-code","summary":"implemented .codex/agents path generation, update retirement behavior, routing reference sync, tests, generated update, and implementation diffs"}
+{"ts":"2026-04-27T00:27:01Z","stage":"implementation","event":"stage-commit","archiveType":"fix","targetVersion":"2.3.1","projectLanguage":"ko","commitTitle":"fix: 2.3.1.Codex agents 경로 정렬","summary":"Codex agents 경로 정렬","why":"Codex agent 설정 경로를 .codex/agents로 통일하고 init/update 생성 및 migration 검증을 맞췄다","footer":"Refs: pgg-codex-agents-path-sync"}

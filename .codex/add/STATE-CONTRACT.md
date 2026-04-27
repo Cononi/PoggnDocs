@@ -10,7 +10,7 @@
 - teams handoff가 필요하면 먼저 `.codex/sh/pgg-state-pack.sh <topic|topic_dir>`로 최소 컨텍스트를 만든다.
 - `pgg teams`가 `off`여도 handoff 형식은 같은 최소 컨텍스트 계약을 유지한다.
 - `pgg teams` 상태는 `.codex/config.toml`의 `[features].multi_agent`와 동기화되어야 한다.
-- agent orchestration 기본값은 `max_threads=4`, `max_depth=1`이며 `agents/main.toml`의 flow별 2-agent routing을 따른다.
+- agent orchestration 기본값은 `max_threads=4`, `max_depth=1`이며 `.codex/agents/main.toml`의 flow별 2-agent routing을 따른다.
 - pgg가 생성·관리하는 `.codex/sh/*.sh` helper만 trusted handoff/automation script로 본다.
 - `archive_type`, `version_bump`, `target_version`, branch naming, `project_scope`, archive 후의 version 정보는 최소 컨텍스트에 유지한다.
 - proposal 단계에서는 사용자 입력 질문 기록 섹션의 위치 또는 ref와 `version_bump`, `target_version` 선택 결과를 최소 컨텍스트에 유지한다.

@@ -1,6 +1,6 @@
 max_threads = 4
 max_depth = 1
-source_of_truth = "agents/main.toml and .codex/add/EXPERT-ROUTING.md must stay aligned."
+source_of_truth = ".codex/agents/main.toml and .codex/add/EXPERT-ROUTING.md must stay aligned."
 activation = "pgg teams=on enables multi-agent orchestration; pgg teams=off keeps a single-agent flow."
 
 [token_budget]
