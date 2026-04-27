@@ -1969,6 +1969,119 @@ function isProjectTextFile(absolutePath) {
 function estimateTokensFromText(value) {
     return Math.ceil(Array.from(value).length / 4);
 }
+function parseOptionalNumber(value) {
+    if (typeof value !== "number" || !Number.isFinite(value)) {
+        return null;
+    }
+    return Math.max(0, Math.trunc(value));
+}
+function parseRequiredNumber(value) {
+    return parseOptionalNumber(value) ?? 0;
+}
+function normalizeTokenUsagePath(value) {
+    if (!value) {
+        return null;
+    }
+    return value.replace(/^\.\//, "").replace(/^poggn\/(?:active|archive)\/[^/]+\//, "");
+}
+function parseTokenUsageOperation(value) {
+    return value === "create" ||
+        value === "update" ||
+        value === "delete" ||
+        value === "read" ||
+        value === "generate" ||
+        value === "verify" ||
+        value === "commit" ||
+        value === "other"
+        ? value
+        : "other";
+}
+function parseTokenUsageSource(value) {
+    return value === "llm" || value === "local" ? value : "local";
+}
+function parseTokenUsageMeasurement(value) {
+    return value === "actual" || value === "estimated" || value === "unavailable" ? value : "estimated";
+}
+function parseTopicTokenUsageRecords(raw) {
+    if (!raw) {
+        return [];
+    }
+    return raw
+        .split(/\n+/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .flatMap((line) => {
+        try {
+            const parsed = JSON.parse(line);
+            const artifactPath = typeof parsed.artifact_path === "string"
+                ? parsed.artifact_path
+                : typeof parsed.artifactPath === "string"
+                    ? parsed.artifactPath
+                    : null;
+            const measurement = parseTokenUsageMeasurement(parsed.measurement);
+            return [
+                {
+                    ts: typeof parsed.ts === "string" ? parsed.ts : null,
+                    stage: typeof parsed.stage === "string" ? parsed.stage : null,
+                    flow: typeof parsed.flow === "string" ? parsed.flow : null,
+                    event: typeof parsed.event === "string" ? parsed.event : null,
+                    task: typeof parsed.task === "string" ? parsed.task : null,
+                    artifactPath,
+                    operation: parseTokenUsageOperation(parsed.operation),
+                    source: parseTokenUsageSource(parsed.source),
+                    provider: typeof parsed.provider === "string" ? parsed.provider : null,
+                    model: typeof parsed.model === "string" ? parsed.model : null,
+                    inputTokens: parseOptionalNumber(parsed.input_tokens ?? parsed.inputTokens),
+                    outputTokens: parseOptionalNumber(parsed.output_tokens ?? parsed.outputTokens),
+                    cachedTokens: parseOptionalNumber(parsed.cached_tokens ?? parsed.cachedTokens),
+                    reasoningTokens: parseOptionalNumber(parsed.reasoning_tokens ?? parsed.reasoningTokens),
+                    totalTokens: parseRequiredNumber(parsed.total_tokens ?? parsed.totalTokens),
+                    estimated: typeof parsed.estimated === "boolean" ? parsed.estimated : measurement !== "actual",
+                    measurement,
+                    bytes: parseOptionalNumber(parsed.bytes),
+                    lineCount: parseOptionalNumber(parsed.line_count ?? parsed.lineCount),
+                    notes: typeof parsed.notes === "string" ? parsed.notes : null
+                }
+            ];
+        }
+        catch {
+            return [];
+        }
+    });
+}
+function tokenUsageRecordsForArtifact(records, relativePath, sourcePath) {
+    const relative = normalizeTokenUsagePath(relativePath);
+    const source = normalizeTokenUsagePath(sourcePath);
+    return records.filter((record) => {
+        const artifactPath = normalizeTokenUsagePath(record.artifactPath);
+        return Boolean(artifactPath && (artifactPath === relative || artifactPath === source));
+    });
+}
+function sumTokenRecords(records, predicate) {
+    let total = 0;
+    let seen = false;
+    for (const record of records) {
+        if (predicate(record)) {
+            total += record.totalTokens;
+            seen = true;
+        }
+    }
+    return seen ? total : null;
+}
+function applyTokenUsageRecordsToFile(file, records) {
+    const artifactRecords = tokenUsageRecordsForArtifact(records, file.relativePath, file.sourcePath);
+    if (artifactRecords.length === 0) {
+        return file;
+    }
+    const localEstimatedTokens = sumTokenRecords(artifactRecords, (record) => record.source === "local") ?? 0;
+    const llmActualTokens = sumTokenRecords(artifactRecords, (record) => record.source === "llm" && record.measurement === "actual" && !record.estimated);
+    return {
+        ...file,
+        localEstimatedTokens,
+        llmActualTokens,
+        tokenSource: "ledger"
+    };
+}
 async function collectProjectFiles(rootDir, currentDir = rootDir) {
     const entries = await readdir(currentDir, { withFileTypes: true }).catch(() => []);
     const files = [];
@@ -2023,7 +2136,7 @@ async function listProjectFiles(rootDir) {
     }));
     return entries.sort((left, right) => left.relativePath.localeCompare(right.relativePath));
 }
-async function listTopicFiles(rootDir, topicDir, bucket, topic) {
+async function listTopicFiles(rootDir, topicDir, bucket, topic, tokenUsageRecords) {
     const files = await collectMatchingFiles(topicDir, () => true);
     const entries = await Promise.all(files.map(async (absolutePath) => {
         const fileStat = await stat(absolutePath).catch(() => null);
@@ -2044,15 +2157,30 @@ async function listTopicFiles(rootDir, topicDir, bucket, topic) {
             editable: true
         };
     }));
-    return entries.sort((left, right) => left.relativePath.localeCompare(right.relativePath));
+    return entries
+        .map((entry) => applyTokenUsageRecordsToFile(entry, tokenUsageRecords))
+        .sort((left, right) => left.relativePath.localeCompare(right.relativePath));
 }
-function summarizeTopicTokenUsage(files) {
+function summarizeTopicTokenUsage(files, tokenUsageRecords) {
+    if (tokenUsageRecords.length > 0) {
+        const total = tokenUsageRecords.reduce((sum, record) => sum + record.totalTokens, 0);
+        const llmActualTokens = sumTokenRecords(tokenUsageRecords, (record) => record.source === "llm" && record.measurement === "actual" && !record.estimated);
+        const localEstimatedTokens = sumTokenRecords(tokenUsageRecords, (record) => record.source === "local") ?? 0;
+        return {
+            total,
+            llmActualTokens,
+            localEstimatedTokens,
+            source: "ledger",
+            ledgerRecordCount: tokenUsageRecords.length
+        };
+    }
     const total = files.reduce((sum, file) => sum + (file.tokenEstimate ?? 0), 0);
     return {
         total,
         llmActualTokens: null,
         localEstimatedTokens: total,
-        source: total > 0 ? "estimated" : "none"
+        source: total > 0 ? "estimated" : "none",
+        ledgerRecordCount: 0
     };
 }
 function deriveTopicUpdatedAt(artifactSummary, archivedAt) {
@@ -2086,8 +2214,9 @@ async function listTopicSummaries(rootDir, bucket) {
         const publish = await readTopicPublishMetadata(topicDir);
         const artifactSummary = await readTopicArtifactSummary(topicDir);
         const userQuestionRecord = parseUserQuestionRecord(proposalMarkdown);
-        const files = await listTopicFiles(rootDir, topicDir, bucket, entry.name);
-        const tokenUsage = summarizeTopicTokenUsage(files);
+        const tokenUsageRecords = parseTopicTokenUsageRecords(await readTextIfExists(path.join(topicDir, "state", "token-usage.ndjson")));
+        const files = await listTopicFiles(rootDir, topicDir, bucket, entry.name, tokenUsageRecords);
+        const tokenUsage = summarizeTopicTokenUsage(files, tokenUsageRecords);
         const updatedAt = deriveTopicUpdatedAt(artifactSummary, release.archivedAt);
         const stage = stateMarkdown ? parseMarkdownSection(stateMarkdown, "Current Stage") : parseKeyValue(proposalMarkdown ?? "", "stage");
         const goal = stateMarkdown ? parseMarkdownSection(stateMarkdown, "Goal") : null;
@@ -2131,7 +2260,8 @@ async function listTopicSummaries(rootDir, bucket) {
             userQuestionRecord,
             historyEvents,
             files,
-            tokenUsage
+            tokenUsage,
+            tokenUsageRecords
         });
     }
     return result;

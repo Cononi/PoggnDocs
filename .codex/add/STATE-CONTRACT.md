@@ -16,6 +16,8 @@
 - proposal 단계에서는 사용자 입력 질문 기록 섹션의 위치 또는 ref와 `version_bump`, `target_version` 선택 결과를 최소 컨텍스트에 유지한다.
 - `Audit Applicability` 섹션의 상태와 짧은 근거를 최소 컨텍스트에 유지한다.
 - 모든 flow 상태 evidence는 동일 규격으로 유지한다: start evidence 없음은 `시작 전`, `stage-started`/`stage-progress`는 `진행 중`, 완료 후 unresolved `requirements-added`/revision은 `추가 진행`, stage 필수 산출물/review/verification/commit 또는 release 처리가 완전히 끝난 `stage-commit` 또는 verified/final `stage-completed`/archive/later-flow evidence는 `완료`다.
+- optional audit flow는 실제 실행 evidence가 있을 때만 dashboard에 표시되며, `Audit Applicability`의 `required` 값은 표시 evidence가 아니다.
+- `state/token-usage.ndjson` 또는 동등 token usage ledger가 있으면 전체 ledger 복사 대신 source별 합계, record count, ledger ref를 최소 컨텍스트에 유지한다.
 - `pgg git=on`이면 `Git Publish Message` 섹션 또는 그 ref를 최소 컨텍스트에 유지한다.
 - `pgg-state-pack.sh` 출력은 최소한 `archive_type`, `version_bump`, `target_version`, `short_name`, branch naming, `Git Publish Message` 정보를 key/value 형태로 드러내야 한다.
 - 변경 파일은 `Changed Files` 섹션에 CRUD와 diff 경로로 기록한다.

@@ -1,0 +1,12 @@
+diff --git a/.codex/skills/pgg-code/SKILL.md b/.codex/skills/pgg-code/SKILL.md
+index 551efb2..2847869 100644
+--- a/.codex/skills/pgg-code/SKILL.md
++++ b/.codex/skills/pgg-code/SKILL.md
+@@ -36,6 +36,7 @@ description: "승인된 topic을 구현하고 implementation diff와 review를 
+ - `plan.md`의 task 단위를 기본 commit cadence로 보고, 여러 commit이 있어도 한 commit은 하나의 task 또는 task 일부 intent에만 대응시킨다
+ - `pgg git=on`이면 task 완료마다 `.codex/sh/pgg-stage-commit.sh <topic|topic_dir> implementation <summary> <why> [footer]`를 실행하고 제목은 `{convention}: {version}.{commit message}` 형식, `pgg lang` 기반 메시지 언어, 상세 body를 유지한다
+ - 모든 변경은 CREATE, UPDATE, DELETE로 분류한다
++- 파일 생성/수정/삭제 또는 flow 작업 token usage를 기록할 때는 `state/token-usage.ndjson`에 append-only record로 남기고 `source: llm | local`, actual/estimated 여부, artifact path를 구분한다
+ - 전체 파일 복사보다 diff 기록을 우선한다
+ - `reviews/code.review.md`에는 전문가 attribution을 남긴다
+ - 아래 필수 구현 기준을 충족한다

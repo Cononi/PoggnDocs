@@ -510,6 +510,36 @@ function auditApplicabilityStateRule(language: TemplateLanguage): string {
     : "- Preserve the `Audit Applicability` section with status and rationale in the minimum handoff.";
 }
 
+function optionalAuditVisibilityRule(language: TemplateLanguage): string {
+  return language === "ko"
+    ? "- optional audit flow는 실제 실행 evidence가 있을 때만 dashboard에 표시되며, `Audit Applicability`의 `required` 값은 표시 evidence가 아니다."
+    : "- Show optional audit flows in the dashboard only when actual execution evidence exists; an `Audit Applicability` value of `required` is not display evidence.";
+}
+
+function tokenUsageStateRule(language: TemplateLanguage): string {
+  return language === "ko"
+    ? "- `state/token-usage.ndjson` 또는 동등 token usage ledger가 있으면 전체 ledger 복사 대신 source별 합계, record count, ledger ref를 최소 컨텍스트에 유지한다."
+    : "- When `state/token-usage.ndjson` or an equivalent token usage ledger exists, keep source totals, record count, and the ledger ref in the minimum context instead of copying the full ledger.";
+}
+
+function timelineCompletionRule(language: TemplateLanguage): string {
+  return language === "ko"
+    ? "- dashboard timeline은 workflow progress가 `완료`로 계산된 flow만 표시하며, `stage-started`, `stage-progress`, partial artifact, updatedAt fallback을 완료 이력으로 취급하지 않는다."
+    : "- Dashboard timelines show only flows whose workflow progress is computed as `completed`; `stage-started`, `stage-progress`, partial artifacts, and updatedAt fallback are not completion history.";
+}
+
+function tokenUsageImplementationRule(language: TemplateLanguage): string {
+  return language === "ko"
+    ? "- 파일 생성/수정/삭제 또는 flow 작업 token usage를 기록할 때는 `state/token-usage.ndjson`에 append-only record로 남기고 `source: llm | local`, actual/estimated 여부, artifact path를 구분한다."
+    : "- When recording token usage for file create/update/delete operations or flow work, append records to `state/token-usage.ndjson` and separate `source: llm | local`, actual/estimated status, and artifact path.";
+}
+
+function tokenUsageReviewRule(language: TemplateLanguage): string {
+  return language === "ko"
+    ? "- token audit는 `state/token-usage.ndjson` 또는 동등 ledger의 coverage, `llm`/`local` source 분리, actual/estimated 표시, dashboard summary 사용 가능성을 확인한다."
+    : "- Token audits check coverage of `state/token-usage.ndjson` or an equivalent ledger, separation of `llm` and `local` sources, actual/estimated labeling, and dashboard summary usability.";
+}
+
 function flowStatusAgentRule(language: TemplateLanguage): string {
   return language === "ko"
     ? "- 모든 flow 상태는 `시작 전`, `진행 중`, `추가 진행`, `완료` 4상태로 기록하고 dashboard가 같은 기준으로 표시할 수 있게 stage event evidence를 유지하며, stage 필수 산출물/review/verification/commit 또는 release evidence가 완전히 끝나기 전에는 `완료`로 처리하지 않는다."
@@ -842,6 +872,9 @@ function agentsMd(input: TemplateInput): string {
       "- pgg가 생성·관리하는 `.codex/sh/*.sh` helper만 workflow 내부 trusted script로 보고 추가 허락 없이 실행한다.",
       "- `pgg git`이 `on`이면 `.codex/sh/pgg-stage-commit.sh`로 task 완료와 QA final completion commit을 남기고, publish commit은 `state/current.md` 또는 `qa/report.md`의 `Git Publish Message` 섹션으로 제목/상세 body/footer를 관리하며 `{convention}: {version}.{commit message}` 형식, `pgg lang` 기반 메시지 언어, 제목 50자 이하, 명령형 금지, 마침표 금지, 로그가 곧 문서 원칙을 지킨다.",
       flowStatusAgentRule(input.language),
+      optionalAuditVisibilityRule(input.language),
+      timelineCompletionRule(input.language),
+      "- 각 flow 작업과 파일 생성/수정/삭제 token usage는 필요 시 `state/token-usage.ndjson`에 append-only로 기록하고 `llm`과 `local`, actual과 estimated를 구분한다.",
       verificationContractRule(input.language),
       "- 파일 생성/수정/삭제는 `implementation/index.md`와 `implementation/diffs/*.diff`에 기록한다.",
       "- 검증이 통과된 topic은 version 기록 후 `poggn/archive/<topic>`으로 이동한다.",
@@ -886,6 +919,9 @@ function agentsMd(input: TemplateInput): string {
     "- Treat only pgg-generated and managed `.codex/sh/*.sh` helpers as trusted workflow scripts that can run without extra approval.",
     "- When `pgg git` is `on`, use `.codex/sh/pgg-stage-commit.sh` for task completion and final QA completion commits, then manage publish commit title, detailed body, and footer through the `Git Publish Message` section in `state/current.md` or `qa/report.md` with the `{convention}: {version}.{commit message}` subject format, `pgg lang` localized message text, 50-character limit, non-imperative phrasing, no period, and logs-as-documentation rules.",
     flowStatusAgentRule(input.language),
+    optionalAuditVisibilityRule(input.language),
+    timelineCompletionRule(input.language),
+    "- When needed, record token usage for each flow task and file create/update/delete operation in append-only `state/token-usage.ndjson` records, separating `llm` from `local` and actual from estimated usage.",
     verificationContractRule(input.language),
     "- Record file creation, updates, and deletions in `implementation/index.md` and `implementation/diffs/*.diff`.",
     "- Move verified topics to `poggn/archive/<topic>` only after recording the archive version.",
@@ -934,6 +970,9 @@ function workFlowMd(input: TemplateInput): string {
       "- active topic 진행 중 사용자가 새 요구사항 또는 수정사항을 추가하면, 해당 stage 작업을 시작하기 전에 `state/history.ndjson`에 `requirements-added` event를 append해 dashboard workflow가 즉시 `추가 진행` 상태를 계산할 수 있게 한다.",
       "- 작업 중간 산출물 정리나 검증 전 상태는 `stage-progress`로만 기록하고, `stage-completed`는 검증이 끝난 최종 완료 시점에만 `source:\"verified\"` 계열 evidence로 남긴다.",
       "- `pgg git=on`인 stage는 `.codex/sh/pgg-stage-commit.sh`가 남기는 `stage-commit` evidence를 완료 기준으로 삼아 `추가 진행` 상태를 해소한다.",
+      optionalAuditVisibilityRule(input.language),
+      timelineCompletionRule(input.language),
+      "- 각 flow 작업과 파일 생성/수정/삭제 token usage는 필요 시 `state/token-usage.ndjson`에 append-only로 기록하고, `llm`과 `local`, actual과 estimated를 구분한다.",
       "- proposal 단계에서 `archive_type`, `version_bump`, `target_version`, branch naming, `project_scope`를 확정하고, `archive_type`는 change category, `version_bump`는 semver impact로 구분해 다음 stage와 archive helper가 같은 값을 사용하게 한다.",
       "- 대상 프로젝트 검증은 선언된 current-project verification command contract만 사용하고, framework 명령을 추론 실행하지 않는다.",
       "- QA를 통과한 topic만 archive로 이동한다.",
@@ -976,9 +1015,11 @@ function workFlowMd(input: TemplateInput): string {
       "- `pgg-token`",
       "  - workflow 자산, state handoff, helper, generated 문서 구조를 점검할 때만 연다",
       "  - 실행된 경우에만 `token/report.md`를 남기고, `required` applicability일 때만 gate에서 강제한다",
+      "  - dashboard에는 실제 token audit 실행 evidence가 있을 때만 flow로 표시한다",
       "- `pgg-performance`",
       "  - 성능 민감 변경 또는 선언된 verification contract가 있을 때만 연다",
       "  - 실행된 경우에만 `performance/report.md`를 남기고, `required` applicability일 때만 gate에서 강제한다",
+      "  - dashboard에는 실제 performance audit 실행 evidence가 있을 때만 flow로 표시한다",
       "",
       ...auditApplicabilityContractSection(input.language),
       "",
@@ -1021,6 +1062,9 @@ function workFlowMd(input: TemplateInput): string {
     "- When a user adds a new requirement or correction while an active topic is in progress, append a `requirements-added` event to `state/history.ndjson` before starting that stage work so the dashboard workflow can immediately calculate the `updating` state.",
     "- Record in-progress artifact cleanup or pre-verification work only as `stage-progress`; reserve `stage-completed` for final verified completion with `source:\"verified\"` evidence.",
     "- When `pgg git=on`, treat `.codex/sh/pgg-stage-commit.sh` `stage-commit` evidence as the completion boundary that resolves the `updating` state.",
+    optionalAuditVisibilityRule(input.language),
+    timelineCompletionRule(input.language),
+    "- When needed, record token usage for each flow task and file create/update/delete operation in append-only `state/token-usage.ndjson` records, separating `llm` from `local` and actual from estimated usage.",
     "- Resolve `archive_type`, `version_bump`, `target_version`, branch naming, and `project_scope` during the proposal stage so later helpers use the same metadata, with `archive_type` as the change category and `version_bump` as the semver impact.",
     "- Use only declared current-project verification command contracts for project verification, and do not guess framework commands.",
     "- Move only QA-passed topics to archive.",
@@ -1063,9 +1107,11 @@ function workFlowMd(input: TemplateInput): string {
     "- `pgg-token`",
     "  - open only when workflow assets, state handoff, helpers, or generated docs need token-cost review",
     "  - require `token/report.md` only when the audit actually runs and applicability is `required`",
+    "  - show the flow in dashboard only when token audit execution evidence exists",
     "- `pgg-performance`",
     "  - open only for performance-sensitive changes or when a declared verification contract supports measurement",
     "  - require `performance/report.md` only when the audit actually runs and applicability is `required`",
+    "  - show the flow in dashboard only when performance audit execution evidence exists",
     "",
     ...auditApplicabilityContractSection(input.language)
   ]);
@@ -1092,6 +1138,8 @@ function stateContractMd(input: TemplateInput): string {
       "- proposal 단계에서는 사용자 입력 질문 기록 섹션의 위치 또는 ref와 `version_bump`, `target_version` 선택 결과를 최소 컨텍스트에 유지한다.",
       auditApplicabilityStateRule(input.language),
       flowStatusStateRule(input.language),
+      optionalAuditVisibilityRule(input.language),
+      tokenUsageStateRule(input.language),
       "- `pgg git=on`이면 `Git Publish Message` 섹션 또는 그 ref를 최소 컨텍스트에 유지한다.",
       "- `pgg-state-pack.sh` 출력은 최소한 `archive_type`, `version_bump`, `target_version`, `short_name`, branch naming, `Git Publish Message` 정보를 key/value 형태로 드러내야 한다.",
       "- 변경 파일은 `Changed Files` 섹션에 CRUD와 diff 경로로 기록한다.",
@@ -1136,6 +1184,8 @@ function stateContractMd(input: TemplateInput): string {
     "- Preserve the user-question record section or reference plus the `version_bump` and `target_version` decision outcome from the proposal stage in the minimum handoff.",
     auditApplicabilityStateRule(input.language),
     flowStatusStateRule(input.language),
+    optionalAuditVisibilityRule(input.language),
+    tokenUsageStateRule(input.language),
     "- Preserve the `Git Publish Message` section or its reference in the minimum handoff when `pgg git=on`.",
     "- `.codex/sh/pgg-state-pack.sh` output must expose at least `archive_type`, `version_bump`, `target_version`, `short_name`, branch naming, and `Git Publish Message` data as key/value handoff fields.",
     "- Record CRUD and diff paths in the `Changed Files` section.",
@@ -1233,6 +1283,7 @@ function implementationMd(input: TemplateInput): string {
       "- `pgg-code`와 `pgg-refactor`는 승인된 proposal, plan, task, spec 기준과 필수 구현 기준에 따라 구현한다.",
       "- `pgg-token`과 `pgg-performance`는 optional audit로 실제로 열린 경우에만 각각 `token/report.md`, `performance/report.md`에 결과를 남긴다.",
       "- audit applicability가 `required`인 경우에만 후속 gate와 QA에서 해당 report를 필수로 본다.",
+      tokenUsageImplementationRule(input.language),
       "- 모든 변경은 `CREATE`, `UPDATE`, `DELETE`로 분류한다.",
       "- `implementation/diffs/*.diff`와 `implementation/index.md`를 유지한다.",
       "- React Flow에는 diff 본문 대신 `diffRef`만 연결한다."
@@ -1245,6 +1296,7 @@ function implementationMd(input: TemplateInput): string {
     "- `pgg-code` and `pgg-refactor` implement only approved proposal, plan, task, and spec documents plus the mandatory implementation criteria.",
     "- `pgg-token` and `pgg-performance` write `token/report.md` and `performance/report.md` only when those optional audits actually run.",
     "- Gate and QA treat those reports as required only when audit applicability is `required`.",
+    tokenUsageImplementationRule(input.language),
     "- Classify every change as `CREATE`, `UPDATE`, or `DELETE`.",
     "- Keep `implementation/diffs/*.diff` and `implementation/index.md` up to date.",
     "- Store only `diffRef` values in React Flow nodes, not full diff bodies."
@@ -1270,6 +1322,7 @@ function reviewRubricMd(input: TemplateInput): string {
       "- `proposal`, `plan`, `task`, `code`, `refactor` review는 `reviews/*.review.md` 패턴을 사용한다.",
       "- QA는 `qa/report.md` 안에 테스트 계획, 실행 결과, 전문가 검토, 최종 판정을 함께 기록한다.",
       "- `token/report.md`는 optional audit가 실제로 열렸을 때만 만들고, 측정값, 최적화 액션, 개선 결과를 함께 기록한다.",
+      tokenUsageReviewRule(input.language),
       "- `performance/report.md`는 optional audit가 실제로 열렸을 때만 만들고, applicability, baseline, target, actual result 또는 제외 근거를 함께 기록한다.",
       "- QA는 `Audit Applicability` 섹션을 기준으로 `required` audit만 blocking으로 판단한다.",
       "- archive가 포함되는 QA는 `archive_type`, version 기록 여부, ledger 경로를 검증 근거에 남긴다.",
@@ -1295,6 +1348,7 @@ function reviewRubricMd(input: TemplateInput): string {
     "- Use the `reviews/*.review.md` pattern for proposal, plan, task, code, and refactor reviews.",
     "- Keep test plan, execution results, expert review, and the final decision together in `qa/report.md`.",
     "- Create `token/report.md` only when the optional audit runs, and keep measurements, optimization actions, and post-change results together.",
+    tokenUsageReviewRule(input.language),
     "- Create `performance/report.md` only when the optional audit runs, and keep applicability, baseline, target, actual result, or exclusion evidence together.",
     "- In QA, treat only `required` entries from the `Audit Applicability` section as blocking audit obligations.",
     "- When QA leads to archive, keep the `archive_type`, recorded version, and ledger reference in the evidence.",
@@ -1486,6 +1540,7 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "- treat `plan.md` task boundaries as the default commit cadence, and keep each commit scoped to one task or one partial task intent",
         "- when `pgg git=on`, run `.codex/sh/pgg-stage-commit.sh <topic|topic_dir> implementation <summary> <why> [footer]` after each completed task and keep the subject in `{convention}: {version}.{commit message}` form with `pgg lang` localized message text and detailed body content",
         "- classify all changes as CREATE, UPDATE, DELETE",
+        tokenUsageImplementationRule("en"),
         "- prefer diff records over full file copies",
         "- make expert attribution explicit in `reviews/code.review.md`",
         "- satisfy the mandatory implementation criteria below",
@@ -1562,6 +1617,7 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "- default to `not_required` unless workflow assets, handoff structure, helpers, templates, or generated docs changed in a token-sensitive way",
         "- keep the measurement scope inside the pgg workflow and generated assets",
         "- identify which stage, helper, document, or handoff contributes to token cost",
+        tokenUsageReviewRule("en"),
         "- connect every optimization recommendation to a measured or inferred contributor",
         "- create `token/report.md` only when the audit actually runs",
         "- keep measurements, optimization actions, and post-change results together in `token/report.md`",
@@ -1818,6 +1874,7 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "- `plan.md`의 task 단위를 기본 commit cadence로 보고, 여러 commit이 있어도 한 commit은 하나의 task 또는 task 일부 intent에만 대응시킨다",
         "- `pgg git=on`이면 task 완료마다 `.codex/sh/pgg-stage-commit.sh <topic|topic_dir> implementation <summary> <why> [footer]`를 실행하고 제목은 `{convention}: {version}.{commit message}` 형식, `pgg lang` 기반 메시지 언어, 상세 body를 유지한다",
         "- 모든 변경은 CREATE, UPDATE, DELETE로 분류한다",
+        tokenUsageImplementationRule("ko"),
         "- 전체 파일 복사보다 diff 기록을 우선한다",
         "- `reviews/code.review.md`에는 전문가 attribution을 남긴다",
         "- 아래 필수 구현 기준을 충족한다",
@@ -1894,6 +1951,7 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "- workflow 자산, handoff 구조, helper, template, generated 문서가 token 비용에 직접 영향을 줄 때만 `required`로 올린다",
         "- 측정 범위는 pgg workflow와 generated asset 내부로 제한한다",
         "- 어떤 stage, helper, 문서, handoff가 token 비용에 기여하는지 식별한다",
+        tokenUsageReviewRule("ko"),
         "- 모든 최적화 제안은 측정값 또는 근거 있는 추정과 연결한다",
         "- audit를 실제로 실행한 경우에만 `token/report.md`를 만든다",
         "- 측정값, 최적화 액션, 개선 후 결과를 `token/report.md`에 함께 남긴다",
@@ -2699,6 +2757,7 @@ function statePackSh(): string {
     "ACTIVE_TASKS=\"$(extract_section \"Active Tasks\")\"",
     "AUDIT_APPLICABILITY=\"$(extract_section \"Audit Applicability\")\"",
     "GIT_PUBLISH_MESSAGE=\"$(extract_section \"Git Publish Message\")\"",
+    "TOKEN_USAGE_FILE=\"$TOPIC_DIR/state/token-usage.ndjson\"",
     "if [[ -n \"$ACTIVE_SPECS\" ]]; then",
     "  printf 'active_specs:\\n%s\\n' \"$ACTIVE_SPECS\"",
     "fi",
@@ -2711,6 +2770,29 @@ function statePackSh(): string {
     "if [[ -n \"$GIT_PUBLISH_MESSAGE\" ]]; then",
     "  printf 'git_publish_message_ref: %s#Git Publish Message\\n' \"$(to_rel \"$STATE_FILE\")\"",
     "  printf 'git_publish_message:\\n%s\\n' \"$GIT_PUBLISH_MESSAGE\"",
+    "fi",
+    "if [[ -f \"$TOKEN_USAGE_FILE\" ]]; then",
+    "  printf 'token_usage_ref: %s\\n' \"$(to_rel \"$TOKEN_USAGE_FILE\")\"",
+    "  node -e '",
+    "    const fs = require(\"fs\");",
+    "    const lines = fs.readFileSync(process.argv[1], \"utf8\").split(/\\n+/).map((line) => line.trim()).filter(Boolean);",
+    "    let llm = 0;",
+    "    let local = 0;",
+    "    let unavailable = 0;",
+    "    for (const line of lines) {",
+    "      try {",
+    "        const entry = JSON.parse(line);",
+    "        const total = Number.isFinite(entry.total_tokens) ? entry.total_tokens : Number.isFinite(entry.totalTokens) ? entry.totalTokens : 0;",
+    "        if (entry.source === \"llm\") llm += total;",
+    "        else if (entry.source === \"local\") local += total;",
+    "        if (entry.measurement === \"unavailable\") unavailable += 1;",
+    "      } catch {}",
+    "    }",
+    "    console.log(`token_usage_records: ${lines.length}`);",
+    "    console.log(`token_usage_llm_total: ${llm}`);",
+    "    console.log(`token_usage_local_total: ${local}`);",
+    "    console.log(`token_usage_unavailable_records: ${unavailable}`);",
+    "  ' \"$TOKEN_USAGE_FILE\"",
     "fi"
   ]);
 }

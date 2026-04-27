@@ -142,6 +142,7 @@ ACTIVE_SPECS="$(extract_section "Active Specs")"
 ACTIVE_TASKS="$(extract_section "Active Tasks")"
 AUDIT_APPLICABILITY="$(extract_section "Audit Applicability")"
 GIT_PUBLISH_MESSAGE="$(extract_section "Git Publish Message")"
+TOKEN_USAGE_FILE="$TOPIC_DIR/state/token-usage.ndjson"
 if [[ -n "$ACTIVE_SPECS" ]]; then
   printf 'active_specs:\n%s\n' "$ACTIVE_SPECS"
 fi
@@ -154,4 +155,27 @@ fi
 if [[ -n "$GIT_PUBLISH_MESSAGE" ]]; then
   printf 'git_publish_message_ref: %s#Git Publish Message\n' "$(to_rel "$STATE_FILE")"
   printf 'git_publish_message:\n%s\n' "$GIT_PUBLISH_MESSAGE"
+fi
+if [[ -f "$TOKEN_USAGE_FILE" ]]; then
+  printf 'token_usage_ref: %s\n' "$(to_rel "$TOKEN_USAGE_FILE")"
+  node -e '
+    const fs = require("fs");
+    const lines = fs.readFileSync(process.argv[1], "utf8").split(/\n+/).map((line) => line.trim()).filter(Boolean);
+    let llm = 0;
+    let local = 0;
+    let unavailable = 0;
+    for (const line of lines) {
+      try {
+        const entry = JSON.parse(line);
+        const total = Number.isFinite(entry.total_tokens) ? entry.total_tokens : Number.isFinite(entry.totalTokens) ? entry.totalTokens : 0;
+        if (entry.source === "llm") llm += total;
+        else if (entry.source === "local") local += total;
+        if (entry.measurement === "unavailable") unavailable += 1;
+      } catch {}
+    }
+    console.log(`token_usage_records: ${lines.length}`);
+    console.log(`token_usage_llm_total: ${llm}`);
+    console.log(`token_usage_local_total: ${local}`);
+    console.log(`token_usage_unavailable_records: ${unavailable}`);
+  ' "$TOKEN_USAGE_FILE"
 fi

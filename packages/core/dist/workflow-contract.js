@@ -26,12 +26,12 @@ export const README_WORKFLOW_STAGE_SUMMARIES_EN = [
     "5. `pgg-qa`: validate `qa/report.md` and decide archive readiness"
 ];
 export const README_OPTIONAL_AUDIT_SUMMARIES_KO = [
-    "- `pgg-token`: workflow 자산, handoff, helper, generated 문서의 token 비용을 점검할 때만 실행하는 optional audit",
-    "- `pgg-performance`: 성능 민감 변경이나 선언된 verification contract가 있을 때만 실행하는 optional audit"
+    "- `pgg-token`: workflow 자산, handoff, helper, generated 문서의 token 비용을 점검할 때만 실행하고, 실제 실행 evidence가 있을 때만 dashboard에 표시하는 optional audit",
+    "- `pgg-performance`: 성능 민감 변경이나 선언된 verification contract가 있을 때만 실행하고, 실제 실행 evidence가 있을 때만 dashboard에 표시하는 optional audit"
 ];
 export const README_OPTIONAL_AUDIT_SUMMARIES_EN = [
-    "- `pgg-token`: an optional audit used only when workflow assets, handoff, helpers, or generated docs need token-cost review",
-    "- `pgg-performance`: an optional audit used only when the topic has performance-sensitive changes or a declared verification contract"
+    "- `pgg-token`: an optional audit used only when workflow assets, handoff, helpers, or generated docs need token-cost review, and shown in the dashboard only when execution evidence exists",
+    "- `pgg-performance`: an optional audit used only when the topic has performance-sensitive changes or a declared verification contract, and shown in the dashboard only when execution evidence exists"
 ];
 export const MANDATORY_IMPLEMENTATION_CRITERIA_KO = [
     "중복 제거",

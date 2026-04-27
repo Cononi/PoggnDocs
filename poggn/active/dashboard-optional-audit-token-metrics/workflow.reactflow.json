@@ -1,0 +1,229 @@
+{
+  "topic": "dashboard-optional-audit-token-metrics",
+  "nodes": [
+    {
+      "id": "proposal",
+      "type": "document",
+      "position": { "x": 0, "y": 0 },
+      "data": {
+        "label": "proposal.md",
+        "stage": "proposal",
+        "status": "reviewed",
+        "detail": {
+          "summary": "dashboard optional audit 표시 조건과 pgg token usage 기록 계약을 확정한다.",
+          "updatedAt": "2026-04-27T23:24:03Z",
+          "completedAt": "2026-04-27T23:24:03Z"
+        }
+      }
+    },
+    {
+      "id": "proposal-review",
+      "type": "review",
+      "position": { "x": 280, "y": 0 },
+      "data": {
+        "label": "proposal.review.md",
+        "stage": "proposal",
+        "status": "approved",
+        "score": 95,
+        "detail": {
+          "experts": ["프로덕트 매니저", "UX/UI 전문가"],
+          "blocking": "없음"
+        }
+      }
+    },
+    {
+      "id": "plan",
+      "type": "document",
+      "position": { "x": 560, "y": 0 },
+      "data": {
+        "label": "plan.md",
+        "stage": "plan",
+        "status": "reviewed",
+        "detail": {
+          "summary": "optional audit 표시 조건, timeline 완료 게이트, token usage 기록 계약을 spec 단위로 분해한다.",
+          "updatedAt": "2026-04-27T23:32:03Z",
+          "completedAt": "2026-04-27T23:32:03Z"
+        }
+      }
+    },
+    {
+      "id": "task",
+      "type": "document",
+      "position": { "x": 840, "y": 0 },
+      "data": {
+        "label": "task.md",
+        "stage": "plan",
+        "status": "reviewed",
+        "detail": {
+          "summary": "S1-S5 spec 경계별 T1-T5 구현 task를 정의한다.",
+          "updatedAt": "2026-04-27T23:32:03Z",
+          "completedAt": "2026-04-27T23:32:03Z"
+        }
+      }
+    },
+    {
+      "id": "spec-s1",
+      "type": "spec",
+      "position": { "x": 1120, "y": -160 },
+      "data": {
+        "label": "S1 optional-audit-visibility",
+        "stage": "plan",
+        "status": "approved",
+        "path": "spec/workflow/optional-audit-visibility.md"
+      }
+    },
+    {
+      "id": "spec-s2",
+      "type": "spec",
+      "position": { "x": 1120, "y": -80 },
+      "data": {
+        "label": "S2 timeline-completion-gating",
+        "stage": "plan",
+        "status": "approved",
+        "path": "spec/workflow/timeline-completion-gating.md"
+      }
+    },
+    {
+      "id": "spec-s3",
+      "type": "spec",
+      "position": { "x": 1120, "y": 0 },
+      "data": {
+        "label": "S3 token-usage-ledger",
+        "stage": "plan",
+        "status": "approved",
+        "path": "spec/token/token-usage-ledger.md"
+      }
+    },
+    {
+      "id": "spec-s4",
+      "type": "spec",
+      "position": { "x": 1120, "y": 80 },
+      "data": {
+        "label": "S4 init-update-propagation",
+        "stage": "plan",
+        "status": "approved",
+        "path": "spec/pgg/init-update-propagation.md"
+      }
+    },
+    {
+      "id": "spec-s5",
+      "type": "spec",
+      "position": { "x": 1120, "y": 160 },
+      "data": {
+        "label": "S5 token-summary-ingestion",
+        "stage": "plan",
+        "status": "approved",
+        "path": "spec/dashboard/token-summary-ingestion.md"
+      }
+    },
+    {
+      "id": "plan-review",
+      "type": "review",
+      "position": { "x": 1400, "y": -40 },
+      "data": {
+        "label": "plan.review.md",
+        "stage": "plan",
+        "status": "approved",
+        "score": 96,
+        "detail": {
+          "experts": ["소프트웨어 아키텍트", "도메인 전문가"],
+          "blocking": "없음"
+        }
+      }
+    },
+    {
+      "id": "task-review",
+      "type": "review",
+      "position": { "x": 1400, "y": 80 },
+      "data": {
+        "label": "task.review.md",
+        "stage": "plan",
+        "status": "approved",
+        "score": 96,
+        "detail": {
+          "experts": ["소프트웨어 아키텍트", "도메인 전문가"],
+          "blocking": "없음"
+        }
+      }
+    },
+    {
+      "id": "handoff-state",
+      "type": "state",
+      "position": { "x": 2240, "y": 0 },
+      "data": {
+        "label": "state/current.md",
+        "stage": "implementation",
+        "status": "ready",
+        "next": "pgg-refactor"
+      }
+    },
+    {
+      "id": "implementation-index",
+      "type": "document",
+      "position": { "x": 1680, "y": -80 },
+      "data": {
+        "label": "implementation/index.md",
+        "stage": "implementation",
+        "status": "reviewed",
+        "path": "poggn/active/dashboard-optional-audit-token-metrics/implementation/index.md",
+        "detail": {
+          "summary": "T1-T5 implementation diff index and verification evidence.",
+          "updatedAt": "2026-04-27T23:54:55Z"
+        }
+      }
+    },
+    {
+      "id": "code-review",
+      "type": "review",
+      "position": { "x": 1960, "y": -80 },
+      "data": {
+        "label": "code.review.md",
+        "stage": "implementation",
+        "status": "approved",
+        "score": 95,
+        "path": "poggn/active/dashboard-optional-audit-token-metrics/reviews/code.review.md",
+        "detail": {
+          "experts": ["시니어 백엔드 엔지니어", "테크 리드"],
+          "blocking": "없음"
+        }
+      }
+    },
+    {
+      "id": "token-usage-ledger",
+      "type": "state",
+      "position": { "x": 1960, "y": 80 },
+      "data": {
+        "label": "state/token-usage.ndjson",
+        "stage": "implementation",
+        "status": "recorded",
+        "path": "poggn/active/dashboard-optional-audit-token-metrics/state/token-usage.ndjson",
+        "detail": {
+          "summary": "4 implementation attribution records with unavailable provider token metadata.",
+          "updatedAt": "2026-04-27T23:54:55Z"
+        }
+      }
+    }
+  ],
+  "edges": [
+    { "id": "proposal-to-review", "source": "proposal", "target": "proposal-review" },
+    { "id": "review-to-plan", "source": "proposal-review", "target": "plan" },
+    { "id": "plan-to-task", "source": "plan", "target": "task" },
+    { "id": "task-to-s1", "source": "task", "target": "spec-s1" },
+    { "id": "task-to-s2", "source": "task", "target": "spec-s2" },
+    { "id": "task-to-s3", "source": "task", "target": "spec-s3" },
+    { "id": "task-to-s4", "source": "task", "target": "spec-s4" },
+    { "id": "task-to-s5", "source": "task", "target": "spec-s5" },
+    { "id": "spec-s1-to-plan-review", "source": "spec-s1", "target": "plan-review" },
+    { "id": "spec-s2-to-plan-review", "source": "spec-s2", "target": "plan-review" },
+    { "id": "spec-s3-to-plan-review", "source": "spec-s3", "target": "plan-review" },
+    { "id": "spec-s4-to-plan-review", "source": "spec-s4", "target": "plan-review" },
+    { "id": "spec-s5-to-plan-review", "source": "spec-s5", "target": "plan-review" },
+    { "id": "task-to-task-review", "source": "task", "target": "task-review" },
+    { "id": "plan-review-to-implementation", "source": "plan-review", "target": "implementation-index" },
+    { "id": "task-review-to-implementation", "source": "task-review", "target": "implementation-index" },
+    { "id": "implementation-to-code-review", "source": "implementation-index", "target": "code-review" },
+    { "id": "implementation-to-token-ledger", "source": "implementation-index", "target": "token-usage-ledger" },
+    { "id": "code-review-to-state", "source": "code-review", "target": "handoff-state" },
+    { "id": "token-ledger-to-state", "source": "token-usage-ledger", "target": "handoff-state" }
+  ]
+}

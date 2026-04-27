@@ -209,6 +209,7 @@ export interface TopicSummary {
     historyEvents: TopicHistoryEvent[];
     files: TopicFileEntry[];
     tokenUsage: TopicTokenUsage;
+    tokenUsageRecords: TopicTokenUsageRecord[];
 }
 export interface TopicHistoryEvent {
     ts: string | null;
@@ -259,7 +260,7 @@ export interface TopicFileEntry {
     tokenEstimate: number | null;
     localEstimatedTokens: number | null;
     llmActualTokens: number | null;
-    tokenSource: "estimated" | "none";
+    tokenSource: "ledger" | "estimated" | "none";
     content: string | null;
     editable: boolean;
 }
@@ -267,7 +268,30 @@ export interface TopicTokenUsage {
     total: number;
     llmActualTokens: number | null;
     localEstimatedTokens: number;
-    source: "estimated" | "none";
+    source: "ledger" | "estimated" | "none";
+    ledgerRecordCount: number;
+}
+export interface TopicTokenUsageRecord {
+    ts: string | null;
+    stage: string | null;
+    flow: string | null;
+    event: string | null;
+    task: string | null;
+    artifactPath: string | null;
+    operation: "create" | "update" | "delete" | "read" | "generate" | "verify" | "commit" | "other";
+    source: "llm" | "local";
+    provider: string | null;
+    model: string | null;
+    inputTokens: number | null;
+    outputTokens: number | null;
+    cachedTokens: number | null;
+    reasoningTokens: number | null;
+    totalTokens: number;
+    estimated: boolean;
+    measurement: "actual" | "estimated" | "unavailable";
+    bytes: number | null;
+    lineCount: number | null;
+    notes: string | null;
 }
 export type TopicProgressStatus = "ready" | "in_progress" | "blocked" | "archive_ready";
 export type TopicNextWorkflow = "pgg-add" | "pgg-plan" | "pgg-code" | "pgg-refactor" | "pgg-token" | "pgg-performance" | "pgg-qa" | "none";

@@ -1,0 +1,267 @@
+diff --git a/packages/core/src/index.ts b/packages/core/src/index.ts
+index b13f878..9ad996f 100644
+--- a/packages/core/src/index.ts
++++ b/packages/core/src/index.ts
+@@ -255,6 +255,7 @@ export interface TopicSummary {
+   historyEvents: TopicHistoryEvent[];
+   files: TopicFileEntry[];
+   tokenUsage: TopicTokenUsage;
++  tokenUsageRecords: TopicTokenUsageRecord[];
+ }
+ 
+ export interface TopicHistoryEvent {
+@@ -310,7 +311,7 @@ export interface TopicFileEntry {
+   tokenEstimate: number | null;
+   localEstimatedTokens: number | null;
+   llmActualTokens: number | null;
+-  tokenSource: "estimated" | "none";
++  tokenSource: "ledger" | "estimated" | "none";
+   content: string | null;
+   editable: boolean;
+ }
+@@ -319,7 +320,31 @@ export interface TopicTokenUsage {
+   total: number;
+   llmActualTokens: number | null;
+   localEstimatedTokens: number;
+-  source: "estimated" | "none";
++  source: "ledger" | "estimated" | "none";
++  ledgerRecordCount: number;
++}
++
++export interface TopicTokenUsageRecord {
++  ts: string | null;
++  stage: string | null;
++  flow: string | null;
++  event: string | null;
++  task: string | null;
++  artifactPath: string | null;
++  operation: "create" | "update" | "delete" | "read" | "generate" | "verify" | "commit" | "other";
++  source: "llm" | "local";
++  provider: string | null;
++  model: string | null;
++  inputTokens: number | null;
++  outputTokens: number | null;
++  cachedTokens: number | null;
++  reasoningTokens: number | null;
++  totalTokens: number;
++  estimated: boolean;
++  measurement: "actual" | "estimated" | "unavailable";
++  bytes: number | null;
++  lineCount: number | null;
++  notes: string | null;
+ }
+ 
+ export type TopicProgressStatus = "ready" | "in_progress" | "blocked" | "archive_ready";
+@@ -2976,6 +3001,141 @@ function estimateTokensFromText(value: string): number {
+   return Math.ceil(Array.from(value).length / 4);
+ }
+ 
++function parseOptionalNumber(value: unknown): number | null {
++  if (typeof value !== "number" || !Number.isFinite(value)) {
++    return null;
++  }
++  return Math.max(0, Math.trunc(value));
++}
++
++function parseRequiredNumber(value: unknown): number {
++  return parseOptionalNumber(value) ?? 0;
++}
++
++function normalizeTokenUsagePath(value: string | null): string | null {
++  if (!value) {
++    return null;
++  }
++  return value.replace(/^\.\//, "").replace(/^poggn\/(?:active|archive)\/[^/]+\//, "");
++}
++
++function parseTokenUsageOperation(value: unknown): TopicTokenUsageRecord["operation"] {
++  return value === "create" ||
++    value === "update" ||
++    value === "delete" ||
++    value === "read" ||
++    value === "generate" ||
++    value === "verify" ||
++    value === "commit" ||
++    value === "other"
++    ? value
++    : "other";
++}
++
++function parseTokenUsageSource(value: unknown): TopicTokenUsageRecord["source"] {
++  return value === "llm" || value === "local" ? value : "local";
++}
++
++function parseTokenUsageMeasurement(value: unknown): TopicTokenUsageRecord["measurement"] {
++  return value === "actual" || value === "estimated" || value === "unavailable" ? value : "estimated";
++}
++
++function parseTopicTokenUsageRecords(raw: string | null): TopicTokenUsageRecord[] {
++  if (!raw) {
++    return [];
++  }
++
++  return raw
++    .split(/\n+/)
++    .map((line) => line.trim())
++    .filter(Boolean)
++    .flatMap((line) => {
++      try {
++        const parsed = JSON.parse(line) as Record<string, unknown>;
++        const artifactPath = typeof parsed.artifact_path === "string"
++          ? parsed.artifact_path
++          : typeof parsed.artifactPath === "string"
++            ? parsed.artifactPath
++            : null;
++        const measurement = parseTokenUsageMeasurement(parsed.measurement);
++        return [
++          {
++            ts: typeof parsed.ts === "string" ? parsed.ts : null,
++            stage: typeof parsed.stage === "string" ? parsed.stage : null,
++            flow: typeof parsed.flow === "string" ? parsed.flow : null,
++            event: typeof parsed.event === "string" ? parsed.event : null,
++            task: typeof parsed.task === "string" ? parsed.task : null,
++            artifactPath,
++            operation: parseTokenUsageOperation(parsed.operation),
++            source: parseTokenUsageSource(parsed.source),
++            provider: typeof parsed.provider === "string" ? parsed.provider : null,
++            model: typeof parsed.model === "string" ? parsed.model : null,
++            inputTokens: parseOptionalNumber(parsed.input_tokens ?? parsed.inputTokens),
++            outputTokens: parseOptionalNumber(parsed.output_tokens ?? parsed.outputTokens),
++            cachedTokens: parseOptionalNumber(parsed.cached_tokens ?? parsed.cachedTokens),
++            reasoningTokens: parseOptionalNumber(parsed.reasoning_tokens ?? parsed.reasoningTokens),
++            totalTokens: parseRequiredNumber(parsed.total_tokens ?? parsed.totalTokens),
++            estimated: typeof parsed.estimated === "boolean" ? parsed.estimated : measurement !== "actual",
++            measurement,
++            bytes: parseOptionalNumber(parsed.bytes),
++            lineCount: parseOptionalNumber(parsed.line_count ?? parsed.lineCount),
++            notes: typeof parsed.notes === "string" ? parsed.notes : null
++          } satisfies TopicTokenUsageRecord
++        ];
++      } catch {
++        return [];
++      }
++    });
++}
++
++function tokenUsageRecordsForArtifact(
++  records: TopicTokenUsageRecord[],
++  relativePath: string,
++  sourcePath: string
++): TopicTokenUsageRecord[] {
++  const relative = normalizeTokenUsagePath(relativePath);
++  const source = normalizeTokenUsagePath(sourcePath);
++  return records.filter((record) => {
++    const artifactPath = normalizeTokenUsagePath(record.artifactPath);
++    return Boolean(artifactPath && (artifactPath === relative || artifactPath === source));
++  });
++}
++
++function sumTokenRecords(
++  records: TopicTokenUsageRecord[],
++  predicate: (record: TopicTokenUsageRecord) => boolean
++): number | null {
++  let total = 0;
++  let seen = false;
++  for (const record of records) {
++    if (predicate(record)) {
++      total += record.totalTokens;
++      seen = true;
++    }
++  }
++  return seen ? total : null;
++}
++
++function applyTokenUsageRecordsToFile(file: TopicFileEntry, records: TopicTokenUsageRecord[]): TopicFileEntry {
++  const artifactRecords = tokenUsageRecordsForArtifact(records, file.relativePath, file.sourcePath);
++  if (artifactRecords.length === 0) {
++    return file;
++  }
++
++  const localEstimatedTokens = sumTokenRecords(artifactRecords, (record) => record.source === "local") ?? 0;
++  const llmActualTokens = sumTokenRecords(
++    artifactRecords,
++    (record) => record.source === "llm" && record.measurement === "actual" && !record.estimated
++  );
++
++  return {
++    ...file,
++    localEstimatedTokens,
++    llmActualTokens,
++    tokenSource: "ledger"
++  };
++}
++
+ async function collectProjectFiles(rootDir: string, currentDir = rootDir): Promise<string[]> {
+   const entries = await readdir(currentDir, { withFileTypes: true }).catch(() => []);
+   const files: string[] = [];
+@@ -3045,7 +3205,8 @@ async function listTopicFiles(
+   rootDir: string,
+   topicDir: string,
+   bucket: "active" | "archive",
+-  topic: string
++  topic: string,
++  tokenUsageRecords: TopicTokenUsageRecord[]
+ ): Promise<TopicFileEntry[]> {
+   const files = await collectMatchingFiles(topicDir, () => true);
+ 
+@@ -3072,16 +3233,35 @@ async function listTopicFiles(
+     })
+   );
+ 
+-  return entries.sort((left, right) => left.relativePath.localeCompare(right.relativePath));
++  return entries
++    .map((entry) => applyTokenUsageRecordsToFile(entry, tokenUsageRecords))
++    .sort((left, right) => left.relativePath.localeCompare(right.relativePath));
+ }
+ 
+-function summarizeTopicTokenUsage(files: TopicFileEntry[]): TopicTokenUsage {
++function summarizeTopicTokenUsage(files: TopicFileEntry[], tokenUsageRecords: TopicTokenUsageRecord[]): TopicTokenUsage {
++  if (tokenUsageRecords.length > 0) {
++    const total = tokenUsageRecords.reduce((sum, record) => sum + record.totalTokens, 0);
++    const llmActualTokens = sumTokenRecords(
++      tokenUsageRecords,
++      (record) => record.source === "llm" && record.measurement === "actual" && !record.estimated
++    );
++    const localEstimatedTokens = sumTokenRecords(tokenUsageRecords, (record) => record.source === "local") ?? 0;
++    return {
++      total,
++      llmActualTokens,
++      localEstimatedTokens,
++      source: "ledger",
++      ledgerRecordCount: tokenUsageRecords.length
++    };
++  }
++
+   const total = files.reduce((sum, file) => sum + (file.tokenEstimate ?? 0), 0);
+   return {
+     total,
+     llmActualTokens: null,
+     localEstimatedTokens: total,
+-    source: total > 0 ? "estimated" : "none"
++    source: total > 0 ? "estimated" : "none",
++    ledgerRecordCount: 0
+   };
+ }
+ 
+@@ -3120,8 +3300,9 @@ async function listTopicSummaries(rootDir: string, bucket: "active" | "archive")
+     const publish = await readTopicPublishMetadata(topicDir);
+     const artifactSummary = await readTopicArtifactSummary(topicDir);
+     const userQuestionRecord = parseUserQuestionRecord(proposalMarkdown);
+-    const files = await listTopicFiles(rootDir, topicDir, bucket, entry.name);
+-    const tokenUsage = summarizeTopicTokenUsage(files);
++    const tokenUsageRecords = parseTopicTokenUsageRecords(await readTextIfExists(path.join(topicDir, "state", "token-usage.ndjson")));
++    const files = await listTopicFiles(rootDir, topicDir, bucket, entry.name, tokenUsageRecords);
++    const tokenUsage = summarizeTopicTokenUsage(files, tokenUsageRecords);
+     const updatedAt = deriveTopicUpdatedAt(artifactSummary, release.archivedAt);
+     const stage = stateMarkdown ? parseMarkdownSection(stateMarkdown, "Current Stage") : parseKeyValue(proposalMarkdown ?? "", "stage");
+     const goal = stateMarkdown ? parseMarkdownSection(stateMarkdown, "Goal") : null;
+@@ -3167,7 +3348,8 @@ async function listTopicSummaries(rootDir: string, bucket: "active" | "archive")
+       userQuestionRecord,
+       historyEvents,
+       files,
+-      tokenUsage
++      tokenUsage,
++      tokenUsageRecords
+     });
+   }
+ 
