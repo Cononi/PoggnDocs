@@ -1,0 +1,14 @@
+{
+  "topic": "dashboard-optional-audit-token-metrics",
+  "changeType": "feat",
+  "versionBump": "minor",
+  "version": "2.9.0",
+  "targetVersion": "2.9.0",
+  "previousVersion": "2.8.0",
+  "shortName": "dashboard-metrics",
+  "workingBranch": "ai/feat/2.9.0-dashboard-metrics",
+  "releaseBranch": "release/2.9.0-dashboard-metrics",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-28T00:32:05Z",
+  "history": "poggn/version-history.ndjson"
+}
