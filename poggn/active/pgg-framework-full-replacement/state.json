@@ -1,0 +1,64 @@
+{
+  "runId": "pgg-add-20260428T122732Z",
+  "topicName": "pgg-framework-full-replacement",
+  "activePath": "poggn/active/pgg-framework-full-replacement",
+  "archivePath": "poggn/archive/pgg-framework-full-replacement",
+  "currentFlow": "pgg-code",
+  "flowStatus": "PASS",
+  "language": "ko",
+  "mode": "auto on",
+  "teamsMode": "teams off",
+  "pggGit": "on",
+  "isGitRepository": true,
+  "baseBranch": "release/3.2.0-dashboard-view",
+  "workingBranch": "ai/feat/4.0.0-framework-replacement",
+  "releaseBranch": "release/4.0.0-framework-replacement",
+  "currentVersion": "3.2.0",
+  "targetVersion": "4.0.0",
+  "bumpType": "major",
+  "convention": "feat",
+  "versionReason": "기존 PGG workflow, generated docs, CLI entry, dashboard workflow model, git workflow 전체를 신규 Skill Framework 기준으로 전면 교체하는 변경은 기존 시스템 기능과 public behavior를 크게 바꾸는 migration이다.",
+  "versionSource": "poggn/version-history.ndjson latest archived version",
+  "packageJsonVersionObserved": "0.1.0",
+  "shortName": "framework-replacement",
+  "requirementsApproval": "approved-by-pgg-plan-invocation",
+  "acceptanceCriteriaApproval": "approved-by-pgg-plan-invocation",
+  "planApproval": "approved-by-pgg-code-verification",
+  "codeApproval": "verified",
+  "projectVersionUpdated": "not_applicable_until_pgg_qa_archive",
+  "projectVersionReason": "이 repository의 release version source는 package.json이 아니라 poggn/version-history.ndjson latest archived version이다. pgg-plan T7에 따라 pgg-code는 version-history를 append하지 않고 pgg-qa archive 단계에서 targetVersion 4.0.0을 기록한다.",
+  "pggCodeCommitStatus": "committed",
+  "pggCodeCommits": [
+    {
+      "task": "T1-T3-T5-T8-T10",
+      "commitSha": "45700b0",
+      "message": "feat. 4.0.0 pgg-code task-1 rebuild skill core"
+    },
+    {
+      "task": "T4",
+      "commitSha": "3154cb0",
+      "message": "feat. 4.0.0 pgg-code task-2 regenerate skill docs"
+    },
+    {
+      "task": "T6",
+      "commitSha": "46d012a",
+      "message": "feat. 4.0.0 pgg-code task-3 sync dashboard model"
+    }
+  ],
+  "pggCodeCommitReason": "pggGit is on and this is a git repository. Verified implementation changes were committed in scoped pgg-code task commits; pgg-code artifacts are recorded separately under the active workspace.",
+  "performanceCandidate": "not_required",
+  "performanceReason": "현재 요구사항은 구조/계약 전면 교체이며 성능 기준, benchmark, 응답 시간, 처리량, 메모리 기준을 포함하지 않는다.",
+  "assumptions": [
+    "사용자의 '예시 전체'는 앞서 제시한 기존 legacy PGG workflow, generated docs 구조, CLI entry, dashboard workflow model, git workflow 전체를 뜻한다.",
+    "사용자가 public API/CLI/file path 유지 요구가 없다고 답했으므로 호환성 보존은 필수 AC로 두지 않는다.",
+    "사용자가 별도 실패 방지 조건이 없다고 답했으므로 QA에서 source-of-truth, generated docs, tests, git lifecycle 실패를 기본 방지 조건으로 검증한다.",
+    "repo의 실제 release line은 package.json 0.1.0보다 poggn/version-history.ndjson 최신 3.2.0을 따른다."
+  ],
+  "uncertainties": [
+    "전면 교체 대상의 세부 우선순위는 아직 정해지지 않았다.",
+    "legacy adapter를 얼마나 오래 유지할지는 pgg-plan에서 결정해야 한다.",
+    "dashboard UI의 구체적인 사용 흐름 변경 범위는 pgg-plan에서 분해해야 한다."
+  ],
+  "createdAt": "2026-04-28T12:27:32Z",
+  "updatedAt": "2026-04-28T12:40:22Z"
+}

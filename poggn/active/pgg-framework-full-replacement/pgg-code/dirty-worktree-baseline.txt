@@ -1,0 +1,22 @@
+## ai/feat/4.0.0-framework-replacement
+ M .codex/add/IMPLEMENTATION.md
+ M .codex/skills/pgg-add/SKILL.md
+ M .codex/skills/pgg-code/SKILL.md
+ M .codex/skills/pgg-performance/SKILL.md
+ M .codex/skills/pgg-plan/SKILL.md
+ M .codex/skills/pgg-qa/SKILL.md
+ M .codex/skills/pgg-refactor/SKILL.md
+ M .pgg/project.json
+ M apps/dashboard/src/features/history/historyModel.ts
+ M packages/core/dist/index.js
+ M packages/core/dist/index.js.map
+ M packages/core/dist/templates.js
+ M packages/core/dist/templates.js.map
+ M packages/core/dist/workflow-contract.d.ts
+ M packages/core/dist/workflow-contract.js
+ M packages/core/dist/workflow-contract.js.map
+ M packages/core/src/index.ts
+ M packages/core/src/skill-framework/registry.ts
+ M packages/core/src/templates.ts
+ M packages/core/src/workflow-contract.ts
+ M packages/core/test/skill-generation.test.mjs
