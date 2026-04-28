@@ -100,6 +100,7 @@
   "pggRefactorReport": "poggn/active/dashboard-workflow-timing-sync/pgg-refactor/report.md",
   "refactorSummary": "Behavior-preserving refactor in dashboard history model: shared flow evidence helpers are reused and workflow duration calculation is separated from locale formatting.",
   "refactorNextFlow": "pgg-qa",
+  "pggRefactorCommitSha": "429db95d61d3cbcc7093d8282fb332328155bea5",
   "pggCodeCommitSha": "ea162b180a34fee79de1675cb9429bb6119a7bbd",
   "generatedMarkdownDirectEdit": false
 }
