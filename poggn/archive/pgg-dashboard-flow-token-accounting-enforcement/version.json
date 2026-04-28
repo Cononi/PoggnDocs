@@ -1,0 +1,14 @@
+{
+  "topic": "pgg-dashboard-flow-token-accounting-enforcement",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "version": "3.0.3",
+  "targetVersion": "3.0.3",
+  "previousVersion": "3.0.2",
+  "shortName": "dashboard-enforcement",
+  "workingBranch": "ai/fix/3.0.3-dashboard-enforcement",
+  "releaseBranch": "release/3.0.3-dashboard-enforcement",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-28T03:04:49Z",
+  "history": "poggn/version-history.ndjson"
+}
