@@ -406,6 +406,7 @@ export interface ProjectStatusSnapshot {
     rootDir: string;
     autoMode: PggAutoMode;
     teamsMode: PggTeamsMode;
+    gitMode: PggGitMode;
     generatedAt: string;
     summary: {
         activeTopicCount: number;

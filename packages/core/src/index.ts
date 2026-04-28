@@ -478,6 +478,7 @@ export interface ProjectStatusSnapshot {
   rootDir: string;
   autoMode: PggAutoMode;
   teamsMode: PggTeamsMode;
+  gitMode: PggGitMode;
   generatedAt: string;
   summary: {
     activeTopicCount: number;
@@ -532,6 +533,10 @@ interface TopicArtifactState {
 
 interface AuditApplicabilityEntry {
   status: "required" | "not_required";
+  reason: string;
+}
+
+interface TopicIsolationIssue {
   reason: string;
 }
 
@@ -2381,6 +2386,44 @@ function parseAuditApplicability(markdown: string | null): Record<TopicAuditName
   return defaults;
 }
 
+function parseChangedFilePaths(markdown: string | null): string[] {
+  if (!markdown) {
+    return [];
+  }
+
+  const section = parseMarkdownSection(markdown, "Changed Files");
+  if (!section) {
+    return [];
+  }
+
+  const paths = new Set<string>();
+  for (const line of section.split("\n")) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("|---") || /^-\s*(create|update|delete):/i.test(trimmed)) {
+      const bulletMatch = trimmed.match(/^-\s*(?:create|update|delete):\s*`([^`]+)`/i);
+      if (bulletMatch?.[1]) {
+        paths.add(bulletMatch[1].trim());
+      }
+      continue;
+    }
+
+    if (trimmed.startsWith("|")) {
+      const columns = trimmed
+        .split("|")
+        .map((value) => value.trim())
+        .filter(Boolean);
+      if (columns.length >= 2 && columns[1] !== "path") {
+        const value = columns[1]?.replace(/^`|`$/g, "").trim();
+        if (value) {
+          paths.add(value);
+        }
+      }
+    }
+  }
+
+  return Array.from(paths).sort();
+}
+
 function normalizeStageName(value: string | null): TopicStageName | null {
   const normalized = value?.trim().toLowerCase();
   switch (normalized) {
@@ -3513,6 +3556,8 @@ async function listTopicSummaries(rootDir: string, bucket: "active" | "archive")
     const score = stateMarkdown ? parseScore(stateMarkdown) : null;
     const blockingIssues = stateMarkdown ? parseBlockingIssues(stateMarkdown) : null;
     const status = proposalMarkdown ? parseKeyValue(proposalMarkdown, "status") : null;
+    const proposalWorkingBranch = proposalMarkdown ? parseKeyValue(proposalMarkdown, "working_branch") : null;
+    const proposalReleaseBranch = proposalMarkdown ? parseKeyValue(proposalMarkdown, "release_branch") : null;
 
     result.push({
       name: entry.name,
@@ -3528,8 +3573,8 @@ async function listTopicSummaries(rootDir: string, bucket: "active" | "archive")
       archiveType: release.changeType,
       versionBump: release.versionBump,
       targetVersion: release.targetVersion,
-      workingBranch: publish.workingBranch ?? release.workingBranch,
-      releaseBranch: publish.releaseBranch ?? release.releaseBranch,
+      workingBranch: publish.workingBranch ?? release.workingBranch ?? proposalWorkingBranch,
+      releaseBranch: publish.releaseBranch ?? release.releaseBranch ?? proposalReleaseBranch,
       publishResultType: publish.publishResultType,
       publishPushStatus: publish.publishPushStatus,
       publishMode: publish.publishMode,
@@ -3609,7 +3654,73 @@ function buildTopicStatusSummary(
   };
 }
 
-async function evaluateTopicStatus(rootDir: string, topic: TopicSummary): Promise<TopicStatusSummary> {
+async function buildTopicIsolationIssues(
+  rootDir: string,
+  manifest: ProjectManifest,
+  topics: TopicSummary[]
+): Promise<Map<string, TopicIsolationIssue>> {
+  const issues = new Map<string, TopicIsolationIssue>();
+  if (topics.length < 2) {
+    return issues;
+  }
+
+  const gitMode = normalizeProjectGitConfig(manifest.git).mode;
+  if (gitMode === "on") {
+    const currentBranch = gitOutput(rootDir, ["branch", "--show-current"]);
+    for (const topic of topics) {
+      if (!topic.workingBranch) {
+        issues.set(topic.name, {
+          reason: "Multiple active topics are present, but this topic has no working_branch metadata for git isolation."
+        });
+      } else if (!currentBranch) {
+        issues.set(topic.name, {
+          reason: "Multiple active topics are present with git mode on, but the current git branch could not be resolved."
+        });
+      } else if (currentBranch !== topic.workingBranch) {
+        issues.set(topic.name, {
+          reason: `Multiple active topics require branch isolation. Current branch '${currentBranch}' does not match '${topic.workingBranch}'.`
+        });
+      }
+    }
+    return issues;
+  }
+
+  const ownership = new Map<string, string[]>();
+  await Promise.all(
+    topics.map(async (topic) => {
+      const stateMarkdown = await readTextIfExists(path.join(rootDir, "poggn", "active", topic.name, "state", "current.md"));
+      ownership.set(topic.name, parseChangedFilePaths(stateMarkdown));
+    })
+  );
+
+  const ownersByPath = new Map<string, string[]>();
+  for (const [topicName, paths] of ownership.entries()) {
+    for (const changedPath of paths) {
+      const owners = ownersByPath.get(changedPath) ?? [];
+      owners.push(topicName);
+      ownersByPath.set(changedPath, owners);
+    }
+  }
+
+  for (const [changedPath, owners] of ownersByPath.entries()) {
+    if (owners.length < 2) {
+      continue;
+    }
+    for (const topicName of owners) {
+      issues.set(topicName, {
+        reason: `Multiple active topics are present with git mode off, and '${changedPath}' is owned by: ${owners.join(", ")}.`
+      });
+    }
+  }
+
+  return issues;
+}
+
+async function evaluateTopicStatus(
+  rootDir: string,
+  topic: TopicSummary,
+  isolationIssue: TopicIsolationIssue | null = null
+): Promise<TopicStatusSummary> {
   const { stateMarkdown, proposalMarkdown, artifacts } = await readTopicArtifacts(rootDir, topic);
   const currentStage = resolveTopicStage(topic, proposalMarkdown, artifacts);
 
@@ -3636,6 +3747,10 @@ async function evaluateTopicStatus(rootDir: string, topic: TopicSummary): Promis
   const openItemStatus = parseOpenItemStatus(stateMarkdown);
   const audits = parseAuditApplicability(stateMarkdown);
   const qaArtifactsPresent = artifacts.hasQaReport || artifacts.hasQaReview || artifacts.hasQaReviewSummary;
+
+  if (isolationIssue) {
+    return createBlockedTopicStatus(topic, currentStage, currentWorkflow, isolationIssue.reason);
+  }
 
   if (!isNonBlockingMarker(topic.blockingIssues)) {
     return createBlockedTopicStatus(
@@ -3806,12 +3921,16 @@ export async function analyzeProject(rootDir: string, registered = false): Promi
 export async function analyzeProjectStatus(rootDir: string): Promise<ProjectStatusSnapshot> {
   const manifest = await requireManifest(rootDir);
   const topics = await listTopicSummaries(rootDir, "active");
-  const evaluatedTopics = await Promise.all(topics.map((topic) => evaluateTopicStatus(rootDir, topic)));
+  const isolationIssues = await buildTopicIsolationIssues(rootDir, manifest, topics);
+  const evaluatedTopics = await Promise.all(
+    topics.map((topic) => evaluateTopicStatus(rootDir, topic, isolationIssues.get(topic.name) ?? null))
+  );
 
   return {
     rootDir,
     autoMode: manifest.autoMode,
     teamsMode: manifest.teamsMode,
+    gitMode: manifest.git.mode,
     generatedAt: nowIso(),
     summary: {
       activeTopicCount: evaluatedTopics.length,

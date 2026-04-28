@@ -91,13 +91,18 @@ pgg-code가 core/CLI git-off 정상 경로, dashboard Linear Stepper, git mode�
 | UPDATE | `packages/core/src/templates.ts` | `implementation/diffs/003_UPDATE_git_mode_evidence_contract.diff` |
 | UPDATE | `packages/core/dist/templates.js` | `implementation/diffs/003_UPDATE_git_mode_evidence_contract.diff` |
 | UPDATE | `packages/core/dist/templates.js.map` | `implementation/diffs/003_UPDATE_git_mode_evidence_contract.diff` |
+| UPDATE | `packages/core/dist/index.d.ts` | `implementation/diffs/004_UPDATE_multi_active_isolation.diff` |
+| UPDATE | `packages/core/dist/index.js` | `implementation/diffs/004_UPDATE_multi_active_isolation.diff` |
+| UPDATE | `packages/core/dist/index.js.map` | `implementation/diffs/004_UPDATE_multi_active_isolation.diff` |
+| UPDATE | `packages/core/src/index.ts` | `implementation/diffs/004_UPDATE_multi_active_isolation.diff` |
+| UPDATE | `packages/core/test/status-analysis.test.mjs` | `implementation/diffs/004_UPDATE_multi_active_isolation.diff` |
 
 ## Implementation Status
 
 - T1: done | `pnpm --filter @pgg/core test` pass, 58 tests passed
 - T2: done | `pnpm --filter @pgg/dashboard build` pass
 - T3: done | `pnpm --filter @pgg/core build` pass, `node packages/cli/dist/index.js update` pass
-- T4: pending
+- T4: done | `pnpm --filter @pgg/core test` pass, 60 tests passed
 
 ## Expert Summary
 

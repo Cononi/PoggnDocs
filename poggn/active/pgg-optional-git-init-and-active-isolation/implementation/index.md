@@ -42,3 +42,17 @@
 - verification:
   - `pnpm --filter @pgg/core build` pass
   - `node packages/cli/dist/index.js update` pass, generated docs synchronized
+
+## T4
+
+- task: 여러 active topic의 git-on branch guard와 git-off file ownership/preflight를 status/runtime surface에 추가한다.
+- status: done
+- changed files:
+  - UPDATE `packages/core/dist/index.d.ts`
+  - UPDATE `packages/core/dist/index.js`
+  - UPDATE `packages/core/dist/index.js.map`
+  - UPDATE `packages/core/src/index.ts`
+  - UPDATE `packages/core/test/status-analysis.test.mjs`
+- diff: `implementation/diffs/004_UPDATE_multi_active_isolation.diff`
+- verification:
+  - `pnpm --filter @pgg/core test` pass, 60 tests passed
