@@ -13,6 +13,7 @@ import {
   initializeDashboardProject,
   inspectProjectFolder,
   moveProjectToCategory,
+  readTopicGitDiffDetail,
   readProjectFileDetail,
   readTopicFileDetail,
   registerExistingProject,
@@ -423,6 +424,34 @@ function createDashboardApiPlugin(): Plugin {
                 topicFileMatch[2] as "active" | "archive",
                 topicFileMatch[3]!,
                 relativePath
+              )
+            );
+            return;
+          }
+
+          const topicGitDiffMatch = url.pathname.match(
+            /^\/api\/dashboard\/projects\/([^/]+)\/topics\/(active|archive)\/([^/]+)\/git-diff\/content$/
+          );
+          if (topicGitDiffMatch && request.method === "GET") {
+            const targetPath = url.searchParams.get("targetPath");
+            if (!targetPath) {
+              writeJson(response, 400, { error: "targetPath is required." });
+              return;
+            }
+
+            writeJson(
+              response,
+              200,
+              await readTopicGitDiffDetail(
+                await resolveProjectRootDir(topicGitDiffMatch[1]!),
+                topicGitDiffMatch[2] as "active" | "archive",
+                topicGitDiffMatch[3]!,
+                {
+                  targetPath,
+                  diffSource: url.searchParams.get("diffSource"),
+                  gitRef: url.searchParams.get("gitRef"),
+                  commitRange: url.searchParams.get("commitRange")
+                }
               )
             );
             return;

@@ -1,6 +1,6 @@
 import axios from "axios";
 import type { AxiosRequestConfig } from "axios";
-import type { DashboardQueryResult, DashboardSnapshot, WorkflowDetailPayload } from "../model/dashboard";
+import type { DashboardQueryResult, DashboardSnapshot, LazyDiffSource, WorkflowDetailPayload } from "../model/dashboard";
 
 const dashboardApiClient = axios.create({
   headers: {
@@ -112,6 +112,28 @@ export async function fetchProjectFileDetail(
   const params = new URLSearchParams({ path: relativePath });
   return requestDashboardJson<WorkflowDetailPayload>(
     `/api/dashboard/projects/${projectId}/files/content?${params.toString()}`
+  );
+}
+
+export async function fetchTopicGitDiffDetail(
+  projectId: string,
+  bucket: "active" | "archive",
+  topic: string,
+  lazyDiff: LazyDiffSource
+): Promise<WorkflowDetailPayload> {
+  const params = new URLSearchParams({
+    targetPath: lazyDiff.targetPath,
+    diffSource: lazyDiff.diffSource
+  });
+  if (lazyDiff.gitRef) {
+    params.set("gitRef", lazyDiff.gitRef);
+  }
+  if (lazyDiff.commitRange) {
+    params.set("commitRange", lazyDiff.commitRange);
+  }
+
+  return requestDashboardJson<WorkflowDetailPayload>(
+    `/api/dashboard/projects/${projectId}/topics/${bucket}/${topic}/git-diff/content?${params.toString()}`
   );
 }
 

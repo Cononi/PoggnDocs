@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { alpha, useTheme, type Theme } from "@mui/material/styles";
 import {
   Alert,
@@ -6,6 +6,7 @@ import {
   Button,
   ButtonBase,
   Chip,
+  CircularProgress,
   Divider,
   Dialog,
   DialogContent,
@@ -32,7 +33,8 @@ import LockRounded from "@mui/icons-material/LockRounded";
 import MoreVertRounded from "@mui/icons-material/MoreVertRounded";
 import SearchRounded from "@mui/icons-material/SearchRounded";
 import { PieChart } from "@mui/x-charts";
-import type { DashboardLocale, ProjectSnapshot, TopicSummary } from "../../shared/model/dashboard";
+import type { DashboardLocale, LazyDiffSource, ProjectSnapshot, TopicSummary, WorkflowDetailPayload } from "../../shared/model/dashboard";
+import { fetchTopicGitDiffDetail } from "../../shared/api/dashboard";
 import {
   buildTopicFileTree,
   buildTopicKey,
@@ -83,6 +85,7 @@ type TimelineFilePreview = {
   llmActualTokens: number | null;
   localEstimatedTokens: number;
   content: string | null;
+  lazyDiff: LazyDiffSource | null;
 };
 type TimelineCommitPreview = TimelineRow["commits"];
 
@@ -129,7 +132,7 @@ export function HistoryWorkspace(props: HistoryWorkspaceProps) {
     activeTab === "overview" ? (
       <HistoryOverview topic={selectedTopic} language={language} dictionary={props.dictionary} globalUser={props.globalUser} />
     ) : activeTab === "timeline" ? (
-      <HistoryTimeline topic={selectedTopic} language={language} dictionary={props.dictionary} globalUser={props.globalUser} />
+      <HistoryTimeline projectId={props.project.id} topic={selectedTopic} language={language} dictionary={props.dictionary} globalUser={props.globalUser} />
     ) : (
       <HistoryRelations topic={selectedTopic} topics={allTopics} />
     );
@@ -1170,6 +1173,7 @@ function TokenUsageChips(props: {
 }
 
 function HistoryTimeline(props: {
+  projectId: string;
   topic: TopicSummary;
   language: "ko" | "en";
   dictionary: DashboardLocale;
@@ -1317,7 +1321,13 @@ function HistoryTimeline(props: {
           </Stack>
         </Paper>
       </Box>
-      <TimelineFilePreviewDialog file={previewFile} dictionary={props.dictionary} onClose={() => setPreviewFile(null)} />
+      <TimelineFilePreviewDialog
+        projectId={props.projectId}
+        topic={props.topic}
+        file={previewFile}
+        dictionary={props.dictionary}
+        onClose={() => setPreviewFile(null)}
+      />
       <TimelineCommitPreviewDialog preview={previewCommits} dictionary={props.dictionary} onClose={() => setPreviewCommits(null)} />
     </>
   );
@@ -1564,7 +1574,8 @@ function TimelineFileNode(props: {
         path: props.node.file.relativePath,
         llmActualTokens: props.node.file.llmActualTokens ?? null,
         localEstimatedTokens: fileEstimatedLocalTokens(props.node.file),
-        content: props.node.file.content ?? null
+        content: props.node.file.content ?? null,
+        lazyDiff: props.node.file.lazyDiff ?? null
       }
     : null;
   const rowContent = (
@@ -1629,24 +1640,60 @@ function TimelineFileNode(props: {
 }
 
 function TimelineFilePreviewDialog(props: {
+  projectId: string;
+  topic: TopicSummary;
   file: TimelineFilePreview | null;
   dictionary: DashboardLocale;
   onClose: () => void;
 }) {
   const open = Boolean(props.file);
-  const content = props.file?.content ?? null;
+  const [lazyDetail, setLazyDetail] = useState<WorkflowDetailPayload | null>(null);
+  const [lazyError, setLazyError] = useState<string | null>(null);
+  const [loadingLazyDetail, setLoadingLazyDetail] = useState(false);
+  const content = lazyDetail?.content ?? props.file?.content ?? null;
+  useEffect(() => {
+    let cancelled = false;
+    setLazyDetail(null);
+    setLazyError(null);
+    if (!props.file?.lazyDiff || props.file.content !== null) {
+      setLoadingLazyDetail(false);
+      return;
+    }
+
+    setLoadingLazyDetail(true);
+    fetchTopicGitDiffDetail(props.projectId, props.topic.bucket, props.topic.name, props.file.lazyDiff)
+      .then((detail) => {
+        if (!cancelled) {
+          setLazyDetail(detail);
+        }
+      })
+      .catch((error: unknown) => {
+        if (!cancelled) {
+          setLazyError(error instanceof Error ? error.message : String(error));
+        }
+      })
+      .finally(() => {
+        if (!cancelled) {
+          setLoadingLazyDetail(false);
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [props.file, props.projectId, props.topic.bucket, props.topic.name]);
   const detail = props.file
     ? {
         kind: props.file.path.endsWith(".diff") ? "diff" as const : props.file.path.endsWith(".md") ? "markdown" as const : "text" as const,
         title: props.file.path.split("/").pop() ?? props.file.path,
-        sourcePath: props.file.path,
+        sourcePath: lazyDetail?.sourcePath ?? props.file.path,
         content: content ?? "",
-        contentType: props.file.path.endsWith(".diff")
+        contentType: lazyDetail?.contentType ?? (props.file.path.endsWith(".diff")
           ? "text/x-diff"
           : props.file.path.endsWith(".md")
             ? "text/markdown"
-            : "text/plain",
-        updatedAt: null
+            : "text/plain"),
+        updatedAt: lazyDetail?.updatedAt ?? null
       }
     : null;
 
@@ -1675,7 +1722,14 @@ function TimelineFilePreviewDialog(props: {
         </IconButton>
       </DialogTitle>
       <DialogContent dividers>
-        {content && detail ? (
+        {loadingLazyDetail ? (
+          <Stack direction="row" spacing={1} sx={{ alignItems: "center" }}>
+            <CircularProgress size={18} />
+            <Typography variant="body2">{props.dictionary.loading}</Typography>
+          </Stack>
+        ) : lazyError ? (
+          <Alert severity="warning">{lazyError}</Alert>
+        ) : content && detail ? (
           <ArtifactDocumentContent detail={detail} maxHeight="68vh" />
         ) : (
           <Alert severity="info">{props.dictionary.detailUnavailable}</Alert>

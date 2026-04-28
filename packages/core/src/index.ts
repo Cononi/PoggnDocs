@@ -4315,6 +4315,86 @@ export async function readTopicFileDetail(
   };
 }
 
+function normalizeGitDiffSource(value: string | null): LazyDiffSource["diffSource"] {
+  if (value === "commit" || value === "commit-range" || value === "working-tree" || value === "legacy-diff-file") {
+    return value;
+  }
+  return "unavailable";
+}
+
+function validateGitRevisionArg(value: string, label: string): string {
+  const trimmed = value.trim();
+  if (!trimmed || trimmed.startsWith("-") || /\s/.test(trimmed)) {
+    throw new Error(`${label} is not a valid Git revision.`);
+  }
+  return trimmed;
+}
+
+function runGitText(rootDir: string, args: string[]): string {
+  return execFileSync("git", ["-C", rootDir, ...args], { encoding: "utf8" });
+}
+
+export async function readTopicGitDiffDetail(
+  rootDir: string,
+  bucket: "active" | "archive",
+  topic: string,
+  input: {
+    targetPath: string;
+    diffSource?: string | null;
+    gitRef?: string | null;
+    commitRange?: string | null;
+  }
+): Promise<WorkflowDetailPayload> {
+  const normalizedTargetPath = normalizeProjectRelativeFilePath(input.targetPath);
+  const diffSource = normalizeGitDiffSource(input.diffSource ?? null);
+  let content = "";
+
+  if (diffSource === "commit") {
+    const gitRef = validateGitRevisionArg(input.gitRef ?? "", "gitRef");
+    content = runGitText(rootDir, ["show", "--format=", "--no-ext-diff", gitRef, "--", normalizedTargetPath]);
+  } else if (diffSource === "commit-range") {
+    const commitRange = validateGitRevisionArg(input.commitRange ?? "", "commitRange");
+    content = runGitText(rootDir, ["diff", "--no-ext-diff", commitRange, "--", normalizedTargetPath]);
+  } else if (diffSource === "working-tree") {
+    if (bucket !== "active") {
+      throw new Error("Working-tree diff lookup is only available for active topics.");
+    }
+    content = runGitText(rootDir, ["diff", "--no-ext-diff", "--", normalizedTargetPath]);
+    if (!content.trim()) {
+      content = runGitText(rootDir, ["diff", "--cached", "--no-ext-diff", "--", normalizedTargetPath]);
+    }
+  } else {
+    throw new Error("Git diff metadata is unavailable for this file.");
+  }
+
+  if (!content.trim()) {
+    content = `No Git diff is available for ${normalizedTargetPath}.`;
+  }
+
+  const lazyDiff: LazyDiffSource = {
+    topic,
+    bucket,
+    targetPath: normalizedTargetPath,
+    diffSource,
+    gitRef: input.gitRef ?? null,
+    commitRange: input.commitRange ?? null,
+    diffCommand: null,
+    status: content.startsWith("No Git diff") ? "empty" : "available",
+    taskRef: null,
+    note: null
+  };
+
+  return {
+    kind: "diff",
+    title: path.basename(normalizedTargetPath),
+    sourcePath: normalizedTargetPath,
+    content,
+    contentType: "text/x-diff",
+    lazyDiff,
+    updatedAt: nowIso()
+  };
+}
+
 export async function updateTopicFile(
   rootDir: string,
   bucket: "active" | "archive",

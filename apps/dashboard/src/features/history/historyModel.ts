@@ -1242,7 +1242,8 @@ export function buildTimelineRows(
         kind: inferFileChangeKind(file.relativePath),
         llmActualTokens: file.llmActualTokens ?? null,
         localEstimatedTokens: fileEstimatedLocalTokens(file),
-        content: file.content ?? null
+        content: file.content ?? null,
+        lazyDiff: file.lazyDiff ?? null
       }));
       const tokenUsageRecords = flowTokenUsageRecords(topic, flow);
       const events = flowHistoryEvents(topic, flow);
