@@ -6,7 +6,7 @@ dashboard-workflow-progress-sync
 
 ## Current Stage
 
-pgg-refactor
+qa
 
 ## Goal
 
@@ -83,6 +83,14 @@ pgg-refactor
 - dashboard unresolved runtime timestamp 판정을 `runtimeEntryHasUnresolvedTimestamp` helper로 분리했다.
 - 동작 변경, Acceptance Criteria 변경, public API 변경, generated Markdown 직접 수정은 없다.
 
+## QA Summary
+
+- source of truth와 generated docs 안정성을 확인했다.
+- docs generation은 `node packages/cli/dist/index.js update` 2회, `pnpm build:readme` 2회 모두 PASS다.
+- technical checks는 `pnpm build`, `pnpm build:dashboard`, `pnpm test:core`, `pnpm test:dashboard`, `pnpm test`, `pnpm verify:version-history` 모두 PASS다.
+- generated Markdown 직접 수정은 없다.
+- archive destination은 사전 확인 시 존재하지 않는다.
+
 ## Verification Summary
 
 - `node --test scripts/dashboard-history-model.test.mjs`: PASS, 7/7
@@ -148,10 +156,12 @@ pgg-refactor
 | CREATE | `pgg-refactor/verify.md` | refactor 검증 결과 |
 | CREATE | `pgg-refactor/reviews/behavior-preservation.review.md` | 동작 보존 review |
 | CREATE | `pgg-refactor/reviews/structure-quality.review.md` | 구조 품질 review |
+| CREATE | `qa/report.md` | pgg-qa 최종 report |
+| UPDATE | `metrics/token-usage.jsonl` | pgg-qa token accounting |
 
 ## Next
 
-`pgg-qa`
+`archive`
 
 ## Git Publish Message
 
