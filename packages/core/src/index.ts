@@ -559,6 +559,7 @@ export interface ProjectFolderInspection {
 
 type TopicStageName = "proposal" | "plan" | "task" | "implementation" | "refactor" | "token" | "performance" | "qa";
 type TopicAuditName = "pgg-token" | "pgg-performance";
+type TopicAuditLookupName = TopicAuditName | "pgg-performanc";
 
 interface TopicArtifactState {
   hasProposal: boolean;
@@ -2419,7 +2420,8 @@ function parseAuditApplicability(markdown: string | null): Record<TopicAuditName
     }
 
     const [, rawName, rawStatus, rawReason = ""] = match;
-    const name = rawName as TopicAuditName;
+    const lookupName = rawName as TopicAuditLookupName;
+    const name: TopicAuditName = lookupName === "pgg-performanc" ? "pgg-performance" : lookupName;
     if (!(name in defaults)) {
       continue;
     }
@@ -3821,7 +3823,9 @@ async function readTopicArtifacts(rootDir: string, topic: TopicSummary): Promise
       hasCodeReview: existsSync(path.join(topicDir, "reviews", "code.review.md")),
       hasRefactorReview: existsSync(path.join(topicDir, "reviews", "refactor.review.md")),
       hasTokenReport: existsSync(path.join(topicDir, "token", "report.md")),
-      hasPerformanceReport: existsSync(path.join(topicDir, "performance", "report.md")),
+      hasPerformanceReport:
+        existsSync(path.join(topicDir, "pgg-performance", "report.md")) ||
+        existsSync(path.join(topicDir, "performance", "report.md")),
       hasQaReport: existsSync(path.join(topicDir, "qa", "report.md")),
       hasQaReview: existsSync(path.join(topicDir, "qa", "review.md")),
       hasQaReviewSummary: existsSync(path.join(topicDir, "reviews", "qa.review.md"))

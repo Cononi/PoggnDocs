@@ -1528,7 +1528,8 @@ function parseAuditApplicability(markdown) {
             continue;
         }
         const [, rawName, rawStatus, rawReason = ""] = match;
-        const name = rawName;
+        const lookupName = rawName;
+        const name = lookupName === "pgg-performanc" ? "pgg-performance" : lookupName;
         if (!(name in defaults)) {
             continue;
         }
@@ -2594,7 +2595,8 @@ async function readTopicArtifacts(rootDir, topic) {
             hasCodeReview: existsSync(path.join(topicDir, "reviews", "code.review.md")),
             hasRefactorReview: existsSync(path.join(topicDir, "reviews", "refactor.review.md")),
             hasTokenReport: existsSync(path.join(topicDir, "token", "report.md")),
-            hasPerformanceReport: existsSync(path.join(topicDir, "performance", "report.md")),
+            hasPerformanceReport: existsSync(path.join(topicDir, "pgg-performance", "report.md")) ||
+                existsSync(path.join(topicDir, "performance", "report.md")),
             hasQaReport: existsSync(path.join(topicDir, "qa", "report.md")),
             hasQaReview: existsSync(path.join(topicDir, "qa", "review.md")),
             hasQaReviewSummary: existsSync(path.join(topicDir, "reviews", "qa.review.md"))

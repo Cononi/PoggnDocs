@@ -10,7 +10,7 @@ export const CORE_WORKFLOW_SKILLS = [
 ];
 export const OPTIONAL_AUDIT_SKILLS = ["pgg-token", "pgg-performance"];
 export const CANONICAL_OPTIONAL_AUDIT_SKILLS = OPTIONAL_AUDIT_SKILLS;
-export const LEGACY_COMPATIBILITY_SKILLS = [];
+export const LEGACY_COMPATIBILITY_SKILLS = ["pgg-performanc"];
 export const WORKFLOW_SKILLS = [...CORE_WORKFLOW_SKILLS, ...CANONICAL_OPTIONAL_AUDIT_SKILLS];
 export const STANDALONE_SKILLS = ["pgg-status", "pgg-verify"];
 export const GENERATED_SKILLS = [...WORKFLOW_SKILLS, ...LEGACY_COMPATIBILITY_SKILLS, ...STANDALONE_SKILLS];

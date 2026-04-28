@@ -11,7 +11,7 @@ export const CORE_WORKFLOW_SKILLS = [
 
 export const OPTIONAL_AUDIT_SKILLS = ["pgg-token", "pgg-performance"] as const;
 export const CANONICAL_OPTIONAL_AUDIT_SKILLS = OPTIONAL_AUDIT_SKILLS;
-export const LEGACY_COMPATIBILITY_SKILLS = [] as const;
+export const LEGACY_COMPATIBILITY_SKILLS = ["pgg-performanc"] as const;
 export type LegacyCompatibilitySkillName = (typeof LEGACY_COMPATIBILITY_SKILLS)[number];
 
 export const WORKFLOW_SKILLS = [...CORE_WORKFLOW_SKILLS, ...CANONICAL_OPTIONAL_AUDIT_SKILLS] as const;
