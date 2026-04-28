@@ -263,6 +263,19 @@ export interface TopicFileEntry {
     tokenSource: "ledger" | "estimated" | "none";
     content: string | null;
     editable: boolean;
+    lazyDiff?: LazyDiffSource | null;
+}
+export interface LazyDiffSource {
+    topic: string;
+    bucket: "active" | "archive";
+    targetPath: string;
+    diffSource: "commit" | "commit-range" | "working-tree" | "legacy-diff-file" | "unavailable";
+    gitRef: string | null;
+    commitRange: string | null;
+    diffCommand: string | null;
+    status: string | null;
+    taskRef: string | null;
+    note: string | null;
 }
 export interface TopicTokenUsage {
     total: number;
@@ -314,6 +327,7 @@ export interface WorkflowNodeData {
     status?: string;
     crud?: string;
     diffRef?: string;
+    lazyDiff?: LazyDiffSource | null;
     detail?: WorkflowDetailPayload | null;
 }
 export interface WorkflowNode {
@@ -341,6 +355,7 @@ export interface WorkflowDetailPayload {
     sourcePath: string;
     content: string;
     contentType: string;
+    lazyDiff?: LazyDiffSource | null;
     startedAt?: string | null;
     updatedAt: string | null;
     completedAt?: string | null;
@@ -490,6 +505,12 @@ export declare function analyzeProjectStatus(rootDir: string): Promise<ProjectSt
 export declare function buildDashboardSnapshot(currentRootDir: string): Promise<DashboardSnapshot>;
 export declare function readProjectFileDetail(rootDir: string, relativePath: string): Promise<WorkflowDetailPayload>;
 export declare function readTopicFileDetail(rootDir: string, bucket: "active" | "archive", topic: string, relativePath: string): Promise<WorkflowDetailPayload>;
+export declare function readTopicGitDiffDetail(rootDir: string, bucket: "active" | "archive", topic: string, input: {
+    targetPath: string;
+    diffSource?: string | null;
+    gitRef?: string | null;
+    commitRange?: string | null;
+}): Promise<WorkflowDetailPayload>;
 export declare function updateTopicFile(rootDir: string, bucket: "active" | "archive", topic: string, relativePath: string, content: string): Promise<WorkflowDetailPayload>;
 export declare function updateProjectFile(rootDir: string, relativePath: string, content: string): Promise<WorkflowDetailPayload>;
 export declare function deleteTopicFile(rootDir: string, bucket: "active" | "archive", topic: string, relativePath: string): Promise<void>;

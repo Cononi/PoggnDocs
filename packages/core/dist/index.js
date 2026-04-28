@@ -2320,6 +2320,115 @@ async function listProjectFiles(rootDir) {
     }));
     return entries.sort((left, right) => left.relativePath.localeCompare(right.relativePath));
 }
+function cleanMarkdownTableCell(value) {
+    return (value ?? "").trim().replace(/^`|`$/g, "").trim();
+}
+function normalizeMarkdownTableKey(value) {
+    return cleanMarkdownTableCell(value).toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+function splitMarkdownTableRow(line) {
+    const trimmed = line.trim();
+    const withoutStart = trimmed.startsWith("|") ? trimmed.slice(1) : trimmed;
+    const withoutEnd = withoutStart.endsWith("|") ? withoutStart.slice(0, -1) : withoutStart;
+    return withoutEnd.split("|").map((cell) => cell.trim());
+}
+function sanitizeVirtualDiffPath(value) {
+    const normalized = value.replace(/\\/g, "/").replace(/^\.?\//, "");
+    const safe = normalized.replace(/[^a-zA-Z0-9._-]+/g, "_").replace(/^_+|_+$/g, "");
+    return safe || "changed-file";
+}
+function normalizeDiffSource(value) {
+    if (value === "commit" || value === "commit-range" || value === "working-tree" || value === "legacy-diff-file") {
+        return value;
+    }
+    return "unavailable";
+}
+function parseImplementationIndexRows(raw) {
+    if (!raw) {
+        return [];
+    }
+    const rows = [];
+    for (const line of raw.split(/\n+/)) {
+        const trimmed = line.trim();
+        if (!trimmed.startsWith("|") || /^\|\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/.test(trimmed)) {
+            continue;
+        }
+        rows.push(splitMarkdownTableRow(trimmed));
+    }
+    if (rows.length < 2) {
+        return [];
+    }
+    const header = rows[0] ?? [];
+    const headerIndex = new Map(header.map((cell, index) => [normalizeMarkdownTableKey(cell), index]));
+    if (!headerIndex.has("path") || !headerIndex.has("diffsource")) {
+        return [];
+    }
+    const cell = (row, key) => cleanMarkdownTableCell(row[headerIndex.get(key) ?? -1]);
+    return rows.slice(1).flatMap((row) => {
+        const targetPath = cell(row, "path");
+        if (!targetPath) {
+            return [];
+        }
+        const diffSource = normalizeDiffSource(cell(row, "diffsource"));
+        if (diffSource === "legacy-diff-file") {
+            return [];
+        }
+        const valueOrNull = (value) => (value && value !== "-" ? value : null);
+        return [{
+                id: cell(row, "id") || String(rows.indexOf(row) + 1).padStart(3, "0"),
+                crud: cell(row, "crud") || "UPDATE",
+                targetPath,
+                taskRef: valueOrNull(cell(row, "taskref")),
+                diffSource,
+                gitRef: valueOrNull(cell(row, "gitref")),
+                commitRange: valueOrNull(cell(row, "commitrange")),
+                diffCommand: valueOrNull(cell(row, "diffcommand")),
+                status: valueOrNull(cell(row, "status")),
+                note: valueOrNull(cell(row, "note"))
+            }];
+    });
+}
+async function listLazyDiffTopicFiles(topicDir, bucket, topic, existingEntries) {
+    const indexPath = path.join(topicDir, "implementation", "index.md");
+    const indexContent = await readTextIfExists(indexPath);
+    const rows = parseImplementationIndexRows(indexContent);
+    if (rows.length === 0) {
+        return [];
+    }
+    const existingPaths = new Set(existingEntries.map((entry) => entry.relativePath));
+    const indexStat = await stat(indexPath).catch(() => null);
+    return rows.flatMap((row) => {
+        const relativePath = `implementation/diffs/${row.id}_${row.crud}_${sanitizeVirtualDiffPath(row.targetPath)}.diff`;
+        if (existingPaths.has(relativePath)) {
+            return [];
+        }
+        return [{
+                relativePath,
+                sourcePath: `poggn/${bucket}/${topic}/implementation/index.md#${row.id}`,
+                kind: "diff",
+                updatedAt: indexStat?.mtime.toISOString() ?? null,
+                size: null,
+                tokenEstimate: null,
+                localEstimatedTokens: null,
+                llmActualTokens: null,
+                tokenSource: "none",
+                content: null,
+                editable: false,
+                lazyDiff: {
+                    topic,
+                    bucket,
+                    targetPath: row.targetPath,
+                    diffSource: row.diffSource,
+                    gitRef: row.gitRef,
+                    commitRange: row.commitRange,
+                    diffCommand: row.diffCommand,
+                    status: row.status,
+                    taskRef: row.taskRef,
+                    note: row.note
+                }
+            }];
+    });
+}
 async function listTopicFiles(rootDir, topicDir, bucket, topic, tokenUsageRecords) {
     const files = await collectMatchingFiles(topicDir, () => true);
     const entries = await Promise.all(files.map(async (absolutePath) => {
@@ -2341,7 +2450,8 @@ async function listTopicFiles(rootDir, topicDir, bucket, topic, tokenUsageRecord
             editable: true
         };
     }));
-    return entries
+    const lazyDiffEntries = await listLazyDiffTopicFiles(topicDir, bucket, topic, entries);
+    return [...entries, ...lazyDiffEntries]
         .map((entry) => applyTokenUsageRecordsToFile(entry, tokenUsageRecords))
         .sort((left, right) => left.relativePath.localeCompare(right.relativePath));
 }
@@ -2867,6 +2977,71 @@ export async function readTopicFileDetail(rootDir, bucket, topic, relativePath) 
         content,
         contentType,
         updatedAt: fileStat?.mtime.toISOString() ?? null
+    };
+}
+function normalizeGitDiffSource(value) {
+    if (value === "commit" || value === "commit-range" || value === "working-tree" || value === "legacy-diff-file") {
+        return value;
+    }
+    return "unavailable";
+}
+function validateGitRevisionArg(value, label) {
+    const trimmed = value.trim();
+    if (!trimmed || trimmed.startsWith("-") || /\s/.test(trimmed)) {
+        throw new Error(`${label} is not a valid Git revision.`);
+    }
+    return trimmed;
+}
+function runGitText(rootDir, args) {
+    return execFileSync("git", ["-C", rootDir, ...args], { encoding: "utf8" });
+}
+export async function readTopicGitDiffDetail(rootDir, bucket, topic, input) {
+    const normalizedTargetPath = normalizeProjectRelativeFilePath(input.targetPath);
+    const diffSource = normalizeGitDiffSource(input.diffSource ?? null);
+    let content = "";
+    if (diffSource === "commit") {
+        const gitRef = validateGitRevisionArg(input.gitRef ?? "", "gitRef");
+        content = runGitText(rootDir, ["show", "--format=", "--no-ext-diff", gitRef, "--", normalizedTargetPath]);
+    }
+    else if (diffSource === "commit-range") {
+        const commitRange = validateGitRevisionArg(input.commitRange ?? "", "commitRange");
+        content = runGitText(rootDir, ["diff", "--no-ext-diff", commitRange, "--", normalizedTargetPath]);
+    }
+    else if (diffSource === "working-tree") {
+        if (bucket !== "active") {
+            throw new Error("Working-tree diff lookup is only available for active topics.");
+        }
+        content = runGitText(rootDir, ["diff", "--no-ext-diff", "--", normalizedTargetPath]);
+        if (!content.trim()) {
+            content = runGitText(rootDir, ["diff", "--cached", "--no-ext-diff", "--", normalizedTargetPath]);
+        }
+    }
+    else {
+        throw new Error("Git diff metadata is unavailable for this file.");
+    }
+    if (!content.trim()) {
+        content = `No Git diff is available for ${normalizedTargetPath}.`;
+    }
+    const lazyDiff = {
+        topic,
+        bucket,
+        targetPath: normalizedTargetPath,
+        diffSource,
+        gitRef: input.gitRef ?? null,
+        commitRange: input.commitRange ?? null,
+        diffCommand: null,
+        status: content.startsWith("No Git diff") ? "empty" : "available",
+        taskRef: null,
+        note: null
+    };
+    return {
+        kind: "diff",
+        title: path.basename(normalizedTargetPath),
+        sourcePath: normalizedTargetPath,
+        content,
+        contentType: "text/x-diff",
+        lazyDiff,
+        updatedAt: nowIso()
     };
 }
 export async function updateTopicFile(rootDir, bucket, topic, relativePath, content) {

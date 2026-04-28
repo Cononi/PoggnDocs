@@ -229,3 +229,47 @@ test("dashboard snapshots count topic artifacts as local estimates without a led
     await rm(rootDir, { recursive: true, force: true });
   }
 });
+
+test("dashboard snapshots expose lazy diff metadata without diff body tokens", async () => {
+  const rootDir = await mkdtemp(path.join(os.tmpdir(), "pgg-lazy-diff-snapshot-"));
+  const topic = "lazy-diff-topic";
+  const topicDir = path.join(rootDir, "poggn", "active", topic);
+
+  try {
+    await withTemporaryPggHome(rootDir, async () => {
+      await initializeProject(rootDir, {
+        provider: "codex",
+        language: "ko",
+        autoMode: "on",
+        teamsMode: "off"
+      });
+
+      await writeTopicFile(topicDir, "proposal.md", "# Proposal\n");
+      await writeTopicFile(
+        topicDir,
+        "implementation/index.md",
+        [
+          "# Implementation Index",
+          "",
+          "| ID | CRUD | path | taskRef | diffSource | gitRef | commitRange | diffCommand | status | note |",
+          "|---|---|---|---|---|---|---|---|---|---|",
+          "| 001 | UPDATE | `packages/core/src/index.ts` | `T1` | `working-tree` | `-` | `-` | `git diff -- packages/core/src/index.ts` | `pending` | lazy metadata |"
+        ].join("\n")
+      );
+
+      const snapshot = await buildDashboardSnapshot(rootDir);
+      const project = snapshot.projects.find((entry) => entry.rootDir === rootDir);
+      const topicSummary = project?.activeTopics.find((entry) => entry.name === topic);
+      const lazyDiffFile = topicSummary?.files.find((file) => file.lazyDiff?.targetPath === "packages/core/src/index.ts");
+
+      assert.equal(lazyDiffFile?.kind, "diff");
+      assert.equal(lazyDiffFile?.content, null);
+      assert.equal(lazyDiffFile?.tokenEstimate, null);
+      assert.equal(lazyDiffFile?.localEstimatedTokens, null);
+      assert.equal(lazyDiffFile?.tokenSource, "none");
+      assert.equal(lazyDiffFile?.lazyDiff?.diffSource, "working-tree");
+    });
+  } finally {
+    await rm(rootDir, { recursive: true, force: true });
+  }
+});

@@ -3506,7 +3506,7 @@ function parseImplementationIndexRows(raw: string | null): Array<{
   const rows: Array<ReturnType<typeof splitMarkdownTableRow>> = [];
   for (const line of raw.split(/\n+/)) {
     const trimmed = line.trim();
-    if (!trimmed.startsWith("|") || /^\|[ -|:]+\|?$/.test(trimmed)) {
+    if (!trimmed.startsWith("|") || /^\|\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/.test(trimmed)) {
       continue;
     }
     rows.push(splitMarkdownTableRow(trimmed));

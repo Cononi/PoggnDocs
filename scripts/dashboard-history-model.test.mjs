@@ -113,6 +113,26 @@ test("timeline rows use completed flow scoped token records", () => {
         content: "diff --git a/example.ts b/example.ts"
       },
       {
+        relativePath: "implementation/diffs/002_UPDATE_lazy.diff",
+        sourcePath: "poggn/active/topic/implementation/index.md#002",
+        tokenEstimate: null,
+        llmActualTokens: null,
+        localEstimatedTokens: null,
+        content: null,
+        lazyDiff: {
+          topic: "topic",
+          bucket: "active",
+          targetPath: "packages/core/src/index.ts",
+          diffSource: "working-tree",
+          gitRef: null,
+          commitRange: null,
+          diffCommand: "git diff -- packages/core/src/index.ts",
+          status: "pending",
+          taskRef: "T1",
+          note: null
+        }
+      },
+      {
         relativePath: "qa/report.md",
         sourcePath: "poggn/active/topic/qa/report.md",
         tokenEstimate: 20,
@@ -180,6 +200,7 @@ test("timeline rows use completed flow scoped token records", () => {
 
   assert.equal(code?.llmActualTokens, 31);
   assert.equal(code?.localEstimatedTokens, 30);
+  assert.equal(code?.files.some((file) => file.lazyDiff?.targetPath === "packages/core/src/index.ts" && file.content === null), true);
   assert.equal(qa?.llmActualTokens, null);
   assert.equal(qa?.localEstimatedTokens, 51);
 });
