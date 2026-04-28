@@ -1,0 +1,45 @@
+{
+  "measuredAt": "2026-04-28T15:10:00.000Z",
+  "results": [
+    {
+      "id": "dashboard-model-test",
+      "command": "node --test scripts/dashboard-history-model.test.mjs",
+      "baselineSeconds": 1.621,
+      "targetSeconds": 5,
+      "runsSeconds": [1.577, 1.625, 1.663],
+      "medianSeconds": 1.625,
+      "p95Seconds": 1.663,
+      "result": "PASS"
+    },
+    {
+      "id": "test-dashboard",
+      "command": "pnpm test:dashboard",
+      "baselineSeconds": 1.684,
+      "targetSeconds": 5,
+      "runsSeconds": [2.05, 1.888, 1.894],
+      "medianSeconds": 1.894,
+      "p95Seconds": 2.05,
+      "result": "PASS"
+    },
+    {
+      "id": "build-dashboard-wrapper",
+      "command": "pnpm build:dashboard",
+      "baselineSeconds": null,
+      "runsSeconds": [2.188, 2.104, 2.136],
+      "medianSeconds": 2.136,
+      "p95Seconds": 2.188,
+      "result": "INFO",
+      "note": "Wrapper timing includes pnpm startup overhead and is not compared to Vite internal build baseline."
+    },
+    {
+      "id": "build-dashboard-vite-internal",
+      "command": "pnpm build:dashboard",
+      "baselineSeconds": 1.35,
+      "maxAllowedSeconds": 1.62,
+      "runsSeconds": [1.08, 1.02, 1.02],
+      "medianSeconds": 1.02,
+      "p95Seconds": 1.08,
+      "result": "PASS"
+    }
+  ]
+}

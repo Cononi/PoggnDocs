@@ -3,7 +3,7 @@
   "topicName": "dashboard-workflow-timing-sync",
   "activePath": "poggn/active/dashboard-workflow-timing-sync",
   "archivePath": "poggn/archive/dashboard-workflow-timing-sync",
-  "currentFlow": "pgg-code",
+  "currentFlow": "pgg-performance",
   "flowStatus": "PASS",
   "language": "ko",
   "mode": "auto on",
@@ -27,7 +27,7 @@
   "performanceReason": "사용자가 workflow 진행 방식이 너무 많은 시간을 소비한다고 명시했으므로 pgg-plan에서 workflow cycle time, stage duration, 불필요한 flow 반복 여부를 측정 대상으로 분리해야 한다.",
   "projectScope": "current-project",
   "createdAt": "2026-04-28T14:16:49Z",
-  "updatedAt": "2026-04-28T15:04:00Z",
+  "updatedAt": "2026-04-28T15:10:00Z",
   "baseCommitSha": "fe4e9ea5ef43e5fafec32abdbc8ad578238a0cbe",
   "pggAddCommitSha": null,
   "assumptions": [
@@ -91,6 +91,10 @@
   ],
   "verificationStatus": "PASS",
   "pggPerformanceRecommended": "required",
+  "pggPerformanceStatus": "PASS",
+  "pggPerformanceReport": "poggn/active/dashboard-workflow-timing-sync/pgg-performance/report.md",
+  "performanceSummary": "dashboard model test median 1.625s, p95 1.663s; Vite internal dashboard build median 1.02s against 1.35s baseline; no performance regression detected.",
+  "performanceNextFlow": "pgg-refactor",
   "pggCodeCommitSha": "ea162b180a34fee79de1675cb9429bb6119a7bbd",
   "generatedMarkdownDirectEdit": false
 }

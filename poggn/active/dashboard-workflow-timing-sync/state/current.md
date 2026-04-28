@@ -6,7 +6,7 @@ dashboard-workflow-timing-sync
 
 ## Current Stage
 
-pgg-code
+pgg-performance
 
 ## Goal
 
@@ -84,6 +84,15 @@ workflow evidence와 dashboard의 상태, 시간 측정, current/next flow 표�
 - pgg-code implementation commit: `ea162b180a34fee79de1675cb9429bb6119a7bbd`
 - commit title: `fix: 4.0.2.workflow 시간 측정`
 
+## Performance Summary
+
+- pgg-performance status: `PASS`
+- dashboard model test: median `1.625s`, p95 `1.663s`, target `<=5s`
+- dashboard test script: median `1.894s`, p95 `2.050s`, target `<=5s`
+- dashboard build Vite internal: median `1.02s`, p95 `1.08s`, baseline `1.35s`, max allowed `1.62s`
+- performance regression: `not_detected`
+- report: `pgg-performance/report.md`
+
 ## Active Specs
 
 - `pgg-plan/spec/dashboard/flow-evidence-and-routing.md`
@@ -142,10 +151,12 @@ workflow evidence와 dashboard의 상태, 시간 측정, current/next flow 표�
 | CREATE | `pgg-code/reviews/review-2-code-quality.md` | code quality review |
 | CREATE | `implementation/index.md` | compatibility implementation summary |
 | CREATE | `reviews/code.review.md` | compatibility code review summary |
+| CREATE | `pgg-performance/report.md` | performance audit report |
+| CREATE | `pgg-performance/benchmark-results.json` | machine-readable benchmark summary |
 
 ## Next
 
-`pgg-performance`
+`pgg-refactor`
 
 ## Git Publish Message
 
