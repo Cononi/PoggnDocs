@@ -80,11 +80,13 @@ pgg-code가 core/CLI git-off 정상 경로, dashboard Linear Stepper, git mode�
 | UPDATE | `packages/core/dist/index.js.map` | `implementation/diffs/001_UPDATE_core_git_optional_init.diff` |
 | UPDATE | `packages/core/src/index.ts` | `implementation/diffs/001_UPDATE_core_git_optional_init.diff` |
 | UPDATE | `packages/core/test/git-onboarding.test.mjs` | `implementation/diffs/001_UPDATE_core_git_optional_init.diff` |
+| UPDATE | `apps/dashboard/src/app/DashboardApp.tsx` | `implementation/diffs/002_UPDATE_dashboard_project_add_stepper.diff` |
+| UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | `implementation/diffs/002_UPDATE_dashboard_project_add_stepper.diff` |
 
 ## Implementation Status
 
 - T1: done | `pnpm --filter @pgg/core test` pass, 58 tests passed
-- T2: pending
+- T2: done | `pnpm --filter @pgg/dashboard build` pass
 - T3: pending
 - T4: pending
 

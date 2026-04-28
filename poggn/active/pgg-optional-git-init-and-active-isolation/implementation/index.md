@@ -12,3 +12,14 @@
 - diff: `implementation/diffs/001_UPDATE_core_git_optional_init.diff`
 - verification:
   - `pnpm --filter @pgg/core test` pass, 58 tests passed
+
+## T2
+
+- task: dashboard project add 모달을 Linear Stepper의 step별 입력 화면으로 전환하고 git 사용 여부 분기를 구현한다.
+- status: done
+- changed files:
+  - UPDATE `apps/dashboard/src/app/DashboardApp.tsx`
+  - UPDATE `apps/dashboard/src/shared/locale/dashboardLocale.ts`
+- diff: `implementation/diffs/002_UPDATE_dashboard_project_add_stepper.diff`
+- verification:
+  - `pnpm --filter @pgg/dashboard build` pass
