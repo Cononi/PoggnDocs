@@ -34,7 +34,7 @@ approved
 - `pgg update` 재실행이 `unchanged/conflicts:0`으로 끝나 후속 프로젝트 전파 경로가 유지된다.
 - code review와 QA가 pgg 생성/수정 문서와 코드 주석 언어 위반을 확인할 수 있다.
 - task row `T1...T6` 각각 stage commit evidence가 남았다.
-- `pgg-token` audit는 `required`로 남아 다음 workflow에서 token 측정 계약을 별도 검토해야 한다.
+- `pgg-token` audit는 `required`로 남아 후속 gate에서 token 측정 계약을 별도 검토해야 한다.
 
 ## Verification
 
