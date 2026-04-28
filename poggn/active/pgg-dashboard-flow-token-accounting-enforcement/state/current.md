@@ -6,7 +6,7 @@ pgg-dashboard-flow-token-accounting-enforcement
 
 ## Current Stage
 
-implementation
+refactor
 
 ## Goal
 
@@ -14,7 +14,7 @@ dashboard가 모든 flow의 LLM token과 local token을 계산해 Overview와 Ti
 
 ## Next Action
 
-`pgg-refactor`에서 token 계산 helper 경계와 중복 여부를 검토한다.
+`pgg-token` required audit를 수행한다.
 
 ## Constraints
 
@@ -70,6 +70,11 @@ dashboard가 모든 flow의 LLM token과 local token을 계산해 Overview와 Ti
 - Timeline row는 완료 flow별 file artifact LLM baseline과 flow-scoped token record를 중복 없이 합산한다.
 - core dist 산출물을 갱신해 이후 생성/업데이트 프로젝트도 같은 snapshot semantics를 사용하게 했다.
 
+## Refactor Summary
+
+- no-op refactor로 결정했다.
+- core와 dashboard helper가 LLM baseline, LLM record, local record 역할로 분리되어 추가 구조 변경이 필요하지 않다.
+
 ## Token Usage
 
 - ledger: `state/token-usage.ndjson`
@@ -101,13 +106,14 @@ dashboard가 모든 flow의 LLM token과 local token을 계산해 Overview와 Ti
 - plan review: approved
 - task review: approved
 - code review: approved
+- refactor review: approved
 - score: `96`
-- experts: 시니어 백엔드 엔지니어, 테크 리드
+- experts: 소프트웨어 아키텍트, 코드 리뷰어
 - blocking issues: 없음
 
 ## Next Workflow
 
-- pgg-refactor
+- pgg-token
 
 ## Changed Files
 
@@ -130,6 +136,7 @@ dashboard가 모든 flow의 LLM token과 local token을 계산해 Overview와 Ti
 | ADD | `poggn/active/pgg-dashboard-flow-token-accounting-enforcement/reviews/plan.review.md` | pending |
 | ADD | `poggn/active/pgg-dashboard-flow-token-accounting-enforcement/reviews/task.review.md` | pending |
 | ADD | `poggn/active/pgg-dashboard-flow-token-accounting-enforcement/reviews/code.review.md` | pending |
+| ADD | `poggn/active/pgg-dashboard-flow-token-accounting-enforcement/reviews/refactor.review.md` | pending |
 | ADD | `poggn/active/pgg-dashboard-flow-token-accounting-enforcement/implementation/index.md` | pending |
 | ADD | `poggn/active/pgg-dashboard-flow-token-accounting-enforcement/implementation/diffs/*.diff` | pending |
 | ADD | `poggn/active/pgg-dashboard-flow-token-accounting-enforcement/state/current.md` | pending |
