@@ -1,0 +1,32 @@
+{
+  "topic": "dashboard-workflow-progress-sync",
+  "version": "4.0.1",
+  "targetVersion": "4.0.1",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "commitTitle": "fix: 4.0.1.dashboard progress sync",
+  "commitSha": "3b44f0203e53222428873032fe3a84f3e73c1068",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/4.0.1-dashboard-progress-sync",
+  "workingBranch": "ai/fix/4.0.1-dashboard-progress-sync",
+  "releaseBranch": "release/4.0.1-dashboard-progress-sync",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-28T14:13:43Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/4.0.1-dashboard-progress-sync'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/dashboard-workflow-progress-sync",
+    "versionFile": "poggn/archive/dashboard-workflow-progress-sync/version.json"
+  }
+}
