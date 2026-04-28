@@ -1,0 +1,32 @@
+{
+  "topic": "pgg-workflow-token-commit-contract",
+  "version": "3.0.0",
+  "targetVersion": "3.0.0",
+  "changeType": "feat",
+  "versionBump": "major",
+  "commitTitle": "feat: 3.0.0.token commit contract",
+  "commitSha": "953feb3f9d160149a5a44634bb22e94c6e1bf5cd",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/3.0.0-token-commit-contract",
+  "workingBranch": "ai/feat/3.0.0-token-commit-contract",
+  "releaseBranch": "release/3.0.0-token-commit-contract",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-28T01:50:40Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/3.0.0-token-commit-contract'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/pgg-workflow-token-commit-contract",
+    "versionFile": "poggn/archive/pgg-workflow-token-commit-contract/version.json"
+  }
+}
