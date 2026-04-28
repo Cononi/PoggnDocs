@@ -1,0 +1,32 @@
+{
+  "topic": "dashboard-workflow-timing-sync",
+  "version": "4.0.2",
+  "targetVersion": "4.0.2",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "commitTitle": "fix: 4.0.2.dashboard timing sync",
+  "commitSha": "34c15dac96b0d0ffde1fc455db6ae210917cdaae",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/4.0.2-dashboard-timing-sync",
+  "workingBranch": "ai/fix/4.0.2-dashboard-timing-sync",
+  "releaseBranch": "release/4.0.2-dashboard-timing-sync",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-28T15:18:30Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/4.0.2-dashboard-timing-sync'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/dashboard-workflow-timing-sync",
+    "versionFile": "poggn/archive/dashboard-workflow-timing-sync/version.json"
+  }
+}
