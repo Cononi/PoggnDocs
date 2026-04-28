@@ -1,0 +1,14 @@
+{
+  "topic": "pgg-optional-git-init-and-active-isolation",
+  "changeType": "feat",
+  "versionBump": "minor",
+  "version": "3.1.0",
+  "targetVersion": "3.1.0",
+  "previousVersion": "3.0.6",
+  "shortName": "optional-isolation",
+  "workingBranch": "ai/feat/3.1.0-optional-isolation",
+  "releaseBranch": "release/3.1.0-optional-isolation",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-28T05:24:46Z",
+  "history": "poggn/version-history.ndjson"
+}

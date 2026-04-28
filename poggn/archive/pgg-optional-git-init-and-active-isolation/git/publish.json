@@ -1,0 +1,32 @@
+{
+  "topic": "pgg-optional-git-init-and-active-isolation",
+  "version": "3.1.0",
+  "targetVersion": "3.1.0",
+  "changeType": "feat",
+  "versionBump": "minor",
+  "commitTitle": "feat: 3.1.0.git 선택 흐름",
+  "commitSha": "28bf28e56e860d373898ecb04eb3c1737003f4fb",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/3.1.0-optional-isolation",
+  "workingBranch": "ai/feat/3.1.0-optional-isolation",
+  "releaseBranch": "release/3.1.0-optional-isolation",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-28T05:24:53Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/3.1.0-optional-isolation'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/pgg-optional-git-init-and-active-isolation",
+    "versionFile": "poggn/archive/pgg-optional-git-init-and-active-isolation/version.json"
+  }
+}
