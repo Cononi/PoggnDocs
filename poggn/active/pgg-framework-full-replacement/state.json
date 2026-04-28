@@ -29,6 +29,8 @@
   "refactorTarget": "packages/core/src/templates.ts common Skill definition label ownership",
   "refactorBehaviorStatus": "preserved",
   "refactorPerformanceCandidate": "not_required",
+  "refactorCommitSha": "eb79669",
+  "refactorCommitMessage": "refactor. 4.0.0 extract common skill labels",
   "projectVersionUpdated": "not_applicable_until_pgg_qa_archive",
   "projectVersionReason": "이 repository의 release version source는 package.json이 아니라 poggn/version-history.ndjson latest archived version이다. pgg-plan T7에 따라 pgg-code는 version-history를 append하지 않고 pgg-qa archive 단계에서 targetVersion 4.0.0을 기록한다.",
   "pggCodeCommitStatus": "committed",

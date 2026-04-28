@@ -57,6 +57,11 @@ pgg:
 
 `not_required`. 성능 개선을 주장하지 않았고 algorithm, loop, DB query, caching, concurrency, file processing, bundle size behavior를 변경하지 않았다.
 
+## Commit
+
+- `eb79669` - `refactor. 4.0.0 extract common skill labels`
+- Push: not attempted. pgg-refactor does not push.
+
 ## Next
 
 정상 완료이므로 next flow는 `pgg-qa`이다.
