@@ -81,5 +81,6 @@
   "pggRefactorStatus": "PASS",
   "refactorSummary": "Behavior-preserving structure cleanup for stage alias normalization and dashboard runtime timestamp predicate.",
   "refactorBehaviorPreserved": true,
-  "refactorDiffInspection": "PASS"
+  "refactorDiffInspection": "PASS",
+  "pggRefactorCommitSha": "cf9df0a88c11817b8dacf98238edae658213913e"
 }
