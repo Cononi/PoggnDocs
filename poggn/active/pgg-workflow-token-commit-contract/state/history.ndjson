@@ -22,3 +22,5 @@
 {"ts":"2026-04-28T01:30:56Z","stage":"refactor","event":"stage-started","source":"pgg-refactor"}
 {"ts":"2026-04-28T01:30:56Z","stage":"refactor","event":"stage-progress","source":"pgg-refactor","summary":"legacy token title, mobile vertical fallback, helper drift scan completed","verification":"rg legacy/token/mobile/lang contract scan pass; no product code refactor required"}
 {"ts":"2026-04-28T01:32:22Z","stage":"refactor","event":"stage-commit","archiveType":"feat","targetVersion":"3.0.0","projectLanguage":"ko","commitTitle":"feat: 3.0.0.리팩터링 평가 문서","summary":"리팩터링 평가 문서","why":"구현 산출물에서 제거 가능한 legacy path와 중복 계약을 점검했고 제품 코드 변경 없이 refactor review와 다음 token audit handoff를 남긴다.","footer":"Refs: pgg-workflow-token-commit-contract","taskId":null,"dependencies":null,"completionCriteria":null}
+{"ts":"2026-04-28T01:40:03Z","stage":"qa","event":"stage-started","source":"pgg-qa"}
+{"ts":"2026-04-28T01:40:03Z","stage":"qa","event":"qa-blocked","source":"pgg-qa","summary":"required pgg-token report missing","verification":"./.codex/sh/pgg-gate.sh pgg-qa pgg-workflow-token-commit-contract fail"}

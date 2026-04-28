@@ -6,7 +6,7 @@ pgg-workflow-token-commit-contract
 
 ## Current Stage
 
-refactor
+qa
 
 ## Goal
 
@@ -14,7 +14,7 @@ workflow process 모바일 형태 유지, token 측정 정확도, task 행 단�
 
 ## Next Action
 
-`pgg-token` audit로 넘긴다. token 측정 정확도와 LLM/Local source 분리 계약을 별도 검토한다.
+`pgg-token`을 실행해 required `token/report.md`를 작성한 뒤 QA를 다시 실행한다.
 
 ## Constraints
 
@@ -106,6 +106,7 @@ workflow process 모바일 형태 유지, token 측정 정확도, task 행 단�
 - `node packages/cli/dist/index.js update`: first run updated helper files and reported one checksum conflict for the already-modified stage commit helper; second run returned `status: unchanged`, `conflicts: 0`.
 - `pnpm --filter @pgg/core test`: pass, 55 tests.
 - `pnpm --filter @pgg/dashboard build`: pass, Vite chunk-size warning only.
+- `./.codex/sh/pgg-gate.sh pgg-qa pgg-workflow-token-commit-contract`: fail, required `pgg-token` report missing.
 
 ## Audit Applicability
 
@@ -125,13 +126,15 @@ workflow process 모바일 형태 유지, token 측정 정확도, task 행 단�
 - task review: approved
 - code review: approved
 - refactor review: approved
+- qa review: blocked
 - score: `98`
 - plan score: `97`
 - task score: `97`
 - code score: `98`
 - refactor score: `98`
+- qa score: `0`
 - experts: 프로덕트 매니저, UX/UI 전문가, 소프트웨어 아키텍트, 도메인 전문가, 시니어 백엔드 엔지니어, 테크 리드, 코드 리뷰어
-- blocking issues: 없음
+- blocking issues: required `token/report.md` 없음
 
 ## Next Workflow
 
@@ -215,3 +218,4 @@ workflow process 모바일 형태 유지, token 측정 정확도, task 행 단�
 | UPDATE | `.codex/sh/pgg-git-publish.sh` | `implementation/diffs/017_UPDATE_current_workspace_update_synced_helpers.diff` |
 | ADD | `poggn/active/pgg-workflow-token-commit-contract/reviews/code.review.md` | pending |
 | ADD | `poggn/active/pgg-workflow-token-commit-contract/reviews/refactor.review.md` | pending |
+| ADD | `poggn/active/pgg-workflow-token-commit-contract/qa/report.md` | pending |
