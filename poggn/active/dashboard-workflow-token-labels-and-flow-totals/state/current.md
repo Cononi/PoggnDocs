@@ -6,7 +6,7 @@ dashboard-workflow-token-labels-and-flow-totals
 
 ## Current Stage
 
-implementation
+refactor
 
 ## Goal
 
@@ -14,7 +14,7 @@ dashboard workflow token 지표의 명칭과 flow별 누적/완료 반영 기준
 
 ## Next Action
 
-`pgg-refactor`에서 token summary helper 구조와 중복 여부를 검토한다.
+`pgg-token` required audit를 수행한다.
 
 ## Constraints
 
@@ -65,6 +65,11 @@ dashboard workflow token 지표의 명칭과 flow별 누적/완료 반영 기준
 - core snapshot token record에 `artifactTokenEstimate`를 추가해 LLM unavailable record도 dashboard Timeline에서 flow별 fallback 합산할 수 있게 했다.
 - dashboard history model test에 완료 flow별 token record 합산 회귀를 추가했다.
 
+## Refactor Summary
+
+- no-op refactor로 결정했다.
+- flow record filtering, LLM 합산, local 합산 helper가 분리되어 추가 구조 변경이 필요하지 않다.
+
 ## Token Usage
 
 - ledger: `state/token-usage.ndjson`
@@ -96,13 +101,14 @@ dashboard workflow token 지표의 명칭과 flow별 누적/완료 반영 기준
 - plan review: approved
 - task review: approved
 - code review: approved
+- refactor review: approved
 - score: `96`
-- experts: 시니어 백엔드 엔지니어, 테크 리드
+- experts: 소프트웨어 아키텍트, 코드 리뷰어
 - blocking issues: 없음
 
 ## Next Workflow
 
-- pgg-refactor
+- pgg-token
 
 ## Changed Files
 
@@ -126,6 +132,7 @@ dashboard workflow token 지표의 명칭과 flow별 누적/완료 반영 기준
 | ADD | `poggn/active/dashboard-workflow-token-labels-and-flow-totals/reviews/plan.review.md` | pending |
 | ADD | `poggn/active/dashboard-workflow-token-labels-and-flow-totals/reviews/task.review.md` | pending |
 | ADD | `poggn/active/dashboard-workflow-token-labels-and-flow-totals/reviews/code.review.md` | pending |
+| ADD | `poggn/active/dashboard-workflow-token-labels-and-flow-totals/reviews/refactor.review.md` | pending |
 | ADD | `poggn/active/dashboard-workflow-token-labels-and-flow-totals/implementation/index.md` | pending |
 | ADD | `poggn/active/dashboard-workflow-token-labels-and-flow-totals/implementation/diffs/*.diff` | pending |
 | ADD | `poggn/active/dashboard-workflow-token-labels-and-flow-totals/state/current.md` | pending |
