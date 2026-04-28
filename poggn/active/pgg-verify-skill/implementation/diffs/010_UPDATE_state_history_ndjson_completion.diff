@@ -1,0 +1,9 @@
+diff --git a/poggn/active/pgg-verify-skill/state/history.ndjson b/poggn/active/pgg-verify-skill/state/history.ndjson
+index e6c0c6b..683c7e1 100644
+--- a/poggn/active/pgg-verify-skill/state/history.ndjson
++++ b/poggn/active/pgg-verify-skill/state/history.ndjson
+@@ -15,3 +15,4 @@
+ {"ts":"2026-04-28T04:16:19Z","stage":"qa","event":"stage-blocked","source":"pgg-qa","summary":"manual verification required and target version conflict blocks archive"}
+ {"ts":"2026-04-28T04:29:40Z","stage":"qa","event":"requirements-added","source":"user","summary":"active topic들을 모두 합쳐 push하고 완료 처리한다"}
+ {"ts":"2026-04-28T04:29:40Z","stage":"qa","event":"stage-progress","source":"pgg-qa","summary":"active 통합 완료 요청으로 pending version은 archive helper 계산에 맡기고 pnpm test/build 통과 evidence를 반영했다"}
++{"ts":"2026-04-28T04:36:14Z","stage":"qa","event":"stage-progress","source":"pgg-qa","summary":"token-retirement 3.0.5 archive 이후 verify-skill release metadata를 3.0.6으로 확정했다"}

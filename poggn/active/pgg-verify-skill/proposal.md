@@ -9,10 +9,10 @@ pgg:
   auto_mode: "on"
   archive_type: "chore"
   version_bump: "patch"
-  target_version: "pending"
+  target_version: "3.0.6"
   short_name: "verify-skill"
-  working_branch: "pending"
-  release_branch: "pending"
+  working_branch: "ai/chore/3.0.6-verify-skill"
+  release_branch: "release/3.0.6-verify-skill"
   project_scope: "current-project"
 state:
   summary: "pgg-verify skill을 추가한다."
@@ -29,10 +29,10 @@ pgg-verify-skill
 
 - archive_type: `chore`
 - version_bump: `patch`
-- target_version: `pending`
+- target_version: `3.0.6`
 - short_name: `verify-skill`
-- working_branch: `pending`
-- release_branch: `pending`
+- working_branch: `ai/chore/3.0.6-verify-skill`
+- release_branch: `release/3.0.6-verify-skill`
 - project_scope: `current-project`
 
 ## 3. 사용자 입력 질문 기록
@@ -49,7 +49,7 @@ pgg-verify-skill
 
 - `.codex/skills/pgg-verify/SKILL.md`를 새로 만든다.
 - 기존 core workflow, optional audit 정의, 다른 pgg skill은 수정하지 않는다.
-- 진행 중인 active topic의 target version과 충돌하지 않도록 이 topic의 publish metadata는 `pending`으로 유지한다.
+- `pgg-token-accounting-and-reactflow-retirement`가 `3.0.5`로 archive된 뒤 이 topic의 publish metadata는 `3.0.6`으로 확정한다.
 
 ## 5. 성공 기준
 

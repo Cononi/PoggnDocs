@@ -17,10 +17,10 @@ qa
 - project scope: `current-project`
 - archive type: `chore`
 - version bump: `patch`
-- target version: `pending`
+- target version: `3.0.6`
 - short name: `verify-skill`
-- working branch: `pending`
-- release branch: `pending`
+- working branch: `ai/chore/3.0.6-verify-skill`
+- release branch: `release/3.0.6-verify-skill`
 - 기존 core workflow와 optional audit 정의는 수정하지 않는다.
 
 ## User Question Record Ref

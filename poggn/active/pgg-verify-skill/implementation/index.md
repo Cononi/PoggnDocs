@@ -31,6 +31,7 @@ pgg:
 | UPDATE | `poggn/active/pgg-verify-skill/state/current.md` | qa | `implementation/diffs/009_UPDATE_state_current_md_completion.diff` |
 | UPDATE | `poggn/active/pgg-verify-skill/state/history.ndjson` | qa | `implementation/diffs/010_UPDATE_state_history_ndjson_completion.diff` |
 | CREATE | `poggn/active/pgg-verify-skill/state/dirty-worktree-baseline.txt` | qa | `implementation/diffs/011_CREATE_state_dirty-worktree-baseline_txt.diff` |
+| UPDATE | `poggn/active/pgg-verify-skill/proposal.md` | qa | `implementation/diffs/012_UPDATE_proposal_md_release_metadata.diff` |
 
 ## Verification
 
