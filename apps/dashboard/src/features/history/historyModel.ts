@@ -934,12 +934,22 @@ function laterFlowHasNewerEvidence(entries: FlowStatusRuntimeEntry[], entry: Flo
   return entries.some((candidate) => candidate.index > entry.index && compareTimestamps(latestFlowEvidence(candidate), timestamp) > 0);
 }
 
+function runtimeEntryHasUnresolvedTimestamp(
+  entries: FlowStatusRuntimeEntry[],
+  entry: FlowStatusRuntimeEntry,
+  field: FlowStatusRuntimeField
+): boolean {
+  const timestamp = entry[field];
+  if (!timestamp) {
+    return false;
+  }
+
+  return field === "updatingAt" || !laterFlowHasNewerEvidence(entries, entry, timestamp);
+}
+
 function latestUnresolvedFlowIndex(entries: FlowStatusRuntimeEntry[], field: FlowStatusRuntimeField): number | undefined {
   return entries
-    .filter((entry) => {
-      const timestamp = entry[field];
-      return timestamp ? field === "updatingAt" || !laterFlowHasNewerEvidence(entries, entry, timestamp) : false;
-    })
+    .filter((entry) => runtimeEntryHasUnresolvedTimestamp(entries, entry, field))
     .sort((left, right) => compareTimestamps(left[field], right[field]) || left.index - right.index)
     .at(-1)?.index;
 }

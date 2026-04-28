@@ -3,7 +3,7 @@
   "topicName": "dashboard-workflow-progress-sync",
   "activePath": "poggn/active/dashboard-workflow-progress-sync",
   "archivePath": "poggn/archive/dashboard-workflow-progress-sync",
-  "currentFlow": "pgg-code",
+  "currentFlow": "pgg-refactor",
   "flowStatus": "PASS",
   "language": "ko",
   "mode": "auto on",
@@ -30,7 +30,7 @@
   "performanceReason": "상태 계산과 표시 동기화 버그 수정이며 성능, 처리량, 메모리, 응답 시간 요구가 없다.",
   "projectScope": "current-project",
   "createdAt": "2026-04-28T13:20:58Z",
-  "updatedAt": "2026-04-28T14:05:00Z",
+  "updatedAt": "2026-04-28T13:59:42Z",
   "baseCommitSha": "eac7a1df424963087e4e9d7e43646ac72dd04a7c",
   "pggAddCommitSha": "53f5c5478dc3d55e0b421f58f4bb2fe604d61584",
   "pggPlanCommitSha": "ebd9ffa07939b60c4a732422ced4ee8429d89d62",
@@ -77,5 +77,9 @@
   "verificationStatus": "PASS",
   "generatedMarkdownDirectEdit": false,
   "docsGenerationStable": true,
-  "pggCodeCommitSha": "3b14fed2abced848b57f7d30b05a31cc09fff2a3"
+  "pggCodeCommitSha": "3b14fed2abced848b57f7d30b05a31cc09fff2a3",
+  "pggRefactorStatus": "PASS",
+  "refactorSummary": "Behavior-preserving structure cleanup for stage alias normalization and dashboard runtime timestamp predicate.",
+  "refactorBehaviorPreserved": true,
+  "refactorDiffInspection": "PASS"
 }

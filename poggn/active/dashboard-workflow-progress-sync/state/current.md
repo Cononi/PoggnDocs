@@ -6,7 +6,7 @@ dashboard-workflow-progress-sync
 
 ## Current Stage
 
-pgg-code
+pgg-refactor
 
 ## Goal
 
@@ -76,6 +76,13 @@ pgg-code
 - optional audit flow는 실제 실행 evidence가 있을 때만 표시된다.
 - dashboard snapshot은 CLI로 재생성했으며 generated JSON을 직접 수정하지 않았다.
 
+## Refactor Summary
+
+- `packages/core/src/index.ts`의 stage normalization switch를 `STAGE_NAME_ALIASES`로 분리했다.
+- proposal approval status 비교를 `PROPOSAL_APPROVAL_STATUSES` Set으로 중앙화했다.
+- dashboard unresolved runtime timestamp 판정을 `runtimeEntryHasUnresolvedTimestamp` helper로 분리했다.
+- 동작 변경, Acceptance Criteria 변경, public API 변경, generated Markdown 직접 수정은 없다.
+
 ## Verification Summary
 
 - `node --test scripts/dashboard-history-model.test.mjs`: PASS, 7/7
@@ -86,6 +93,8 @@ pgg-code
 - `pnpm build`: PASS, Vite chunk-size warning only
 - `pnpm verify:version-history`: PASS
 - `pnpm build:readme`: PASS, 2회 안정성 확인
+- pgg-refactor before/after comparison: PASS
+- pgg-refactor diff inspection: PASS
 
 ## Approval
 
@@ -129,10 +138,20 @@ pgg-code
 | CREATE | `pgg-code/verify.md` | 검증 결과 |
 | CREATE | `pgg-code/reviews/review-1-spec-compliance.md` | 명세 준수 review |
 | CREATE | `pgg-code/reviews/review-2-code-quality.md` | 코드 품질 review |
+| UPDATE | `packages/core/src/index.ts` | 동작 보존 stage/status normalization 구조 개선 |
+| UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | 동작 보존 runtime predicate 가독성 분리 |
+| UPDATE | `packages/core/dist/index.js` | TypeScript build output |
+| UPDATE | `packages/core/dist/index.js.map` | TypeScript build output |
+| CREATE | `pgg-refactor/refactor-report.md` | refactor 결과 |
+| CREATE | `pgg-refactor/before-after.md` | before/after 비교 |
+| CREATE | `pgg-refactor/diff-inspection.md` | feature change 금지 diff inspection |
+| CREATE | `pgg-refactor/verify.md` | refactor 검증 결과 |
+| CREATE | `pgg-refactor/reviews/behavior-preservation.review.md` | 동작 보존 review |
+| CREATE | `pgg-refactor/reviews/structure-quality.review.md` | 구조 품질 review |
 
 ## Next
 
-`pgg-refactor`
+`pgg-qa`
 
 ## Git Publish Message
 

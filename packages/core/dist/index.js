@@ -13,6 +13,27 @@ export const PGG_VERSION = "0.1.0";
 export const MANIFEST_RELATIVE_PATH = ".pgg/project.json";
 export const REGISTRY_RELATIVE_PATH = ".pgg/registry.json";
 export const USER_CONFIG_RELATIVE_PATH = ".pgg/user.json";
+const STAGE_NAME_ALIASES = {
+    "pgg-add": "proposal",
+    add: "proposal",
+    proposal: "proposal",
+    "pgg-plan": "plan",
+    plan: "plan",
+    task: "task",
+    "pgg-code": "implementation",
+    code: "implementation",
+    implementation: "implementation",
+    "pgg-refactor": "refactor",
+    refactor: "refactor",
+    "pgg-token": "token",
+    token: "token",
+    "pgg-performanc": "performance",
+    "pgg-performance": "performance",
+    performance: "performance",
+    "pgg-qa": "qa",
+    qa: "qa"
+};
+const PROPOSAL_APPROVAL_STATUSES = new Set(["reviewed", "approved", "done", "pass"]);
 const STAGE_TO_WORKFLOW = {
     proposal: "pgg-add",
     plan: "pgg-plan",
@@ -1576,40 +1597,11 @@ function parseChangedFilePaths(markdown) {
 }
 function normalizeStageName(value) {
     const normalized = value?.trim().toLowerCase();
-    switch (normalized) {
-        case "pgg-add":
-        case "add":
-        case "proposal":
-            return "proposal";
-        case "pgg-plan":
-            return "plan";
-        case "plan":
-        case "task":
-            return normalized;
-        case "pgg-code":
-        case "code":
-        case "implementation":
-            return "implementation";
-        case "pgg-refactor":
-        case "refactor":
-            return "refactor";
-        case "pgg-token":
-        case "token":
-            return "token";
-        case "pgg-performanc":
-        case "pgg-performance":
-        case "performance":
-            return "performance";
-        case "pgg-qa":
-        case "qa":
-            return "qa";
-        default:
-            return null;
-    }
+    return normalized ? STAGE_NAME_ALIASES[normalized] ?? null : null;
 }
 function proposalStatusIsApproved(value) {
     const normalized = value?.trim().toLowerCase();
-    return normalized === "reviewed" || normalized === "approved" || normalized === "done" || normalized === "pass";
+    return normalized ? PROPOSAL_APPROVAL_STATUSES.has(normalized) : false;
 }
 function isNonBlockingMarker(value) {
     if (!value) {

@@ -588,6 +588,29 @@ interface TopicIsolationIssue {
   reason: string;
 }
 
+const STAGE_NAME_ALIASES: Record<string, TopicStageName> = {
+  "pgg-add": "proposal",
+  add: "proposal",
+  proposal: "proposal",
+  "pgg-plan": "plan",
+  plan: "plan",
+  task: "task",
+  "pgg-code": "implementation",
+  code: "implementation",
+  implementation: "implementation",
+  "pgg-refactor": "refactor",
+  refactor: "refactor",
+  "pgg-token": "token",
+  token: "token",
+  "pgg-performanc": "performance",
+  "pgg-performance": "performance",
+  performance: "performance",
+  "pgg-qa": "qa",
+  qa: "qa"
+};
+
+const PROPOSAL_APPROVAL_STATUSES = new Set(["reviewed", "approved", "done", "pass"]);
+
 const STAGE_TO_WORKFLOW: Record<TopicStageName, Exclude<TopicNextWorkflow, "none">> = {
   proposal: "pgg-add",
   plan: "pgg-plan",
@@ -2477,41 +2500,12 @@ function parseChangedFilePaths(markdown: string | null): string[] {
 
 function normalizeStageName(value: string | null): TopicStageName | null {
   const normalized = value?.trim().toLowerCase();
-  switch (normalized) {
-    case "pgg-add":
-    case "add":
-    case "proposal":
-      return "proposal";
-    case "pgg-plan":
-      return "plan";
-    case "plan":
-    case "task":
-      return normalized;
-    case "pgg-code":
-    case "code":
-    case "implementation":
-      return "implementation";
-    case "pgg-refactor":
-    case "refactor":
-      return "refactor";
-    case "pgg-token":
-    case "token":
-      return "token";
-    case "pgg-performanc":
-    case "pgg-performance":
-    case "performance":
-      return "performance";
-    case "pgg-qa":
-    case "qa":
-      return "qa";
-    default:
-      return null;
-  }
+  return normalized ? STAGE_NAME_ALIASES[normalized] ?? null : null;
 }
 
 function proposalStatusIsApproved(value: string | null): boolean {
   const normalized = value?.trim().toLowerCase();
-  return normalized === "reviewed" || normalized === "approved" || normalized === "done" || normalized === "pass";
+  return normalized ? PROPOSAL_APPROVAL_STATUSES.has(normalized) : false;
 }
 
 function isNonBlockingMarker(value: string | null): boolean {

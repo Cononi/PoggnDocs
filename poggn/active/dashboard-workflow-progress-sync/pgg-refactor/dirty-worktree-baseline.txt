@@ -1,0 +1,1 @@
+clean at pgg-refactor start: git status --short --branch showed only branch line.

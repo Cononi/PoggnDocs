@@ -8,3 +8,6 @@
 {"ts":"2026-04-28T14:05:00Z","stage":"pgg-code","flow":"pgg-code","event":"stage-started","source":"codex","summary":"pgg-code implementation started from approved pgg-plan."}
 {"ts":"2026-04-28T14:05:00Z","stage":"pgg-code","flow":"pgg-code","event":"stage-progress","source":"codex","summary":"Added regression tests, updated core status evaluator and dashboard workflow model, regenerated dashboard snapshot."}
 {"ts":"2026-04-28T14:05:00Z","stage":"pgg-code","flow":"pgg-code","event":"stage-completed","source":"verified gate","summary":"T1-T7 verification passed; next flow pgg-refactor."}
+{"ts":"2026-04-28T13:59:42Z","stage":"pgg-refactor","flow":"pgg-refactor","event":"stage-started","source":"codex","summary":"pgg-refactor started from pgg-code PASS."}
+{"ts":"2026-04-28T13:59:42Z","stage":"pgg-refactor","flow":"pgg-refactor","event":"stage-progress","source":"codex","summary":"Refactored status alias normalization and dashboard unresolved timestamp predicate without behavior changes."}
+{"ts":"2026-04-28T13:59:42Z","stage":"pgg-refactor","flow":"pgg-refactor","event":"stage-completed","source":"verified gate","summary":"Before/after tests, build, docs generation, and diff inspection passed; next flow pgg-qa."}
