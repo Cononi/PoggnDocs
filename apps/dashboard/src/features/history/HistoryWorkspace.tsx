@@ -528,11 +528,16 @@ function HistoryOverview(props: {
             >
               <AutoGraphRounded fontSize="small" />
             </Box>
-            <Typography variant="h6" sx={{ color: "#f8fbff", fontWeight: 850, lineHeight: 1.08, minWidth: 0 }}>
-              {props.dictionary.workflowProgressTitleWithSplitTokens
-                .replace("{llm}", formatTokenValue(llmTokenTotal, props.dictionary))
-                .replace("{local}", localTokenTotal.toLocaleString())}
-            </Typography>
+            <Stack spacing={0.7} sx={{ minWidth: 0 }}>
+              <Typography variant="h6" sx={{ color: "#f8fbff", fontWeight: 850, lineHeight: 1.08, minWidth: 0 }}>
+                {props.dictionary.workflowProgressTitle}
+              </Typography>
+              <TokenUsageChips
+                llmActualTokens={llmTokenTotal}
+                localEstimatedTokens={localTokenTotal}
+                dictionary={props.dictionary}
+              />
+            </Stack>
           </Stack>
           <Typography variant="caption" sx={{ color: alpha("#dbeafe", 0.72), fontWeight: 600 }}>
             {props.dictionary.workflowProgressDetailHint}
@@ -1142,6 +1147,27 @@ function formatTokenValue(value: number | null, dictionary: DashboardLocale): st
   return typeof value === "number" ? value.toLocaleString() : dictionary.tokenNotRecorded;
 }
 
+function TokenUsageChips(props: {
+  llmActualTokens: number | null;
+  localEstimatedTokens: number;
+  dictionary: DashboardLocale;
+}) {
+  return (
+    <Stack direction="row" spacing={0.75} useFlexGap sx={{ flexWrap: "wrap", minWidth: 0 }}>
+      <Chip
+        size="small"
+        variant="outlined"
+        label={`${props.dictionary.llmActualTokens}: ${formatTokenValue(props.llmActualTokens, props.dictionary)}`}
+      />
+      <Chip
+        size="small"
+        variant="outlined"
+        label={`${props.dictionary.localEstimatedTokens}: ${props.localEstimatedTokens.toLocaleString()}`}
+      />
+    </Stack>
+  );
+}
+
 function HistoryTimeline(props: {
   topic: TopicSummary;
   language: "ko" | "en";
@@ -1402,10 +1428,13 @@ function TimelineMilestone(props: {
                 <Typography variant="h6" sx={{ fontSize: { xs: "1rem", md: "1.1rem" }, fontWeight: 850, overflowWrap: "anywhere" }}>
                   {props.row.step} {props.dictionary.timelineStageComplete}
                 </Typography>
-                <Stack direction="row" spacing={0.75} useFlexGap sx={{ flexWrap: "wrap", mt: 0.35 }}>
-                  <Chip size="small" variant="outlined" label={`${props.dictionary.llmActualTokens}: ${formatTokenValue(props.row.llmActualTokens, props.dictionary)}`} />
-                  <Chip size="small" variant="outlined" label={`${props.dictionary.localEstimatedTokens}: ${props.row.localEstimatedTokens.toLocaleString()}`} />
-                </Stack>
+                <Box sx={{ mt: 0.35 }}>
+                  <TokenUsageChips
+                    llmActualTokens={props.row.llmActualTokens}
+                    localEstimatedTokens={props.row.localEstimatedTokens}
+                    dictionary={props.dictionary}
+                  />
+                </Box>
               </Box>
             </Stack>
             <ExpandMoreRounded fontSize="small" sx={{ color: "text.secondary" }} />
@@ -1628,10 +1657,11 @@ function TimelineFilePreviewDialog(props: {
             {props.file?.path ?? props.dictionary.file}
           </Typography>
           {props.file ? (
-            <Stack direction="row" spacing={0.75} useFlexGap sx={{ flexWrap: "wrap" }}>
-              <Chip size="small" variant="outlined" label={`${props.dictionary.llmActualTokens}: ${formatTokenValue(props.file.llmActualTokens, props.dictionary)}`} />
-              <Chip size="small" variant="outlined" label={`${props.dictionary.localEstimatedTokens}: ${props.file.localEstimatedTokens.toLocaleString()}`} />
-            </Stack>
+            <TokenUsageChips
+              llmActualTokens={props.file.llmActualTokens}
+              localEstimatedTokens={props.file.localEstimatedTokens}
+              dictionary={props.dictionary}
+            />
           ) : null}
         </Stack>
         <IconButton
