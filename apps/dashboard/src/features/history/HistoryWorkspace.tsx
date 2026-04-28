@@ -657,13 +657,13 @@ function HistoryOverview(props: {
 function workflowProgressTrackSx(stepCount: number) {
   return {
     display: "grid",
-    gridTemplateColumns: { xs: "1fr", md: `repeat(${stepCount}, minmax(0, 1fr))` },
-    gap: { xs: 2.2, md: 1 },
+    gridTemplateColumns: `repeat(${stepCount}, minmax(0, 1fr))`,
+    gap: { xs: 0.35, sm: 0.55, md: 1 },
     position: "relative",
     minWidth: 0,
-    px: { xs: 0.4, md: 0.4 },
+    px: { xs: 0, md: 0.4 },
     pt: { xs: 0.8, md: 1 },
-    overflow: "visible",
+    overflow: "hidden",
     isolation: "isolate"
   };
 }
@@ -836,15 +836,15 @@ function connectorSx(theme: Theme, step: WorkflowStep, nextStep: WorkflowStep | 
   return {
     content: "\"\"",
     position: "absolute",
-    left: { xs: "calc(50% - 1.5px)", md: "calc(50% + 29px)" },
-    right: { xs: "auto", md: "calc(-50% + 21px)" },
-    top: { xs: 54, md: 28.5 },
-    width: { xs: 3, md: "auto" },
-    height: { xs: "calc(100% + 18px)", md: 3 },
+    left: { xs: "calc(50% + clamp(16px, 4.8vw, 26px))", md: "calc(50% + 29px)" },
+    right: { xs: "calc(-50% + clamp(12px, 4vw, 22px))", md: "calc(-50% + 21px)" },
+    top: { xs: "clamp(17px, 5vw, 27px)", md: 28.5 },
+    width: "auto",
+    height: 3,
     borderRadius: 999,
     bgcolor: nextStep.status === "pending" && !nextIsLive ? "transparent" : color,
-    borderTop: { xs: 0, md: nextStep.status === "pending" && !nextIsLive ? `3px dotted ${color}` : 0 },
-    borderLeft: { xs: nextStep.status === "pending" && !nextIsLive ? `3px dotted ${color}` : 0, md: 0 },
+    borderTop: nextStep.status === "pending" && !nextIsLive ? `3px dotted ${color}` : 0,
+    borderLeft: 0,
     boxShadow: nextIsLive || step.status === "completed" ? `0 0 12px ${alpha(color, 0.42)}` : "none",
     zIndex: 0,
     pointerEvents: "none"
@@ -867,7 +867,7 @@ function WorkflowStepNode(props: {
 
   return (
     <Stack
-      spacing={1}
+      spacing={{ xs: 0.55, md: 1 }}
       sx={{
         alignItems: "center",
         minWidth: 0,
@@ -881,8 +881,8 @@ function WorkflowStepNode(props: {
           onClick={props.onSelect}
           aria-label={`${label} ${statusLabel}. ${tooltipTitle}`}
           sx={{
-            width: { xs: 52, sm: 56, md: 60 },
-            height: { xs: 52, sm: 56, md: 60 },
+            width: { xs: "clamp(34px, 9.5vw, 52px)", sm: 56, md: 60 },
+            height: { xs: "clamp(34px, 9.5vw, 52px)", sm: 56, md: 60 },
             borderRadius: "50%",
             border: `2px solid ${colors.border}`,
             bgcolor: props.step.status === "pending" ? "#0b1729" : colors.soft,
@@ -910,27 +910,28 @@ function WorkflowStepNode(props: {
           }}
         >
           {props.step.status === "completed" ? (
-            <CheckRounded sx={{ fontSize: { xs: 24, md: 28 } }} />
+            <CheckRounded sx={{ fontSize: { xs: "clamp(17px, 5vw, 24px)", md: 28 } }} />
           ) : isUpdatingWorkflowStep(props.step) ? (
-            <DifferenceRounded sx={{ fontSize: { xs: 23, md: 27 } }} />
+            <DifferenceRounded sx={{ fontSize: { xs: "clamp(16px, 4.8vw, 23px)", md: 27 } }} />
           ) : isBlockedWorkflowStep(props.step) ? (
-            <LockRounded sx={{ fontSize: { xs: 23, md: 27 } }} />
+            <LockRounded sx={{ fontSize: { xs: "clamp(16px, 4.8vw, 23px)", md: 27 } }} />
           ) : isActiveWorkflowStep(props.step) ? (
-            <CodeRounded sx={{ fontSize: { xs: 23, md: 27 } }} />
+            <CodeRounded sx={{ fontSize: { xs: "clamp(16px, 4.8vw, 23px)", md: 27 } }} />
           ) : (
-            <Box sx={{ width: { xs: 10, md: 12 }, height: { xs: 10, md: 12 }, borderRadius: "50%", bgcolor: colors.main }} />
+            <Box sx={{ width: { xs: "clamp(7px, 2.5vw, 10px)", md: 12 }, height: { xs: "clamp(7px, 2.5vw, 10px)", md: 12 }, borderRadius: "50%", bgcolor: colors.main }} />
           )}
         </ButtonBase>
       </Tooltip>
-      <Typography variant="subtitle2" sx={{ color: "#f8fbff", fontWeight: 900, lineHeight: 1.1, textAlign: "center", overflowWrap: "anywhere" }}>
+      <Typography variant="subtitle2" sx={{ color: "#f8fbff", fontSize: { xs: "0.68rem", sm: "0.78rem", md: "0.875rem" }, fontWeight: 900, lineHeight: 1.1, textAlign: "center", overflowWrap: "anywhere" }}>
         {label}
       </Typography>
       <Typography
         variant="caption"
         sx={{
           minHeight: 30,
-          maxWidth: 116,
+          maxWidth: { xs: "100%", md: 116 },
           color: props.step.status === "completed" ? alpha("#f8fbff", 0.78) : props.step.status === "pending" ? alpha("#d7deea", 0.74) : colors.main,
+          fontSize: { xs: "0.62rem", sm: "0.68rem", md: "0.75rem" },
           fontWeight: isHighlightedWorkflowStep(props.step) ? 800 : 650,
           lineHeight: 1.18,
           textAlign: "center",

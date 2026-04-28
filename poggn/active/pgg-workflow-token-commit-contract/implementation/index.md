@@ -18,8 +18,10 @@ pgg:
 | 004 | UPDATE | `packages/core/dist/index.d.ts`, `packages/core/dist/index.js`, `packages/core/dist/index.js.map` | `implementation/diffs/004_UPDATE_packages_core_dist_index.diff` | `T1` | core build 산출물을 T1 source 변경과 동기화했다. |
 | 005 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `implementation/diffs/005_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_tsx.diff` | `T2` | Workflow Progress 제목에서 token 결합 문구를 제거하고 LLM/Local clip row를 공용 컴포넌트로 분리했다. |
 | 006 | UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | `implementation/diffs/006_UPDATE_apps_dashboard_src_shared_locale_dashboardLocale_ts.diff` | `T2` | 한국어/영어 locale에서 결합 token title key를 제거하고 순수 Workflow Progress 제목 key로 바꿨다. |
+| 007 | UPDATE | `apps/dashboard/src/features/history/HistoryWorkspace.tsx` | `implementation/diffs/007_UPDATE_apps_dashboard_src_features_history_HistoryWorkspace_mobile_process.diff` | `T3` | 모바일 workflow process track이 세로 stack으로 바뀌지 않도록 같은 column 형태와 horizontal connector를 유지하고 node 크기를 동적으로 줄였다. |
 
 ## Verification
 
 - `pnpm --filter @pgg/core test`: pass, 54 tests.
 - `pnpm --filter @pgg/dashboard build`: pass, Vite chunk-size warning only.
+- `rg` mobile stack/vertical connector pattern check: pass, workflow process track의 xs `1fr` stack과 vertical connector 패턴 없음.
