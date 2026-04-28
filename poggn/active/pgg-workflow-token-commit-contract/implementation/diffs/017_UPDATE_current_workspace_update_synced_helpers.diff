@@ -1,0 +1,49 @@
+diff --git a/.codex/sh/pgg-git-publish.sh b/.codex/sh/pgg-git-publish.sh
+index 44612cd..2933331 100755
+--- a/.codex/sh/pgg-git-publish.sh
++++ b/.codex/sh/pgg-git-publish.sh
+@@ -196,12 +196,29 @@ NODE
+ 
+ write_commit_message_file() {
+   local output_file="$1"
+-  COMMIT_TITLE_VALUE="$COMMIT_TITLE" WHY_SUMMARY_VALUE="$WHY_SUMMARY" SUMMARY_VALUE="$SUMMARY" ISSUE_FOOTER_VALUE="$ISSUE_FOOTER" node - <<'NODE' > "$output_file"
++  COMMIT_TITLE_VALUE="$COMMIT_TITLE" WHY_SUMMARY_VALUE="$WHY_SUMMARY" SUMMARY_VALUE="$SUMMARY" ISSUE_FOOTER_VALUE="$ISSUE_FOOTER" PROJECT_LANGUAGE_VALUE="${PROJECT_LANGUAGE:-ko}" TASK_DEPENDENCIES_VALUE="${TASK_DEPENDENCIES:-}" TASK_COMPLETION_CRITERIA_VALUE="${TASK_COMPLETION_CRITERIA:-}" node - <<'NODE' > "$output_file"
+ const title = (process.env.COMMIT_TITLE_VALUE ?? "").trim();
+ const why = (process.env.WHY_SUMMARY_VALUE ?? "").trim();
+ const summary = (process.env.SUMMARY_VALUE ?? "").trim();
+ const footer = (process.env.ISSUE_FOOTER_VALUE ?? "").trim();
+-process.stdout.write([title, "", `Why: ${why}`, "", `Changes: ${summary}`, "", footer, ""].join("\n"));
++const projectLanguage = (process.env.PROJECT_LANGUAGE_VALUE ?? "ko").trim();
++const dependencies = (process.env.TASK_DEPENDENCIES_VALUE ?? "").trim() || (projectLanguage === "ko" ? "기록 없음" : "not recorded");
++const completionCriteria = (process.env.TASK_COMPLETION_CRITERIA_VALUE ?? "").trim() || why;
++const completionLabel = projectLanguage === "ko" ? "완료 조건" : "Completion Criteria";
++process.stdout.write([
++  title,
++  "",
++  `Dependencies: ${dependencies}`,
++  "",
++  `${completionLabel}: ${completionCriteria}`,
++  "",
++  `Why: ${why}`,
++  "",
++  `Changes: ${summary}`,
++  "",
++  footer,
++  ""
++].join("\n"));
+ NODE
+ }
+ 
+diff --git a/.codex/sh/pgg-stage-commit.sh b/.codex/sh/pgg-stage-commit.sh
+index b05e2bc..6d6b307 100755
+--- a/.codex/sh/pgg-stage-commit.sh
++++ b/.codex/sh/pgg-stage-commit.sh
+@@ -159,7 +159,7 @@ NODE
+ 
+ write_commit_message_file() {
+   local output_file="$1"
+-  COMMIT_TITLE_VALUE="$COMMIT_TITLE" WHY_SUMMARY_VALUE="$WHY_SUMMARY" SUMMARY_VALUE="$SUMMARY" ISSUE_FOOTER_VALUE="$ISSUE_FOOTER" PROJECT_LANGUAGE_VALUE="$PROJECT_LANGUAGE" TASK_DEPENDENCIES_VALUE="$TASK_DEPENDENCIES" TASK_COMPLETION_CRITERIA_VALUE="$TASK_COMPLETION_CRITERIA" node - <<'NODE' > "$output_file"
++  COMMIT_TITLE_VALUE="$COMMIT_TITLE" WHY_SUMMARY_VALUE="$WHY_SUMMARY" SUMMARY_VALUE="$SUMMARY" ISSUE_FOOTER_VALUE="$ISSUE_FOOTER" PROJECT_LANGUAGE_VALUE="${PROJECT_LANGUAGE:-ko}" TASK_DEPENDENCIES_VALUE="${TASK_DEPENDENCIES:-}" TASK_COMPLETION_CRITERIA_VALUE="${TASK_COMPLETION_CRITERIA:-}" node - <<'NODE' > "$output_file"
+ const title = (process.env.COMMIT_TITLE_VALUE ?? "").trim();
+ const why = (process.env.WHY_SUMMARY_VALUE ?? "").trim();
+ const summary = (process.env.SUMMARY_VALUE ?? "").trim();

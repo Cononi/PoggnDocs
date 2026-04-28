@@ -5,7 +5,7 @@ pgg:
   status: "draft"
   skill: "pgg-code"
   score: 0
-  updated_at: "2026-04-28T01:19:24Z"
+  updated_at: "2026-04-28T01:23:29Z"
 ---
 
 # Implementation Index
@@ -28,6 +28,7 @@ pgg:
 | 014 | UPDATE | `packages/core/test/skill-generation.test.mjs` | `implementation/diffs/014_UPDATE_packages_core_test_skill_generation_pgg_lang.diff` | `T5` | ko/en fixture에서 generated workflow 문서와 pgg comment rule이 project language를 따르는지 검증했다. |
 | 015 | UPDATE | `AGENTS.md`, `README.md`, `.codex/add/*`, `.codex/skills/pgg-*` | `implementation/diffs/015_UPDATE_current_workspace_pgg_lang_docs.diff` | `T5` | 현재 workspace pgg 문서와 pgg-* skill에 한국어 Language Contract를 반영했다. |
 | 016 | UPDATE | `packages/core/dist/templates.js`, `packages/core/dist/templates.js.map`, `packages/core/dist/readme.js`, `packages/core/dist/readme.js.map` | `implementation/diffs/016_UPDATE_packages_core_dist_pgg_lang_contract.diff` | `T5` | core build 산출물을 T5 source 변경과 동기화했다. |
+| 017 | UPDATE | `.codex/sh/pgg-stage-commit.sh`, `.codex/sh/pgg-git-publish.sh` | `implementation/diffs/017_UPDATE_current_workspace_update_synced_helpers.diff` | `T6` | `pgg update`가 generated helper를 source template의 task commit body default env 계약과 동기화했다. |
 
 ## Verification
 
@@ -36,3 +37,6 @@ pgg:
 - `rg` mobile stack/vertical connector pattern check: pass, workflow process track의 xs `1fr` stack과 vertical connector 패턴 없음.
 - `pnpm --filter @pgg/core test`: first run failed because shared publish helper builder referenced unset task env; after template default-value fix, pass, 54 tests.
 - `pnpm --filter @pgg/core test`: first T5 run failed because the new Korean assertion was stricter than the actual localized sentence; after regex adjustment, pass, 55 tests.
+- `node packages/cli/dist/index.js update`: first run updated helper files and reported one checksum conflict for the already-modified stage commit helper; second run returned `status: unchanged`, `conflicts: 0`.
+- `pnpm --filter @pgg/core test`: pass, 55 tests.
+- `pnpm --filter @pgg/dashboard build`: pass, Vite chunk-size warning only.
