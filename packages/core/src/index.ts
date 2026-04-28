@@ -314,6 +314,20 @@ export interface TopicFileEntry {
   tokenSource: "ledger" | "estimated" | "none";
   content: string | null;
   editable: boolean;
+  lazyDiff?: LazyDiffSource | null;
+}
+
+export interface LazyDiffSource {
+  topic: string;
+  bucket: "active" | "archive";
+  targetPath: string;
+  diffSource: "commit" | "commit-range" | "working-tree" | "legacy-diff-file" | "unavailable";
+  gitRef: string | null;
+  commitRange: string | null;
+  diffCommand: string | null;
+  status: string | null;
+  taskRef: string | null;
+  note: string | null;
 }
 
 export interface TopicTokenUsage {
@@ -379,6 +393,7 @@ export interface WorkflowNodeData {
   status?: string;
   crud?: string;
   diffRef?: string;
+  lazyDiff?: LazyDiffSource | null;
   detail?: WorkflowDetailPayload | null;
 }
 
@@ -410,6 +425,7 @@ export interface WorkflowDetailPayload {
   sourcePath: string;
   content: string;
   contentType: string;
+  lazyDiff?: LazyDiffSource | null;
   startedAt?: string | null;
   updatedAt: string | null;
   completedAt?: string | null;
@@ -3443,6 +3459,144 @@ async function listProjectFiles(rootDir: string): Promise<TopicFileEntry[]> {
   return entries.sort((left, right) => left.relativePath.localeCompare(right.relativePath));
 }
 
+function cleanMarkdownTableCell(value: string | undefined): string {
+  return (value ?? "").trim().replace(/^`|`$/g, "").trim();
+}
+
+function normalizeMarkdownTableKey(value: string | undefined): string {
+  return cleanMarkdownTableCell(value).toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+
+function splitMarkdownTableRow(line: string): string[] {
+  const trimmed = line.trim();
+  const withoutStart = trimmed.startsWith("|") ? trimmed.slice(1) : trimmed;
+  const withoutEnd = withoutStart.endsWith("|") ? withoutStart.slice(0, -1) : withoutStart;
+  return withoutEnd.split("|").map((cell) => cell.trim());
+}
+
+function sanitizeVirtualDiffPath(value: string): string {
+  const normalized = value.replace(/\\/g, "/").replace(/^\.?\//, "");
+  const safe = normalized.replace(/[^a-zA-Z0-9._-]+/g, "_").replace(/^_+|_+$/g, "");
+  return safe || "changed-file";
+}
+
+function normalizeDiffSource(value: string): LazyDiffSource["diffSource"] {
+  if (value === "commit" || value === "commit-range" || value === "working-tree" || value === "legacy-diff-file") {
+    return value;
+  }
+  return "unavailable";
+}
+
+function parseImplementationIndexRows(raw: string | null): Array<{
+  id: string;
+  crud: string;
+  targetPath: string;
+  taskRef: string | null;
+  diffSource: LazyDiffSource["diffSource"];
+  gitRef: string | null;
+  commitRange: string | null;
+  diffCommand: string | null;
+  status: string | null;
+  note: string | null;
+}> {
+  if (!raw) {
+    return [];
+  }
+
+  const rows: Array<ReturnType<typeof splitMarkdownTableRow>> = [];
+  for (const line of raw.split(/\n+/)) {
+    const trimmed = line.trim();
+    if (!trimmed.startsWith("|") || /^\|[ -|:]+\|?$/.test(trimmed)) {
+      continue;
+    }
+    rows.push(splitMarkdownTableRow(trimmed));
+  }
+
+  if (rows.length < 2) {
+    return [];
+  }
+
+  const header = rows[0] ?? [];
+  const headerIndex = new Map(header.map((cell, index) => [normalizeMarkdownTableKey(cell), index]));
+  if (!headerIndex.has("path") || !headerIndex.has("diffsource")) {
+    return [];
+  }
+
+  const cell = (row: string[], key: string): string => cleanMarkdownTableCell(row[headerIndex.get(key) ?? -1]);
+  return rows.slice(1).flatMap((row) => {
+    const targetPath = cell(row, "path");
+    if (!targetPath) {
+      return [];
+    }
+    const diffSource = normalizeDiffSource(cell(row, "diffsource"));
+    if (diffSource === "legacy-diff-file") {
+      return [];
+    }
+    const valueOrNull = (value: string): string | null => (value && value !== "-" ? value : null);
+    return [{
+      id: cell(row, "id") || String(rows.indexOf(row) + 1).padStart(3, "0"),
+      crud: cell(row, "crud") || "UPDATE",
+      targetPath,
+      taskRef: valueOrNull(cell(row, "taskref")),
+      diffSource,
+      gitRef: valueOrNull(cell(row, "gitref")),
+      commitRange: valueOrNull(cell(row, "commitrange")),
+      diffCommand: valueOrNull(cell(row, "diffcommand")),
+      status: valueOrNull(cell(row, "status")),
+      note: valueOrNull(cell(row, "note"))
+    }];
+  });
+}
+
+async function listLazyDiffTopicFiles(
+  topicDir: string,
+  bucket: "active" | "archive",
+  topic: string,
+  existingEntries: TopicFileEntry[]
+): Promise<TopicFileEntry[]> {
+  const indexPath = path.join(topicDir, "implementation", "index.md");
+  const indexContent = await readTextIfExists(indexPath);
+  const rows = parseImplementationIndexRows(indexContent);
+  if (rows.length === 0) {
+    return [];
+  }
+
+  const existingPaths = new Set(existingEntries.map((entry) => entry.relativePath));
+  const indexStat = await stat(indexPath).catch(() => null);
+  return rows.flatMap((row) => {
+    const relativePath = `implementation/diffs/${row.id}_${row.crud}_${sanitizeVirtualDiffPath(row.targetPath)}.diff`;
+    if (existingPaths.has(relativePath)) {
+      return [];
+    }
+
+    return [{
+      relativePath,
+      sourcePath: `poggn/${bucket}/${topic}/implementation/index.md#${row.id}`,
+      kind: "diff",
+      updatedAt: indexStat?.mtime.toISOString() ?? null,
+      size: null,
+      tokenEstimate: null,
+      localEstimatedTokens: null,
+      llmActualTokens: null,
+      tokenSource: "none",
+      content: null,
+      editable: false,
+      lazyDiff: {
+        topic,
+        bucket,
+        targetPath: row.targetPath,
+        diffSource: row.diffSource,
+        gitRef: row.gitRef,
+        commitRange: row.commitRange,
+        diffCommand: row.diffCommand,
+        status: row.status,
+        taskRef: row.taskRef,
+        note: row.note
+      }
+    } satisfies TopicFileEntry];
+  });
+}
+
 async function listTopicFiles(
   rootDir: string,
   topicDir: string,
@@ -3475,7 +3629,9 @@ async function listTopicFiles(
     })
   );
 
-  return entries
+  const lazyDiffEntries = await listLazyDiffTopicFiles(topicDir, bucket, topic, entries);
+
+  return [...entries, ...lazyDiffEntries]
     .map((entry) => applyTokenUsageRecordsToFile(entry, tokenUsageRecords))
     .sort((left, right) => left.relativePath.localeCompare(right.relativePath));
 }

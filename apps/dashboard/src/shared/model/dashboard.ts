@@ -6,6 +6,7 @@ export type WorkflowDetailPayload = {
   sourcePath: string;
   content: string;
   contentType: string;
+  lazyDiff?: LazyDiffSource | null;
   startedAt?: string | null;
   updatedAt: string | null;
   completedAt?: string | null;
@@ -20,7 +21,21 @@ export type WorkflowNodeData = {
   status?: string;
   crud?: string;
   diffRef?: string;
+  lazyDiff?: LazyDiffSource | null;
   detail?: WorkflowDetailPayload | null;
+};
+
+export type LazyDiffSource = {
+  topic: string;
+  bucket: "active" | "archive";
+  targetPath: string;
+  diffSource: "commit" | "commit-range" | "working-tree" | "legacy-diff-file" | "unavailable";
+  gitRef: string | null;
+  commitRange: string | null;
+  diffCommand: string | null;
+  status: string | null;
+  taskRef: string | null;
+  note: string | null;
 };
 
 export type WorkflowNode = {
@@ -74,6 +89,7 @@ export type TopicFileEntry = {
   tokenSource: "ledger" | "estimated" | "none";
   content: string | null;
   editable: boolean;
+  lazyDiff?: LazyDiffSource | null;
 };
 
 export type TopicTokenUsage = {
@@ -328,6 +344,7 @@ export type ArtifactDocumentEntry = {
   group: ArtifactGroupKey;
   updatedAt: string | null;
   editable: boolean;
+  lazyDiff?: LazyDiffSource | null;
 };
 
 export type ArtifactSelection = {
@@ -337,6 +354,7 @@ export type ArtifactSelection = {
   sourcePath: string | null;
   relativePath: string | null;
   editable: boolean;
+  lazyDiff?: LazyDiffSource | null;
 };
 
 export type DashboardStore = {

@@ -202,7 +202,8 @@ export function buildTopicFileArtifactEntry(file: TopicFileEntry): ArtifactDocum
     detail: null,
     group: resolveArtifactGroupFromPath(file.sourcePath),
     updatedAt: file.updatedAt,
-    editable: file.editable
+    editable: file.editable,
+    lazyDiff: file.lazyDiff ?? null
   };
 }
 
@@ -234,7 +235,8 @@ export function buildProjectFileArtifactEntry(file: TopicFileEntry): ArtifactDoc
             },
     group: resolveArtifactGroupFromPath(file.sourcePath),
     updatedAt: file.updatedAt,
-    editable: file.editable
+    editable: file.editable,
+    lazyDiff: file.lazyDiff ?? null
   };
 }
 
@@ -324,6 +326,7 @@ export function createTopicArtifactSelection(
     detail: WorkflowDetailPayload | null;
     sourcePath: string | null;
     editable: boolean;
+    lazyDiff?: ArtifactSelection["lazyDiff"];
   }
 ): ArtifactSelection {
   return {
@@ -332,7 +335,8 @@ export function createTopicArtifactSelection(
     detail: payload.detail,
     sourcePath: payload.sourcePath,
     relativePath: resolveTopicRelativePath(topic, payload.sourcePath),
-    editable: payload.editable
+    editable: payload.editable,
+    lazyDiff: payload.lazyDiff ?? null
   };
 }
 
@@ -356,7 +360,8 @@ export function buildTopicArtifactEntries(topic: TopicSummary | null): ArtifactD
       detail: node.data.detail ?? null,
       group: resolveArtifactGroupFromPath(sourcePath),
       updatedAt: node.data.detail?.updatedAt ?? null,
-      editable: true
+      editable: true,
+      lazyDiff: node.data.lazyDiff ?? node.data.detail?.lazyDiff ?? null
     });
   }
 
@@ -416,7 +421,8 @@ export function buildTopicArtifactEntries(topic: TopicSummary | null): ArtifactD
       detail: null,
       group,
       updatedAt,
-      editable: true
+      editable: true,
+      lazyDiff: null
     });
   });
 
@@ -461,7 +467,8 @@ export function createArtifactSelection(
     detail: entry.detail,
     sourcePath: entry.sourcePath,
     relativePath: entry.relativePath,
-    editable: entry.editable
+    editable: entry.editable,
+    lazyDiff: entry.lazyDiff ?? null
   };
 }
 
