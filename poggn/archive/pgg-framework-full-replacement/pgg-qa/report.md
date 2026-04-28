@@ -134,9 +134,12 @@ PASS
 - archive move: PASS, `poggn/active/pgg-framework-full-replacement` -> `poggn/archive/pgg-framework-full-replacement`
 - version record: PASS, `version.json` targetVersion `4.0.0`, previousVersion `3.2.0`
 - version ledger: PASS, `poggn/version-history.ndjson` appended `4.0.0`
-- final QA/archive commit: pending
-- release branch: pending
-- push: pending
+- final QA/archive commit: PASS, `7359cac chore. 4.0.0 archive pgg framework replacement`
+- release branch: PASS, `release/4.0.0-framework-replacement`
+- release branch push: PASS, `origin/release/4.0.0-framework-replacement`
+- remote note: GitHub reported repository moved to `git@github.com:Cononi/PoggnDocs.git`, but accepted the push through `git@github.com:Cononi/poggn.git`.
+- local working branch cleanup: PASS, deleted `ai/feat/4.0.0-framework-replacement`
+- remote working branch cleanup: PASS, remote working branch was absent.
 
 ## 남은 위험
 
