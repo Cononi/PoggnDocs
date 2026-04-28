@@ -13,3 +13,6 @@
 {"ts":"2026-04-28T04:29:40Z","stage":"token","event":"stage-completed","source":"verified","summary":"required token audit recorded and dashboard token summary verified"}
 {"ts":"2026-04-28T04:29:40Z","stage":"qa","event":"stage-started","source":"pgg-qa"}
 {"ts":"2026-04-28T04:29:40Z","stage":"qa","event":"stage-progress","source":"pgg-qa","summary":"pnpm test, pnpm build, dashboard snapshot verification passed"}
+{"ts":"2026-04-28T04:36:07Z","stage":"archive","event":"version-recorded","version":"3.0.5","changeType":"fix","versionBump":"patch","targetVersion":"3.0.5","workingBranch":"ai/fix/3.0.5-token-retirement","releaseBranch":"release/3.0.5-token-retirement"}
+{"ts":"2026-04-28T04:36:07Z","stage":"archive","event":"archived"}
+{"ts":"2026-04-28T04:36:16Z","stage":"archive","event":"git-publish-complete","resultType":"published","pushStatus":"success","reason":"Release branch push completed successfully.","remote":"origin","workingBranch":"ai/fix/3.0.5-token-retirement","releaseBranch":"release/3.0.5-token-retirement","publishMode":"first_publish","upstreamStatus":"configured","cleanupStatus":"completed","cleanupReason":"Removed the ai branch after promoting 'release/3.0.5-token-retirement'. No remote ai branch existed.","cleanupTiming":"after_release_promotion","notesRef":"refs/notes/pgg-publish","commitSha":"a7fafe089f3a8c3f6e7fb04661d94c2f8c8dc947"}
