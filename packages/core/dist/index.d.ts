@@ -282,6 +282,7 @@ export interface TopicTokenUsageRecord {
     source: "llm" | "local";
     provider: string | null;
     model: string | null;
+    usageMetadataAvailable: boolean;
     inputTokens: number | null;
     outputTokens: number | null;
     cachedTokens: number | null;

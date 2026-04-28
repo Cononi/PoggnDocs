@@ -75,12 +75,43 @@ test("dashboard snapshots prefer topic token usage ledger attribution", async ()
             artifact_path: "implementation/index.md",
             operation: "create",
             source: "llm",
+            provider: "codex",
+            model: "gpt-5",
+            usage_metadata_available: true,
+            input_tokens: 13,
+            output_tokens: 18,
             total_tokens: 31,
             estimated: false,
             measurement: "actual"
           }),
           JSON.stringify({
             ts: "2026-04-27T00:00:01Z",
+            stage: "implementation",
+            flow: "pgg-code",
+            event: "file-created",
+            artifact_path: "implementation/index.md",
+            operation: "create",
+            source: "llm",
+            total_tokens: 999,
+            estimated: false,
+            measurement: "unavailable",
+            usage_metadata_available: false
+          }),
+          JSON.stringify({
+            ts: "2026-04-27T00:00:02Z",
+            stage: "implementation",
+            flow: "pgg-code",
+            event: "file-created",
+            artifact_path: "implementation/index.md",
+            operation: "create",
+            source: "llm",
+            total_tokens: 77,
+            estimated: false,
+            measurement: "actual",
+            usage_metadata_available: false
+          }),
+          JSON.stringify({
+            ts: "2026-04-27T00:00:03Z",
             stage: "implementation",
             flow: "pgg-code",
             event: "file-created",
@@ -100,11 +131,16 @@ test("dashboard snapshots prefer topic token usage ledger attribution", async ()
       const implementationFile = topicSummary?.files.find((file) => file.relativePath === "implementation/index.md");
 
       assert.equal(topicSummary?.tokenUsage.source, "ledger");
-      assert.equal(topicSummary?.tokenUsage.ledgerRecordCount, 2);
-      assert.equal(topicSummary?.tokenUsage.total, 42);
+      assert.equal(topicSummary?.tokenUsage.ledgerRecordCount, 4);
+      assert.equal(topicSummary?.tokenUsage.total, 1118);
       assert.equal(topicSummary?.tokenUsage.llmActualTokens, 31);
       assert.equal(topicSummary?.tokenUsage.localEstimatedTokens, 11);
-      assert.equal(topicSummary?.tokenUsageRecords.length, 2);
+      assert.equal(topicSummary?.tokenUsageRecords.length, 4);
+      assert.equal(topicSummary?.tokenUsageRecords[0]?.usageMetadataAvailable, true);
+      assert.equal(topicSummary?.tokenUsageRecords[1]?.measurement, "unavailable");
+      assert.equal(topicSummary?.tokenUsageRecords[1]?.usageMetadataAvailable, false);
+      assert.equal(topicSummary?.tokenUsageRecords[2]?.measurement, "actual");
+      assert.equal(topicSummary?.tokenUsageRecords[2]?.usageMetadataAvailable, false);
       assert.equal(implementationFile?.tokenSource, "ledger");
       assert.equal(implementationFile?.llmActualTokens, 31);
       assert.equal(implementationFile?.localEstimatedTokens, 11);

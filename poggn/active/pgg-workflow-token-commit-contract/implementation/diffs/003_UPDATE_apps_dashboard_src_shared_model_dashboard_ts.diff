@@ -1,0 +1,12 @@
+diff --git a/apps/dashboard/src/shared/model/dashboard.ts b/apps/dashboard/src/shared/model/dashboard.ts
+index f5a8e5b..5fb96de 100644
+--- a/apps/dashboard/src/shared/model/dashboard.ts
++++ b/apps/dashboard/src/shared/model/dashboard.ts
+@@ -95,6 +95,7 @@ export type TopicTokenUsageRecord = {
+   source: "llm" | "local";
+   provider: string | null;
+   model: string | null;
++  usageMetadataAvailable: boolean;
+   inputTokens: number | null;
+   outputTokens: number | null;
+   cachedTokens: number | null;

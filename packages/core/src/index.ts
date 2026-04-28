@@ -335,6 +335,7 @@ export interface TopicTokenUsageRecord {
   source: "llm" | "local";
   provider: string | null;
   model: string | null;
+  usageMetadataAvailable: boolean;
   inputTokens: number | null;
   outputTokens: number | null;
   cachedTokens: number | null;
@@ -3070,6 +3071,12 @@ function parseTopicTokenUsageRecords(raw: string | null): TopicTokenUsageRecord[
             source: parseTokenUsageSource(parsed.source),
             provider: typeof parsed.provider === "string" ? parsed.provider : null,
             model: typeof parsed.model === "string" ? parsed.model : null,
+            usageMetadataAvailable:
+              typeof parsed.usage_metadata_available === "boolean"
+                ? parsed.usage_metadata_available
+                : typeof parsed.usageMetadataAvailable === "boolean"
+                  ? parsed.usageMetadataAvailable
+                  : measurement === "actual" && parseTokenUsageSource(parsed.source) === "llm",
             inputTokens: parseOptionalNumber(parsed.input_tokens ?? parsed.inputTokens),
             outputTokens: parseOptionalNumber(parsed.output_tokens ?? parsed.outputTokens),
             cachedTokens: parseOptionalNumber(parsed.cached_tokens ?? parsed.cachedTokens),
@@ -3117,7 +3124,7 @@ function sumTokenRecords(
 }
 
 function isActualLlmTokenRecord(record: TopicTokenUsageRecord): boolean {
-  return record.source === "llm" && record.measurement === "actual" && !record.estimated;
+  return record.source === "llm" && record.measurement === "actual" && !record.estimated && record.usageMetadataAvailable;
 }
 
 function sumLocalTokenRecords(records: TopicTokenUsageRecord[]): number {

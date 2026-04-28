@@ -1,0 +1,8 @@
+{"ts":"2026-04-28T00:38:43Z","stage":"proposal","event":"topic-created"}
+{"ts":"2026-04-28T00:38:43Z","stage":"proposal","event":"stage-started","source":"pgg-add"}
+{"ts":"2026-04-28T00:39:11Z","stage":"proposal","event":"stage-completed","source":"verified","score":96,"next":"pgg-plan"}
+{"ts":"2026-04-28T00:47:54Z","stage":"plan","event":"stage-started","source":"pgg-plan"}
+{"ts":"2026-04-28T00:47:54Z","stage":"plan","event":"stage-completed","source":"verified","score":97,"next":"pgg-code"}
+{"ts":"2026-04-28T01:02:00Z","stage":"implementation","event":"stage-started","source":"pgg-code"}
+{"ts":"2026-04-28T01:02:00Z","stage":"implementation","event":"stage-progress","source":"pgg-code","task":"T1","summary":"token ledger actual 집계 계약 구현","verification":"pnpm --filter @pgg/core test pass"}
+{"ts":"2026-04-28T00:58:07Z","stage":"implementation","event":"stage-commit","archiveType":"feat","targetVersion":"3.0.0","projectLanguage":"ko","commitTitle":"feat: 3.0.0.token 집계 정확도","summary":"token 집계 정확도","why":"LLM actual은 Codex usage metadata가 있는 record만 요금 지표에 포함되어야 하고 Local token은 별도 source로 유지되어야 한다.","footer":"완료 조건: Codex response usage metadata 기반 LLM actual만 actual 합계에 포함되고 LLM unavailable과 Local estimated가 별도 source로 유지됨"}
