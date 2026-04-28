@@ -56,3 +56,8 @@
 - diff: `implementation/diffs/004_UPDATE_multi_active_isolation.diff`
 - verification:
   - `pnpm --filter @pgg/core test` pass, 60 tests passed
+
+## Final Verification
+
+- `pnpm build`: pass
+- `pnpm test`: pass, core 60 tests passed, dashboard history model 3 tests passed
