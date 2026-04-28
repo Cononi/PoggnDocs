@@ -124,19 +124,19 @@ description: "구현 전 요구사항을 발견하고 명세화한다."
 - `poggn/active/{topic_name}/metrics/token-usage.jsonl`
 - 기존 tooling이 요구하는 경우에만 compatibility 문서인 `proposal.md`, `reviews/proposal.review.md`, `state/current.md`를 함께 기록한다.
 
-## Common Skill Definition
+## 공통 Skill 정의
 
 - Skill ID: `pgg-add`
-- Skill Name: PGG Add
-- Purpose: `pgg-add`는 요구사항을 발견하고 명세화하는 Skill이다. 코드를 작성하지 않고 요구사항 수집, 기능 목적 정의, Acceptance Criteria 초안 작성, topic_name 생성, POGGN active workspace 생성, version 결정, pgg git on일 때 working branch 생성을 수행한다.
-- Target Agent: 요구사항 발견, 제약 조건 도출, 초기 POGGN workspace/state 생성, version/git mode 결정을 수행하는 AI 개발 에이전트.
+- Skill 이름: PGG Add
+- 목적: `pgg-add`는 요구사항을 발견하고 명세화하는 Skill이다. 코드를 작성하지 않고 요구사항 수집, 기능 목적 정의, Acceptance Criteria 초안 작성, topic_name 생성, POGGN active workspace 생성, version 결정, pgg git on일 때 working branch 생성을 수행한다.
+- 대상 에이전트: 요구사항 발견, 제약 조건 도출, 초기 POGGN workspace/state 생성, version/git mode 결정을 수행하는 AI 개발 에이전트.
 
-### Trigger Conditions
+### Trigger 조건
 
 - 새 기능, bug fix, 문서/테스트/리팩터링, migration, 성능 요구사항 등 새 PGG topic이 시작될 때 실행한다.
 - 사용자 요청이 모호하더라도 구현을 시작하지 않고 요구사항 발견 flow로 진입한다.
 
-### Inputs
+### 입력
 
 - 사용자 요청 원문
 - 현재 repository 상태와 기존 legacy 분류
@@ -144,7 +144,7 @@ description: "구현 전 요구사항을 발견하고 명세화한다."
 - 기존 project/version/git/branch naming policy
 - `auto` mode, `teams` mode, `pgg git` mode
 
-### Outputs
+### 출력
 
 - `topic_name`
 - `poggn/active/{topic_name}` active path
@@ -156,7 +156,7 @@ description: "구현 전 요구사항을 발견하고 명세화한다."
 - pgg-performance 필요성 후보
 - `poggn/active/{topic_name}/metrics/token-usage.jsonl` token 기록
 
-### Absolute Rules
+### 절대 규칙
 
 - 구현 코드를 작성하면 안 된다.
 - `auto off`에서는 사용자 승인 없이 다음 단계로 진행하면 안 된다.
@@ -166,7 +166,7 @@ description: "구현 전 요구사항을 발견하고 명세화한다."
 - 설계 문서는 작은 단위로 나누어 보여주고, 각 단위마다 승인받은 뒤 다음 단계로 넘어간다.
 - generated Markdown은 직접 수정하지 않고 TypeScript Skill 정의와 generator를 수정한다.
 
-### Anti-Patterns
+### 금지 패턴
 
 - 구현 코드, 테스트 코드, migration, 설정 변경 작성
 - 모호한 요청을 임의 확정하고 `pgg-plan`으로 이동
@@ -278,7 +278,7 @@ description: "구현 전 요구사항을 발견하고 명세화한다."
 - 예: `feat. 1.3.0 add pgg requirements for login-flow`
 - `pgg git = off`이면 commit하지 않는다.
 
-### Required Phases
+### 필수 단계
 
 - 요구 사항 수집
 - 기능 목적 정의
@@ -289,13 +289,21 @@ description: "구현 전 요구사항을 발견하고 명세화한다."
 - `pgg git = on`일 경우 working branch 생성 또는 전환
 - approval gate 확인
 
-### Approval Gates
+### 승인 Gate
 
 - `auto off`에서는 요구사항 질문 답변과 작은 설계 단위 승인이 완료되기 전 `pgg-plan`으로 진행하지 않는다.
 - 정상 완료와 승인 완료 시 마지막 문장은 `다음 flow를 실행하세요: pgg-plan`이다.
 - 요구사항 불충분 또는 승인 미완료 시 마지막 문장은 `다음 flow를 실행하세요: pgg-add`이다.
 
-### Review Requirements
+### 검증 요구사항
+
+- `topic_name`이 lowercase kebab-case이고 충돌 시 runId 또는 timestamp가 붙었는지 확인한다.
+- `poggn/active/{topic_name}`과 권장 state/requirements/acceptance/token 파일 경로가 산출물에 기록되었는지 확인한다.
+- currentVersion이 version source에서 읽혔고 targetVersion, bumpType, convention, reason, versionSource가 기록되었는지 확인한다.
+- `pgg git` mode, git repository 여부, baseBranch, workingBranch 판단이 state에 기록되었는지 확인한다.
+- completion message 마지막 문장이 허용된 next flow 문장인지 확인한다.
+
+### Review 요구사항
 
 - 질문이 숨겨진 요구사항과 제약 조건을 실제로 드러내는지 review한다.
 - 기능 목적, 포함 범위, 제외 범위, 가정, 리스크가 서로 충돌하지 않는지 review한다.
@@ -303,18 +311,19 @@ description: "구현 전 요구사항을 발견하고 명세화한다."
 - version bump와 convention 판단 근거가 요구사항과 일치하는지 review한다.
 - pgg-performance 필요성 후보가 성능/속도/최적화/응답 시간/처리량/메모리 요구사항을 놓치지 않았는지 review한다.
 
-### Completion Message Contract
+### 완료 메시지 규격
 
-- 구조화된 완료 메시지에는 Flow, 주요 산출물, 생성/수정 파일, Token 기록, 검증 결과, 남은 위험, 남은 불확실성, 다음 Flow를 포함한다.
-- 정상 완료 시 마지막 문장은 정확히 `다음 flow를 실행하세요: pgg-plan`이다.
-- 요구사항 불충분 또는 승인 미완료 시 마지막 문장은 정확히 `다음 flow를 실행하세요: pgg-add`이다.
-- 마지막 문장 뒤에는 아무 문장도 출력하지 않는다.
+모든 flow 완료 시 `# PGG Flow 완료 보고서` 형식의 구조화된 completion message를 출력한다.
+보고서는 Flow ID, 상태, Mode, Teams Mode, PGG Git, Topic, Version, 실행 요약을 포함한다.
+주요 산출물, POGGN Workspace, 생성/수정된 파일, Token 기록, Git 결과, Version 결과, 검증 결과, 남은 위험, 남은 불확실성, 다음 Flow를 포함한다.
+마지막 문장은 정확히 `다음 flow를 실행하세요: <next-flow-id>`여야 하며, 그 뒤에는 아무것도 출력하지 않는다.
 
-### Token Accounting Requirements
+### Token Accounting 요구사항
 
-- LLM이 생성하거나 수정한 파일과 generator 산출물의 token 수를 기록한다.
-- 기록 위치는 `poggn/active/{topic_name}/metrics/token-usage.jsonl`이다.
-- record에는 runId, flowId, taskId, filePath, operation, source, tokenCount, tokenizer, isEstimated, charCount, byteCount, lineCount, contentSha256, commitSha, measuredAt을 포함한다.
+모든 flow는 LLM이 생성하거나 수정한 파일의 token count를 기록한다.
+기본 저장 위치는 `poggn/active/{topic_name}/metrics/token-usage.jsonl`이다.
+record는 runId, flowId, taskId, filePath, operation, source, tokenCount, tokenizer, isEstimated, charCount, byteCount, lineCount, contentSha256, commitSha, measuredAt을 포함한다.
+token record는 나중에 data로 사용할 수 있는 JSONL 구조여야 한다.
 
 ### Next Flow Routing
 
@@ -322,13 +331,13 @@ description: "구현 전 요구사항을 발견하고 명세화한다."
 - 요구사항 불충분 또는 승인 미완료: `pgg-add` -> `pgg-add`.
 - 성능, 속도, 최적화, 응답 시간, 처리량, 메모리 사용량 요구가 있으면 pgg-performance 필요성 후보로 기록하고 이후 `pgg-plan` 또는 `pgg-code`에서 실행 필요성을 판단한다.
 
-### Performance Trigger Guidance
+### 성능 측정 유도 기준
 
 - `pgg-performance`는 성능 측정이 필요한 경우에만 실행하는 조건부 helper flow다.
 - `pgg-performanc` spelling은 compatibility alias로 registry에서 인식한다.
 - 성능 기준, 측정 명령, baseline, 결과 해석을 process artifact에 기록한다.
 
-### POGGN Workspace Requirements
+### POGGN Workspace 요구사항
 
 - `pgg-add`가 시작되면 `topic_name`을 생성한다.
 - PGG process artifact는 `poggn/active/{topic_name}` 아래에 저장한다.
@@ -336,14 +345,14 @@ description: "구현 전 요구사항을 발견하고 명세화한다."
 - application source file은 실제 project path에 생성하거나 수정한다.
 - report, state, plan, QA report, token record, metrics는 active topic directory에 저장한다.
 
-### Git Mode Requirements
+### pgg git mode 요구사항
 
 - `pgg git = off`이면 branch 생성, commit, release branch 전환, working branch 삭제, push를 수행하지 않는다.
 - `pgg git = on`이면 git 저장소 여부를 확인한다.
 - git 저장소가 있으면 branch, commit, release, push 규칙을 적용한다.
 - git 저장소가 없으면 git 작업을 생략하고 사유를 기록한다.
 
-### Branch Lifecycle Requirements
+### Branch Lifecycle 요구사항
 
 - `pgg-add`는 `pgg git = on`이고 git 저장소이면 working branch를 생성하거나 전환한다.
 - 기존 branch naming policy가 있으면 사용하고, 없으면 `pgg/working/{topic_name}`을 사용한다.
@@ -351,7 +360,7 @@ description: "구현 전 요구사항을 발견하고 명세화한다."
 - release branch는 기존 정책이 없으면 `release/{topic_name}-v{version}`을 사용한다.
 - `pgg-qa` FAIL이면 archive 이동, release branch 전환, working branch 제거, push를 수행하지 않는다.
 
-### Versioning Requirements
+### Versioning 요구사항
 
 - version format은 `x.x.x`이다.
 - `major`는 breaking change, 기존 시스템 기능의 완전한 변경, public behavior의 큰 변경에 사용한다.
@@ -359,17 +368,49 @@ description: "구현 전 요구사항을 발견하고 명세화한다."
 - `patch`는 bug fix, docs, tests, 동작 보존 refactor, 비파괴적 performance improvement, chore에 사용한다.
 - core는 currentVersion, targetVersion, bumpType, convention, versionReason, versionSource, projectVersionUpdated, versionVerification을 표현해야 한다.
 
-### Commit Message Requirements
+### Commit Message 요구사항
 
 - 모든 PGG commit message는 `{convention}. {version} {message}` 형식을 따른다.
 - 예: `feat. 1.3.0 rebuild pgg skill framework`
 - push는 `pgg-qa` PASS 완료 전에는 수행하지 않는다.
 
-### Archive Requirements
+### Archive 요구사항
 
 - `pgg-qa` PASS 전에는 active artifact를 archive로 이동하지 않는다.
 - PASS 후 `poggn/active/{topic_name}`을 `poggn/archive/{topic_name}`으로 이동한다.
 - archive 상태, QA 결과, version 결과, git 결과를 final state에 남긴다.
+
+### QA 요구사항
+
+- QA는 acceptance criteria, generated docs, tests, version, token accounting, POGGN workspace, git outcome을 검증한다.
+- PASS가 아니면 release branch 전환, archive 이동, working branch 제거, push를 수행하지 않는다.
+- 실패한 검증 명령과 실패 로그 요약을 completion message에 기록한다.
+
+### 생성 문서 섹션
+
+- purpose
+- targetAgent
+- triggerConditions
+- inputs
+- outputs
+- absoluteRules
+- antiPatterns
+- modeSpecificBehavior
+- requiredPhases
+- approvalGates
+- verificationRequirements
+- reviewRequirements
+- completionMessageContract
+- tokenAccountingRequirements
+- nextFlowRouting
+- performanceTriggerGuidance
+- poggnWorkspaceRequirements
+- gitModeRequirements
+- branchLifecycleRequirements
+- versioningRequirements
+- commitMessageRequirements
+- archiveRequirements
+- qaRequirements
 
 ## Language Contract
 

@@ -110,20 +110,20 @@ description: "승인된 요구사항/설계를 상세한 구현 계획으로 전
 - 소프트웨어 아키텍트: 구현 전략, spec 경계, 시스템 영향
 - 도메인 전문가: domain constraint와 용어 정합성
 
-## Common Skill Definition
+## 공통 Skill 정의
 
 - Skill ID: `pgg-plan`
-- Skill Name: PGG Plan
-- Purpose: `pgg-plan`은 승인된 요구사항과 설계를 상세한 구현 계획으로 바꾸는 Skill이다. 산출물은 junior engineer가 프로젝트 맥락 없이도 그대로 따라갈 수 있을 만큼 정확한 파일 경로, 완전한 코드 또는 코드 작성 지시, 검증 단계, 예상 결과, 실패 시 확인 항목을 포함해야 한다.
-- Target Agent: 승인된 pgg-add 산출물을 읽고 구현 전략, 검증 전략, test plan, version bump task, 2~5분 단위 task를 설계하는 AI 개발 에이전트.
+- Skill 이름: PGG Plan
+- 목적: `pgg-plan`은 승인된 요구사항과 설계를 상세한 구현 계획으로 바꾸는 Skill이다. 산출물은 junior engineer가 프로젝트 맥락 없이도 그대로 따라갈 수 있을 만큼 정확한 파일 경로, 완전한 코드 또는 코드 작성 지시, 검증 단계, 예상 결과, 실패 시 확인 항목을 포함해야 한다.
+- 대상 에이전트: 승인된 pgg-add 산출물을 읽고 구현 전략, 검증 전략, test plan, version bump task, 2~5분 단위 task를 설계하는 AI 개발 에이전트.
 
-### Trigger Conditions
+### Trigger 조건
 
 - `pgg-add` 산출물이 승인된 뒤에만 실행한다.
 - `auto off`에서 pgg-add 승인이 없으면 구현 계획을 생성하지 않고 승인을 요청한다.
 - 승인 전에는 구현 task를 생성하지 않는다.
 
-### Inputs
+### 입력
 
 - `poggn/active/{topic_name}/state.json`
 - 승인된 `pgg-add` 산출물과 acceptance criteria
@@ -131,7 +131,7 @@ description: "승인된 요구사항/설계를 상세한 구현 계획으로 전
 - pgg-add에서 결정한 currentVersion, targetVersion, bumpType, convention, versionReason, versionSource
 - `auto` mode, `teams` mode, `pgg git` mode
 
-### Outputs
+### 출력
 
 - `poggn/active/{topic_name}/pgg-plan/plan.md`
 - `poggn/active/{topic_name}/pgg-plan/task.md`
@@ -142,7 +142,7 @@ description: "승인된 요구사항/설계를 상세한 구현 계획으로 전
 - version bump task와 2~5분 단위 task 목록
 - `poggn/active/{topic_name}/metrics/token-usage.jsonl` token 기록
 
-### Absolute Rules
+### 절대 규칙
 
 - `poggn/active/{topic_name}/state.json`을 반드시 읽는다.
 - pgg-plan 산출물은 `poggn/active/{topic_name}/pgg-plan/` 아래에 저장한다.
@@ -153,7 +153,7 @@ description: "승인된 요구사항/설계를 상세한 구현 계획으로 전
 - pgg-add에서 결정한 version 정보를 사용하고 project version을 targetVersion으로 올리는 명시적 task를 포함한다.
 - 성능 기준이 있으면 측정 대상, 지표, baseline 또는 baseline 측정 방법, 성공/실패 기준, pgg-performance 실행 필요 여부를 포함한다.
 
-### Anti-Patterns
+### 금지 패턴
 
 - 승인되지 않은 pgg-add 산출물을 근거로 task 생성
 - `state.json`을 읽지 않고 version이나 approval 상태 추정
@@ -231,7 +231,7 @@ description: "승인된 요구사항/설계를 상세한 구현 계획으로 전
 - 예: `feat. 1.3.0 add pgg implementation plan for login-flow`
 - `pgg git = off`이면 commit하지 않는다.
 
-### Required Phases
+### 필수 단계
 
 - 승인된 pgg-add 산출물 확인
 - `state.json` 읽기와 version metadata 확인
@@ -242,7 +242,7 @@ description: "승인된 요구사항/설계를 상세한 구현 계획으로 전
 - 2~5분 단위 task 분해
 - approval gate 확인
 
-### Approval Gates
+### 승인 Gate
 
 - `auto off`에서는 pgg-add 승인 전 계획을 생성하지 않는다.
 - `auto off`에서는 plan 승인 전 `pgg-code`로 진행하지 않는다.
@@ -250,7 +250,7 @@ description: "승인된 요구사항/설계를 상세한 구현 계획으로 전
 - 계획이 불충분하면 마지막 문장은 `다음 flow를 실행하세요: pgg-plan`이다.
 - 정상 완료와 계획 승인 완료 시 마지막 문장은 `다음 flow를 실행하세요: pgg-code`이다.
 
-### Verification Requirements
+### 검증 요구사항
 
 - 산출물이 `poggn/active/{topic_name}/pgg-plan/` 아래에 있는지 확인한다.
 - currentVersion, targetVersion, bumpType, convention, versionReason, versionSource가 plan에 포함되었는지 확인한다.
@@ -260,21 +260,21 @@ description: "승인된 요구사항/설계를 상세한 구현 계획으로 전
 - 성능 민감 조건이 있으면 pgg-performance 필요 여부와 측정 기준이 포함되었는지 확인한다.
 - completion message 마지막 문장이 허용된 next flow 문장인지 확인한다.
 
-### Review Requirements
+### Review 요구사항
 
 - plan review는 구현 전략, dependency, blast radius, version bump 적합성을 검토한다.
 - task review는 2~5분 크기, 파일 경로 정확성, 코드 지시 완전성, 검증 가능성을 검토한다.
 - test coverage가 acceptance criteria, 경계값, 예외, 회귀, 성능 기준을 충분히 다루는지 검토한다.
 - review 문서에는 software architect와 domain expert 관점의 attribution을 남긴다.
 
-### Completion Message Contract
+### 완료 메시지 규격
 
 모든 flow 완료 시 `# PGG Flow 완료 보고서` 형식의 구조화된 completion message를 출력한다.
 보고서는 Flow ID, 상태, Mode, Teams Mode, PGG Git, Topic, Version, 실행 요약을 포함한다.
 주요 산출물, POGGN Workspace, 생성/수정된 파일, Token 기록, Git 결과, Version 결과, 검증 결과, 남은 위험, 남은 불확실성, 다음 Flow를 포함한다.
 마지막 문장은 정확히 `다음 flow를 실행하세요: <next-flow-id>`여야 하며, 그 뒤에는 아무것도 출력하지 않는다.
 
-### Token Accounting Requirements
+### Token Accounting 요구사항
 
 모든 flow는 LLM이 생성하거나 수정한 파일의 token count를 기록한다.
 기본 저장 위치는 `poggn/active/{topic_name}/metrics/token-usage.jsonl`이다.
@@ -288,7 +288,7 @@ token record는 나중에 data로 사용할 수 있는 JSONL 구조여야 한다
 - 계획 불충분: `pgg-plan` -> `pgg-plan`.
 - 마지막 문장은 `다음 flow를 실행하세요: pgg-code`, `다음 flow를 실행하세요: pgg-add`, `다음 flow를 실행하세요: pgg-plan` 중 하나여야 한다.
 
-### Performance Trigger Guidance
+### 성능 측정 유도 기준
 
 - 성능 기준이 요구사항에 포함되면 pgg-performance 후보로 표시한다.
 - 응답 시간, 처리량, 메모리 사용량, 번들 크기, DB query 수가 중요하면 pgg-performance 후보로 표시한다.
@@ -296,7 +296,7 @@ token record는 나중에 data로 사용할 수 있는 JSONL 구조여야 한다
 - pgg-code 이후 benchmark가 필요할 수 있으면 pgg-performance 후보로 표시한다.
 - 성능 기준이 있다면 측정 대상, 측정 지표, baseline 또는 baseline 측정 방법, 성능 성공/실패 기준, pgg-performance 실행 필요 여부를 포함한다.
 
-### POGGN Workspace Requirements
+### POGGN Workspace 요구사항
 
 - `pgg-add`가 시작되면 `topic_name`을 생성한다.
 - PGG process artifact는 `poggn/active/{topic_name}` 아래에 저장한다.
@@ -304,14 +304,14 @@ token record는 나중에 data로 사용할 수 있는 JSONL 구조여야 한다
 - application source file은 실제 project path에 생성하거나 수정한다.
 - report, state, plan, QA report, token record, metrics는 active topic directory에 저장한다.
 
-### Git Mode Requirements
+### pgg git mode 요구사항
 
 - `pgg git = off`이면 branch 생성, commit, release branch 전환, working branch 삭제, push를 수행하지 않는다.
 - `pgg git = on`이면 git 저장소 여부를 확인한다.
 - git 저장소가 있으면 branch, commit, release, push 규칙을 적용한다.
 - git 저장소가 없으면 git 작업을 생략하고 사유를 기록한다.
 
-### Branch Lifecycle Requirements
+### Branch Lifecycle 요구사항
 
 - `pgg-add`는 `pgg git = on`이고 git 저장소이면 working branch를 생성하거나 전환한다.
 - 기존 branch naming policy가 있으면 사용하고, 없으면 `pgg/working/{topic_name}`을 사용한다.
@@ -319,7 +319,7 @@ token record는 나중에 data로 사용할 수 있는 JSONL 구조여야 한다
 - release branch는 기존 정책이 없으면 `release/{topic_name}-v{version}`을 사용한다.
 - `pgg-qa` FAIL이면 archive 이동, release branch 전환, working branch 제거, push를 수행하지 않는다.
 
-### Versioning Requirements
+### Versioning 요구사항
 
 - version format은 `x.x.x`이다.
 - `major`는 breaking change, 기존 시스템 기능의 완전한 변경, public behavior의 큰 변경에 사용한다.
@@ -327,25 +327,25 @@ token record는 나중에 data로 사용할 수 있는 JSONL 구조여야 한다
 - `patch`는 bug fix, docs, tests, 동작 보존 refactor, 비파괴적 performance improvement, chore에 사용한다.
 - core는 currentVersion, targetVersion, bumpType, convention, versionReason, versionSource, projectVersionUpdated, versionVerification을 표현해야 한다.
 
-### Commit Message Requirements
+### Commit Message 요구사항
 
 - 모든 PGG commit message는 `{convention}. {version} {message}` 형식을 따른다.
 - 예: `feat. 1.3.0 rebuild pgg skill framework`
 - push는 `pgg-qa` PASS 완료 전에는 수행하지 않는다.
 
-### Archive Requirements
+### Archive 요구사항
 
 - `pgg-qa` PASS 전에는 active artifact를 archive로 이동하지 않는다.
 - PASS 후 `poggn/active/{topic_name}`을 `poggn/archive/{topic_name}`으로 이동한다.
 - archive 상태, QA 결과, version 결과, git 결과를 final state에 남긴다.
 
-### QA Requirements
+### QA 요구사항
 
 - QA는 acceptance criteria, generated docs, tests, version, token accounting, POGGN workspace, git outcome을 검증한다.
 - PASS가 아니면 release branch 전환, archive 이동, working branch 제거, push를 수행하지 않는다.
 - 실패한 검증 명령과 실패 로그 요약을 completion message에 기록한다.
 
-### Generated Documentation Sections
+### 생성 문서 섹션
 
 - pgg-plan 목적
 - 승인된 설계 필요 조건

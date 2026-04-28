@@ -1,7 +1,7 @@
 # IMPLEMENTATION
 
 - `pgg-code`와 `pgg-refactor`는 승인된 proposal, plan, task, spec 기준과 필수 구현 기준에 따라 구현한다.
-- `pgg-token`과 `pgg-performance`는 optional audit로 실제로 열린 경우에만 각각 `token/report.md`, `performance/report.md`에 결과를 남긴다.
+- `pgg-token`과 `pgg-performance`는 optional audit로 실제로 열린 경우에만 각각 `token/report.md`, `pgg-performance/report.md`에 결과를 남긴다.
 - audit applicability가 `required`인 경우에만 후속 gate와 QA에서 해당 report를 필수로 본다.
 - 파일 생성/수정/삭제 또는 flow 작업 token usage를 기록할 때는 `state/token-usage.ndjson`에 append-only record로 남기고 `source: llm | local`, actual/estimated 여부, artifact path를 구분한다.
 - 모든 변경은 `CREATE`, `UPDATE`, `DELETE`로 분류한다.
