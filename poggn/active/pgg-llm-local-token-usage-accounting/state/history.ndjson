@@ -1,0 +1,7 @@
+{"ts":"2026-04-28T01:54:05Z","stage":"proposal","event":"topic-created"}
+{"ts":"2026-04-28T01:54:05Z","stage":"proposal","event":"stage-started","source":"pgg-add"}
+{"ts":"2026-04-28T01:55:28Z","stage":"proposal","event":"stage-completed","source":"verified","summary":"LLM/local token usage accounting proposal reviewed"}
+{"ts":"2026-04-28T01:56:51Z","stage":"plan","event":"stage-started","source":"pgg-plan"}
+{"ts":"2026-04-28T01:56:51Z","stage":"plan","event":"stage-completed","source":"verified","summary":"LLM/local token accounting plan and task reviewed"}
+{"ts":"2026-04-28T01:57:20Z","stage":"implementation","event":"stage-started","source":"pgg-code"}
+{"ts":"2026-04-28T02:07:26Z","stage":"implementation","event":"stage-commit","archiveType":"fix","targetVersion":"3.0.1","projectLanguage":"ko","commitTitle":"fix: 3.0.1.llm token 집계","summary":"llm token 집계","why":"LLM 산출물이 metadata 부재로 0으로 보이고 local 사용량과 섞이는 문제를 artifact fallback과 local-only 합산으로 해결했다","footer":"Refs: pgg-llm-local-token-usage-accounting","taskId":"T1,T2,T3,T4","dependencies":"proposal, plan","completionCriteria":"LLM artifact fallback과 local ledger 분리 집계 구현 및 검증"}

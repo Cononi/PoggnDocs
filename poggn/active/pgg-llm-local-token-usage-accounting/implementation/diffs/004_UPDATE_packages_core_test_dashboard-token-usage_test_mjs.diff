@@ -1,0 +1,65 @@
+diff --git a/packages/core/test/dashboard-token-usage.test.mjs b/packages/core/test/dashboard-token-usage.test.mjs
+index 698ecce..6bec294 100644
+--- a/packages/core/test/dashboard-token-usage.test.mjs
++++ b/packages/core/test/dashboard-token-usage.test.mjs
+@@ -63,6 +63,9 @@ test("dashboard snapshots prefer topic token usage ledger attribution", async ()
+       );
+       await writeTopicFile(topicDir, "workflow.reactflow.json", JSON.stringify({ topic, nodes: [], edges: [] }, null, 2));
+       await writeTopicFile(topicDir, "implementation/index.md", "# Implementation\n\nshort file content\n");
++      const generatedReviewContent = "# Code Review\n\nLLM generated review content without provider usage metadata.\n";
++      const generatedReviewEstimate = Math.ceil(Array.from(generatedReviewContent).length / 4);
++      await writeTopicFile(topicDir, "reviews/code.review.md", generatedReviewContent);
+       await writeTopicFile(
+         topicDir,
+         "state/token-usage.ndjson",
+@@ -115,6 +118,19 @@ test("dashboard snapshots prefer topic token usage ledger attribution", async ()
+             stage: "implementation",
+             flow: "pgg-code",
+             event: "file-created",
++            artifact_path: "reviews/code.review.md",
++            operation: "create",
++            source: "llm",
++            total_tokens: 0,
++            estimated: true,
++            measurement: "unavailable",
++            usage_metadata_available: false
++          }),
++          JSON.stringify({
++            ts: "2026-04-27T00:00:04Z",
++            stage: "implementation",
++            flow: "pgg-code",
++            event: "file-created",
+             artifact_path: "implementation/index.md",
+             operation: "create",
+             source: "local",
+@@ -129,21 +145,25 @@ test("dashboard snapshots prefer topic token usage ledger attribution", async ()
+       const project = snapshot.projects.find((entry) => entry.rootDir === rootDir);
+       const topicSummary = project?.activeTopics.find((entry) => entry.name === topic);
+       const implementationFile = topicSummary?.files.find((file) => file.relativePath === "implementation/index.md");
++      const reviewFile = topicSummary?.files.find((file) => file.relativePath === "reviews/code.review.md");
+ 
+       assert.equal(topicSummary?.tokenUsage.source, "ledger");
+-      assert.equal(topicSummary?.tokenUsage.ledgerRecordCount, 4);
+-      assert.equal(topicSummary?.tokenUsage.total, 1118);
+-      assert.equal(topicSummary?.tokenUsage.llmActualTokens, 31);
++      assert.equal(topicSummary?.tokenUsage.ledgerRecordCount, 5);
++      assert.equal(topicSummary?.tokenUsage.total, 119 + generatedReviewEstimate);
++      assert.equal(topicSummary?.tokenUsage.llmActualTokens, 108 + generatedReviewEstimate);
+       assert.equal(topicSummary?.tokenUsage.localEstimatedTokens, 11);
+-      assert.equal(topicSummary?.tokenUsageRecords.length, 4);
++      assert.equal(topicSummary?.tokenUsageRecords.length, 5);
+       assert.equal(topicSummary?.tokenUsageRecords[0]?.usageMetadataAvailable, true);
+       assert.equal(topicSummary?.tokenUsageRecords[1]?.measurement, "unavailable");
+       assert.equal(topicSummary?.tokenUsageRecords[1]?.usageMetadataAvailable, false);
+       assert.equal(topicSummary?.tokenUsageRecords[2]?.measurement, "actual");
+       assert.equal(topicSummary?.tokenUsageRecords[2]?.usageMetadataAvailable, false);
+       assert.equal(implementationFile?.tokenSource, "ledger");
+-      assert.equal(implementationFile?.llmActualTokens, 31);
++      assert.equal(implementationFile?.llmActualTokens, 108);
+       assert.equal(implementationFile?.localEstimatedTokens, 11);
++      assert.equal(reviewFile?.tokenSource, "ledger");
++      assert.equal(reviewFile?.llmActualTokens, generatedReviewEstimate);
++      assert.equal(reviewFile?.localEstimatedTokens, 0);
+     });
+   } finally {
+     await rm(rootDir, { recursive: true, force: true });
