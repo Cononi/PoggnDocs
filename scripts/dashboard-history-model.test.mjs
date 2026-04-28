@@ -95,6 +95,24 @@ test("timeline rows use completed flow scoped token records", () => {
       { stage: "implementation", event: "stage-completed", source: "verified", ts: "2026-04-27T12:01:00Z" },
       { stage: "qa", event: "stage-completed", source: "verified", ts: "2026-04-27T12:02:00Z" }
     ]),
+    files: [
+      {
+        relativePath: "implementation/index.md",
+        sourcePath: "poggn/active/topic/implementation/index.md",
+        tokenEstimate: 10,
+        llmActualTokens: 10,
+        localEstimatedTokens: 0,
+        content: "# Implementation"
+      },
+      {
+        relativePath: "qa/report.md",
+        sourcePath: "poggn/active/topic/qa/report.md",
+        tokenEstimate: 20,
+        llmActualTokens: 20,
+        localEstimatedTokens: 0,
+        content: "# QA"
+      }
+    ],
     tokenUsageRecords: [
       {
         stage: "implementation",
@@ -148,7 +166,7 @@ test("timeline rows use completed flow scoped token records", () => {
   const code = rows.find((row) => row.id === "code");
   const qa = rows.find((row) => row.id === "qa");
 
-  assert.equal(code?.llmActualTokens, 31);
+  assert.equal(code?.llmActualTokens, 41);
   assert.equal(code?.localEstimatedTokens, 5);
   assert.equal(qa?.llmActualTokens, 44);
   assert.equal(qa?.localEstimatedTokens, 7);

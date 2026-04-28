@@ -591,6 +591,13 @@ function flowTokenUsageRecords(topic: TopicSummary, flow: WorkflowFlowDefinition
   return (topic.tokenUsageRecords ?? []).filter((record) => tokenRecordFlowId(record) === flow.id);
 }
 
+function normalizeTokenArtifactPath(value: string | null): string | null {
+  if (!value) {
+    return null;
+  }
+  return value.replace(/^\.\//, "").replace(/^poggn\/(?:active|archive)\/[^/]+\//, "");
+}
+
 function directLlmTimelineTokenTotal(record: TopicTokenUsageRecordEntry): number | null {
   if (record.source !== "llm" || record.totalTokens <= 0 || record.measurement === "unavailable") {
     return null;
@@ -598,7 +605,19 @@ function directLlmTimelineTokenTotal(record: TopicTokenUsageRecordEntry): number
   return record.totalTokens;
 }
 
-function sumFlowLlmTokens(records: TopicTokenUsageRecordEntry[]): number | null {
+function fileHasFlowLlmRecord(file: TopicFileEntry, records: TopicTokenUsageRecordEntry[]): boolean {
+  const relativePath = normalizeTokenArtifactPath(file.relativePath);
+  const sourcePath = normalizeTokenArtifactPath(file.sourcePath);
+  return records.some((record) => {
+    if (record.source !== "llm") {
+      return false;
+    }
+    const artifactPath = normalizeTokenArtifactPath(record.artifactPath);
+    return Boolean(artifactPath && (artifactPath === relativePath || artifactPath === sourcePath));
+  });
+}
+
+function sumFlowLlmTokens(records: TopicTokenUsageRecordEntry[], files: TopicFileEntry[]): number | null {
   let total = 0;
   let seen = false;
   const directArtifacts = new Set<string>();
@@ -609,7 +628,7 @@ function sumFlowLlmTokens(records: TopicTokenUsageRecordEntry[]): number | null 
       continue;
     }
 
-    const artifactPath = record.artifactPath ?? "";
+    const artifactPath = normalizeTokenArtifactPath(record.artifactPath) ?? "";
     const directTotal = directLlmTimelineTokenTotal(record);
     if (directTotal !== null) {
       total += directTotal;
@@ -628,6 +647,13 @@ function sumFlowLlmTokens(records: TopicTokenUsageRecordEntry[]): number | null 
   for (const [artifactPath, artifactEstimate] of fallbackArtifacts.entries()) {
     if (!directArtifacts.has(artifactPath)) {
       total += artifactEstimate;
+      seen = true;
+    }
+  }
+
+  for (const file of files) {
+    if (typeof file.tokenEstimate === "number" && !fileHasFlowLlmRecord(file, records)) {
+      total += file.tokenEstimate;
       seen = true;
     }
   }
@@ -1156,7 +1182,8 @@ export function buildTimelineRows(
   return workflowFlowDefinitions
     .filter((flow) => topicHasFlowEvidence(topic, flow) && flowHasFullCompletionEvidence(topic, flow))
     .map((flow) => {
-      const files = flowFiles(topic, flow).map((file) => ({
+      const flowFileEntries = flowFiles(topic, flow);
+      const files = flowFileEntries.map((file) => ({
         path: file.relativePath,
         kind: inferFileChangeKind(file.relativePath),
         llmActualTokens: file.llmActualTokens ?? null,
@@ -1179,7 +1206,7 @@ export function buildTimelineRows(
       return {
         id: flow.id,
         step: workflowFlowLabel(flow.id, dictionary),
-        llmActualTokens: sumFlowLlmTokens(tokenUsageRecords),
+        llmActualTokens: sumFlowLlmTokens(tokenUsageRecords, flowFileEntries),
         localEstimatedTokens: sumFlowLocalTokens(tokenUsageRecords),
         tone: flow.id === "qa" || flow.id === "done" ? "success" : flow.optional ? "warning" : "primary",
         completedBy: username,

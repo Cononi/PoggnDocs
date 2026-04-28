@@ -1,0 +1,7 @@
+{"ts":"2026-04-28T02:52:15Z","stage":"proposal","event":"topic-created"}
+{"ts":"2026-04-28T02:52:15Z","stage":"proposal","event":"stage-started","source":"pgg-add"}
+{"ts":"2026-04-28T02:52:18Z","stage":"proposal","event":"stage-completed","source":"verified","summary":"flow token accounting enforcement proposal reviewed"}
+{"ts":"2026-04-28T02:56:00Z","stage":"plan","event":"stage-started","source":"pgg-plan"}
+{"ts":"2026-04-28T02:56:00Z","stage":"plan","event":"stage-completed","source":"verified","summary":"flow token accounting enforcement plan reviewed"}
+{"ts":"2026-04-28T02:58:30Z","stage":"implementation","event":"stage-started","source":"pgg-code"}
+{"ts":"2026-04-28T03:02:08Z","stage":"implementation","event":"stage-commit","archiveType":"fix","targetVersion":"3.0.3","projectLanguage":"ko","commitTitle":"fix: 3.0.3.flow token 계산","summary":"flow token 계산","why":"dashboard가 ledger record에만 의존하지 않고 flow 산출물은 LLM token으로, local 실행 record는 local token으로 계산하도록 구현했다","footer":"Refs: pgg-dashboard-flow-token-accounting-enforcement","taskId":"T1,T2,T3,T4,T5","dependencies":"proposal, plan","completionCriteria":"flow artifact LLM baseline과 local record-only token 계산 구현 및 검증"}
