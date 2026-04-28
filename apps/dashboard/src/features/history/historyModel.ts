@@ -70,6 +70,12 @@ type FlowStatusRuntimeEntry = {
 };
 type FlowStatusRuntimeField = "activeAt" | "updatingAt";
 type ReleaseOutcome = "completed" | "blocked" | "pending";
+type WorkflowDurationParts = {
+  minuteCount: number;
+  dayCount: number;
+  hourCount: number;
+  remainingMinutes: number;
+};
 
 export function inferFileChangeKind(relativePath: string): FileChangeKind {
   if (relativePath.includes("delete")) {
@@ -258,13 +264,7 @@ function matchesFlowPath(flow: WorkflowFlowDefinition, value: string): boolean {
 }
 
 function topicHasFlowArtifactEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition): boolean {
-  return (
-    topic.files.some((file) => matchesFlowPath(flow, file.relativePath) || matchesFlowPath(flow, file.sourcePath)) ||
-    (topic.workflow?.nodes ?? []).some((node) => {
-      const nodeStage = normalizeFlowId(node.data.stage ?? null);
-      return nodeStage === flow.id || matchesFlowPath(flow, sourcePathForNode(node));
-    })
-  );
+  return flowFiles(topic, flow).length > 0 || flowNodes(topic, flow).length > 0;
 }
 
 function topicHasFlowEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition): boolean {
@@ -499,16 +499,32 @@ function formatWorkflowDuration(
   language: HistoryLanguage,
   unavailable: string
 ): string {
-  const startedMillis = timestampMillis(startedAt);
-  const endedMillis = timestampMillis(endedAt);
-  if (startedMillis === null || endedMillis === null || endedMillis < startedMillis) {
+  const duration = workflowDurationParts(startedAt, endedAt);
+  if (!duration) {
     return unavailable;
   }
 
+  return formatWorkflowDurationParts(duration, language);
+}
+
+function workflowDurationParts(startedAt: string | null, endedAt: string | null): WorkflowDurationParts | null {
+  const startedMillis = timestampMillis(startedAt);
+  const endedMillis = timestampMillis(endedAt);
+  if (startedMillis === null || endedMillis === null || endedMillis < startedMillis) {
+    return null;
+  }
+
   const minuteCount = Math.max(1, Math.ceil((endedMillis - startedMillis) / 60000));
-  const dayCount = Math.floor(minuteCount / 1440);
-  const hourCount = Math.floor((minuteCount % 1440) / 60);
-  const remainingMinutes = minuteCount % 60;
+  return {
+    minuteCount,
+    dayCount: Math.floor(minuteCount / 1440),
+    hourCount: Math.floor((minuteCount % 1440) / 60),
+    remainingMinutes: minuteCount % 60
+  };
+}
+
+function formatWorkflowDurationParts(duration: WorkflowDurationParts, language: HistoryLanguage): string {
+  const { minuteCount, dayCount, hourCount, remainingMinutes } = duration;
 
   if (language === "ko") {
     if (dayCount > 0) {
