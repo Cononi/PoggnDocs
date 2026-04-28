@@ -2,10 +2,10 @@
 pgg:
   topic: "pgg-workflow-token-commit-contract"
   stage: "implementation"
-  status: "draft"
+  status: "reviewed"
   skill: "pgg-code"
-  score: 0
-  updated_at: "2026-04-28T01:23:29Z"
+  score: 98
+  updated_at: "2026-04-28T01:24:30Z"
 ---
 
 # Implementation Index
@@ -29,6 +29,7 @@ pgg:
 | 015 | UPDATE | `AGENTS.md`, `README.md`, `.codex/add/*`, `.codex/skills/pgg-*` | `implementation/diffs/015_UPDATE_current_workspace_pgg_lang_docs.diff` | `T5` | 현재 workspace pgg 문서와 pgg-* skill에 한국어 Language Contract를 반영했다. |
 | 016 | UPDATE | `packages/core/dist/templates.js`, `packages/core/dist/templates.js.map`, `packages/core/dist/readme.js`, `packages/core/dist/readme.js.map` | `implementation/diffs/016_UPDATE_packages_core_dist_pgg_lang_contract.diff` | `T5` | core build 산출물을 T5 source 변경과 동기화했다. |
 | 017 | UPDATE | `.codex/sh/pgg-stage-commit.sh`, `.codex/sh/pgg-git-publish.sh` | `implementation/diffs/017_UPDATE_current_workspace_update_synced_helpers.diff` | `T6` | `pgg update`가 generated helper를 source template의 task commit body default env 계약과 동기화했다. |
+| 018 | ADD | `reviews/code.review.md` | pending | `pgg-code` | 시니어 백엔드 엔지니어와 테크 리드 attribution이 있는 code review를 기록했다. |
 
 ## Verification
 
