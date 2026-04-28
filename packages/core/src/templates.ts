@@ -924,7 +924,7 @@ function agentsMd(input: TemplateInput): string {
       timelineCompletionRule(input.language),
       "- 각 flow 작업과 파일 생성/수정/삭제 token usage는 필요 시 `state/token-usage.ndjson`에 append-only로 기록하고 `llm`과 `local`, actual과 estimated를 구분한다.",
       verificationContractRule(input.language),
-      "- 파일 생성/수정/삭제는 `implementation/index.md`와 `implementation/diffs/*.diff`에 기록한다.",
+      "- 파일 생성/수정/삭제는 `implementation/index.md`와 `Changed Files`에 CRUD, path, taskRef, diffSource, gitRef 또는 commitRange, diffCommand, status로 기록하며 `implementation/diffs/*.diff` 본문 파일은 legacy/opt-in artifact로만 유지한다.",
       "- 검증이 통과된 topic은 version 기록 후 `poggn/archive/<topic>`으로 이동한다.",
       "- archive 처리된 topic은 다시 active로 되돌리지 않는다.",
       "",
@@ -972,7 +972,7 @@ function agentsMd(input: TemplateInput): string {
     timelineCompletionRule(input.language),
     "- When needed, record token usage for each flow task and file create/update/delete operation in append-only `state/token-usage.ndjson` records, separating `llm` from `local` and actual from estimated usage.",
     verificationContractRule(input.language),
-    "- Record file creation, updates, and deletions in `implementation/index.md` and `implementation/diffs/*.diff`.",
+    "- Record file creation, updates, and deletions in `implementation/index.md` and `Changed Files` with CRUD, path, taskRef, diffSource, gitRef or commitRange, diffCommand, and status; keep `implementation/diffs/*.diff` body files only as legacy/opt-in artifacts.",
     "- Move verified topics to `poggn/archive/<topic>` only after recording the archive version.",
     "- Do not move archived topics back to `active`.",
     "",
@@ -1049,8 +1049,8 @@ function workFlowMd(input: TemplateInput): string {
       "3. `pgg-code`",
       "   - 코드 구현",
       "   - `pgg git=on`이면 `task.md` Task 목록의 `Task ID`가 `T1...N`인 행 1개 완료마다 `.codex/sh/pgg-stage-commit.sh <topic|topic_dir> implementation <summary> <why> [footer]`로 task-scoped commit을 남긴다. helper에는 `PGG_TASK_ID`, `PGG_TASK_DEPENDENCIES`, `PGG_TASK_COMPLETION_CRITERIA`를 함께 전달하고, commit body는 최상단 `Dependencies`, 그 아래 완료 조건, footer는 완료 조건에 명시된 task 내용으로 구성한다. helper는 필요 시 governed `working_branch` auto-checkout recovery를 먼저 시도하며 topic 시작 전에 기록된 dirty baseline은 unrelated blocker로 보지 않는다",
-      "   - `pgg git=off`이면 task commit을 시도하지 않고 implementation artifact, diff, review, verification, `Changed Files`와 verified `stage-completed`를 task 완료 증거로 남긴다",
-      "   - `implementation/index.md`, `implementation/diffs/*.diff`, `reviews/code.review.md` 생성",
+      "   - `pgg git=off`이면 task commit을 시도하지 않고 implementation artifact, Git diff metadata 또는 working-tree diff metadata, review, verification, `Changed Files`와 verified `stage-completed`를 task 완료 증거로 남긴다",
+      "   - `implementation/index.md`, Git diff 조회 metadata, `reviews/code.review.md` 생성. `implementation/diffs/*.diff` 본문 파일은 legacy/opt-in artifact로만 유지한다",
       "4. `pgg-refactor`",
       "   - 구수행 코드 검사 후 레거시 코드 제거와 구조 개선 수행으로 최적화된 클린코드",
       "   - `pgg git=on`이면 refactor task 완료마다 `.codex/sh/pgg-stage-commit.sh <topic|topic_dir> refactor <summary> <why> [footer]`로 refactor proof commit을 남기고, helper는 필요 시 governed `working_branch` auto-checkout recovery를 먼저 시도하며 topic 시작 전에 기록된 dirty baseline은 unrelated blocker로 보지 않는다",
@@ -1145,7 +1145,7 @@ function workFlowMd(input: TemplateInput): string {
     "3. `pgg-code`",
     "   - implement code",
     "   - when `pgg git=on`, record a task-scoped commit after each completed task with `.codex/sh/pgg-stage-commit.sh <topic|topic_dir> implementation <summary> <why> [footer]`, let the helper attempt governed `working_branch` auto-checkout recovery when needed, and ignore dirty paths already captured in the topic baseline",
-    "   - create `implementation/index.md`, `implementation/diffs/*.diff`, `reviews/code.review.md`",
+    "   - create `implementation/index.md`, Git diff lookup metadata, and `reviews/code.review.md`; keep `implementation/diffs/*.diff` body files only as legacy/opt-in artifacts",
     "4. `pgg-refactor`",
     "   - remove legacy code and improve structure",
     "   - when `pgg git=on`, record a refactor-proof commit after each completed refactor task with `.codex/sh/pgg-stage-commit.sh <topic|topic_dir> refactor <summary> <why> [footer]`, let the helper attempt governed `working_branch` auto-checkout recovery when needed, and ignore dirty paths already captured in the topic baseline",
@@ -1346,8 +1346,9 @@ function implementationMd(input: TemplateInput): string {
       "- audit applicability가 `required`인 경우에만 후속 gate와 QA에서 해당 report를 필수로 본다.",
       tokenUsageImplementationRule(input.language),
       "- 모든 변경은 `CREATE`, `UPDATE`, `DELETE`로 분류한다.",
-      "- `implementation/diffs/*.diff`와 `implementation/index.md`를 유지한다.",
-      "- React Flow에는 diff 본문 대신 `diffRef`만 연결한다."
+      "- `implementation/index.md`와 `Changed Files`에는 변경 파일의 CRUD, path, taskRef, diffSource, gitRef 또는 commitRange, diffCommand, status를 유지한다.",
+      "- `implementation/diffs/*.diff` 본문 파일은 legacy/opt-in artifact로만 유지하고 기본 산출물로 생성하지 않는다.",
+      "- React Flow에는 diff 본문 대신 Git diff 조회 metadata나 legacy `diffRef`만 연결한다."
     ]);
   }
 
@@ -1359,8 +1360,9 @@ function implementationMd(input: TemplateInput): string {
     "- Gate and QA treat those reports as required only when audit applicability is `required`.",
     tokenUsageImplementationRule(input.language),
     "- Classify every change as `CREATE`, `UPDATE`, or `DELETE`.",
-    "- Keep `implementation/diffs/*.diff` and `implementation/index.md` up to date.",
-    "- Store only `diffRef` values in React Flow nodes, not full diff bodies."
+    "- Keep CRUD, path, taskRef, diffSource, gitRef or commitRange, diffCommand, and status in `implementation/index.md` and `Changed Files`.",
+    "- Keep `implementation/diffs/*.diff` body files only as legacy/opt-in artifacts and do not create them by default.",
+    "- Store Git diff lookup metadata or legacy `diffRef` values in React Flow nodes, not full diff bodies."
   ]);
 }
 
@@ -1565,13 +1567,13 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
     },
     "pgg-code": {
       description:
-        "Implement an approved topic and record implementation diffs and reviews.",
+        "Implement an approved topic and record implementation index, Git diff metadata, and reviews.",
       body: [
         "# Skill: pgg-code",
         "",
         "## Purpose",
         "",
-        "Implement the approved plan and keep implementation diffs, index, attributed code review, and state updated.",
+        "Implement the approved plan and keep implementation index, Git diff metadata, attributed code review, and state updated.",
         "",
         "## Teams Mode",
         "",
@@ -1584,9 +1586,9 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "- record `stage-started` with `stage: \"implementation\"` and `source: \"pgg-code\"` at stage start",
         "- record intermediate artifacts, diff cleanup, and pre-verification state as `stage-progress` only",
         "- record `requirements-added` before implementation work when the user adds requirements",
-        "- record completion only after implementation index, diffs, code review, required task-scoped commit, and gate evidence are finished",
-        "- when `pgg git=on`, prefer the `stage-commit` evidence written by `.codex/sh/pgg-stage-commit.sh` for task completion",
-        "- when `pgg git=off`, use implementation index, diffs, code review, verification results, `Changed Files`, and verified `stage-completed` as completion evidence without running a task commit",
+        "- record completion only after implementation index, Git diff metadata, code review, required task-scoped commit, and gate evidence are finished",
+        "- when `pgg git=on`, prefer the `stage-commit` evidence written by `.codex/sh/pgg-stage-commit.sh` plus commit/range diff metadata for task completion",
+        "- when `pgg git=off`, use implementation index, working-tree diff metadata, code review, verification results, `Changed Files`, and verified `stage-completed` as completion evidence without running a task commit",
         "",
         "## Expert Roster",
         "",
@@ -2030,13 +2032,13 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
     },
     "pgg-code": {
       description:
-        "승인된 topic을 구현하고 implementation diff와 review를 기록한다.",
+        "승인된 topic을 구현하고 implementation index, Git diff metadata, review를 기록한다.",
       body: [
         "# Skill: pgg-code",
         "",
         "## Purpose",
         "",
-        "승인된 plan을 구현하고 implementation diff, index, 전문가 attribution이 있는 code review, state를 갱신한다.",
+        "승인된 plan을 구현하고 implementation index, Git diff metadata, 전문가 attribution이 있는 code review, state를 갱신한다.",
         "",
         "## Teams Mode",
         "",
@@ -2049,9 +2051,9 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "- stage 시작 시 `state/history.ndjson`에 `{\"stage\":\"implementation\",\"event\":\"stage-started\",\"source\":\"pgg-code\"}`를 남긴다.",
         "- 중간 산출물, diff 정리, 검증 전 상태는 `stage-progress`로만 남긴다.",
         "- 사용자 추가 요구가 있으면 구현 작업 전에 `requirements-added`를 남긴다.",
-        "- implementation index, diffs, code review, 필요한 task-scoped commit/gate가 끝난 뒤에만 completion evidence를 남긴다.",
-        "- `pgg git=on`이면 task 완료의 completion evidence는 `.codex/sh/pgg-stage-commit.sh`가 남기는 `stage-commit`을 우선한다.",
-        "- `pgg git=off`이면 task commit을 시도하지 않고 implementation index, diffs, code review, verification 결과, `Changed Files`, verified `stage-completed`를 completion evidence로 사용한다.",
+        "- implementation index, Git diff 조회 metadata, code review, 필요한 task-scoped commit/gate가 끝난 뒤에만 completion evidence를 남긴다.",
+        "- `pgg git=on`이면 task 완료의 completion evidence는 `.codex/sh/pgg-stage-commit.sh`가 남기는 `stage-commit`과 해당 commit/range 기반 diff metadata를 우선한다.",
+        "- `pgg git=off`이면 task commit을 시도하지 않고 implementation index, working-tree diff metadata, code review, verification 결과, `Changed Files`, verified `stage-completed`를 completion evidence로 사용한다.",
         "",
         "## Expert Roster",
         "",
@@ -2069,7 +2071,7 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
         "- task commit 제목의 summary는 해당 task 행의 작업 내용이어야 하며, body 최상단은 `Dependencies`, 그 아래는 완료 조건, footer는 완료 조건에 명시된 task 내용이어야 한다",
         "- 모든 변경은 CREATE, UPDATE, DELETE로 분류한다",
         tokenUsageImplementationRule("ko"),
-        "- 전체 파일 복사보다 diff 기록을 우선한다",
+        "- 전체 파일 복사보다 변경 파일 목록과 Git diff 조회 metadata 기록을 우선한다",
         "- `reviews/code.review.md`에는 전문가 attribution을 남긴다",
         "- 아래 필수 구현 기준을 충족한다",
         "- 전체 문서 복사보다 `state/current.md`와 필요한 문서 ref를 우선한다.",

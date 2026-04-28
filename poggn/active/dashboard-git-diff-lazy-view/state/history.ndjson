@@ -1,0 +1,7 @@
+{"ts":"2026-04-28T05:27:23Z","stage":"proposal","event":"topic-created"}
+{"ts":"2026-04-28T05:27:23Z","stage":"proposal","event":"stage-started","source":"pgg-add"}
+{"ts":"2026-04-28T05:27:37Z","stage":"proposal","event":"stage-completed","source":"verified","status":"reviewed","score":94,"next":"pgg-plan"}
+{"ts":"2026-04-28T05:30:44Z","stage":"plan","event":"stage-started","source":"pgg-plan"}
+{"ts":"2026-04-28T05:30:44Z","stage":"plan","event":"stage-completed","source":"verified","status":"reviewed","score":95,"gate":"pgg-code","next":"pgg-code"}
+{"ts":"2026-04-28T05:35:21Z","stage":"implementation","event":"stage-started","source":"pgg-code"}
+{"ts":"2026-04-28T05:38:39Z","stage":"implementation","event":"stage-commit","archiveType":"feat","targetVersion":"3.2.0","projectLanguage":"ko","commitTitle":"feat: 3.2.0.diff 계약 갱신","summary":"diff 계약 갱신","why":"workflow와 skill template에서 diff 본문 기본 저장 요구를 Git diff metadata 계약으로 바꾼다","footer":"완료 조건: workflow 문서, skill 문서, template에서 .diff 본문 기본 저장 요구가 제거되고 Git diff metadata 계약이 명시된다.","taskId":"T1","dependencies":"없음","completionCriteria":"workflow 문서, skill 문서, template에서 .diff 본문 기본 저장 요구가 제거되고 Git diff metadata 계약이 명시된다."}

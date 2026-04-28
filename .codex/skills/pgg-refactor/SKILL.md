@@ -22,7 +22,7 @@ description: "레거시 코드를 제거하고 기능 구조를 개선한다."
 - 사용자 추가 요구가 있으면 refactor 작업 전에 `requirements-added`를 남긴다.
 - refactor review, cleanup evidence, 필요한 task-scoped commit/gate가 끝난 뒤에만 completion evidence를 남긴다.
 - `pgg git=on`이면 refactor task 완료의 completion evidence는 `.codex/sh/pgg-stage-commit.sh`가 남기는 `stage-commit`을 우선한다.
-- `pgg git=off`이면 refactor commit을 시도하지 않고 cleanup evidence, refactor review, verification 결과, `Changed Files`, verified `stage-completed`를 completion evidence로 사용한다.
+- `pgg git=off`이면 refactor commit을 시도하지 않고 cleanup evidence, Git diff 조회 metadata 또는 working-tree diff metadata, refactor review, verification 결과, `Changed Files`, verified `stage-completed`를 completion evidence로 사용한다.
 
 ## Expert Roster
 

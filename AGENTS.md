@@ -21,7 +21,7 @@
 - dashboard timeline은 workflow progress가 `완료`로 계산된 flow만 표시하며, `stage-started`, `stage-progress`, partial artifact, updatedAt fallback을 완료 이력으로 취급하지 않는다.
 - 각 flow 작업과 파일 생성/수정/삭제 token usage는 필요 시 `state/token-usage.ndjson`에 append-only로 기록하고 `llm`과 `local`, actual과 estimated를 구분한다.
 - 대상 프로젝트 검증 명령은 선언된 current-project verification contract가 있을 때만 자동 실행 후보가 되며, 없으면 `manual verification required`로 남긴다.
-- 파일 생성/수정/삭제는 `implementation/index.md`와 `implementation/diffs/*.diff`에 기록한다.
+- 파일 생성/수정/삭제는 `implementation/index.md`와 `Changed Files`에 CRUD, path, taskRef, diffSource, gitRef 또는 commitRange, diffCommand, status로 기록하며 `implementation/diffs/*.diff` 본문 파일은 legacy/opt-in artifact로만 유지한다.
 - 검증이 통과된 topic은 version 기록 후 `poggn/archive/<topic>`으로 이동한다.
 - archive 처리된 topic은 다시 active로 되돌리지 않는다.
 
