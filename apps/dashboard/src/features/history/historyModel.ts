@@ -49,6 +49,7 @@ type WorkflowFlowDefinition = {
   pathPatterns: RegExp[];
 };
 type WorkflowNodeEntry = NonNullable<TopicSummary["workflow"]>["nodes"][number];
+type TopicTokenUsageRecordEntry = TopicSummary["tokenUsageRecords"][number];
 type TopicFileEntry = TopicSummary["files"][number];
 type TopicHistoryEventEntry = NonNullable<TopicSummary["historyEvents"]>[number];
 type TimestampEvidence = {
@@ -582,6 +583,64 @@ function flowHistoryEvents(topic: TopicSummary, flow: WorkflowFlowDefinition): T
   return (topic.historyEvents ?? []).filter((event) => eventFlowId(event) === flow.id);
 }
 
+function tokenRecordFlowId(record: TopicTokenUsageRecordEntry): WorkflowFlowId {
+  return normalizeFlowId(record.flow ?? record.stage ?? null);
+}
+
+function flowTokenUsageRecords(topic: TopicSummary, flow: WorkflowFlowDefinition): TopicTokenUsageRecordEntry[] {
+  return (topic.tokenUsageRecords ?? []).filter((record) => tokenRecordFlowId(record) === flow.id);
+}
+
+function directLlmTimelineTokenTotal(record: TopicTokenUsageRecordEntry): number | null {
+  if (record.source !== "llm" || record.totalTokens <= 0 || record.measurement === "unavailable") {
+    return null;
+  }
+  return record.totalTokens;
+}
+
+function sumFlowLlmTokens(records: TopicTokenUsageRecordEntry[]): number | null {
+  let total = 0;
+  let seen = false;
+  const directArtifacts = new Set<string>();
+  const fallbackArtifacts = new Map<string, number>();
+
+  for (const record of records) {
+    if (record.source !== "llm") {
+      continue;
+    }
+
+    const artifactPath = record.artifactPath ?? "";
+    const directTotal = directLlmTimelineTokenTotal(record);
+    if (directTotal !== null) {
+      total += directTotal;
+      seen = true;
+      if (artifactPath) {
+        directArtifacts.add(artifactPath);
+      }
+      continue;
+    }
+
+    if (artifactPath && typeof record.artifactTokenEstimate === "number") {
+      fallbackArtifacts.set(artifactPath, record.artifactTokenEstimate);
+    }
+  }
+
+  for (const [artifactPath, artifactEstimate] of fallbackArtifacts.entries()) {
+    if (!directArtifacts.has(artifactPath)) {
+      total += artifactEstimate;
+      seen = true;
+    }
+  }
+
+  return seen ? total : null;
+}
+
+function sumFlowLocalTokens(records: TopicTokenUsageRecordEntry[]): number {
+  return records
+    .filter((record) => record.source === "local")
+    .reduce((sum, record) => sum + record.totalTokens, 0);
+}
+
 function eventNameMatches(event: TopicHistoryEventEntry, patterns: RegExp[]): boolean {
   const name = event.event ?? "";
   return patterns.some((pattern) => pattern.test(name));
@@ -1104,6 +1163,7 @@ export function buildTimelineRows(
         localEstimatedTokens: fileEstimatedLocalTokens(file),
         content: file.content ?? null
       }));
+      const tokenUsageRecords = flowTokenUsageRecords(topic, flow);
       const events = flowHistoryEvents(topic, flow);
       const timestamps = flowTimestampBundle(topic, flow);
       const completedAt = timestamps.completedAt.value ? timestamps.completedAt : timestamps.updatedAt;
@@ -1119,8 +1179,8 @@ export function buildTimelineRows(
       return {
         id: flow.id,
         step: workflowFlowLabel(flow.id, dictionary),
-        llmActualTokens: sumNullableTokens(files.map((file) => file.llmActualTokens)),
-        localEstimatedTokens: files.reduce((sum, file) => sum + file.localEstimatedTokens, 0),
+        llmActualTokens: sumFlowLlmTokens(tokenUsageRecords),
+        localEstimatedTokens: sumFlowLocalTokens(tokenUsageRecords),
         tone: flow.id === "qa" || flow.id === "done" ? "success" : flow.optional ? "warning" : "primary",
         completedBy: username,
         time: formatDateValue(completedAt.value, language, fallbackTime),
@@ -1185,11 +1245,6 @@ function formatTimelineDateLine(value: string | null, language: HistoryLanguage,
 function formatTimelineTimeLine(value: string | null, language: HistoryLanguage): string {
   const lines = formatDateTimeLines(value, language, "");
   return lines[1] ?? "";
-}
-
-function sumNullableTokens(values: Array<number | null>): number | null {
-  const numeric = values.filter((value): value is number => typeof value === "number");
-  return numeric.length ? numeric.reduce((sum, value) => sum + value, 0) : null;
 }
 
 export function buildRelationGroups(topic: TopicSummary, topics: TopicSummary[]): RelationGroup[] {

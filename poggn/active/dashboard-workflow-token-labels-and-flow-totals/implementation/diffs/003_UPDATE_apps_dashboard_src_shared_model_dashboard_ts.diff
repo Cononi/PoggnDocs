@@ -1,0 +1,12 @@
+diff --git a/apps/dashboard/src/shared/model/dashboard.ts b/apps/dashboard/src/shared/model/dashboard.ts
+index 5fb96de..0207767 100644
+--- a/apps/dashboard/src/shared/model/dashboard.ts
++++ b/apps/dashboard/src/shared/model/dashboard.ts
+@@ -101,6 +101,7 @@ export type TopicTokenUsageRecord = {
+   cachedTokens: number | null;
+   reasoningTokens: number | null;
+   totalTokens: number;
++  artifactTokenEstimate: number | null;
+   estimated: boolean;
+   measurement: "actual" | "estimated" | "unavailable";
+   bytes: number | null;

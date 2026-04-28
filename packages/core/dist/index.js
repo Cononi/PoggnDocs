@@ -2041,6 +2041,7 @@ function parseTopicTokenUsageRecords(raw) {
                     cachedTokens: parseOptionalNumber(parsed.cached_tokens ?? parsed.cachedTokens),
                     reasoningTokens: parseOptionalNumber(parsed.reasoning_tokens ?? parsed.reasoningTokens),
                     totalTokens: parseRequiredNumber(parsed.total_tokens ?? parsed.totalTokens),
+                    artifactTokenEstimate: parseOptionalNumber(parsed.artifact_token_estimate ?? parsed.artifactTokenEstimate),
                     estimated: typeof parsed.estimated === "boolean" ? parsed.estimated : measurement !== "actual",
                     measurement,
                     bytes: parseOptionalNumber(parsed.bytes),
@@ -2149,13 +2150,21 @@ function sumLlmTokenRecords(records, estimateForArtifact) {
         if (directArtifacts.has(artifactPath)) {
             continue;
         }
-        const estimate = estimateForArtifact(artifactPath);
+        const recordEstimate = records.find((record) => normalizeTokenUsagePath(record.artifactPath) === artifactPath)?.artifactTokenEstimate ?? null;
+        const estimate = recordEstimate ?? estimateForArtifact(artifactPath);
         if (estimate !== null) {
             total += estimate;
             seen = true;
         }
     }
     return seen ? total : null;
+}
+async function applyArtifactTokenEstimatesToRecords(rootDir, files, records) {
+    const estimateForArtifact = await buildTokenEstimateLookup(rootDir, files, records);
+    return records.map((record) => ({
+        ...record,
+        artifactTokenEstimate: record.source === "llm" ? estimateForArtifact(record.artifactPath) : record.artifactTokenEstimate
+    }));
 }
 function applyTokenUsageRecordsToFile(file, records) {
     const artifactRecords = tokenUsageRecordsForArtifact(records, file.relativePath, file.sourcePath);
@@ -2302,8 +2311,9 @@ async function listTopicSummaries(rootDir, bucket) {
         const publish = await readTopicPublishMetadata(topicDir);
         const artifactSummary = await readTopicArtifactSummary(topicDir);
         const userQuestionRecord = parseUserQuestionRecord(proposalMarkdown);
-        const tokenUsageRecords = parseTopicTokenUsageRecords(await readTextIfExists(path.join(topicDir, "state", "token-usage.ndjson")));
+        let tokenUsageRecords = parseTopicTokenUsageRecords(await readTextIfExists(path.join(topicDir, "state", "token-usage.ndjson")));
         const files = await listTopicFiles(rootDir, topicDir, bucket, entry.name, tokenUsageRecords);
+        tokenUsageRecords = await applyArtifactTokenEstimatesToRecords(rootDir, files, tokenUsageRecords);
         const tokenUsage = await summarizeTopicTokenUsage(rootDir, files, tokenUsageRecords);
         const updatedAt = deriveTopicUpdatedAt(artifactSummary, release.archivedAt);
         const stage = stateMarkdown ? parseMarkdownSection(stateMarkdown, "Current Stage") : parseKeyValue(proposalMarkdown ?? "", "stage");

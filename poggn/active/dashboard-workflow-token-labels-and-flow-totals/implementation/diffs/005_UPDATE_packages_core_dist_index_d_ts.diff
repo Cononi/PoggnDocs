@@ -1,0 +1,12 @@
+diff --git a/packages/core/dist/index.d.ts b/packages/core/dist/index.d.ts
+index ea9ec45..da68114 100644
+--- a/packages/core/dist/index.d.ts
++++ b/packages/core/dist/index.d.ts
+@@ -288,6 +288,7 @@ export interface TopicTokenUsageRecord {
+     cachedTokens: number | null;
+     reasoningTokens: number | null;
+     totalTokens: number;
++    artifactTokenEstimate: number | null;
+     estimated: boolean;
+     measurement: "actual" | "estimated" | "unavailable";
+     bytes: number | null;

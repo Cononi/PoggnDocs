@@ -101,6 +101,7 @@ export type TopicTokenUsageRecord = {
   cachedTokens: number | null;
   reasoningTokens: number | null;
   totalTokens: number;
+  artifactTokenEstimate: number | null;
   estimated: boolean;
   measurement: "actual" | "estimated" | "unavailable";
   bytes: number | null;
