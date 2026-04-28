@@ -61,3 +61,13 @@
 
 - `pnpm build`: pass
 - `pnpm test`: pass, core 60 tests passed, dashboard history model 3 tests passed
+
+## Additional Requirement 2026-04-28T05:10:51Z
+
+- request: 프로젝트 추가 Stepper는 세로가 아닌 가로로 보여야 하고, 모바일 화면에 따라 작아지고 커지는 동적 크기여야 한다.
+- status: done
+- changed files:
+  - UPDATE `apps/dashboard/src/app/DashboardApp.tsx`
+- diff: `implementation/diffs/005_UPDATE_dashboard_horizontal_responsive_stepper.diff`
+- verification:
+  - `pnpm --filter @pgg/dashboard build` pass

@@ -96,6 +96,7 @@ pgg-code 구현과 code review가 완료되었고, 다음 단계에서 pgg-refac
 | UPDATE | `packages/core/dist/index.js.map` | `implementation/diffs/004_UPDATE_multi_active_isolation.diff` |
 | UPDATE | `packages/core/src/index.ts` | `implementation/diffs/004_UPDATE_multi_active_isolation.diff` |
 | UPDATE | `packages/core/test/status-analysis.test.mjs` | `implementation/diffs/004_UPDATE_multi_active_isolation.diff` |
+| UPDATE | `apps/dashboard/src/app/DashboardApp.tsx` | `implementation/diffs/005_UPDATE_dashboard_horizontal_responsive_stepper.diff` |
 
 ## Implementation Status
 
@@ -108,6 +109,7 @@ pgg-code 구현과 code review가 완료되었고, 다음 단계에서 pgg-refac
 
 - `pnpm build`: pass
 - `pnpm test`: pass, core 60 tests passed, dashboard history model 3 tests passed
+- `pnpm --filter @pgg/dashboard build`: pass after horizontal responsive Stepper update
 
 ## Last Expert Score
 

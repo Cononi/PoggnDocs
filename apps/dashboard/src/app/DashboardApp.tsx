@@ -1238,7 +1238,26 @@ export default function DashboardApp() {
             <Typography variant="body2" color="text.secondary">
               {dictionary.addProjectHint}
             </Typography>
-            <Stepper activeStep={projectAddStep} orientation="vertical">
+            <Stepper
+              activeStep={projectAddStep}
+              alternativeLabel
+              sx={{
+                width: "100%",
+                px: { xs: 0, sm: 1 },
+                "& .MuiStepLabel-label": {
+                  mt: { xs: 0.5, sm: 0.75 },
+                  fontSize: { xs: "0.68rem", sm: "0.78rem", md: "0.84rem" },
+                  lineHeight: 1.2,
+                  overflowWrap: "anywhere"
+                },
+                "& .MuiStepIcon-root": {
+                  fontSize: { xs: "1.12rem", sm: "1.32rem", md: "1.5rem" }
+                },
+                "& .MuiStepConnector-line": {
+                  minHeight: 1
+                }
+              }}
+            >
               {projectAddSteps.map((step) => (
                 <Step key={step}>
                   <StepLabel>{step}</StepLabel>
