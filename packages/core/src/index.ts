@@ -3141,7 +3141,11 @@ function sumLocalTokenRecords(records: TopicTokenUsageRecord[]): number {
   return sumTokenRecords(records, (record) => record.source === "local") ?? 0;
 }
 
-function buildTokenEstimateLookup(files: TopicFileEntry[]): (artifactPath: string | null) => number | null {
+async function buildTokenEstimateLookup(
+  rootDir: string,
+  files: TopicFileEntry[],
+  tokenUsageRecords: TopicTokenUsageRecord[]
+): Promise<(artifactPath: string | null) => number | null> {
   const estimates = new Map<string, number>();
   for (const file of files) {
     if (file.tokenEstimate === null) {
@@ -3156,6 +3160,24 @@ function buildTokenEstimateLookup(files: TopicFileEntry[]): (artifactPath: strin
       estimates.set(sourcePath, file.tokenEstimate);
     }
   }
+
+  await Promise.all(
+    tokenUsageRecords.map(async (record) => {
+      if (record.source !== "llm") {
+        return;
+      }
+      const artifactPath = normalizeTokenUsagePath(record.artifactPath);
+      if (!artifactPath || estimates.has(artifactPath)) {
+        return;
+      }
+      const absolutePath = path.join(rootDir, artifactPath);
+      const content = await readProjectFileContentForSnapshot(absolutePath);
+      if (content !== null) {
+        estimates.set(artifactPath, estimateTokensFromText(content));
+      }
+    })
+  );
+
   return (artifactPath) => {
     const normalized = normalizeTokenUsagePath(artifactPath);
     return normalized ? estimates.get(normalized) ?? null : null;
@@ -3325,9 +3347,13 @@ async function listTopicFiles(
     .sort((left, right) => left.relativePath.localeCompare(right.relativePath));
 }
 
-function summarizeTopicTokenUsage(files: TopicFileEntry[], tokenUsageRecords: TopicTokenUsageRecord[]): TopicTokenUsage {
+async function summarizeTopicTokenUsage(
+  rootDir: string,
+  files: TopicFileEntry[],
+  tokenUsageRecords: TopicTokenUsageRecord[]
+): Promise<TopicTokenUsage> {
   if (tokenUsageRecords.length > 0) {
-    const llmActualTokens = sumLlmTokenRecords(tokenUsageRecords, buildTokenEstimateLookup(files));
+    const llmActualTokens = sumLlmTokenRecords(tokenUsageRecords, await buildTokenEstimateLookup(rootDir, files, tokenUsageRecords));
     const localEstimatedTokens = sumLocalTokenRecords(tokenUsageRecords);
     return {
       total: (llmActualTokens ?? 0) + localEstimatedTokens,
@@ -3385,7 +3411,7 @@ async function listTopicSummaries(rootDir: string, bucket: "active" | "archive")
     const userQuestionRecord = parseUserQuestionRecord(proposalMarkdown);
     const tokenUsageRecords = parseTopicTokenUsageRecords(await readTextIfExists(path.join(topicDir, "state", "token-usage.ndjson")));
     const files = await listTopicFiles(rootDir, topicDir, bucket, entry.name, tokenUsageRecords);
-    const tokenUsage = summarizeTopicTokenUsage(files, tokenUsageRecords);
+    const tokenUsage = await summarizeTopicTokenUsage(rootDir, files, tokenUsageRecords);
     const updatedAt = deriveTopicUpdatedAt(artifactSummary, release.archivedAt);
     const stage = stateMarkdown ? parseMarkdownSection(stateMarkdown, "Current Stage") : parseKeyValue(proposalMarkdown ?? "", "stage");
     const goal = stateMarkdown ? parseMarkdownSection(stateMarkdown, "Goal") : null;

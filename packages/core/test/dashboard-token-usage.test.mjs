@@ -66,6 +66,9 @@ test("dashboard snapshots prefer topic token usage ledger attribution", async ()
       const generatedReviewContent = "# Code Review\n\nLLM generated review content without provider usage metadata.\n";
       const generatedReviewEstimate = Math.ceil(Array.from(generatedReviewContent).length / 4);
       await writeTopicFile(topicDir, "reviews/code.review.md", generatedReviewContent);
+      const generatedSourceContent = "export const generatedTokenSummary = true;\n";
+      const generatedSourceEstimate = Math.ceil(Array.from(generatedSourceContent).length / 4);
+      await writeTopicFile(rootDir, "packages/core/src/generated-token-summary.ts", generatedSourceContent);
       await writeTopicFile(
         topicDir,
         "state/token-usage.ndjson",
@@ -131,6 +134,19 @@ test("dashboard snapshots prefer topic token usage ledger attribution", async ()
             stage: "implementation",
             flow: "pgg-code",
             event: "file-created",
+            artifact_path: "packages/core/src/generated-token-summary.ts",
+            operation: "create",
+            source: "llm",
+            total_tokens: 0,
+            estimated: true,
+            measurement: "unavailable",
+            usage_metadata_available: false
+          }),
+          JSON.stringify({
+            ts: "2026-04-27T00:00:05Z",
+            stage: "implementation",
+            flow: "pgg-code",
+            event: "file-created",
             artifact_path: "implementation/index.md",
             operation: "create",
             source: "local",
@@ -148,11 +164,11 @@ test("dashboard snapshots prefer topic token usage ledger attribution", async ()
       const reviewFile = topicSummary?.files.find((file) => file.relativePath === "reviews/code.review.md");
 
       assert.equal(topicSummary?.tokenUsage.source, "ledger");
-      assert.equal(topicSummary?.tokenUsage.ledgerRecordCount, 5);
-      assert.equal(topicSummary?.tokenUsage.total, 119 + generatedReviewEstimate);
-      assert.equal(topicSummary?.tokenUsage.llmActualTokens, 108 + generatedReviewEstimate);
+      assert.equal(topicSummary?.tokenUsage.ledgerRecordCount, 6);
+      assert.equal(topicSummary?.tokenUsage.total, 119 + generatedReviewEstimate + generatedSourceEstimate);
+      assert.equal(topicSummary?.tokenUsage.llmActualTokens, 108 + generatedReviewEstimate + generatedSourceEstimate);
       assert.equal(topicSummary?.tokenUsage.localEstimatedTokens, 11);
-      assert.equal(topicSummary?.tokenUsageRecords.length, 5);
+      assert.equal(topicSummary?.tokenUsageRecords.length, 6);
       assert.equal(topicSummary?.tokenUsageRecords[0]?.usageMetadataAvailable, true);
       assert.equal(topicSummary?.tokenUsageRecords[1]?.measurement, "unavailable");
       assert.equal(topicSummary?.tokenUsageRecords[1]?.usageMetadataAvailable, false);

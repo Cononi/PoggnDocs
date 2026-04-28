@@ -6,7 +6,7 @@ pgg-llm-local-token-usage-accounting
 
 ## Current Stage
 
-refactor
+qa
 
 ## Goal
 
@@ -14,7 +14,7 @@ LLM 생성 산출물 토큰과 local 처리 토큰의 집계 차이를 dashboard
 
 ## Next Action
 
-`pgg-qa`에서 gate와 검증 결과를 최종 확인한다.
+`qa/report.md` pass 결과를 기준으로 archive helper를 실행한다.
 
 ## Constraints
 
@@ -65,6 +65,7 @@ LLM 생성 산출물 토큰과 local 처리 토큰의 집계 차이를 dashboard
 - local usage는 `source: "local"` ledger record만 합산해 LLM artifact fallback과 섞이지 않게 했다.
 - `.codex/sh/pgg-state-pack.sh`와 generated template의 token usage summary도 같은 fallback 기준을 사용하게 했다.
 - `packages/core/test/dashboard-token-usage.test.mjs`가 provider actual, metadata 없는 LLM actual, unavailable zero artifact fallback, local-only 합산을 검증한다.
+- token audit 중 확인된 project file artifact fallback 누락을 보정해 `packages/core/...` 같은 변경 파일도 LLM fallback estimate source로 읽는다.
 
 ## Refactor Summary
 
@@ -80,11 +81,21 @@ LLM 생성 산출물 토큰과 local 처리 토큰의 집계 차이를 dashboard
 - local records: `3`
 - note: provider usage metadata is unavailable in this session, so LLM implementation records keep attribution and rely on artifact fallback semantics introduced by this topic.
 
+## Token Audit Summary
+
+- required token audit: pass
+- state-pack token_usage_llm_total: `84738`
+- state-pack token_usage_local_total: `1223`
+- unavailable records: `4`
+- project file artifact fallback now reads ledger-referenced project files from the repository root without scanning the full repository.
+
 ## Verification
 
 - `pnpm --filter @pgg/core test`: pass, 55 tests.
 - `pnpm --filter @pgg/dashboard build`: pass, Vite chunk-size warning only.
 - `.codex/sh/pgg-state-pack.sh dashboard-optional-audit-token-metrics`: pass, token_usage_llm_total `1167`, token_usage_local_total `1074`, unavailable records `6`.
+- `.codex/sh/pgg-state-pack.sh pgg-llm-local-token-usage-accounting`: pass, token_usage_llm_total `84738`, token_usage_local_total `1223`, unavailable records `4`.
+- `.codex/sh/pgg-gate.sh pgg-qa pgg-llm-local-token-usage-accounting`: pass.
 
 ## Audit Applicability
 
@@ -104,13 +115,15 @@ LLM 생성 산출물 토큰과 local 처리 토큰의 집계 차이를 dashboard
 - task review: approved
 - code review: approved
 - refactor review: approved
+- token review: approved
+- qa review: pass
 - score: `96`
 - experts: 소프트웨어 아키텍트, 코드 리뷰어
 - blocking issues: 없음
 
 ## Next Workflow
 
-- pgg-qa
+- archive
 
 ## Changed Files
 
@@ -135,6 +148,9 @@ LLM 생성 산출물 토큰과 local 처리 토큰의 집계 차이를 dashboard
 | ADD | `poggn/active/pgg-llm-local-token-usage-accounting/reviews/task.review.md` | pending |
 | ADD | `poggn/active/pgg-llm-local-token-usage-accounting/reviews/code.review.md` | pending |
 | ADD | `poggn/active/pgg-llm-local-token-usage-accounting/reviews/refactor.review.md` | pending |
+| ADD | `poggn/active/pgg-llm-local-token-usage-accounting/reviews/token.review.md` | pending |
+| ADD | `poggn/active/pgg-llm-local-token-usage-accounting/token/report.md` | pending |
+| ADD | `poggn/active/pgg-llm-local-token-usage-accounting/qa/report.md` | pending |
 | ADD | `poggn/active/pgg-llm-local-token-usage-accounting/implementation/index.md` | pending |
 | ADD | `poggn/active/pgg-llm-local-token-usage-accounting/implementation/diffs/*.diff` | pending |
 | ADD | `poggn/active/pgg-llm-local-token-usage-accounting/state/current.md` | pending |
@@ -142,3 +158,11 @@ LLM 생성 산출물 토큰과 local 처리 토큰의 집계 차이를 dashboard
 | ADD | `poggn/active/pgg-llm-local-token-usage-accounting/state/dirty-worktree-baseline.txt` | pending |
 | ADD | `poggn/active/pgg-llm-local-token-usage-accounting/state/token-usage.ndjson` | pending |
 | ADD | `poggn/active/pgg-llm-local-token-usage-accounting/workflow.reactflow.json` | pending |
+| UPDATE | `.codex/sh/pgg-state-pack.sh` | `implementation/diffs/009_UPDATE__codex_sh_pgg-state-pack_project_fallback.diff` |
+| UPDATE | `packages/core/src/index.ts` | `implementation/diffs/010_UPDATE_packages_core_src_index_project_fallback.diff` |
+| UPDATE | `packages/core/src/templates.ts` | `implementation/diffs/011_UPDATE_packages_core_src_templates_project_fallback.diff` |
+| UPDATE | `packages/core/test/dashboard-token-usage.test.mjs` | `implementation/diffs/012_UPDATE_packages_core_test_dashboard-token-usage_project_fallback.diff` |
+| UPDATE | `packages/core/dist/index.js` | `implementation/diffs/013_UPDATE_packages_core_dist_index_project_fallback.diff` |
+| UPDATE | `packages/core/dist/index.js.map` | `implementation/diffs/014_UPDATE_packages_core_dist_index_map_project_fallback.diff` |
+| UPDATE | `packages/core/dist/templates.js` | `implementation/diffs/015_UPDATE_packages_core_dist_templates_project_fallback.diff` |
+| UPDATE | `packages/core/dist/templates.js.map` | `implementation/diffs/016_UPDATE_packages_core_dist_templates_map_project_fallback.diff` |
