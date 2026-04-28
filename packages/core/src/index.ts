@@ -3116,17 +3116,26 @@ function sumTokenRecords(
   return seen ? total : null;
 }
 
+function isActualLlmTokenRecord(record: TopicTokenUsageRecord): boolean {
+  return record.source === "llm" && record.measurement === "actual" && !record.estimated;
+}
+
+function sumLocalTokenRecords(records: TopicTokenUsageRecord[]): number {
+  return sumTokenRecords(records, (record) => record.source === "local") ?? 0;
+}
+
+function sumActualLlmTokenRecords(records: TopicTokenUsageRecord[]): number | null {
+  return sumTokenRecords(records, isActualLlmTokenRecord);
+}
+
 function applyTokenUsageRecordsToFile(file: TopicFileEntry, records: TopicTokenUsageRecord[]): TopicFileEntry {
   const artifactRecords = tokenUsageRecordsForArtifact(records, file.relativePath, file.sourcePath);
   if (artifactRecords.length === 0) {
     return file;
   }
 
-  const localEstimatedTokens = sumTokenRecords(artifactRecords, (record) => record.source === "local") ?? 0;
-  const llmActualTokens = sumTokenRecords(
-    artifactRecords,
-    (record) => record.source === "llm" && record.measurement === "actual" && !record.estimated
-  );
+  const localEstimatedTokens = sumLocalTokenRecords(artifactRecords);
+  const llmActualTokens = sumActualLlmTokenRecords(artifactRecords);
 
   return {
     ...file,
@@ -3241,11 +3250,8 @@ async function listTopicFiles(
 function summarizeTopicTokenUsage(files: TopicFileEntry[], tokenUsageRecords: TopicTokenUsageRecord[]): TopicTokenUsage {
   if (tokenUsageRecords.length > 0) {
     const total = tokenUsageRecords.reduce((sum, record) => sum + record.totalTokens, 0);
-    const llmActualTokens = sumTokenRecords(
-      tokenUsageRecords,
-      (record) => record.source === "llm" && record.measurement === "actual" && !record.estimated
-    );
-    const localEstimatedTokens = sumTokenRecords(tokenUsageRecords, (record) => record.source === "local") ?? 0;
+    const llmActualTokens = sumActualLlmTokenRecords(tokenUsageRecords);
+    const localEstimatedTokens = sumLocalTokenRecords(tokenUsageRecords);
     return {
       total,
       llmActualTokens,

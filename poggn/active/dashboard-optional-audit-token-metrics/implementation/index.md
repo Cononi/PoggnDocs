@@ -1,11 +1,11 @@
 ---
 pgg:
   topic: "dashboard-optional-audit-token-metrics"
-  stage: "implementation"
+  stage: "refactor"
   status: "reviewed"
-  skill: "pgg-code"
-  score: 95
-  updated_at: "2026-04-27T23:54:01Z"
+  skill: "pgg-refactor"
+  score: 96
+  updated_at: "2026-04-28T00:18:00Z"
 ---
 
 # Implementation Index
@@ -32,11 +32,22 @@ pgg:
 | 018 | UPDATE | `packages/core/dist/workflow-contract.d.ts` | `implementation/diffs/018_UPDATE_packages_core_dist_workflow_contract_d_ts.diff` | `T4` | Built workflow contract type output. |
 | 019 | UPDATE | `packages/core/dist/workflow-contract.js` | `implementation/diffs/019_UPDATE_packages_core_dist_workflow_contract_js.diff` | `T4` | Built workflow contract runtime output. |
 | 020 | UPDATE | `packages/core/dist/workflow-contract.js.map` | `implementation/diffs/020_UPDATE_packages_core_dist_workflow_contract_js_map.diff` | `T4` | Built workflow contract source map. |
+| 021 | UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | `implementation/diffs/021_REFACTOR_apps_dashboard_src_features_history_historyModel_ts.diff` | `T1,T2,T5` | Refactored optional audit artifact matching into a shared helper. |
+| 022 | UPDATE | `packages/core/src/index.ts` | `implementation/diffs/022_REFACTOR_packages_core_src_index_ts.diff` | `T3,T5` | Refactored repeated token usage source/measurement predicates into helpers. |
+| 023 | UPDATE | `packages/core/dist/index.js` | `implementation/diffs/023_REFACTOR_packages_core_dist_index_js.diff` | `T3,T5` | Built core runtime output for token helper refactor. |
+| 024 | UPDATE | `packages/core/dist/index.js.map` | `implementation/diffs/024_REFACTOR_packages_core_dist_index_js_map.diff` | `T3,T5` | Built core source map for token helper refactor. |
 
 ## Verification
 
 - `pnpm --filter @pgg/core test`: pass, 54 tests.
 - `pnpm --filter @pgg/dashboard build`: pass, Vite chunk-size warning only.
+- Refactor verification repeated both commands after helper extraction with the same pass results.
+
+## Refactor Summary
+
+- Optional audit artifact path matching now lives in `isOptionalAuditArtifact`, keeping token/performance report and review path rules in one place.
+- Token usage llm/local aggregation now uses `isActualLlmTokenRecord`, `sumLocalTokenRecords`, and `sumActualLlmTokenRecords`, keeping file attribution and topic summary totals aligned.
+- No behavior or public type contract changes were introduced.
 
 ## Notes
 

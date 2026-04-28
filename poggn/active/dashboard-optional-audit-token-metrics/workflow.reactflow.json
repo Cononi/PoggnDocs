@@ -152,9 +152,9 @@
       "position": { "x": 2240, "y": 0 },
       "data": {
         "label": "state/current.md",
-        "stage": "implementation",
+        "stage": "refactor",
         "status": "ready",
-        "next": "pgg-refactor"
+        "next": "pgg-token"
       }
     },
     {
@@ -202,6 +202,23 @@
           "updatedAt": "2026-04-27T23:54:55Z"
         }
       }
+    },
+    {
+      "id": "refactor-review",
+      "type": "review",
+      "position": { "x": 2240, "y": -120 },
+      "data": {
+        "label": "refactor.review.md",
+        "stage": "refactor",
+        "status": "approved",
+        "score": 96,
+        "path": "poggn/active/dashboard-optional-audit-token-metrics/reviews/refactor.review.md",
+        "detail": {
+          "experts": ["시니어 백엔드 엔지니어", "테크 리드"],
+          "blocking": "없음",
+          "summary": "optional audit artifact matching and token usage aggregation predicates were deduplicated without behavior changes."
+        }
+      }
     }
   ],
   "edges": [
@@ -223,7 +240,9 @@
     { "id": "task-review-to-implementation", "source": "task-review", "target": "implementation-index" },
     { "id": "implementation-to-code-review", "source": "implementation-index", "target": "code-review" },
     { "id": "implementation-to-token-ledger", "source": "implementation-index", "target": "token-usage-ledger" },
+    { "id": "implementation-to-refactor-review", "source": "implementation-index", "target": "refactor-review" },
     { "id": "code-review-to-state", "source": "code-review", "target": "handoff-state" },
-    { "id": "token-ledger-to-state", "source": "token-usage-ledger", "target": "handoff-state" }
+    { "id": "token-ledger-to-state", "source": "token-usage-ledger", "target": "handoff-state" },
+    { "id": "refactor-review-to-state", "source": "refactor-review", "target": "handoff-state" }
   ]
 }

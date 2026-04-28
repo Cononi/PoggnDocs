@@ -6,7 +6,7 @@ dashboard-optional-audit-token-metrics
 
 ## Current Stage
 
-implementation
+refactor
 
 ## Goal
 
@@ -14,7 +14,7 @@ dashboard optional audit 표시 조건, timeline 완료 게이트, pgg token usa
 
 ## Next Action
 
-`pgg-refactor`에서 구현 결과의 구조와 중복을 점검한다. refactor 이후 required `pgg-token` audit를 실행해 token ledger와 generated workflow 변경의 token-cost impact를 검토한다.
+required `pgg-token` audit를 실행해 token ledger와 generated workflow 변경의 token-cost impact를 검토한다.
 
 ## Constraints
 
@@ -74,6 +74,12 @@ dashboard optional audit 표시 조건, timeline 완료 게이트, pgg token usa
 - generated AGENTS/WOKR/STATE/skill/state-pack/template 계약에 optional audit visibility와 token ledger summary/ref 규칙을 반영했다.
 - `packages/core/test/dashboard-token-usage.test.mjs`로 ledger-first attribution 회귀를 고정했다.
 
+## Refactor Summary
+
+- optional audit report/review artifact matching을 `isOptionalAuditArtifact` helper로 분리했다.
+- token usage llm actual/local aggregation 조건을 `isActualLlmTokenRecord`, `sumLocalTokenRecords`, `sumActualLlmTokenRecords` helper로 분리했다.
+- 동작 변경 없이 중복 조건을 줄였고, refactor 후 core test와 dashboard build를 재검증했다.
+
 ## Token Usage
 
 - ledger: `state/token-usage.ndjson`
@@ -86,6 +92,8 @@ dashboard optional audit 표시 조건, timeline 완료 게이트, pgg token usa
 
 - `pnpm --filter @pgg/core test`: pass, 54 tests.
 - `pnpm --filter @pgg/dashboard build`: pass, Vite chunk-size warning only.
+- Refactor verification: `pnpm --filter @pgg/core test` pass, 54 tests.
+- Refactor verification: `pnpm --filter @pgg/dashboard build` pass, Vite chunk-size warning only.
 
 ## Out Of Scope
 
@@ -112,13 +120,14 @@ dashboard optional audit 표시 조건, timeline 완료 게이트, pgg token usa
 - plan review: approved
 - task review: approved
 - code review: approved
+- refactor review: approved
 - score: `96`
 - experts: 시니어 백엔드 엔지니어, 테크 리드
 - blocking issues: 없음
 
 ## Next Workflow
 
-- pgg-refactor
+- pgg-token
 
 ## Changed Files
 
@@ -163,3 +172,8 @@ dashboard optional audit 표시 조건, timeline 완료 게이트, pgg token usa
 | ADD | `poggn/active/dashboard-optional-audit-token-metrics/implementation/diffs/*.diff` | pending |
 | ADD | `poggn/active/dashboard-optional-audit-token-metrics/reviews/code.review.md` | pending |
 | ADD | `poggn/active/dashboard-optional-audit-token-metrics/state/token-usage.ndjson` | pending |
+| UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | `implementation/diffs/021_REFACTOR_apps_dashboard_src_features_history_historyModel_ts.diff` |
+| UPDATE | `packages/core/src/index.ts` | `implementation/diffs/022_REFACTOR_packages_core_src_index_ts.diff` |
+| UPDATE | `packages/core/dist/index.js` | `implementation/diffs/023_REFACTOR_packages_core_dist_index_js.diff` |
+| UPDATE | `packages/core/dist/index.js.map` | `implementation/diffs/024_REFACTOR_packages_core_dist_index_js_map.diff` |
+| ADD | `poggn/active/dashboard-optional-audit-token-metrics/reviews/refactor.review.md` | pending |

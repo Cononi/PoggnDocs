@@ -2068,13 +2068,22 @@ function sumTokenRecords(records, predicate) {
     }
     return seen ? total : null;
 }
+function isActualLlmTokenRecord(record) {
+    return record.source === "llm" && record.measurement === "actual" && !record.estimated;
+}
+function sumLocalTokenRecords(records) {
+    return sumTokenRecords(records, (record) => record.source === "local") ?? 0;
+}
+function sumActualLlmTokenRecords(records) {
+    return sumTokenRecords(records, isActualLlmTokenRecord);
+}
 function applyTokenUsageRecordsToFile(file, records) {
     const artifactRecords = tokenUsageRecordsForArtifact(records, file.relativePath, file.sourcePath);
     if (artifactRecords.length === 0) {
         return file;
     }
-    const localEstimatedTokens = sumTokenRecords(artifactRecords, (record) => record.source === "local") ?? 0;
-    const llmActualTokens = sumTokenRecords(artifactRecords, (record) => record.source === "llm" && record.measurement === "actual" && !record.estimated);
+    const localEstimatedTokens = sumLocalTokenRecords(artifactRecords);
+    const llmActualTokens = sumActualLlmTokenRecords(artifactRecords);
     return {
         ...file,
         localEstimatedTokens,
@@ -2164,8 +2173,8 @@ async function listTopicFiles(rootDir, topicDir, bucket, topic, tokenUsageRecord
 function summarizeTopicTokenUsage(files, tokenUsageRecords) {
     if (tokenUsageRecords.length > 0) {
         const total = tokenUsageRecords.reduce((sum, record) => sum + record.totalTokens, 0);
-        const llmActualTokens = sumTokenRecords(tokenUsageRecords, (record) => record.source === "llm" && record.measurement === "actual" && !record.estimated);
-        const localEstimatedTokens = sumTokenRecords(tokenUsageRecords, (record) => record.source === "local") ?? 0;
+        const llmActualTokens = sumActualLlmTokenRecords(tokenUsageRecords);
+        const localEstimatedTokens = sumLocalTokenRecords(tokenUsageRecords);
         return {
             total,
             llmActualTokens,

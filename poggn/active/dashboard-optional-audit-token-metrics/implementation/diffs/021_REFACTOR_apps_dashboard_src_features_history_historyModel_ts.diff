@@ -1,0 +1,32 @@
+diff --git a/apps/dashboard/src/features/history/historyModel.ts b/apps/dashboard/src/features/history/historyModel.ts
+index f3a7633..e0722e5 100644
+--- a/apps/dashboard/src/features/history/historyModel.ts
++++ b/apps/dashboard/src/features/history/historyModel.ts
+@@ -300,14 +300,21 @@ function isOptionalAuditExecutionEvent(event: TopicHistoryEventEntry): boolean {
+   return eventNameMatches(event, [/stage-started/i, /stage-progress/i, /stage-completed/i, /stage-commit/i]);
+ }
+ 
++function isOptionalAuditArtifact(flow: WorkflowFlowDefinition, relativePath: string): boolean {
++  if (flow.id === "token") {
++    return /^token\/report\.md$/.test(relativePath) || /^reviews\/token\.review\.md$/.test(relativePath);
++  }
++  if (flow.id === "performance") {
++    return /^performance\/report\.md$/.test(relativePath) || /^reviews\/performance\.review\.md$/.test(relativePath);
++  }
++  return false;
++}
++
+ function topicHasOptionalAuditExecutionEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition): boolean {
+   const hasEventEvidence = flowHistoryEvents(topic, flow).some(isOptionalAuditExecutionEvent);
+-  const hasFileEvidence = flowFiles(topic, flow).some((file) => {
+-    const path = file.relativePath;
+-    const expectedReport = flow.id === "token" ? /^token\/report\.md$/ : /^performance\/report\.md$/;
+-    const expectedReview = flow.id === "token" ? /^reviews\/token\.review\.md$/ : /^reviews\/performance\.review\.md$/;
+-    return (expectedReport.test(path) || expectedReview.test(path)) && fileHasMeaningfulAuditContent(file);
+-  });
++  const hasFileEvidence = flowFiles(topic, flow).some(
++    (file) => isOptionalAuditArtifact(flow, file.relativePath) && fileHasMeaningfulAuditContent(file)
++  );
+   const hasNodeEvidence = flowNodes(topic, flow).some(nodeHasOptionalAuditExecutionEvidence);
+ 
+   return hasEventEvidence || hasFileEvidence || hasNodeEvidence;
