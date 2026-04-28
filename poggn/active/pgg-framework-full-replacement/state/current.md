@@ -6,7 +6,7 @@ pgg-framework-full-replacement
 
 ## Current Stage
 
-pgg-code
+pgg-refactor
 
 ## Goal
 
@@ -46,10 +46,15 @@ pgg-code
 - `pgg-code/verify.md`
 - `pgg-code/reviews/review-1-spec-compliance.md`
 - `pgg-code/reviews/review-2-code-quality.md`
+- `pgg-refactor/report.md`
+- `pgg-refactor/before-after.md`
+- `pgg-refactor/diff-inspection.md`
+- `pgg-refactor/reviews/behavior-preservation.review.md`
+- `pgg-refactor/reviews/structure-quality.review.md`
 - `proposal.md`
 - `state.json`
 - `metrics/token-usage.jsonl`
 
 ## Next
 
-`pgg-refactor`에서 동작 보존을 확인하면서 legacy compatibility surface, generated docs diff, dashboard model, git lifecycle helper를 중심으로 구조 개선 가능성을 점검한다.
+`pgg-qa`에서 source of truth, generated docs, versioning, git lifecycle, completion message, token accounting, technical checks, archive/release readiness를 최종 검증한다.

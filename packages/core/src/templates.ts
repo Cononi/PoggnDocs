@@ -1818,6 +1818,65 @@ function renderAdditionalGuidance(definition: PggSkillDefinition, language: Temp
   );
 }
 
+const COMMON_SKILL_DEFINITION_LABELS = {
+  ko: {
+    title: "## 공통 Skill 정의",
+    id: "Skill ID",
+    name: "Skill 이름",
+    purpose: "목적",
+    targetAgent: "대상 에이전트",
+    triggerConditions: "Trigger 조건",
+    inputs: "입력",
+    outputs: "출력",
+    absoluteRules: "절대 규칙",
+    antiPatterns: "금지 패턴",
+    requiredPhases: "필수 단계",
+    approvalGates: "승인 Gate",
+    verificationRequirements: "검증 요구사항",
+    reviewRequirements: "Review 요구사항",
+    completionMessageContract: "완료 메시지 규격",
+    tokenAccountingRequirements: "Token Accounting 요구사항",
+    nextFlowRouting: "Next Flow Routing",
+    performanceTriggerGuidance: "성능 측정 유도 기준",
+    poggnWorkspaceRequirements: "POGGN Workspace 요구사항",
+    gitModeRequirements: "pgg git mode 요구사항",
+    branchLifecycleRequirements: "Branch Lifecycle 요구사항",
+    versioningRequirements: "Versioning 요구사항",
+    commitMessageRequirements: "Commit Message 요구사항",
+    archiveRequirements: "Archive 요구사항",
+    qaRequirements: "QA 요구사항",
+    generatedDocumentationSections: "생성 문서 섹션"
+  },
+  en: {
+    title: "## Common Skill Definition",
+    id: "Skill ID",
+    name: "Skill Name",
+    purpose: "Purpose",
+    targetAgent: "Target Agent",
+    triggerConditions: "Trigger Conditions",
+    inputs: "Inputs",
+    outputs: "Outputs",
+    absoluteRules: "Absolute Rules",
+    antiPatterns: "Anti-Patterns",
+    requiredPhases: "Required Phases",
+    approvalGates: "Approval Gates",
+    verificationRequirements: "Verification Requirements",
+    reviewRequirements: "Review Requirements",
+    completionMessageContract: "Completion Message Contract",
+    tokenAccountingRequirements: "Token Accounting Requirements",
+    nextFlowRouting: "Next Flow Routing",
+    performanceTriggerGuidance: "Performance Trigger Guidance",
+    poggnWorkspaceRequirements: "POGGN Workspace Requirements",
+    gitModeRequirements: "Git Mode Requirements",
+    branchLifecycleRequirements: "Branch Lifecycle Requirements",
+    versioningRequirements: "Versioning Requirements",
+    commitMessageRequirements: "Commit Message Requirements",
+    archiveRequirements: "Archive Requirements",
+    qaRequirements: "QA Requirements",
+    generatedDocumentationSections: "Generated Documentation Sections"
+  }
+} as const satisfies Record<TemplateLanguage, Record<string, string>>;
+
 function renderCommonSkillDefinitionSections(input: TemplateInput, name: GeneratedSkillName | LegacyCompatibilitySkillName): string[] {
   const definition = PGG_SKILL_DEFINITION_BY_ID[name as keyof typeof PGG_SKILL_DEFINITION_BY_ID];
   if (!definition) {
@@ -1825,64 +1884,7 @@ function renderCommonSkillDefinitionSections(input: TemplateInput, name: Generat
   }
 
   const language = input.language;
-  const labels =
-    language === "ko"
-      ? {
-          title: "## 공통 Skill 정의",
-          id: "Skill ID",
-          name: "Skill 이름",
-          purpose: "목적",
-          targetAgent: "대상 에이전트",
-          triggerConditions: "Trigger 조건",
-          inputs: "입력",
-          outputs: "출력",
-          absoluteRules: "절대 규칙",
-          antiPatterns: "금지 패턴",
-          requiredPhases: "필수 단계",
-          approvalGates: "승인 Gate",
-          verificationRequirements: "검증 요구사항",
-          reviewRequirements: "Review 요구사항",
-          completionMessageContract: "완료 메시지 규격",
-          tokenAccountingRequirements: "Token Accounting 요구사항",
-          nextFlowRouting: "Next Flow Routing",
-          performanceTriggerGuidance: "성능 측정 유도 기준",
-          poggnWorkspaceRequirements: "POGGN Workspace 요구사항",
-          gitModeRequirements: "pgg git mode 요구사항",
-          branchLifecycleRequirements: "Branch Lifecycle 요구사항",
-          versioningRequirements: "Versioning 요구사항",
-          commitMessageRequirements: "Commit Message 요구사항",
-          archiveRequirements: "Archive 요구사항",
-          qaRequirements: "QA 요구사항",
-          generatedDocumentationSections: "생성 문서 섹션"
-        }
-      : {
-          title: "## Common Skill Definition",
-          id: "Skill ID",
-          name: "Skill Name",
-          purpose: "Purpose",
-          targetAgent: "Target Agent",
-          triggerConditions: "Trigger Conditions",
-          inputs: "Inputs",
-          outputs: "Outputs",
-          absoluteRules: "Absolute Rules",
-          antiPatterns: "Anti-Patterns",
-          requiredPhases: "Required Phases",
-          approvalGates: "Approval Gates",
-          verificationRequirements: "Verification Requirements",
-          reviewRequirements: "Review Requirements",
-          completionMessageContract: "Completion Message Contract",
-          tokenAccountingRequirements: "Token Accounting Requirements",
-          nextFlowRouting: "Next Flow Routing",
-          performanceTriggerGuidance: "Performance Trigger Guidance",
-          poggnWorkspaceRequirements: "POGGN Workspace Requirements",
-          gitModeRequirements: "Git Mode Requirements",
-          branchLifecycleRequirements: "Branch Lifecycle Requirements",
-          versioningRequirements: "Versioning Requirements",
-          commitMessageRequirements: "Commit Message Requirements",
-          archiveRequirements: "Archive Requirements",
-          qaRequirements: "QA Requirements",
-          generatedDocumentationSections: "Generated Documentation Sections"
-        };
+  const labels = COMMON_SKILL_DEFINITION_LABELS[language];
 
   const commonSections = [
     "",
