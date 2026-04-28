@@ -1,0 +1,29 @@
+diff --git a/.codex/add/WOKR-FLOW.md b/.codex/add/WOKR-FLOW.md
+index 3d0f65c..c8b715e 100644
+--- a/.codex/add/WOKR-FLOW.md
++++ b/.codex/add/WOKR-FLOW.md
+@@ -51,7 +51,7 @@ pgg는 core workflow와 필요할 때만 여는 optional audit로 delivery를 
+    - `plan.md`, `task.md`, `spec/*/*.md`, `reviews/plan.review.md`, `reviews/task.review.md` 생성
+ 3. `pgg-code`
+    - 코드 구현
+-   - `pgg git=on`이면 task 완료마다 `.codex/sh/pgg-stage-commit.sh <topic|topic_dir> implementation <summary> <why> [footer]`로 task-scoped commit을 남기고, helper는 필요 시 governed `working_branch` auto-checkout recovery를 먼저 시도하며 topic 시작 전에 기록된 dirty baseline은 unrelated blocker로 보지 않는다
++   - `pgg git=on`이면 `task.md` Task 목록의 `Task ID`가 `T1...N`인 행 1개 완료마다 `.codex/sh/pgg-stage-commit.sh <topic|topic_dir> implementation <summary> <why> [footer]`로 task-scoped commit을 남긴다. helper에는 `PGG_TASK_ID`, `PGG_TASK_DEPENDENCIES`, `PGG_TASK_COMPLETION_CRITERIA`를 함께 전달하고, commit body는 최상단 `Dependencies`, 그 아래 완료 조건, footer는 완료 조건에 명시된 task 내용으로 구성한다. helper는 필요 시 governed `working_branch` auto-checkout recovery를 먼저 시도하며 topic 시작 전에 기록된 dirty baseline은 unrelated blocker로 보지 않는다
+    - `implementation/index.md`, `implementation/diffs/*.diff`, `reviews/code.review.md` 생성
+ 4. `pgg-refactor`
+    - 구수행 코드 검사 후 레거시 코드 제거와 구조 개선 수행으로 최적화된 클린코드
+diff --git a/.codex/skills/pgg-code/SKILL.md b/.codex/skills/pgg-code/SKILL.md
+index eee33a1..b98f104 100644
+--- a/.codex/skills/pgg-code/SKILL.md
++++ b/.codex/skills/pgg-code/SKILL.md
+@@ -33,8 +33,9 @@ description: "승인된 topic을 구현하고 implementation diff와 review를 
+ - 승인되지 않은 topic은 구현하지 않는다
+ - 현재 프로젝트 내부 implementation 기록과 generated doc 갱신은 자동 처리한다
+ - 현재 프로젝트 밖을 건드리는 작업은 자동 처리하지 않는다
+-- `plan.md`의 task 단위를 기본 commit cadence로 보고, 여러 commit이 있어도 한 commit은 하나의 task 또는 task 일부 intent에만 대응시킨다
+-- `pgg git=on`이면 task 완료마다 `.codex/sh/pgg-stage-commit.sh <topic|topic_dir> implementation <summary> <why> [footer]`를 실행하고 제목은 `{convention}: {version}.{commit message}` 형식, `pgg lang` 기반 메시지 언어, 상세 body를 유지한다
++- `task.md`의 Task 목록에서 `Task ID`가 `T1...N`인 행 1개를 기본 commit cadence로 보고, 여러 commit이 있어도 한 commit은 하나의 task 행 또는 task 일부 intent에만 대응시킨다
++- `pgg git=on`이면 task 행 완료마다 `.codex/sh/pgg-stage-commit.sh <topic|topic_dir> implementation <summary> <why> [footer]`를 실행한다. 이때 `PGG_TASK_ID`, `PGG_TASK_DEPENDENCIES`, `PGG_TASK_COMPLETION_CRITERIA` env를 함께 넘겨 `stage-commit` evidence와 commit body가 task 행을 가리키게 한다
++- task commit 제목의 summary는 해당 task 행의 작업 내용이어야 하며, body 최상단은 `Dependencies`, 그 아래는 완료 조건, footer는 완료 조건에 명시된 task 내용이어야 한다
+ - 모든 변경은 CREATE, UPDATE, DELETE로 분류한다
+ - 파일 생성/수정/삭제 또는 flow 작업 token usage를 기록할 때는 `state/token-usage.ndjson`에 append-only record로 남기고 `source: llm | local`, actual/estimated 여부, artifact path를 구분한다.
+ - 전체 파일 복사보다 diff 기록을 우선한다

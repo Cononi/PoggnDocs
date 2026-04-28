@@ -333,7 +333,7 @@ function runArchiveHelper(rootDir, topic) {
   );
 }
 
-function runStageCommitHelper(rootDir, topic, stage, summary, why, footer) {
+function runStageCommitHelper(rootDir, topic, stage, summary, why, footer, options = {}) {
   const args = [topic, stage, summary, why];
   if (footer !== undefined) {
     args.push(footer);
@@ -341,7 +341,8 @@ function runStageCommitHelper(rootDir, topic, stage, summary, why, footer) {
 
   return JSON.parse(
     execFileSync(path.join(rootDir, ".codex/sh/pgg-stage-commit.sh"), args, {
-      encoding: "utf8"
+      encoding: "utf8",
+      env: { ...process.env, ...(options.env ?? {}) }
     })
   );
 }
@@ -881,7 +882,14 @@ test("stage commit helper records archive-type-aware implementation commits", as
       "implementation",
       "task progress",
       "This task needs a scoped implementation commit so the workflow history matches the completed task intent.",
-      "Refs: TASK-101"
+      "Footer task content: implementation task change",
+      {
+        env: {
+          PGG_TASK_ID: "T1",
+          PGG_TASK_DEPENDENCIES: "proposal, S1",
+          PGG_TASK_COMPLETION_CRITERIA: "implementation task change"
+        }
+      }
     );
     const commitMessage = git(rootDir, ["log", "-1", "--format=%B"]);
     const history = await readFile(
@@ -891,13 +899,20 @@ test("stage commit helper records archive-type-aware implementation commits", as
 
     assert.equal(result.resultType, "committed");
     assert.equal(result.commitTitle, "fix: 0.1.1.task progress");
+    assert.equal(result.taskId, "T1");
+    assert.equal(result.dependencies, "proposal, S1");
+    assert.equal(result.completionCriteria, "implementation task change");
     assert.equal(result.workingBranch, branch.workingBranch);
     assert.match(commitMessage, /^fix: 0\.1\.1\.task progress$/m);
+    assert.match(commitMessage, /^Dependencies: proposal, S1$/m);
+    assert.match(commitMessage, /^Completion Criteria: implementation task change$/m);
     assert.match(commitMessage, /Why: This task needs a scoped implementation commit/);
     assert.match(commitMessage, /Changes: task progress/);
-    assert.match(commitMessage, /^Refs: TASK-101$/m);
+    assert.match(commitMessage, /^Footer task content: implementation task change$/m);
     assert.match(history, /"stage":"implementation"/);
     assert.match(history, /"event":"stage-commit"/);
+    assert.match(history, /"taskId":"T1"/);
+    assert.match(history, /"completionCriteria":"implementation task change"/);
   });
 });
 

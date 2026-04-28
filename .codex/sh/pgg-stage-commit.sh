@@ -12,6 +12,9 @@ STAGE_NAME="$(printf '%s' "$2" | tr '[:upper:]' '[:lower:]')"
 SUMMARY_RAW="$3"
 WHY_RAW="$4"
 FOOTER_RAW="${5:-}"
+TASK_ID_RAW="${PGG_TASK_ID:-}"
+TASK_DEPENDENCIES_RAW="${PGG_TASK_DEPENDENCIES:-}"
+TASK_COMPLETION_CRITERIA_RAW="${PGG_TASK_COMPLETION_CRITERIA:-}"
 
 fail() {
   echo "{\"error\":\"$1\"}" >&2
@@ -156,12 +159,29 @@ NODE
 
 write_commit_message_file() {
   local output_file="$1"
-  COMMIT_TITLE_VALUE="$COMMIT_TITLE" WHY_SUMMARY_VALUE="$WHY_SUMMARY" SUMMARY_VALUE="$SUMMARY" ISSUE_FOOTER_VALUE="$ISSUE_FOOTER" node - <<'NODE' > "$output_file"
+  COMMIT_TITLE_VALUE="$COMMIT_TITLE" WHY_SUMMARY_VALUE="$WHY_SUMMARY" SUMMARY_VALUE="$SUMMARY" ISSUE_FOOTER_VALUE="$ISSUE_FOOTER" PROJECT_LANGUAGE_VALUE="$PROJECT_LANGUAGE" TASK_DEPENDENCIES_VALUE="$TASK_DEPENDENCIES" TASK_COMPLETION_CRITERIA_VALUE="$TASK_COMPLETION_CRITERIA" node - <<'NODE' > "$output_file"
 const title = (process.env.COMMIT_TITLE_VALUE ?? "").trim();
 const why = (process.env.WHY_SUMMARY_VALUE ?? "").trim();
 const summary = (process.env.SUMMARY_VALUE ?? "").trim();
 const footer = (process.env.ISSUE_FOOTER_VALUE ?? "").trim();
-process.stdout.write([title, "", `Why: ${why}`, "", `Changes: ${summary}`, "", footer, ""].join("\n"));
+const projectLanguage = (process.env.PROJECT_LANGUAGE_VALUE ?? "ko").trim();
+const dependencies = (process.env.TASK_DEPENDENCIES_VALUE ?? "").trim() || (projectLanguage === "ko" ? "기록 없음" : "not recorded");
+const completionCriteria = (process.env.TASK_COMPLETION_CRITERIA_VALUE ?? "").trim() || why;
+const completionLabel = projectLanguage === "ko" ? "완료 조건" : "Completion Criteria";
+process.stdout.write([
+  title,
+  "",
+  `Dependencies: ${dependencies}`,
+  "",
+  `${completionLabel}: ${completionCriteria}`,
+  "",
+  `Why: ${why}`,
+  "",
+  `Changes: ${summary}`,
+  "",
+  footer,
+  ""
+].join("\n"));
 NODE
 }
 
@@ -258,6 +278,9 @@ append_history_event() {
   SUMMARY_VALUE="$SUMMARY" \
   WHY_SUMMARY_VALUE="$WHY_SUMMARY" \
   FOOTER_VALUE="$ISSUE_FOOTER" \
+  TASK_ID_VALUE="$TASK_ID" \
+  TASK_DEPENDENCIES_VALUE="$TASK_DEPENDENCIES" \
+  TASK_COMPLETION_CRITERIA_VALUE="$TASK_COMPLETION_CRITERIA" \
   ARCHIVE_TYPE_VALUE="$ARCHIVE_TYPE" \
   TARGET_VERSION_VALUE="$TARGET_VERSION" \
   PROJECT_LANGUAGE_VALUE="$PROJECT_LANGUAGE" \
@@ -275,7 +298,10 @@ const payload = {
   commitTitle: process.env.COMMIT_TITLE_VALUE,
   summary: process.env.SUMMARY_VALUE,
   why: process.env.WHY_SUMMARY_VALUE,
-  footer: process.env.FOOTER_VALUE
+  footer: process.env.FOOTER_VALUE,
+  taskId: process.env.TASK_ID_VALUE || null,
+  dependencies: process.env.TASK_DEPENDENCIES_VALUE || null,
+  completionCriteria: process.env.TASK_COMPLETION_CRITERIA_VALUE || null
 };
 if ((process.env.BRANCH_RECOVERY_STATUS_VALUE ?? "") !== "not_attempted") {
   payload.branchRecovery = process.env.BRANCH_RECOVERY_STATUS_VALUE;
@@ -301,6 +327,9 @@ emit_result() {
   STAGE_VALUE="$STAGE_NAME" \
   COMMIT_TITLE_VALUE="${COMMIT_TITLE:-}" \
   FOOTER_VALUE="${ISSUE_FOOTER:-}" \
+  TASK_ID_VALUE="${TASK_ID:-}" \
+  TASK_DEPENDENCIES_VALUE="${TASK_DEPENDENCIES:-}" \
+  TASK_COMPLETION_CRITERIA_VALUE="${TASK_COMPLETION_CRITERIA:-}" \
   BRANCH_VALUE="${BRANCH:-}" \
   WORKING_BRANCH_VALUE="${WORKING_BRANCH:-}" \
   ARCHIVE_TYPE_VALUE="$ARCHIVE_TYPE" \
@@ -321,6 +350,9 @@ const payload = {
   commitTitle: process.env.COMMIT_TITLE_VALUE || null,
   commitSha: process.env.COMMIT_SHA_VALUE || null,
   footer: process.env.FOOTER_VALUE || null,
+  taskId: process.env.TASK_ID_VALUE || null,
+  dependencies: process.env.TASK_DEPENDENCIES_VALUE || null,
+  completionCriteria: process.env.TASK_COMPLETION_CRITERIA_VALUE || null,
   branch: process.env.BRANCH_VALUE || null,
   workingBranch: process.env.WORKING_BRANCH_VALUE || null,
   branchRecovery: process.env.BRANCH_RECOVERY_STATUS_VALUE || "not_attempted",
@@ -351,9 +383,20 @@ esac
 
 SUMMARY="$(sanitize_value "$SUMMARY_RAW")"
 WHY_SUMMARY="$(sanitize_value "$WHY_RAW")"
+TASK_ID="$(sanitize_value "$TASK_ID_RAW")"
+TASK_DEPENDENCIES="$(sanitize_value "$TASK_DEPENDENCIES_RAW")"
+TASK_COMPLETION_CRITERIA="$(sanitize_value "$TASK_COMPLETION_CRITERIA_RAW")"
 ISSUE_FOOTER="$(sanitize_value "$FOOTER_RAW")"
 if [[ -z "$ISSUE_FOOTER" ]]; then
-  ISSUE_FOOTER="Refs: $TOPIC"
+  if [[ -n "$TASK_COMPLETION_CRITERIA" ]]; then
+    if [[ "$PROJECT_LANGUAGE" == "ko" ]]; then
+      ISSUE_FOOTER="완료 조건: $TASK_COMPLETION_CRITERIA"
+    else
+      ISSUE_FOOTER="Completion Criteria: $TASK_COMPLETION_CRITERIA"
+    fi
+  else
+    ISSUE_FOOTER="Refs: $TOPIC"
+  fi
 fi
 COMMIT_TITLE="$(build_commit_title "$ARCHIVE_TYPE" "$TARGET_VERSION" "$SUMMARY")"
 
