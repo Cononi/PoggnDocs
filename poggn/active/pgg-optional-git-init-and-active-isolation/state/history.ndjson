@@ -1,0 +1,10 @@
+{"ts":"2026-04-28T04:39:54Z","stage":"proposal","event":"topic-created"}
+{"ts":"2026-04-28T04:39:54Z","stage":"proposal","event":"stage-started","source":"pgg-add"}
+{"ts":"2026-04-28T04:40:12Z","stage":"proposal","event":"stage-progress","source":"pgg-add","summary":"git optional init/dashboard와 다중 active isolation 요구를 proposal, review, state에 정리"}
+{"ts":"2026-04-28T04:40:12Z","stage":"proposal","event":"stage-completed","source":"verified:pgg-add","summary":"proposal review와 handoff state 검증 완료"}
+{"ts":"2026-04-28T04:44:32Z","stage":"plan","event":"stage-started","source":"pgg-plan"}
+{"ts":"2026-04-28T04:44:32Z","stage":"plan","event":"stage-progress","source":"pgg-plan","summary":"plan, task, S1-S4 spec, plan/task review 작성"}
+{"ts":"2026-04-28T04:44:32Z","stage":"plan","event":"stage-completed","source":"verified:pgg-plan","summary":"plan/task/spec/review와 pgg-code handoff state 검증 완료"}
+{"ts":"2026-04-28T04:49:21Z","stage":"implementation","event":"stage-started","source":"pgg-code"}
+{"ts":"2026-04-28T04:49:21Z","stage":"implementation","event":"stage-progress","source":"pgg-code","taskId":"T1","summary":"core git-off 명시 모드 보존과 dashboard git-off init 회귀 테스트 구현"}
+{"ts":"2026-04-28T04:55:01Z","stage":"implementation","event":"stage-commit","archiveType":"feat","targetVersion":"3.1.0","projectLanguage":"ko","commitTitle":"feat: 3.1.0.git off init 경로","summary":"git off init 경로","why":"git을 사용하지 않는 프로젝트도 init과 dashboard 등록이 정상 경로로 유지되어야 한다.","footer":"완료 조건: gitMode off init/update가 git 명령 없이 성공하고 기존 git-on onboarding 테스트가 유지됨","taskId":"T1","dependencies":"proposal, S1","completionCriteria":"gitMode off init/update가 git 명령 없이 성공하고 기존 git-on onboarding 테스트가 유지됨"}

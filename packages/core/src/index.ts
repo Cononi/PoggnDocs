@@ -1098,8 +1098,15 @@ function commandAvailable(command: string): boolean {
   }
 }
 
-function detectProjectGitConfig(rootDir: string, manifestGit: ProjectGitConfig): ProjectGitConfig {
+function detectProjectGitConfig(
+  rootDir: string,
+  manifestGit: ProjectGitConfig,
+  options: { respectDisabledMode?: boolean } = {}
+): ProjectGitConfig {
   const normalized = normalizeProjectGitConfig(manifestGit);
+  if (normalized.mode === "off" && options.respectDisabledMode !== false) {
+    return normalized;
+  }
   const remoteUrl = gitOutput(rootDir, ["remote", "get-url", normalized.defaultRemote]);
   if (!remoteUrl) {
     if (existsSync(path.join(rootDir, ".git"))) {
@@ -1138,7 +1145,7 @@ function detectProjectGitConfig(rootDir: string, manifestGit: ProjectGitConfig):
 export async function inspectProjectGitSetup(rootDir: string): Promise<ProjectGitSetupInspection> {
   const manifest = await loadProjectManifest(rootDir);
   const manifestGit = normalizeProjectGitConfig(manifest?.git);
-  const git = detectProjectGitConfig(rootDir, manifestGit);
+  const git = detectProjectGitConfig(rootDir, manifestGit, { respectDisabledMode: false });
   const parsedRemote = git.remoteUrl ? parseGitRemoteUrl(git.remoteUrl) : null;
   const hasGitRepository = existsSync(path.join(rootDir, ".git"));
   const pathKind = parsedRemote ? "fast" : "setup";
