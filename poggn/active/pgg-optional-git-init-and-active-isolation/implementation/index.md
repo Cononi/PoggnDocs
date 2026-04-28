@@ -71,3 +71,17 @@
 - diff: `implementation/diffs/005_UPDATE_dashboard_horizontal_responsive_stepper.diff`
 - verification:
   - `pnpm --filter @pgg/dashboard build` pass
+
+## Refactor
+
+- task: multi-active isolation status evaluator의 git-on/git-off 책임 경계를 분리한다.
+- status: done
+- changed files:
+  - UPDATE `packages/core/dist/index.js`
+  - UPDATE `packages/core/dist/index.js.map`
+  - UPDATE `packages/core/src/index.ts`
+  - CREATE `poggn/active/pgg-optional-git-init-and-active-isolation/reviews/refactor.review.md`
+- diff: `implementation/diffs/006_REFACTOR_core_isolation_helpers.diff`
+- verification:
+  - `pnpm --filter @pgg/core build` pass
+  - `pnpm --filter @pgg/core test` pass, 60 tests passed

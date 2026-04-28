@@ -6,11 +6,11 @@ pgg-optional-git-init-and-active-isolation
 
 ## Current Stage
 
-implementation
+refactor
 
 ## Goal
 
-pgg-code 구현과 code review가 완료되었고, 다음 단계에서 pgg-refactor가 변경 구조와 잔여 레거시를 점검한다.
+pgg-refactor 구조 정리와 refactor review가 완료되었고, 다음 단계에서 pgg-qa가 변경 범위와 검증 증거를 최종 확인한다.
 
 ## Constraints
 
@@ -38,7 +38,7 @@ pgg-code 구현과 code review가 완료되었고, 다음 단계에서 pgg-refac
 
 ## Next Action
 
-`pgg-refactor`
+`pgg-qa`
 
 ## User Input Ref
 
@@ -97,6 +97,13 @@ pgg-code 구현과 code review가 완료되었고, 다음 단계에서 pgg-refac
 | UPDATE | `packages/core/src/index.ts` | `implementation/diffs/004_UPDATE_multi_active_isolation.diff` |
 | UPDATE | `packages/core/test/status-analysis.test.mjs` | `implementation/diffs/004_UPDATE_multi_active_isolation.diff` |
 | UPDATE | `apps/dashboard/src/app/DashboardApp.tsx` | `implementation/diffs/005_UPDATE_dashboard_horizontal_responsive_stepper.diff` |
+| UPDATE | `packages/core/dist/index.js` | `implementation/diffs/006_REFACTOR_core_isolation_helpers.diff` |
+| UPDATE | `packages/core/dist/index.js.map` | `implementation/diffs/006_REFACTOR_core_isolation_helpers.diff` |
+| UPDATE | `packages/core/src/index.ts` | `implementation/diffs/006_REFACTOR_core_isolation_helpers.diff` |
+| CREATE | `poggn/active/pgg-optional-git-init-and-active-isolation/reviews/refactor.review.md` | refactor review |
+| UPDATE | `poggn/active/pgg-optional-git-init-and-active-isolation/implementation/index.md` | refactor evidence |
+| UPDATE | `poggn/active/pgg-optional-git-init-and-active-isolation/state/current.md` | refactor handoff |
+| UPDATE | `poggn/active/pgg-optional-git-init-and-active-isolation/state/history.ndjson` | refactor stage events |
 
 ## Implementation Status
 
@@ -110,10 +117,18 @@ pgg-code 구현과 code review가 완료되었고, 다음 단계에서 pgg-refac
 - `pnpm build`: pass
 - `pnpm test`: pass, core 60 tests passed, dashboard history model 3 tests passed
 - `pnpm --filter @pgg/dashboard build`: pass after horizontal responsive Stepper update
+- `pnpm --filter @pgg/core build`: pass after refactor
+- `pnpm --filter @pgg/core test`: pass after refactor, 60 tests passed
+
+## Refactor Status
+
+- R1: done | multi-active isolation evaluator를 git-on branch 검증과 git-off changed path ownership helper로 분리했다.
+- review: `reviews/refactor.review.md` pass
+- next: `pgg-qa`
 
 ## Last Expert Score
 
-- phase: implementation
+- phase: refactor
 - score: 96
 - blocking issues: 없음
 
@@ -123,6 +138,8 @@ pgg-code 구현과 code review가 완료되었고, 다음 단계에서 pgg-refac
 - UX/UI 전문가: Linear Stepper로 project add 입력을 단계화하고 git 사용 여부에 따라 후속 step을 분기하는 방향이 적절하다.
 - 소프트웨어 아키텍트: spec 경계를 core/CLI, dashboard UX, workflow evidence, multi-active runtime으로 나누는 구조가 구현 순서와 책임 경계를 명확히 한다.
 - 도메인 전문가: `git mode=off`를 공식 mode로 정의하고, active topic 충돌을 branch evidence와 file ownership evidence로 분리한 점이 pgg workflow 도메인과 맞다.
+- 소프트웨어 아키텍트: refactor에서 multi-active isolation evaluator의 git-on/git-off 책임을 helper 단위로 분리해 status 분석 경계를 단순화했다.
+- 코드 리뷰어: refactor 범위는 함수 추출과 dist 갱신에 한정되며 core build/test 60개가 통과했다.
 
 ## Git Publish Message
 

@@ -3659,33 +3659,43 @@ async function buildTopicIsolationIssues(
   manifest: ProjectManifest,
   topics: TopicSummary[]
 ): Promise<Map<string, TopicIsolationIssue>> {
-  const issues = new Map<string, TopicIsolationIssue>();
   if (topics.length < 2) {
-    return issues;
+    return new Map();
   }
 
   const gitMode = normalizeProjectGitConfig(manifest.git).mode;
-  if (gitMode === "on") {
-    const currentBranch = gitOutput(rootDir, ["branch", "--show-current"]);
-    for (const topic of topics) {
-      if (!topic.workingBranch) {
-        issues.set(topic.name, {
-          reason: "Multiple active topics are present, but this topic has no working_branch metadata for git isolation."
-        });
-      } else if (!currentBranch) {
-        issues.set(topic.name, {
-          reason: "Multiple active topics are present with git mode on, but the current git branch could not be resolved."
-        });
-      } else if (currentBranch !== topic.workingBranch) {
-        issues.set(topic.name, {
-          reason: `Multiple active topics require branch isolation. Current branch '${currentBranch}' does not match '${topic.workingBranch}'.`
-        });
-      }
+  return gitMode === "on"
+    ? buildGitOnTopicIsolationIssues(rootDir, topics)
+    : await buildGitOffTopicIsolationIssues(rootDir, topics);
+}
+
+function buildGitOnTopicIsolationIssues(rootDir: string, topics: TopicSummary[]): Map<string, TopicIsolationIssue> {
+  const issues = new Map<string, TopicIsolationIssue>();
+  const currentBranch = gitOutput(rootDir, ["branch", "--show-current"]);
+
+  for (const topic of topics) {
+    if (!topic.workingBranch) {
+      issues.set(topic.name, {
+        reason: "Multiple active topics are present, but this topic has no working_branch metadata for git isolation."
+      });
+    } else if (!currentBranch) {
+      issues.set(topic.name, {
+        reason: "Multiple active topics are present with git mode on, but the current git branch could not be resolved."
+      });
+    } else if (currentBranch !== topic.workingBranch) {
+      issues.set(topic.name, {
+        reason: `Multiple active topics require branch isolation. Current branch '${currentBranch}' does not match '${topic.workingBranch}'.`
+      });
     }
-    return issues;
   }
 
+  return issues;
+}
+
+async function buildGitOffTopicIsolationIssues(rootDir: string, topics: TopicSummary[]): Promise<Map<string, TopicIsolationIssue>> {
+  const issues = new Map<string, TopicIsolationIssue>();
   const ownership = new Map<string, string[]>();
+
   await Promise.all(
     topics.map(async (topic) => {
       const stateMarkdown = await readTextIfExists(path.join(rootDir, "poggn", "active", topic.name, "state", "current.md"));
@@ -3693,14 +3703,7 @@ async function buildTopicIsolationIssues(
     })
   );
 
-  const ownersByPath = new Map<string, string[]>();
-  for (const [topicName, paths] of ownership.entries()) {
-    for (const changedPath of paths) {
-      const owners = ownersByPath.get(changedPath) ?? [];
-      owners.push(topicName);
-      ownersByPath.set(changedPath, owners);
-    }
-  }
+  const ownersByPath = invertChangedFileOwnership(ownership);
 
   for (const [changedPath, owners] of ownersByPath.entries()) {
     if (owners.length < 2) {
@@ -3714,6 +3717,20 @@ async function buildTopicIsolationIssues(
   }
 
   return issues;
+}
+
+function invertChangedFileOwnership(ownership: Map<string, string[]>): Map<string, string[]> {
+  const ownersByPath = new Map<string, string[]>();
+
+  for (const [topicName, paths] of ownership.entries()) {
+    for (const changedPath of paths) {
+      const owners = ownersByPath.get(changedPath) ?? [];
+      owners.push(topicName);
+      ownersByPath.set(changedPath, owners);
+    }
+  }
+
+  return ownersByPath;
 }
 
 async function evaluateTopicStatus(
