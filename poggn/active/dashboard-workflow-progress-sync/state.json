@@ -29,7 +29,7 @@
   "createdAt": "2026-04-28T13:20:58Z",
   "updatedAt": "2026-04-28T13:21:25Z",
   "baseCommitSha": "eac7a1df424963087e4e9d7e43646ac72dd04a7c",
-  "pggAddCommitSha": "f9edcee10850d88c9842cc964edb113ebdcbb360",
+  "pggAddCommitSha": "53f5c5478dc3d55e0b421f58f4bb2fe604d61584",
   "assumptions": [
     "사용자가 말한 history.ndjson은 topic별 state/history.ndjson 또는 dashboard snapshot으로 소비되는 history event stream을 의미한다.",
     "문제의 주요 표면은 apps/dashboard의 project overview workflow progress 상태 계산과 표시다.",
