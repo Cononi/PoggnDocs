@@ -1,0 +1,14 @@
+{
+  "topic": "dashboard-git-diff-lazy-view",
+  "changeType": "feat",
+  "versionBump": "minor",
+  "version": "3.2.0",
+  "targetVersion": "3.2.0",
+  "previousVersion": "3.1.0",
+  "shortName": "dashboard-view",
+  "workingBranch": "ai/feat/3.2.0-dashboard-view",
+  "releaseBranch": "release/3.2.0-dashboard-view",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-28T06:28:15Z",
+  "history": "poggn/version-history.ndjson"
+}
