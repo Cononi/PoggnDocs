@@ -3,7 +3,7 @@
   "topicName": "dashboard-workflow-timing-sync",
   "activePath": "poggn/active/dashboard-workflow-timing-sync",
   "archivePath": "poggn/archive/dashboard-workflow-timing-sync",
-  "currentFlow": "pgg-refactor",
+  "currentFlow": "pgg-qa",
   "flowStatus": "PASS",
   "language": "ko",
   "mode": "auto on",
@@ -27,7 +27,7 @@
   "performanceReason": "사용자가 workflow 진행 방식이 너무 많은 시간을 소비한다고 명시했으므로 pgg-plan에서 workflow cycle time, stage duration, 불필요한 flow 반복 여부를 측정 대상으로 분리해야 한다.",
   "projectScope": "current-project",
   "createdAt": "2026-04-28T14:16:49Z",
-  "updatedAt": "2026-04-28T15:20:00Z",
+  "updatedAt": "2026-04-28T15:30:00Z",
   "baseCommitSha": "fe4e9ea5ef43e5fafec32abdbc8ad578238a0cbe",
   "pggAddCommitSha": null,
   "assumptions": [
@@ -101,6 +101,11 @@
   "refactorSummary": "Behavior-preserving refactor in dashboard history model: shared flow evidence helpers are reused and workflow duration calculation is separated from locale formatting.",
   "refactorNextFlow": "pgg-qa",
   "pggRefactorCommitSha": "429db95d61d3cbcc7093d8282fb332328155bea5",
+  "pggQaStatus": "PASS",
+  "pggQaReport": "poggn/active/dashboard-workflow-timing-sync/pgg-qa/report.md",
+  "qaSummary": "Final QA matrix passed: source-of-truth, generated docs stability, technical checks, token accounting, workspace completeness, versioning, git lifecycle readiness, pgg-performance, and pgg-refactor evidence are all acceptable.",
+  "qaNextFlow": "pgg-add",
+  "archiveReady": true,
   "pggCodeCommitSha": "ea162b180a34fee79de1675cb9429bb6119a7bbd",
   "generatedMarkdownDirectEdit": false
 }

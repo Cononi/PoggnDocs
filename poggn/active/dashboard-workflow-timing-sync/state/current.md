@@ -6,7 +6,7 @@ dashboard-workflow-timing-sync
 
 ## Current Stage
 
-pgg-refactor
+qa
 
 ## Goal
 
@@ -106,6 +106,18 @@ workflow evidence와 dashboard의 상태, 시간 측정, current/next flow 표�
 - pgg-performance next: not required; no algorithmic, IO, bundle, cache, or concurrency behavior changed.
 - report: `pgg-refactor/report.md`
 
+## QA Summary
+
+- pgg-qa status: `PASS`
+- report: `pgg-qa/report.md`
+- compatibility report: `qa/report.md`
+- source of truth: PASS, TypeScript Skill registry exists and generator output is stable.
+- generated docs: PASS, `pnpm build:readme` ran twice and `node packages/cli/dist/index.js update` ran twice with no generated diff.
+- technical checks: PASS, `pnpm build`, `pnpm test:core`, `pnpm test:dashboard`, `pnpm test`, `pnpm build:dashboard`, and `pnpm verify:version-history` passed.
+- token accounting: PASS, JSONL schema validated and QA records were added.
+- archive readiness: PASS, archive destination was absent and remote `origin` was readable.
+- next: archive to `poggn/archive/dashboard-workflow-timing-sync`, record version `4.0.2`, publish `release/4.0.2-dashboard-timing-sync`.
+
 ## Active Specs
 
 - `pgg-plan/spec/dashboard/flow-evidence-and-routing.md`
@@ -170,10 +182,13 @@ workflow evidence와 dashboard의 상태, 시간 측정, current/next flow 표�
 | CREATE | `pgg-refactor/report.md` | pgg-refactor report |
 | CREATE | `pgg-refactor/before-after.md` | before/after behavior comparison |
 | CREATE | `pgg-refactor/diff-inspection.md` | feature-change-free diff inspection |
+| CREATE | `reviews/refactor.review.md` | pgg-refactor compatibility review for archive gate |
+| CREATE | `pgg-qa/report.md` | final QA matrix report |
+| CREATE | `qa/report.md` | archive helper compatibility QA report |
 
 ## Next
 
-`pgg-qa`
+`pgg-add`
 
 ## Git Publish Message
 
