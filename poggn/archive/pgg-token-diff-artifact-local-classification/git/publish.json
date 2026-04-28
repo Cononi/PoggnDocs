@@ -1,0 +1,32 @@
+{
+  "topic": "pgg-token-diff-artifact-local-classification",
+  "version": "3.0.4",
+  "targetVersion": "3.0.4",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "commitTitle": "fix: 3.0.4.diff token 분류",
+  "commitSha": "06d0ac5a80822503a72672cd01871d2eeff3b5c8",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/3.0.4-token-classification",
+  "workingBranch": "ai/fix/3.0.4-token-classification",
+  "releaseBranch": "release/3.0.4-token-classification",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-28T03:17:51Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/3.0.4-token-classification'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/pgg-token-diff-artifact-local-classification",
+    "versionFile": "poggn/archive/pgg-token-diff-artifact-local-classification/version.json"
+  }
+}
