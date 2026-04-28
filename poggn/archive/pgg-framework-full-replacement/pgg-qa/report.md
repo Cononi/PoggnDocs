@@ -131,7 +131,12 @@ PASS
 
 - QA report status before archive: `done`
 - archive destination precheck: not existing
-- final result: pending until PASS procedure completes
+- archive move: PASS, `poggn/active/pgg-framework-full-replacement` -> `poggn/archive/pgg-framework-full-replacement`
+- version record: PASS, `version.json` targetVersion `4.0.0`, previousVersion `3.2.0`
+- version ledger: PASS, `poggn/version-history.ndjson` appended `4.0.0`
+- final QA/archive commit: pending
+- release branch: pending
+- push: pending
 
 ## 남은 위험
 

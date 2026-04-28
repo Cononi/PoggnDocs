@@ -1,0 +1,14 @@
+{
+  "topic": "pgg-framework-full-replacement",
+  "changeType": "feat",
+  "versionBump": "major",
+  "version": "4.0.0",
+  "targetVersion": "4.0.0",
+  "previousVersion": "3.2.0",
+  "shortName": "framework-replacement",
+  "workingBranch": "ai/feat/4.0.0-framework-replacement",
+  "releaseBranch": "release/4.0.0-framework-replacement",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-28T13:00:47Z",
+  "history": "poggn/version-history.ndjson"
+}

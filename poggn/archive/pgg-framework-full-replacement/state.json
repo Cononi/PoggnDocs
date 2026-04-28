@@ -34,6 +34,8 @@
   "qaApproval": "PASS",
   "qaDecision": "PASS",
   "archiveReady": true,
+  "archiveStatus": "archived",
+  "archiveMovedAt": "2026-04-28T12:58:46Z",
   "projectVersionUpdated": "not_applicable_until_pgg_qa_archive",
   "projectVersionReason": "이 repository의 release version source는 package.json이 아니라 poggn/version-history.ndjson latest archived version이다. pgg-plan T7에 따라 pgg-code는 version-history를 append하지 않고 pgg-qa archive 단계에서 targetVersion 4.0.0을 기록한다.",
   "pggCodeCommitStatus": "committed",
