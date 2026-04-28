@@ -1,0 +1,153 @@
+diff --git a/packages/core/src/templates.ts b/packages/core/src/templates.ts
+index 6f1f722..92aa70b 100644
+--- a/packages/core/src/templates.ts
++++ b/packages/core/src/templates.ts
+@@ -1040,7 +1040,7 @@ function workFlowMd(input: TemplateInput): string {
+       "",
+       "1. `pgg-add`",
+       "   - topic 생성",
+-      "   - `proposal.md`, `reviews/proposal.review.md`, `state/current.md`, `workflow.reactflow.json` 생성",
++      "   - `proposal.md`, `reviews/proposal.review.md`, `state/current.md` 생성",
+       "   - topic 생성 시점의 dirty worktree path가 있으면 `state/dirty-worktree-baseline.txt`로 baseline을 기록",
+       "   - 사용자 입력 질문 기록과 current-project 범위 내부 확인/기록 절차, `archive_type`, `version_bump`, `target_version`, branch naming 확정",
+       "2. `pgg-plan`",
+@@ -1133,7 +1133,7 @@ function workFlowMd(input: TemplateInput): string {
+     "",
+     "1. `pgg-add`",
+     "   - create a topic",
+-    "   - create `proposal.md`, `reviews/proposal.review.md`, `state/current.md`, `workflow.reactflow.json`",
++    "   - create `proposal.md`, `reviews/proposal.review.md`, `state/current.md`",
+     "   - record the topic-start dirty worktree paths in `state/dirty-worktree-baseline.txt` when any pre-existing dirty paths are present",
+     "   - record the user input questions and resolve current-project stage automation metadata plus `archive_type`, `version_bump`, `target_version`, and branch naming",
+     "2. `pgg-plan`",
+@@ -1430,7 +1430,6 @@ function shellRulesMd(input: TemplateInput): string {
+       "- `.codex/sh/pgg-state-pack.sh`",
+       "- `.codex/sh/pgg-diff.sh`",
+       "- `.codex/sh/pgg-diff-index.sh`",
+-      "- `.codex/sh/pgg-reactflow-build.sh`",
+       "- `.codex/sh/pgg-stage-commit.sh`",
+       "- `.codex/sh/pgg-gate.sh`",
+       "- `.codex/sh/pgg-version.sh`",
+@@ -1454,7 +1453,6 @@ function shellRulesMd(input: TemplateInput): string {
+     "- `.codex/sh/pgg-state-pack.sh`",
+     "- `.codex/sh/pgg-diff.sh`",
+     "- `.codex/sh/pgg-diff-index.sh`",
+-    "- `.codex/sh/pgg-reactflow-build.sh`",
+     "- `.codex/sh/pgg-stage-commit.sh`",
+     "- `.codex/sh/pgg-gate.sh`",
+     "- `.codex/sh/pgg-version.sh`",
+@@ -1505,7 +1503,6 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
+         "- a `User Questions` record section inside `proposal.md`",
+         "- `reviews/proposal.review.md`",
+         "- `state/current.md`",
+-        "- `workflow.reactflow.json`",
+         "- resolve `archive_type`, `version_bump`, `target_version`, `short_name`, branch naming, and keep `project_scope` as `current-project` for later stages",
+         "",
+         "## Handoff",
+@@ -1840,7 +1837,6 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
+         "- `proposal.md` 안의 사용자 입력 질문 기록 섹션",
+         "- `reviews/proposal.review.md`",
+         "- `state/current.md`",
+-        "- `workflow.reactflow.json`",
+         "- `archive_type`, `version_bump`, `target_version`, `short_name`, branch naming, `project_scope: current-project` 확정",
+         "",
+         "## Handoff",
+@@ -2342,10 +2338,6 @@ function newTopicSh(): string {
+     "  working_branch: \"$WORKING_BRANCH\"",
+     "  release_branch: \"$RELEASE_BRANCH\"",
+     "  project_scope: \"current-project\"",
+-    "reactflow:",
+-    "  node_id: \"proposal\"",
+-    "  node_type: \"doc\"",
+-    "  label: \"proposal.md\"",
+     "state:",
+     "  summary: \"$PROPOSAL_SUMMARY\"",
+     "  next: \"pgg-plan\"",
+@@ -2436,7 +2428,6 @@ function newTopicSh(): string {
+     "",
+     "printf '{\"ts\":\"%s\",\"stage\":\"proposal\",\"event\":\"topic-created\"}\\n' \"$TIMESTAMP\" > \"$TOPIC_DIR/state/history.ndjson\"",
+     "printf '{\"ts\":\"%s\",\"stage\":\"proposal\",\"event\":\"stage-started\",\"source\":\"pgg-add\"}\\n' \"$TIMESTAMP\" >> \"$TOPIC_DIR/state/history.ndjson\"",
+-    "echo '{\"topic\":\"'$TOPIC'\",\"nodes\":[],\"edges\":[]}' > \"$TOPIC_DIR/workflow.reactflow.json\"",
+     "echo \"{\\\"topic\\\":\\\"$TOPIC\\\",\\\"status\\\":\\\"created\\\"}\""
+   ]);
+ }
+@@ -2659,37 +2650,6 @@ function diffIndexSh(): string {
+   ]);
+ }
+ 
+-function reactflowBuildSh(): string {
+-  return lines([
+-    "#!/usr/bin/env bash",
+-    "set -euo pipefail",
+-    "",
+-    "if [[ $# -ne 1 ]]; then",
+-    "  echo \"usage: $0 <topic|topic_dir>\" >&2",
+-    "  exit 1",
+-    "fi",
+-    "",
+-    "ROOT_DIR=\"$(cd \"$(dirname \"${BASH_SOURCE[0]}\")/../..\" && pwd)\"",
+-    "TARGET=\"$1\"",
+-    "if [[ -d \"$TARGET\" ]]; then",
+-    "  TOPIC_DIR=\"$TARGET\"",
+-    "else",
+-    "  TOPIC_DIR=\"$ROOT_DIR/poggn/active/$TARGET\"",
+-    "fi",
+-    "TOPIC=\"$(basename \"$TOPIC_DIR\")\"",
+-    "",
+-    "cat > \"$TOPIC_DIR/workflow.reactflow.json\" <<EOF",
+-    "{",
+-    "  \"topic\": \"$TOPIC\",",
+-    "  \"nodes\": [],",
+-    "  \"edges\": []",
+-    "}",
+-    "EOF",
+-    "",
+-    "echo \"{\\\"workflow\\\":\\\"workflow.reactflow.json\\\",\\\"nodes\\\":0,\\\"edges\\\":0}\""
+-  ]);
+-}
+-
+ function statePackSh(): string {
+   return lines([
+     "#!/usr/bin/env bash",
+@@ -2856,16 +2816,18 @@ function statePackSh(): string {
+     "    let llm = 0;",
+     "    let local = 0;",
+     "    let unavailable = 0;",
+-    "    const directArtifacts = new Set();",
++    "    const actualArtifacts = new Set();",
+     "    const fallbackArtifacts = new Set();",
+     "    for (const line of lines) {",
+     "      try {",
+     "        const entry = JSON.parse(line);",
+     "        const total = Number.isFinite(entry.total_tokens) ? entry.total_tokens : Number.isFinite(entry.totalTokens) ? entry.totalTokens : 0;",
+     "        const artifactPath = normalize(entry.artifact_path ?? entry.artifactPath);",
+-    "        if (entry.source === \"llm\" && total > 0 && entry.measurement !== \"unavailable\") {",
++    "        const usageMetadataAvailable = entry.usage_metadata_available === true || entry.usageMetadataAvailable === true;",
++    "        const isActualLlm = entry.source === \"llm\" && entry.measurement === \"actual\" && entry.estimated === false && usageMetadataAvailable;",
++    "        if (isActualLlm && total > 0) {",
+     "          llm += total;",
+-    "          if (artifactPath) directArtifacts.add(artifactPath);",
++    "          if (artifactPath) actualArtifacts.add(artifactPath);",
+     "        } else if (entry.source === \"llm\" && artifactPath) {",
+     "          fallbackArtifacts.add(artifactPath);",
+     "        } else if (entry.source === \"local\") {",
+@@ -2875,9 +2837,9 @@ function statePackSh(): string {
+     "      } catch {}",
+     "    }",
+     "    for (const artifactPath of fallbackArtifacts) {",
+-    "      if (directArtifacts.has(artifactPath)) continue;",
++    "      if (actualArtifacts.has(artifactPath)) continue;",
+     "      const estimate = estimateArtifact(artifactPath);",
+-    "      if (estimate !== null) llm += estimate;",
++    "      if (estimate !== null) local += estimate;",
+     "    }",
+     "    console.log(`token_usage_records: ${lines.length}`);",
+     "    console.log(`token_usage_llm_total: ${llm}`);",
+@@ -4108,7 +4070,6 @@ export function buildGeneratedFiles(input: TemplateInput): GeneratedFileTemplate
+     { path: ".codex/sh/pgg-gate.sh", content: gateSh(), executable: true },
+     { path: ".codex/sh/pgg-diff.sh", content: diffSh(), executable: true },
+     { path: ".codex/sh/pgg-diff-index.sh", content: diffIndexSh(), executable: true },
+-    { path: ".codex/sh/pgg-reactflow-build.sh", content: reactflowBuildSh(), executable: true },
+     { path: ".codex/sh/pgg-state-pack.sh", content: statePackSh(), executable: true },
+     { path: ".codex/sh/pgg-stage-commit.sh", content: stageCommitSh(), executable: true },
+     { path: ".codex/sh/pgg-version.sh", content: versionSh(), executable: true },

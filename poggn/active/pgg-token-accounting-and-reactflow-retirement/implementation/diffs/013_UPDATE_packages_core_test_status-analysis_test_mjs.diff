@@ -1,0 +1,12 @@
+diff --git a/packages/core/test/status-analysis.test.mjs b/packages/core/test/status-analysis.test.mjs
+index 7f3cfc1..937e206 100644
+--- a/packages/core/test/status-analysis.test.mjs
++++ b/packages/core/test/status-analysis.test.mjs
+@@ -94,7 +94,6 @@ async function createTopic(rootDir, topic, files) {
+   await mkdir(topicDir, { recursive: true });
+   await writeTopicFile(topicDir, "proposal.md", proposalMarkdown(topic));
+   await writeTopicFile(topicDir, "reviews/proposal.review.md", "# proposal.review\n");
+-  await writeTopicFile(topicDir, "workflow.reactflow.json", JSON.stringify({ topic, nodes: [], edges: [] }, null, 2));
+ 
+   for (const [relativePath, content] of files) {
+     await writeTopicFile(topicDir, relativePath, content);

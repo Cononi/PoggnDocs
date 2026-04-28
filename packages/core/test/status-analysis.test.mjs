@@ -94,7 +94,6 @@ async function createTopic(rootDir, topic, files) {
   await mkdir(topicDir, { recursive: true });
   await writeTopicFile(topicDir, "proposal.md", proposalMarkdown(topic));
   await writeTopicFile(topicDir, "reviews/proposal.review.md", "# proposal.review\n");
-  await writeTopicFile(topicDir, "workflow.reactflow.json", JSON.stringify({ topic, nodes: [], edges: [] }, null, 2));
 
   for (const [relativePath, content] of files) {
     await writeTopicFile(topicDir, relativePath, content);

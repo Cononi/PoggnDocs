@@ -192,10 +192,6 @@ pgg:
   working_branch: "$WORKING_BRANCH"
   release_branch: "$RELEASE_BRANCH"
   project_scope: "current-project"
-reactflow:
-  node_id: "proposal"
-  node_type: "doc"
-  label: "proposal.md"
 state:
   summary: "$PROPOSAL_SUMMARY"
   next: "pgg-plan"
@@ -286,5 +282,4 @@ fi
 
 printf '{"ts":"%s","stage":"proposal","event":"topic-created"}\n' "$TIMESTAMP" > "$TOPIC_DIR/state/history.ndjson"
 printf '{"ts":"%s","stage":"proposal","event":"stage-started","source":"pgg-add"}\n' "$TIMESTAMP" >> "$TOPIC_DIR/state/history.ndjson"
-echo '{"topic":"'$TOPIC'","nodes":[],"edges":[]}' > "$TOPIC_DIR/workflow.reactflow.json"
 echo "{\"topic\":\"$TOPIC\",\"status\":\"created\"}"

@@ -1,0 +1,123 @@
+diff --git a/apps/dashboard/src/features/history/historyModel.ts b/apps/dashboard/src/features/history/historyModel.ts
+index b3c1735..22887af 100644
+--- a/apps/dashboard/src/features/history/historyModel.ts
++++ b/apps/dashboard/src/features/history/historyModel.ts
+@@ -604,10 +604,13 @@ function isLocalTokenArtifactPath(value: string | null): boolean {
+ }
+ 
+ function directLlmTimelineTokenTotal(record: TopicTokenUsageRecordEntry): number | null {
+-  if (record.source !== "llm" || record.totalTokens <= 0 || record.measurement === "unavailable") {
+-    return null;
+-  }
+-  return record.totalTokens;
++  return record.source === "llm" &&
++    record.measurement === "actual" &&
++    record.estimated === false &&
++    record.usageMetadataAvailable === true &&
++    record.totalTokens > 0
++    ? record.totalTokens
++    : null;
+ }
+ 
+ function fileHasFlowLlmRecord(file: TopicFileEntry, records: TopicTokenUsageRecordEntry[]): boolean {
+@@ -625,8 +628,6 @@ function fileHasFlowLlmRecord(file: TopicFileEntry, records: TopicTokenUsageReco
+ function sumFlowLlmTokens(records: TopicTokenUsageRecordEntry[], files: TopicFileEntry[]): number | null {
+   let total = 0;
+   let seen = false;
+-  const directArtifacts = new Set<string>();
+-  const fallbackArtifacts = new Map<string, number>();
+ 
+   for (const record of records) {
+     if (record.source !== "llm") {
+@@ -641,32 +642,54 @@ function sumFlowLlmTokens(records: TopicTokenUsageRecordEntry[], files: TopicFil
+     if (directTotal !== null) {
+       total += directTotal;
+       seen = true;
+-      if (artifactPath) {
+-        directArtifacts.add(artifactPath);
+-      }
+-      continue;
+     }
++  }
++
++  return seen ? total : null;
++}
+ 
+-    if (artifactPath && typeof record.artifactTokenEstimate === "number") {
+-      fallbackArtifacts.set(artifactPath, record.artifactTokenEstimate);
++function sumFlowEstimatedLlmTokens(records: TopicTokenUsageRecordEntry[]): number {
++  let total = 0;
++  const actualArtifacts = new Set<string>();
++  const estimatedArtifacts = new Set<string>();
++
++  for (const record of records) {
++    const artifactPath = normalizeTokenArtifactPath(record.artifactPath);
++    if (artifactPath && directLlmTimelineTokenTotal(record) !== null) {
++      actualArtifacts.add(artifactPath);
+     }
+   }
+ 
+-  for (const [artifactPath, artifactEstimate] of fallbackArtifacts.entries()) {
+-    if (!directArtifacts.has(artifactPath)) {
+-      total += artifactEstimate;
+-      seen = true;
++  for (const record of records) {
++    if (record.source !== "llm" || directLlmTimelineTokenTotal(record) !== null) {
++      continue;
+     }
+-  }
+ 
+-  for (const file of files) {
+-    if (typeof file.tokenEstimate === "number" && !isLocalTokenArtifactPath(file.relativePath) && !fileHasFlowLlmRecord(file, records)) {
+-      total += file.tokenEstimate;
+-      seen = true;
++    const artifactPath = normalizeTokenArtifactPath(record.artifactPath);
++    if (isLocalTokenArtifactPath(artifactPath) || (artifactPath && actualArtifacts.has(artifactPath))) {
++      continue;
++    }
++
++    if (!artifactPath) {
++      if (record.measurement === "estimated" && record.totalTokens > 0) {
++        total += record.totalTokens;
++      }
++      continue;
++    }
++
++    if (estimatedArtifacts.has(artifactPath)) {
++      continue;
++    }
++
++    const estimate =
++      record.measurement === "estimated" && record.totalTokens > 0 ? record.totalTokens : record.artifactTokenEstimate;
++    if (typeof estimate === "number") {
++      total += estimate;
++      estimatedArtifacts.add(artifactPath);
+     }
+   }
+ 
+-  return seen ? total : null;
++  return total;
+ }
+ 
+ function fileHasFlowLocalRecord(file: TopicFileEntry, records: TopicTokenUsageRecordEntry[]): boolean {
+@@ -685,13 +708,17 @@ function sumFlowLocalTokens(records: TopicTokenUsageRecordEntry[], files: TopicF
+   const recordTotal = records
+     .filter((record) => record.source === "local")
+     .reduce((sum, record) => sum + record.totalTokens, 0);
+-  const diffArtifactTotal = files.reduce((sum, file) => {
+-    if (typeof file.tokenEstimate === "number" && isLocalTokenArtifactPath(file.relativePath) && !fileHasFlowLocalRecord(file, records)) {
++  const artifactTotal = files.reduce((sum, file) => {
++    if (
++      typeof file.tokenEstimate === "number" &&
++      !fileHasFlowLocalRecord(file, records) &&
++      !fileHasFlowLlmRecord(file, records)
++    ) {
+       return sum + file.tokenEstimate;
+     }
+     return sum;
+   }, 0);
+-  return recordTotal + diffArtifactTotal;
++  return recordTotal + sumFlowEstimatedLlmTokens(records) + artifactTotal;
+ }
+ 
+ function eventNameMatches(event: TopicHistoryEventEntry, patterns: RegExp[]): boolean {

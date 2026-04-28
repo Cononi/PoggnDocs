@@ -1,0 +1,8 @@
+{"ts":"2026-04-28T03:23:32Z","stage":"proposal","event":"topic-created"}
+{"ts":"2026-04-28T03:23:32Z","stage":"proposal","event":"stage-started","source":"pgg-add"}
+{"ts":"2026-04-28T03:23:52Z","stage":"proposal","event":"stage-completed","source":"verified","summary":"token accounting/reactflow retirement proposal reviewed"}
+{"ts":"2026-04-28T03:23:52Z","stage":"plan","event":"stage-started","source":"pgg-plan"}
+{"ts":"2026-04-28T03:23:52Z","stage":"plan","event":"stage-completed","source":"verified","summary":"plan task spec review artifacts completed"}
+{"ts":"2026-04-28T03:32:08Z","stage":"implementation","event":"stage-started","source":"pgg-code"}
+{"ts":"2026-04-28T03:32:08Z","stage":"implementation","event":"stage-progress","source":"pgg-code","summary":"token aggregation and reactflow generation paths updated"}
+{"ts":"2026-04-28T03:37:55Z","stage":"implementation","event":"stage-commit","archiveType":"fix","targetVersion":"3.0.5","projectLanguage":"ko","commitTitle":"fix: 3.0.5.토큰 산정 정리","summary":"토큰 산정 정리","why":"실제 Codex usage metadata가 없는 산출물 추정치를 actual LLM token으로 표시하지 않고 React Flow workflow 산출물 생성을 중단해야 한다","footer":"Refs: pgg-token-accounting-and-reactflow-retirement","taskId":"T1,T2,T3","dependencies":"T1/T2 병렬, T3는 T1/T2 이후","completionCriteria":"actual LLM token은 usage metadata 기반으로만 집계되고 workflow.reactflow.json 신규 생성이 중단되며 회귀 테스트가 통과한다"}

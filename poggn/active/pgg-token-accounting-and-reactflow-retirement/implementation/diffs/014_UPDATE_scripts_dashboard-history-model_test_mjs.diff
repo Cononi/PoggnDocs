@@ -1,0 +1,35 @@
+diff --git a/scripts/dashboard-history-model.test.mjs b/scripts/dashboard-history-model.test.mjs
+index 22c1232..07a0304 100644
+--- a/scripts/dashboard-history-model.test.mjs
++++ b/scripts/dashboard-history-model.test.mjs
+@@ -128,6 +128,8 @@ test("timeline rows use completed flow scoped token records", () => {
+         source: "llm",
+         totalTokens: 31,
+         measurement: "actual",
++        estimated: false,
++        usageMetadataAvailable: true,
+         artifactPath: "packages/core/src/index.ts",
+         artifactTokenEstimate: null
+       },
+@@ -146,6 +148,8 @@ test("timeline rows use completed flow scoped token records", () => {
+         source: "llm",
+         totalTokens: 0,
+         measurement: "unavailable",
++        estimated: true,
++        usageMetadataAvailable: false,
+         artifactPath: "qa/report.md",
+         artifactTokenEstimate: 44
+       },
+@@ -174,8 +178,8 @@ test("timeline rows use completed flow scoped token records", () => {
+   const code = rows.find((row) => row.id === "code");
+   const qa = rows.find((row) => row.id === "qa");
+ 
+-  assert.equal(code?.llmActualTokens, 41);
+-  assert.equal(code?.localEstimatedTokens, 20);
+-  assert.equal(qa?.llmActualTokens, 44);
+-  assert.equal(qa?.localEstimatedTokens, 7);
++  assert.equal(code?.llmActualTokens, 31);
++  assert.equal(code?.localEstimatedTokens, 30);
++  assert.equal(qa?.llmActualTokens, null);
++  assert.equal(qa?.localEstimatedTokens, 51);
+ });
