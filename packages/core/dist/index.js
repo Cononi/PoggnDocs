@@ -5,6 +5,7 @@ import { chmod, mkdir, readFile, readdir, rm, stat, writeFile } from "node:fs/pr
 import os from "node:os";
 import path from "node:path";
 export { buildRootReadme, writeRootReadme } from "./readme.js";
+export { PGG_COMPATIBILITY_FLOW_ALIASES, PGG_CONDITIONAL_HELPER_FLOWS, PGG_DEFAULT_FLOW, PGG_RUN_STATE_SCHEMA_EXAMPLE, PGG_SKILL_DEFINITION_BY_ID, PGG_SKILL_DEFINITIONS, PGG_TOKEN_USAGE_RECORD_SCHEMA_EXAMPLE, REQUIRED_SKILL_DEFINITION_FIELDS, validatePggSkillDefinition, validatePggSkillRegistry } from "./skill-framework/index.js";
 import { buildGeneratedFiles } from "./templates.js";
 export { createProjectVerificationPreset, normalizeProjectVerification, resolveProjectVerification } from "./verification.js";
 import { normalizeProjectVerification, resolveProjectVerification } from "./verification.js";
@@ -1665,11 +1666,11 @@ function resolveMissingArtifactRecommendation(topic, currentStage, currentWorkfl
         return createWorkflowRecommendation(topic, currentStage, currentWorkflow, "pgg-add", `Proposal approval artifacts are incomplete: ${missingProposalArtifacts.join(", ")}.`);
     }
     const missingPlanArtifacts = listMissingArtifacts([
-        [artifacts.hasPlan, "plan.md"],
-        [artifacts.hasTask, "task.md"],
-        [artifacts.hasSpec, "spec/*/*.md"],
-        [artifacts.hasPlanReview, "reviews/plan.review.md"],
-        [artifacts.hasTaskReview, "reviews/task.review.md"]
+        [artifacts.hasPlan, "pgg-plan/plan.md"],
+        [artifacts.hasTask, "pgg-plan/task.md"],
+        [artifacts.hasSpec, "pgg-plan/spec/*/*.md"],
+        [artifacts.hasPlanReview, "pgg-plan/reviews/plan.review.md"],
+        [artifacts.hasTaskReview, "pgg-plan/reviews/task.review.md"]
     ]);
     if (missingPlanArtifacts.length > 0) {
         return createWorkflowRecommendation(topic, currentStage, currentWorkflow, "pgg-plan", `Plan artifacts are incomplete: ${missingPlanArtifacts.join(", ")}.`);
@@ -1690,8 +1691,9 @@ function resolveAuditRecommendation(topic, currentStage, currentWorkflow, artifa
     if (audits["pgg-token"].status === "required" && !artifacts.hasTokenReport) {
         return createWorkflowRecommendation(topic, currentStage, currentWorkflow, "pgg-token", `Token audit is required before QA: ${audits["pgg-token"].reason}.`);
     }
-    if (audits["pgg-performance"].status === "required" && !artifacts.hasPerformanceReport) {
-        return createWorkflowRecommendation(topic, currentStage, currentWorkflow, "pgg-performance", `Performance audit is required before QA: ${audits["pgg-performance"].reason}.`);
+    const performanceAudit = audits["pgg-performance"];
+    if (performanceAudit.status === "required" && !artifacts.hasPerformanceReport) {
+        return createWorkflowRecommendation(topic, currentStage, currentWorkflow, "pgg-performance", `Performance audit is required before QA: ${performanceAudit.reason}.`);
     }
     return null;
 }
@@ -1932,18 +1934,21 @@ async function summarizeArtifactGroup(topicDir, relativePaths, options) {
 }
 async function readTopicArtifactSummary(topicDir) {
     const specFiles = (await collectMatchingFiles(path.join(topicDir, "spec"), (entryPath) => entryPath.endsWith(".md"))).map((absolutePath) => toRelativePath(topicDir, absolutePath));
+    const pggPlanSpecFiles = (await collectMatchingFiles(path.join(topicDir, "pgg-plan", "spec"), (entryPath) => entryPath.endsWith(".md"))).map((absolutePath) => toRelativePath(topicDir, absolutePath));
     const implementationDiffs = (await collectMatchingFiles(path.join(topicDir, "implementation", "diffs"), (entryPath) => entryPath.endsWith(".diff"))).map((absolutePath) => toRelativePath(topicDir, absolutePath));
     return {
-        lifecycleDocs: await summarizeArtifactGroup(topicDir, ["proposal.md", "plan.md", "task.md", "state/current.md"], { required: true }),
+        lifecycleDocs: await summarizeArtifactGroup(topicDir, ["proposal.md", "pgg-plan/plan.md", "pgg-plan/task.md", "plan.md", "task.md", "state/current.md"], { required: true }),
         reviewDocs: await summarizeArtifactGroup(topicDir, [
             "reviews/proposal.review.md",
+            "pgg-plan/reviews/plan.review.md",
+            "pgg-plan/reviews/task.review.md",
             "reviews/plan.review.md",
             "reviews/task.review.md",
             "reviews/code.review.md",
             "reviews/refactor.review.md",
             "reviews/qa.review.md"
         ], { required: true }),
-        specDocs: await summarizeArtifactGroup(topicDir, specFiles),
+        specDocs: await summarizeArtifactGroup(topicDir, [...pggPlanSpecFiles, ...specFiles]),
         implementationDocs: await summarizeArtifactGroup(topicDir, [
             "implementation/index.md",
             ...implementationDiffs
@@ -2575,11 +2580,16 @@ async function readTopicArtifacts(rootDir, topic) {
         artifacts: {
             hasProposal: proposalMarkdown !== null,
             hasProposalReview: existsSync(path.join(topicDir, "reviews", "proposal.review.md")),
-            hasPlan: existsSync(path.join(topicDir, "plan.md")),
-            hasTask: existsSync(path.join(topicDir, "task.md")),
-            hasSpec: await hasMarkdownFiles(path.join(topicDir, "spec")),
-            hasPlanReview: existsSync(path.join(topicDir, "reviews", "plan.review.md")),
-            hasTaskReview: existsSync(path.join(topicDir, "reviews", "task.review.md")),
+            hasPlan: existsSync(path.join(topicDir, "pgg-plan", "plan.md")) ||
+                existsSync(path.join(topicDir, "plan.md")),
+            hasTask: existsSync(path.join(topicDir, "pgg-plan", "task.md")) ||
+                existsSync(path.join(topicDir, "task.md")),
+            hasSpec: (await hasMarkdownFiles(path.join(topicDir, "pgg-plan", "spec"))) ||
+                (await hasMarkdownFiles(path.join(topicDir, "spec"))),
+            hasPlanReview: existsSync(path.join(topicDir, "pgg-plan", "reviews", "plan.review.md")) ||
+                existsSync(path.join(topicDir, "reviews", "plan.review.md")),
+            hasTaskReview: existsSync(path.join(topicDir, "pgg-plan", "reviews", "task.review.md")) ||
+                existsSync(path.join(topicDir, "reviews", "task.review.md")),
             hasImplementationIndex: existsSync(path.join(topicDir, "implementation", "index.md")),
             hasCodeReview: existsSync(path.join(topicDir, "reviews", "code.review.md")),
             hasRefactorReview: existsSync(path.join(topicDir, "reviews", "refactor.review.md")),

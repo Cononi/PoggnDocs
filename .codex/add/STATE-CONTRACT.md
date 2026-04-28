@@ -22,7 +22,7 @@
 - `pgg git=on`이면 `Git Publish Message` 섹션 또는 그 ref를 최소 컨텍스트에 유지한다.
 - `pgg git=off`이면 commit/publish evidence 대신 필수 artifact, review, verification 결과, verified `stage-completed`, `Changed Files`를 최소 컨텍스트에 유지한다.
 - `pgg-state-pack.sh` 출력은 최소한 `archive_type`, `version_bump`, `target_version`, `short_name`, branch naming, `Git Publish Message` 정보를 key/value 형태로 드러내야 한다.
-- 변경 파일은 `Changed Files` 섹션에 CRUD, path, taskRef, diffSource, gitRef 또는 commitRange, diffCommand, status로 기록한다. `implementation/diffs/*.diff` 경로는 legacy/opt-in diff artifact가 있을 때만 기록한다.
+- 변경 파일은 `Changed Files` 섹션에 CRUD와 diff 경로로 기록한다.
 - 마지막 전문가 점수와 blocking issue를 유지한다.
 - teams mode agent 결과는 전문 복사 대신 attribution 있는 요약과 경로 ref로 유지한다.
 - `state/current.md`에는 review 전문을 복사하지 말고 결정, 점수, blocking issue만 요약한다.

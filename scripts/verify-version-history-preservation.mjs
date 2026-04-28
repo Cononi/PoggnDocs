@@ -37,6 +37,9 @@ async function main() {
         "---",
         "pgg:",
         '  archive_type: "fix"',
+        '  version_bump: "patch"',
+        '  target_version: "0.1.2"',
+        '  short_name: "ledger-proof"',
         '  project_scope: "current-project"',
         "---",
         ""

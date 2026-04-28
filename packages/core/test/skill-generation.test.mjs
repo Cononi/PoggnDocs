@@ -10,9 +10,17 @@ import test from "node:test";
 import {
   buildRootReadme,
   initializeProject,
+  PGG_COMPATIBILITY_FLOW_ALIASES,
+  PGG_CONDITIONAL_HELPER_FLOWS,
+  PGG_DEFAULT_FLOW,
+  PGG_RUN_STATE_SCHEMA_EXAMPLE,
+  PGG_SKILL_DEFINITION_BY_ID,
+  PGG_SKILL_DEFINITIONS,
+  PGG_TOKEN_USAGE_RECORD_SCHEMA_EXAMPLE,
   updateProject,
   updateProjectLanguage,
-  updateProjectTeamsMode
+  updateProjectTeamsMode,
+  validatePggSkillRegistry
 } from "../dist/index.js";
 
 const STANDALONE_SKILL_CASES = [
@@ -43,6 +51,34 @@ const GENERATED_AGENT_ROLE_IDS = [
   "sre-operations-engineer",
   "project-generalist",
   "docs-researcher"
+];
+const REQUIRED_COMMON_SKILL_FIELDS = [
+  "id",
+  "name",
+  "purpose",
+  "targetAgent",
+  "triggerConditions",
+  "inputs",
+  "outputs",
+  "absoluteRules",
+  "antiPatterns",
+  "modeSpecificBehavior",
+  "requiredPhases",
+  "approvalGates",
+  "verificationRequirements",
+  "reviewRequirements",
+  "completionMessageContract",
+  "tokenAccountingRequirements",
+  "nextFlowRouting",
+  "performanceTriggerGuidance",
+  "poggnWorkspaceRequirements",
+  "gitModeRequirements",
+  "branchLifecycleRequirements",
+  "versioningRequirements",
+  "commitMessageRequirements",
+  "archiveRequirements",
+  "qaRequirements",
+  "generatedDocumentationSections"
 ];
 
 function checksum(content) {
@@ -132,6 +168,219 @@ test("initializeProject and updateProject keep standalone skills managed", async
         assert.equal(updatedManifest.managedFiles.some((entry) => entry.path === skill.path), true);
       }
       assert.equal(ledger, `${JSON.stringify({ topic: "seed", changeType: "feat", version: "0.1.0" })}\n`);
+    });
+  } finally {
+    await rm(rootDir, { recursive: true, force: true });
+  }
+});
+
+test("common TypeScript Skill definitions expose required workflow fields and generated docs", async () => {
+  const requiredSkillIds = ["pgg-add", "pgg-plan", "pgg-code", "pgg-refactor", "pgg-performance", "pgg-qa"];
+  const registeredIds = PGG_SKILL_DEFINITIONS.map((definition) => definition.id);
+  assert.deepEqual(PGG_DEFAULT_FLOW, ["pgg-add", "pgg-plan", "pgg-code", "pgg-refactor", "pgg-qa"]);
+  assert.deepEqual(PGG_CONDITIONAL_HELPER_FLOWS, ["pgg-performance", "pgg-performanc"]);
+  assert.equal(PGG_COMPATIBILITY_FLOW_ALIASES["pgg-performanc"], "pgg-performance");
+  assert.deepEqual(validatePggSkillRegistry(), []);
+
+  for (const skillId of requiredSkillIds) {
+    assert.equal(registeredIds.includes(skillId), true);
+    const definition = PGG_SKILL_DEFINITION_BY_ID[skillId];
+    assert.ok(definition);
+    for (const field of REQUIRED_COMMON_SKILL_FIELDS) {
+      assert.equal(Object.hasOwn(definition, field), true, `${skillId} missing ${field}`);
+    }
+    assert.ok(Array.isArray(definition.purpose.ko));
+    assert.ok(Array.isArray(definition.purpose.en));
+    assert.ok(definition.generatedDocumentationSections.ko.includes("completionMessageContract"));
+    assert.ok(definition.generatedDocumentationSections.en.includes("completionMessageContract"));
+    assert.match(definition.completionMessageContract.ko.join("\n"), /PGG Flow 완료 보고서/);
+    assert.match(definition.completionMessageContract.ko.join("\n"), /다음 flow를 실행하세요: <next-flow-id>/);
+    assert.match(definition.tokenAccountingRequirements.ko.join("\n"), /poggn\/active\/\{topic_name\}\/metrics\/token-usage\.jsonl/);
+    assert.match(definition.poggnWorkspaceRequirements.ko.join("\n"), /poggn\/active\/\{topic_name\}/);
+    assert.match(definition.gitModeRequirements.ko.join("\n"), /pgg git = off/);
+    assert.match(definition.branchLifecycleRequirements.ko.join("\n"), /pgg\/working\/\{topic_name\}/);
+    assert.match(definition.versioningRequirements.ko.join("\n"), /x\.x\.x/);
+    assert.match(definition.commitMessageRequirements.ko.join("\n"), /\{convention\}\. \{version\} \{message\}/);
+    assert.match(definition.archiveRequirements.ko.join("\n"), /poggn\/archive\/\{topic_name\}/);
+  }
+
+  const addDefinition = PGG_SKILL_DEFINITION_BY_ID["pgg-add"];
+  assert.match(addDefinition.purpose.ko.join("\n"), /요구사항을 발견하고 명세화/);
+  assert.match(addDefinition.purpose.ko.join("\n"), /코드를 작성하지 않고/);
+  assert.match(addDefinition.absoluteRules.ko.join("\n"), /구현 코드를 작성하면 안 된다/);
+  assert.match(addDefinition.modeSpecificBehavior.autoOff.ko.join("\n"), /최대 5개의 소크라테스식 질문/);
+  assert.match(addDefinition.modeSpecificBehavior.autoOn.ko.join("\n"), /가정, 불확실성, 선택 이유/);
+  assert.match(addDefinition.outputs.ko.join("\n"), /Acceptance Criteria 초안/);
+  assert.match(addDefinition.outputs.ko.join("\n"), /currentVersion, targetVersion, bumpType, convention, versionReason, versionSource/);
+  assert.match(addDefinition.outputs.ko.join("\n"), /pgg-performance 필요성 후보/);
+  assert.match(addDefinition.requiredPhases.ko.join("\n"), /POGGN active workspace 생성/);
+  assert.match(addDefinition.requiredPhases.ko.join("\n"), /working branch 생성 또는 전환/);
+  assert.match(addDefinition.verificationRequirements.ko.join("\n"), /lowercase kebab-case/);
+  assert.match(addDefinition.nextFlowRouting.ko.join("\n"), /pgg-plan/);
+  assert.ok(addDefinition.additionalGuidance?.some((section) => section.title.ko === "topic_name 생성"));
+  assert.ok(addDefinition.additionalGuidance?.some((section) => section.title.ko === "POGGN active workspace"));
+  assert.ok(addDefinition.additionalGuidance?.some((section) => section.title.ko === "Version 결정"));
+  assert.ok(addDefinition.additionalGuidance?.some((section) => section.title.ko === "pgg git mode"));
+  assert.ok(addDefinition.additionalGuidance?.some((section) => section.title.ko === "Acceptance Criteria 초안 작성 규칙"));
+
+  const planDefinition = PGG_SKILL_DEFINITION_BY_ID["pgg-plan"];
+  assert.match(planDefinition.purpose.ko.join("\n"), /승인된 요구사항과 설계를 상세한 구현 계획/);
+  assert.match(planDefinition.triggerConditions.ko.join("\n"), /pgg-add.*승인/);
+  assert.match(planDefinition.inputs.ko.join("\n"), /poggn\/active\/\{topic_name\}\/state\.json/);
+  assert.match(planDefinition.outputs.ko.join("\n"), /poggn\/active\/\{topic_name\}\/pgg-plan\/plan\.md/);
+  assert.match(planDefinition.outputs.ko.join("\n"), /version bump task/);
+  assert.match(planDefinition.absoluteRules.ko.join("\n"), /2~5분/);
+  assert.match(planDefinition.absoluteRules.ko.join("\n"), /정확한 파일 경로/);
+  assert.match(planDefinition.absoluteRules.ko.join("\n"), /완전한 코드/);
+  assert.match(planDefinition.absoluteRules.ko.join("\n"), /검증 단계/);
+  assert.match(planDefinition.absoluteRules.ko.join("\n"), /예상 결과/);
+  assert.match(planDefinition.absoluteRules.ko.join("\n"), /실패 시 확인 항목/);
+  assert.match(planDefinition.absoluteRules.ko.join("\n"), /적절히 구현/);
+  assert.match(planDefinition.modeSpecificBehavior.autoOff.ko.join("\n"), /승인되지 않았다면 계획이나 구현 task를 만들지 않고/);
+  assert.match(planDefinition.modeSpecificBehavior.autoOn.ko.join("\n"), /병렬화 가능한 task/);
+  assert.match(planDefinition.verificationRequirements.ko.join("\n"), /versionSource.*targetVersion/);
+  assert.match(planDefinition.nextFlowRouting.ko.join("\n"), /다음 flow를 실행하세요: pgg-code/);
+  assert.match(planDefinition.nextFlowRouting.ko.join("\n"), /다음 flow를 실행하세요: pgg-add/);
+  assert.match(planDefinition.nextFlowRouting.ko.join("\n"), /다음 flow를 실행하세요: pgg-plan/);
+  assert.match(planDefinition.performanceTriggerGuidance.ko.join("\n"), /응답 시간, 처리량, 메모리 사용량, 번들 크기, DB query 수/);
+  assert.match(planDefinition.performanceTriggerGuidance.ko.join("\n"), /baseline 또는 baseline 측정 방법/);
+  assert.ok(planDefinition.additionalGuidance?.some((section) => section.title.ko === "Version Plan"));
+  assert.ok(planDefinition.additionalGuidance?.some((section) => section.title.ko === "Task 작성 규칙"));
+  assert.ok(planDefinition.additionalGuidance?.some((section) => section.title.ko === "pgg-performance 유도 조건"));
+  assert.match(planDefinition.generatedDocumentationSections.ko.join("\n"), /pgg-plan 목적/);
+  assert.match(planDefinition.generatedDocumentationSections.ko.join("\n"), /token accounting 규칙/);
+  assert.match(planDefinition.generatedDocumentationSections.ko.join("\n"), /next flow routing/);
+
+  assert.equal(PGG_SKILL_DEFINITION_BY_ID["pgg-performance"].id, "pgg-performance");
+  assert.equal(PGG_SKILL_DEFINITION_BY_ID["pgg-performanc"].id, "pgg-performance");
+  assert.equal(PGG_RUN_STATE_SCHEMA_EXAMPLE.activePath, "poggn/active/{topic_name}");
+  assert.equal(PGG_RUN_STATE_SCHEMA_EXAMPLE.archivePath, "poggn/archive/{topic_name}");
+  assert.equal(PGG_RUN_STATE_SCHEMA_EXAMPLE.versionSource, "package.json");
+  assert.equal(PGG_TOKEN_USAGE_RECORD_SCHEMA_EXAMPLE.filePath, "string");
+  assert.equal(PGG_TOKEN_USAGE_RECORD_SCHEMA_EXAMPLE.operation, "modified");
+});
+
+test("generated Skill docs include completion, token, workspace, git, version, branch, and QA contracts", async () => {
+  const rootDir = await mkdtemp(path.join(os.tmpdir(), "pgg-common-skill-docs-"));
+
+  try {
+    await withTemporaryPggHome(rootDir, async () => {
+      await initializeProject(rootDir, {
+        provider: "codex",
+        language: "ko",
+        autoMode: "on",
+        teamsMode: "off"
+      });
+
+      const addSkill = await readFile(path.join(rootDir, ".codex/skills/pgg-add/SKILL.md"), "utf8");
+      const planSkill = await readFile(path.join(rootDir, ".codex/skills/pgg-plan/SKILL.md"), "utf8");
+      const codeSkill = await readFile(path.join(rootDir, ".codex/skills/pgg-code/SKILL.md"), "utf8");
+      const performanceSkill = await readFile(path.join(rootDir, ".codex/skills/pgg-performance/SKILL.md"), "utf8");
+      const qaSkill = await readFile(path.join(rootDir, ".codex/skills/pgg-qa/SKILL.md"), "utf8");
+      const manifest = await readManifest(rootDir);
+
+      assert.match(addSkill, /## Common Skill Definition/);
+      assert.match(addSkill, /pgg-add는 요구사항을 발견하고 명세화하는 Skill/);
+      assert.match(addSkill, /## 코드 작성 금지/);
+      assert.match(addSkill, /구현 코드, 테스트 코드, 마이그레이션, 설정 변경을 작성하지 않는다/);
+      assert.match(addSkill, /## topic_name 생성/);
+      assert.match(addSkill, /lowercase kebab-case/);
+      assert.match(addSkill, /login-flow/);
+      assert.match(addSkill, /auth-session-refresh/);
+      assert.match(addSkill, /checkout-payment-validation/);
+      assert.match(addSkill, /## POGGN active workspace 생성/);
+      assert.match(addSkill, /poggn\/active\/\{topic_name\}\/state\.json/);
+      assert.match(addSkill, /poggn\/active\/\{topic_name\}\/pgg-add\/requirements\.md/);
+      assert.match(addSkill, /poggn\/active\/\{topic_name\}\/pgg-add\/acceptance-criteria\.md/);
+      assert.match(addSkill, /poggn\/active\/\{topic_name\}\/metrics\/token-usage\.jsonl/);
+      assert.match(addSkill, /## version 결정/);
+      assert.match(addSkill, /package\.json/);
+      assert.match(addSkill, /currentVersion, targetVersion, bumpType, convention, reason, versionSource/);
+      assert.match(addSkill, /## pgg git mode/);
+      assert.match(addSkill, /pgg\/working\/\{topic_name\}/);
+      assert.match(addSkill, /## auto off 동작/);
+      assert.match(addSkill, /한 번에 최대 5개의 질문/);
+      assert.match(addSkill, /## auto on 동작/);
+      assert.match(addSkill, /가정, 불확실성, 선택 이유/);
+      assert.match(addSkill, /## 소크라테스식 질문/);
+      assert.match(addSkill, /이 기능의 최소 동작은 무엇인가요/);
+      assert.match(addSkill, /## 승인 게이트/);
+      assert.match(addSkill, /## 필수 출력 섹션/);
+      assert.match(addSkill, /## Acceptance Criteria 초안 작성 규칙/);
+      assert.match(addSkill, /## commit 규칙/);
+      assert.match(addSkill, /\{convention\}\. \{version\} \{message\}/);
+      assert.match(addSkill, /## pgg-performance 유도/);
+      assert.match(addSkill, /#### auto off/);
+      assert.match(addSkill, /### Token Accounting Requirements/);
+      assert.match(addSkill, /poggn\/active\/\{topic_name\}\/metrics\/token-usage\.jsonl/);
+      assert.match(addSkill, /### Next Flow Routing/);
+      assert.match(addSkill, /다음 flow를 실행하세요: pgg-plan/);
+      assert.match(addSkill, /다음 flow를 실행하세요: pgg-add/);
+      assert.match(addSkill, /### POGGN Workspace Requirements/);
+      assert.match(addSkill, /poggn\/active\/\{topic_name\}/);
+      assert.match(addSkill, /### Git Mode Requirements/);
+      assert.match(addSkill, /pgg git = off/);
+      assert.match(addSkill, /### Branch Lifecycle Requirements/);
+      assert.match(addSkill, /pgg\/working\/\{topic_name\}/);
+      assert.match(addSkill, /### Versioning Requirements/);
+      assert.match(addSkill, /x\.x\.x/);
+      assert.match(addSkill, /### Commit Message Requirements/);
+      assert.match(addSkill, /\{convention\}\. \{version\} \{message\}/);
+      assert.match(addSkill, /### Archive Requirements/);
+      assert.match(addSkill, /poggn\/archive\/\{topic_name\}/);
+      assert.match(planSkill, /## Common Skill Definition/);
+      assert.match(planSkill, /pgg-plan`은 승인된 `pgg-add` 요구사항과 설계를 상세한 구현 계획/);
+      assert.match(planSkill, /## 진입 조건/);
+      assert.match(planSkill, /pgg-add` 산출물이 승인된 뒤에만 진행/);
+      assert.match(planSkill, /poggn\/active\/\{topic_name\}\/state\.json/);
+      assert.match(planSkill, /## active workspace 사용/);
+      assert.match(planSkill, /poggn\/active\/\{topic_name\}\/pgg-plan\//);
+      assert.match(planSkill, /## 검증 전략|검증 전략/);
+      assert.match(planSkill, /test plan/);
+      assert.match(planSkill, /생성할 테스트 목록/);
+      assert.match(planSkill, /성공\/실패 기준/);
+      assert.match(planSkill, /경계값\/예외\/회귀\/성능 기준/);
+      assert.match(planSkill, /## Version Plan/);
+      assert.match(planSkill, /currentVersion, targetVersion, bumpType, convention, versionReason, versionSource/);
+      assert.match(planSkill, /update project version/);
+      assert.match(planSkill, /package\.json.*targetVersion/);
+      assert.match(planSkill, /## task 규칙/);
+      assert.match(planSkill, /2~5분/);
+      assert.match(planSkill, /정확한 파일 경로/);
+      assert.match(planSkill, /완전한 코드/);
+      assert.match(planSkill, /검증 단계/);
+      assert.match(planSkill, /예상 결과/);
+      assert.match(planSkill, /실패 시 확인할 항목/);
+      assert.match(planSkill, /적절히 구현/);
+      assert.match(planSkill, /필요한 로직 추가/);
+      assert.match(planSkill, /일반적인 방식으로 처리/);
+      assert.match(planSkill, /## pgg-performance 유도 조건/);
+      assert.match(planSkill, /응답 시간, 처리량, 메모리 사용량, 번들 크기, DB query 수/);
+      assert.match(planSkill, /baseline 또는 baseline 측정 방법/);
+      assert.match(planSkill, /### Completion Message Contract/);
+      assert.match(planSkill, /다음 flow를 실행하세요: pgg-code/);
+      assert.match(planSkill, /다음 flow를 실행하세요: pgg-add/);
+      assert.match(planSkill, /다음 flow를 실행하세요: pgg-plan/);
+      assert.match(planSkill, /### Token Accounting Requirements/);
+      assert.match(planSkill, /poggn\/active\/\{topic_name\}\/metrics\/token-usage\.jsonl/);
+      assert.match(planSkill, /## commit 규칙/);
+      assert.match(planSkill, /\{convention\}\. \{version\} \{message\}/);
+      assert.match(planSkill, /### Next Flow Routing/);
+      assert.match(codeSkill, /## Common Skill Definition/);
+      assert.match(codeSkill, /### Completion Message Contract/);
+      assert.match(codeSkill, /# PGG Flow 완료 보고서/);
+      assert.match(codeSkill, /다음 flow를 실행하세요: <next-flow-id>/);
+      assert.match(codeSkill, /### Token Accounting Requirements/);
+      assert.match(codeSkill, /contentSha256/);
+      assert.match(codeSkill, /### Next Flow Routing/);
+      assert.match(codeSkill, /pgg-refactor/);
+      assert.match(performanceSkill, /name: "pgg-performance"/);
+      assert.match(performanceSkill, /### Performance Trigger Guidance/);
+      assert.match(performanceSkill, /pgg-performanc/);
+      assert.match(qaSkill, /### QA Requirements/);
+      assert.match(qaSkill, /generated docs/);
+      assert.equal(manifest.managedFiles.some((entry) => entry.path === ".codex/skills/pgg-add/SKILL.md"), true);
+      assert.equal(manifest.managedFiles.some((entry) => entry.path === ".codex/skills/pgg-performance/SKILL.md"), true);
     });
   } finally {
     await rm(rootDir, { recursive: true, force: true });

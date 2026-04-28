@@ -6,7 +6,7 @@
   "language": "ko",
   "autoMode": "on",
   "installedVersion": "0.1.0",
-  "updatedAt": "2026-04-28T05:01:38.153Z",
+  "updatedAt": "2026-04-28T10:22:16.181Z",
   "dashboard": {
     "title": "POGGN",
     "titleIconSvg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 48 48\"><defs><linearGradient id=\"pgg-dashboard-icon\" x1=\"10%\" y1=\"10%\" x2=\"90%\" y2=\"90%\"><stop offset=\"0%\" stop-color=\"#2467d6\" /><stop offset=\"55%\" stop-color=\"#4f92ff\" /><stop offset=\"100%\" stop-color=\"#f59e0b\" /></linearGradient></defs><rect x=\"6\" y=\"6\" width=\"36\" height=\"36\" rx=\"14\" fill=\"#0f172a\" /><path d=\"M24 11l5.2 7.9 9.3 2.7-5.9 7.3.2 9.9-8.8-3.4-8.8 3.4.2-9.9-5.9-7.3 9.3-2.7L24 11z\" fill=\"url(#pgg-dashboard-icon)\" /><circle cx=\"24\" cy=\"24\" r=\"4.8\" fill=\"#f8fafc\" fill-opacity=\"0.9\" /></svg>",
@@ -16,7 +16,12 @@
   "managedFiles": [
     {
       "path": "AGENTS.md",
-      "checksum": "7a320653a3fcaa35735b6ec6df9abb3a0caa2a70b67e9f0b444d16cd1c3eb3f0",
+      "checksum": "1e56b8c56ddff8f91f3aa6d21999161171bc615c509f9633e4efc5344bf192f8",
+      "executable": false
+    },
+    {
+      "path": ".codex/add/REPOSITORY-GUIDELINES.md",
+      "checksum": "ebcaac44c6c520fc4bc3f3599d30d8d7b84d6fc8efdcd0f1ce38a388fa585cf6",
       "executable": false
     },
     {
@@ -26,7 +31,7 @@
     },
     {
       "path": ".codex/add/WOKR-FLOW.md",
-      "checksum": "a310b56de6363db62add2e3a3def4d4f6e4ed21630bafdcb903125579f3e5335",
+      "checksum": "b1a0032116bc580d36433e3dd89be2d2b228be9715396c0b7d316efc1bdb44fc",
       "executable": false
     },
     {
@@ -41,7 +46,7 @@
     },
     {
       "path": ".codex/add/IMPLEMENTATION.md",
-      "checksum": "4409b96319522c06b373b5021e98e41b76e0d246a5ff7236622562caeb188df7",
+      "checksum": "d78d2ee7c6add9ed51ae3c89781481ebac8882ff0ad5a8c844a169dd266d6114",
       "executable": false
     },
     {
@@ -116,27 +121,27 @@
     },
     {
       "path": ".codex/skills/pgg-add/SKILL.md",
-      "checksum": "3dc9b1924eaf0e4c81c79b9d6f3b37e6d075751059f704bd05e918043ff6b2f9",
+      "checksum": "0810a04a5926a70129f4f79f1cc600ecd84645ab26a98e4c1a857b5232c66c30",
       "executable": false
     },
     {
       "path": ".codex/skills/pgg-plan/SKILL.md",
-      "checksum": "eea07756c1d2bf3d24a2dff9cd1bb269e8f08be19ed4613d6bdfff3f80376899",
+      "checksum": "bf7b17bf779f1ab24380bd75dd9e348cb35058627192c0757ad1f3dfa7e275d4",
       "executable": false
     },
     {
       "path": ".codex/skills/pgg-code/SKILL.md",
-      "checksum": "8dd544d70a306f7437f066ae4b2439f0479a7385073e3e081210b6f915097a2d",
+      "checksum": "8e07b5b0c555d92950d693e8ca325b58148cadc67eb66dfd11bcf3f67b4d0c85",
       "executable": false
     },
     {
       "path": ".codex/skills/pgg-refactor/SKILL.md",
-      "checksum": "70fb575e989bb3afd9afefdc792c33d2383336e4b0663fb519b91a8accccdd5e",
+      "checksum": "dd7b51914fb6e1235add52d351b2b01d796c622c1f9a9b3824998a251dd36ebc",
       "executable": false
     },
     {
       "path": ".codex/skills/pgg-qa/SKILL.md",
-      "checksum": "13591f85de83d85906b3a15f6ff31df2cadfdebad8c382d8cce489886f950730",
+      "checksum": "bf4b001f74858ff429a7a96cfbffe61861a1658cef6edd268759aa0ef412c455",
       "executable": false
     },
     {
@@ -146,7 +151,7 @@
     },
     {
       "path": ".codex/skills/pgg-performance/SKILL.md",
-      "checksum": "b455483ab14a90ae8cc16281b9c3d17033b6db4872480da5207a774ba3daf857",
+      "checksum": "3ee4506399a4147bdcf6b873ff3e154cf1e5f7205c6ab98ae9bb600105914b90",
       "executable": false
     },
     {
@@ -171,7 +176,7 @@
     },
     {
       "path": ".codex/sh/pgg-gate.sh",
-      "checksum": "c162ced5e788bb36dfd38f506c5bee7718f205e021c95971b588df15832f5974",
+      "checksum": "5cca1abb08fab7090613dcfefd5c9b71e8d2efb3f26433d6e75109dc935ddf05",
       "executable": true
     },
     {
@@ -181,7 +186,7 @@
     },
     {
       "path": ".codex/sh/pgg-diff-index.sh",
-      "checksum": "a1f5e6ac2eae35857dc64b78dd431f8762fdc13423128effc08b6e1554d7aa7c",
+      "checksum": "de4faafdbc259019e55a82d8a9e9a70c0e8f14805bbdfce1c5a912dc651c34b3",
       "executable": true
     },
     {

@@ -5,7 +5,7 @@ import {
   README_OPTIONAL_AUDIT_SUMMARIES_KO,
   README_WORKFLOW_STAGE_SUMMARIES_EN,
   README_WORKFLOW_STAGE_SUMMARIES_KO
-} from "./workflow-contract.js";
+} from "./skill-framework/index.js";
 
 function lines(parts: string[]): string {
   return `${parts.join("\n")}\n`;

@@ -1,6 +1,6 @@
 import { writeFile } from "node:fs/promises";
 import path from "node:path";
-import { README_OPTIONAL_AUDIT_SUMMARIES_EN, README_OPTIONAL_AUDIT_SUMMARIES_KO, README_WORKFLOW_STAGE_SUMMARIES_EN, README_WORKFLOW_STAGE_SUMMARIES_KO } from "./workflow-contract.js";
+import { README_OPTIONAL_AUDIT_SUMMARIES_EN, README_OPTIONAL_AUDIT_SUMMARIES_KO, README_WORKFLOW_STAGE_SUMMARIES_EN, README_WORKFLOW_STAGE_SUMMARIES_KO } from "./skill-framework/index.js";
 function lines(parts) {
     return `${parts.join("\n")}\n`;
 }
