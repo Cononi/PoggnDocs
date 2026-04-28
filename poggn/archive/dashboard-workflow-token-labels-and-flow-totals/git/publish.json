@@ -1,0 +1,32 @@
+{
+  "topic": "dashboard-workflow-token-labels-and-flow-totals",
+  "version": "3.0.2",
+  "targetVersion": "3.0.2",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "commitTitle": "fix: 3.0.2.workflow token 표시",
+  "commitSha": "c40330730f9b41b9811fcc06bfce66561b1d2611",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/3.0.2-dashboard-totals",
+  "workingBranch": "ai/fix/3.0.2-dashboard-totals",
+  "releaseBranch": "release/3.0.2-dashboard-totals",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-28T02:34:46Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/3.0.2-dashboard-totals'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/dashboard-workflow-token-labels-and-flow-totals",
+    "versionFile": "poggn/archive/dashboard-workflow-token-labels-and-flow-totals/version.json"
+  }
+}
