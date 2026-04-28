@@ -1,0 +1,32 @@
+{
+  "topic": "pgg-llm-local-token-usage-accounting",
+  "version": "3.0.1",
+  "targetVersion": "3.0.1",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "commitTitle": "fix: 3.0.1.llm token 집계",
+  "commitSha": "cea26464b3188ba4f048ea60ed97fc7330ef46ca",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/3.0.1-llm-accounting",
+  "workingBranch": "ai/fix/3.0.1-llm-accounting",
+  "releaseBranch": "release/3.0.1-llm-accounting",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-28T02:15:58Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/3.0.1-llm-accounting'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/pgg-llm-local-token-usage-accounting",
+    "versionFile": "poggn/archive/pgg-llm-local-token-usage-accounting/version.json"
+  }
+}
