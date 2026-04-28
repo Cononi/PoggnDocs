@@ -2,9 +2,9 @@ export declare const CORE_WORKFLOW_SKILLS: readonly ["pgg-add", "pgg-plan", "pgg
 export declare const OPTIONAL_AUDIT_SKILLS: readonly ["pgg-token", "pgg-performance"];
 export declare const WORKFLOW_SKILLS: readonly ["pgg-add", "pgg-plan", "pgg-code", "pgg-refactor", "pgg-qa", "pgg-token", "pgg-performance"];
 export type WorkflowSkillName = (typeof WORKFLOW_SKILLS)[number];
-export declare const STANDALONE_SKILLS: readonly ["pgg-status"];
+export declare const STANDALONE_SKILLS: readonly ["pgg-status", "pgg-verify"];
 export type StandaloneSkillName = (typeof STANDALONE_SKILLS)[number];
-export declare const GENERATED_SKILLS: readonly ["pgg-add", "pgg-plan", "pgg-code", "pgg-refactor", "pgg-qa", "pgg-token", "pgg-performance", "pgg-status"];
+export declare const GENERATED_SKILLS: readonly ["pgg-add", "pgg-plan", "pgg-code", "pgg-refactor", "pgg-qa", "pgg-token", "pgg-performance", "pgg-status", "pgg-verify"];
 export type GeneratedSkillName = WorkflowSkillName | StandaloneSkillName;
 export declare const WORKFLOW_FRONTMATTER_STAGES = "proposal | plan | task | implementation | refactor | token | performance | qa";
 export declare const WORKFLOW_FRONTMATTER_SKILLS: string;

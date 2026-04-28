@@ -1,0 +1,7 @@
+diff --git a/poggn/active/pgg-verify-skill/state/dirty-worktree-baseline.txt b/poggn/active/pgg-verify-skill/state/dirty-worktree-baseline.txt
+new file mode 100644
+index 0000000..52f460b
+--- /dev/null
++++ b/poggn/active/pgg-verify-skill/state/dirty-worktree-baseline.txt
+@@ -0,0 +1 @@
++"\353\263\200\352\262\275.md"

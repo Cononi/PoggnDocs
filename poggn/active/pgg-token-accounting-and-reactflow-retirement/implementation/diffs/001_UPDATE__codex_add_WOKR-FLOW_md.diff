@@ -3,8 +3,7 @@ index 1765fea..ae6bc5e 100644
 --- a/.codex/add/WOKR-FLOW.md
 +++ b/.codex/add/WOKR-FLOW.md
 @@ -45,7 +45,7 @@ pgg는 core workflow와 필요할 때만 여는 optional audit로 delivery를 
- 
- 1. `pgg-add`
+  1. `pgg-add`
     - topic 생성
 -   - `proposal.md`, `reviews/proposal.review.md`, `state/current.md`, `workflow.reactflow.json` 생성
 +   - `proposal.md`, `reviews/proposal.review.md`, `state/current.md` 생성

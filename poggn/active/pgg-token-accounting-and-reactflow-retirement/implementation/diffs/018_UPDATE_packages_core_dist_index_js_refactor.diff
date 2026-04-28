@@ -1,0 +1,36 @@
+diff --git a/packages/core/dist/index.js b/packages/core/dist/index.js
+index 16b36d7..e613ff7 100644
+--- a/packages/core/dist/index.js
++++ b/packages/core/dist/index.js
+@@ -2181,10 +2181,13 @@ function sumEstimatedLlmTokenRecords(records, estimateForArtifact) {
+     return total;
+ }
+ function fileHasLlmTokenRecord(file, records) {
++    return fileHasTokenRecordWithSource(file, records, "llm");
++}
++function fileHasTokenRecordWithSource(file, records, source) {
+     const relativePath = normalizeTokenUsagePath(file.relativePath);
+     const sourcePath = normalizeTokenUsagePath(file.sourcePath);
+     return records.some((record) => {
+-        if (record.source !== "llm") {
++        if (record.source !== source) {
+             return false;
+         }
+         const artifactPath = normalizeTokenUsagePath(record.artifactPath);
+@@ -2200,15 +2203,7 @@ function sumUnrecordedArtifactEstimateTokens(files, records) {
+     }, 0);
+ }
+ function fileHasLocalTokenRecord(file, records) {
+-    const relativePath = normalizeTokenUsagePath(file.relativePath);
+-    const sourcePath = normalizeTokenUsagePath(file.sourcePath);
+-    return records.some((record) => {
+-        if (record.source !== "local") {
+-            return false;
+-        }
+-        const artifactPath = normalizeTokenUsagePath(record.artifactPath);
+-        return Boolean(artifactPath && (artifactPath === relativePath || artifactPath === sourcePath));
+-    });
++    return fileHasTokenRecordWithSource(file, records, "local");
+ }
+ async function applyArtifactTokenEstimatesToRecords(rootDir, files, records) {
+     const estimateForArtifact = await buildTokenEstimateLookup(rootDir, files, records);

@@ -6,7 +6,7 @@
   "language": "ko",
   "autoMode": "on",
   "installedVersion": "0.1.0",
-  "updatedAt": "2026-04-27T04:23:14.717Z",
+  "updatedAt": "2026-04-28T04:20:50.166Z",
   "dashboard": {
     "title": "POGGN",
     "titleIconSvg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 48 48\"><defs><linearGradient id=\"pgg-dashboard-icon\" x1=\"10%\" y1=\"10%\" x2=\"90%\" y2=\"90%\"><stop offset=\"0%\" stop-color=\"#2467d6\" /><stop offset=\"55%\" stop-color=\"#4f92ff\" /><stop offset=\"100%\" stop-color=\"#f59e0b\" /></linearGradient></defs><rect x=\"6\" y=\"6\" width=\"36\" height=\"36\" rx=\"14\" fill=\"#0f172a\" /><path d=\"M24 11l5.2 7.9 9.3 2.7-5.9 7.3.2 9.9-8.8-3.4-8.8 3.4.2-9.9-5.9-7.3 9.3-2.7L24 11z\" fill=\"url(#pgg-dashboard-icon)\" /><circle cx=\"24\" cy=\"24\" r=\"4.8\" fill=\"#f8fafc\" fill-opacity=\"0.9\" /></svg>",
@@ -16,7 +16,7 @@
   "managedFiles": [
     {
       "path": "AGENTS.md",
-      "checksum": "ac3da1c399421099449b6c69426a581f5e698274a3c6af8443f75f5720b56a16",
+      "checksum": "7a320653a3fcaa35735b6ec6df9abb3a0caa2a70b67e9f0b444d16cd1c3eb3f0",
       "executable": false
     },
     {
@@ -26,12 +26,12 @@
     },
     {
       "path": ".codex/add/WOKR-FLOW.md",
-      "checksum": "1adcaeef452bb9555d3c2d98eb9212f4a2a35d0016b859a258a5373cc309b4c1",
+      "checksum": "6e3658d23fdd4e0768464976fbf376c3dec4d3053709d0b95eac1bbb63d34c8e",
       "executable": false
     },
     {
       "path": ".codex/add/STATE-CONTRACT.md",
-      "checksum": "a09aab3d3f07e2df68f00d0dc6df26f885ac72b37f30df8e7f9204c76eb34aa1",
+      "checksum": "52a34211a016565ab34aa22d6a425d0200b8920b0adae5e6dd6d7b3e3070db49",
       "executable": false
     },
     {
@@ -41,17 +41,17 @@
     },
     {
       "path": ".codex/add/IMPLEMENTATION.md",
-      "checksum": "842531d420438914c49c9ae4b1c392ab02876fe505918dd3edf1318c6d0b62fd",
+      "checksum": "4409b96319522c06b373b5021e98e41b76e0d246a5ff7236622562caeb188df7",
       "executable": false
     },
     {
       "path": ".codex/add/REVIEW-RUBRIC.md",
-      "checksum": "19e6db183f71c17088ea0388a9c6a77f3a0d626eef8b89a1a973671688a0150b",
+      "checksum": "88ede8302979fa6f6f91654e72e62983574032feee796d7a3b2daec0af5e9a8b",
       "executable": false
     },
     {
       "path": ".codex/add/SHELL-RULES.md",
-      "checksum": "61f57a92ec32093b6e5e1b08884c9c4c8273ee30633093e38962eed25ad03430",
+      "checksum": "0e8de19d4b36096816f2e04f0f1d2f91d7525542742c17e9153f371e79066080",
       "executable": false
     },
     {
@@ -116,42 +116,47 @@
     },
     {
       "path": ".codex/skills/pgg-add/SKILL.md",
-      "checksum": "dc76689450dcb1a0c1d67ae9120ebec8a26a336199dd128302e0985489158a9c",
+      "checksum": "3dc9b1924eaf0e4c81c79b9d6f3b37e6d075751059f704bd05e918043ff6b2f9",
       "executable": false
     },
     {
       "path": ".codex/skills/pgg-plan/SKILL.md",
-      "checksum": "352c5d83145d3db67a5814b8559b5c292d0ca3666ebe941e04ea6706ce79e95c",
+      "checksum": "eea07756c1d2bf3d24a2dff9cd1bb269e8f08be19ed4613d6bdfff3f80376899",
       "executable": false
     },
     {
       "path": ".codex/skills/pgg-code/SKILL.md",
-      "checksum": "cb06e199f768e419df98f54a1ac31cd549bcdaa9bff98b90ce62110d9495d9c1",
+      "checksum": "118360587e640469f657d51f88008ca1a7398edb140c8d3f319ad79fab2917d3",
       "executable": false
     },
     {
       "path": ".codex/skills/pgg-refactor/SKILL.md",
-      "checksum": "59cca8326e18b9a4097ac6fe94d831c4e6348742b01b4195d65708b37bf3cc7e",
+      "checksum": "c974eeae2bc2244454f5aecbc745dd597fbf465326a4a4cb38160c9e979771e5",
       "executable": false
     },
     {
       "path": ".codex/skills/pgg-qa/SKILL.md",
-      "checksum": "03d9b223e74a3dfefcfbdf27ba86b70d68a77c2163130ee53f59f36237511993",
+      "checksum": "7035b802c01011a1a8a5337a149e4530595674ccc04a090505d3ee9cfe3835bb",
       "executable": false
     },
     {
       "path": ".codex/skills/pgg-token/SKILL.md",
-      "checksum": "901489e2d87d33fbf76458b512ac20e4d8907547f358eb663e4cd92c181b23a5",
+      "checksum": "1ef1a780101f55fd3e84c64c4082e8ad9443d0bfff9303faa71ba6f51635cbc6",
       "executable": false
     },
     {
       "path": ".codex/skills/pgg-performance/SKILL.md",
-      "checksum": "24525347ede9af1b1d71d8bf947c09075a842a4288fa104e8b37f1d346c56a6c",
+      "checksum": "b455483ab14a90ae8cc16281b9c3d17033b6db4872480da5207a774ba3daf857",
       "executable": false
     },
     {
       "path": ".codex/skills/pgg-status/SKILL.md",
-      "checksum": "d67054349628e03b4fd2face832d50f1647f0835ccac4ee67942a8e2451aa50d",
+      "checksum": "7b0b7523939ba790ab05d743a74125a1159d852d61f367feb8da2eb4667a2ae6",
+      "executable": false
+    },
+    {
+      "path": ".codex/skills/pgg-verify/SKILL.md",
+      "checksum": "61d53530b474ed97c0ec6c9c89638b05e37b03fc79092fec6b80496d5d2a33d9",
       "executable": false
     },
     {
@@ -161,7 +166,7 @@
     },
     {
       "path": ".codex/sh/pgg-new-topic.sh",
-      "checksum": "bc93bc64c56eddfb5b1d6f16025e7f3c5f4a296661ca6b7ca3ad10e3676b4729",
+      "checksum": "fe52db294b794155e48e55718011e9b7ee87064eaeaca875c4e5285fb8a4f9df",
       "executable": true
     },
     {
@@ -180,18 +185,13 @@
       "executable": true
     },
     {
-      "path": ".codex/sh/pgg-reactflow-build.sh",
-      "checksum": "d45aba5a0c491296323bfc44ecc15be0877aff253e8b282ad62ee72931c39e24",
-      "executable": true
-    },
-    {
       "path": ".codex/sh/pgg-state-pack.sh",
-      "checksum": "9025cb59f6242bdf23e55898203ea908e89bc1250bac6dfa4564ba8972e35390",
+      "checksum": "c93827dab522958cf7b892c7d19275f2af2afcfc535d07e1b079d1f2d8b48779",
       "executable": true
     },
     {
       "path": ".codex/sh/pgg-stage-commit.sh",
-      "checksum": "24003f7debf0afbea9015e5714a084e2aa959cac933ada92c7142b0e3ac8f4fa",
+      "checksum": "37bb05cc124d485419117c73ff3c5c4099e229ce87c99cf289ff18d489a3f9ee",
       "executable": true
     },
     {
@@ -201,7 +201,7 @@
     },
     {
       "path": ".codex/sh/pgg-git-publish.sh",
-      "checksum": "ef05819fb8b8389fd50580a925fdfe1759ad8aaeadd9203d465406f2d3f976fd",
+      "checksum": "2fd712c348b169caa8248974f1a30e198c12f0e9a302559bac73cb67a6118d87",
       "executable": true
     },
     {
@@ -236,6 +236,7 @@
     "mode": "on",
     "defaultRemote": "origin",
     "workingBranchPrefix": "ai",
-    "releaseBranchPrefix": "release"
+    "releaseBranchPrefix": "release",
+    "setupStatus": "deferred"
   }
 }

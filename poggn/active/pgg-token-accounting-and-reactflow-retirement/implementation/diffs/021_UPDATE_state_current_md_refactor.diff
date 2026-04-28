@@ -1,0 +1,39 @@
+diff --git a/poggn/active/pgg-token-accounting-and-reactflow-retirement/state/current.md b/poggn/active/pgg-token-accounting-and-reactflow-retirement/state/current.md
+index 0ffceb4..2c423e6 100644
+--- a/poggn/active/pgg-token-accounting-and-reactflow-retirement/state/current.md
++++ b/poggn/active/pgg-token-accounting-and-reactflow-retirement/state/current.md
+@@ -6,7 +6,7 @@ pgg-token-accounting-and-reactflow-retirement
+  ## Current Stage
+ -implementation
++refactor
+  ## Goal
+ @@ -43,6 +43,13 @@ pgg-code 토큰 집계가 실제 Codex/provider usage metadata와 artifact 추
+ - T2 완료: `workflow.reactflow.json` 신규 생성 경로와 필수 artifact 요구를 제거했다.
+ - T3 완료: core/dashboard 테스트를 통과했고 implementation index, diff, code review를 기록했다.
+ +## Refactor Progress
+++- token artifact record 존재 확인의 `llm`/`local` 중복 로직을 공통 source predicate helper로 정리했다.
++- dashboard history timeline의 동일한 source별 record 확인 로직도 같은 구조로 맞췄다.
++- `pnpm test`와 `pnpm build`가 통과했다.
++- `pgg-stage-commit.sh` 실행 결과 unrelated dirty worktree 때문에 refactor completion commit은 deferred 처리됐다.
++ ## Changed Files
+  | CRUD | path | taskRef |
+@@ -61,8 +68,25 @@ pgg-code 토큰 집계가 실제 Codex/provider usage metadata와 artifact 추
+ | UPDATE | `packages/core/test/dashboard-token-usage.test.mjs` | T3 |
+ | UPDATE | `packages/core/test/status-analysis.test.mjs` | T3 |
+ | UPDATE | `scripts/dashboard-history-model.test.mjs` | T3 |
++| UPDATE | `packages/core/src/index.ts` | refactor |
++| UPDATE | `packages/core/dist/index.js` | refactor |
++| UPDATE | `packages/core/dist/index.js.map` | refactor |
++| UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | refactor |
+ | UPDATE | `poggn/active/pgg-token-accounting-and-reactflow-retirement` | T3 |
+ +## Latest Review
+++- refactor review: `reviews/refactor.review.md`
++- score: `94`
++- blocking issues: unrelated dirty worktree 때문에 refactor stage-local commit deferred
+++## Refactor Git Evidence
+++- helper: `.codex/sh/pgg-stage-commit.sh`
++- resultType: `publish_blocked`
++- reason: `Unrelated worktree changes are present, so the stage-local commit was deferred.`
++- commit title attempted: `fix: 3.0.5.토큰 record 중복 정리`
++ ## Audit Applicability
+  - `pgg-token`: `required` | token usage 산정과 workflow artifact 제거 검증이 필요하다.

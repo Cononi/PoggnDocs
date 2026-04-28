@@ -12,7 +12,7 @@ export const WORKFLOW_SKILLS = [...CORE_WORKFLOW_SKILLS, ...OPTIONAL_AUDIT_SKILL
 
 export type WorkflowSkillName = (typeof WORKFLOW_SKILLS)[number];
 
-export const STANDALONE_SKILLS = ["pgg-status"] as const;
+export const STANDALONE_SKILLS = ["pgg-status", "pgg-verify"] as const;
 
 export type StandaloneSkillName = (typeof STANDALONE_SKILLS)[number];
 

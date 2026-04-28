@@ -614,10 +614,18 @@ function directLlmTimelineTokenTotal(record: TopicTokenUsageRecordEntry): number
 }
 
 function fileHasFlowLlmRecord(file: TopicFileEntry, records: TopicTokenUsageRecordEntry[]): boolean {
+  return fileHasFlowRecordWithSource(file, records, "llm");
+}
+
+function fileHasFlowRecordWithSource(
+  file: TopicFileEntry,
+  records: TopicTokenUsageRecordEntry[],
+  source: TopicTokenUsageRecordEntry["source"]
+): boolean {
   const relativePath = normalizeTokenArtifactPath(file.relativePath);
   const sourcePath = normalizeTokenArtifactPath(file.sourcePath);
   return records.some((record) => {
-    if (record.source !== "llm") {
+    if (record.source !== source) {
       return false;
     }
     const artifactPath = normalizeTokenArtifactPath(record.artifactPath);
@@ -693,15 +701,7 @@ function sumFlowEstimatedLlmTokens(records: TopicTokenUsageRecordEntry[]): numbe
 }
 
 function fileHasFlowLocalRecord(file: TopicFileEntry, records: TopicTokenUsageRecordEntry[]): boolean {
-  const relativePath = normalizeTokenArtifactPath(file.relativePath);
-  const sourcePath = normalizeTokenArtifactPath(file.sourcePath);
-  return records.some((record) => {
-    if (record.source !== "local") {
-      return false;
-    }
-    const artifactPath = normalizeTokenArtifactPath(record.artifactPath);
-    return Boolean(artifactPath && (artifactPath === relativePath || artifactPath === sourcePath));
-  });
+  return fileHasFlowRecordWithSource(file, records, "local");
 }
 
 function sumFlowLocalTokens(records: TopicTokenUsageRecordEntry[], files: TopicFileEntry[]): number {

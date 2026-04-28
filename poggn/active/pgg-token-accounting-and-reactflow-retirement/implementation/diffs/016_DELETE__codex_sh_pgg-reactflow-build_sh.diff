@@ -5,13 +5,11 @@ deleted file mode 100755
 @@
 -#!/usr/bin/env bash
 -set -euo pipefail
--
--if [[ $# -ne 1 ]]; then
+--if [[ $# -ne 1 ]]; then
 -  echo "usage: $0 <topic|topic_dir>" >&2
 -  exit 1
 -fi
--
--ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
+--ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 -TARGET="$1"
 -if [[ -d "$TARGET" ]]; then
 -  TOPIC_DIR="$TARGET"
@@ -19,13 +17,11 @@ deleted file mode 100755
 -  TOPIC_DIR="$ROOT_DIR/poggn/active/$TARGET"
 -fi
 -TOPIC="$(basename "$TOPIC_DIR")"
--
--cat > "$TOPIC_DIR/workflow.reactflow.json" <<EOF
+--cat > "$TOPIC_DIR/workflow.reactflow.json" <<EOF
 -{
 -  "topic": "$TOPIC",
 -  "nodes": [],
 -  "edges": []
 -}
 -EOF
--
--echo "{\"workflow\":\"workflow.reactflow.json\",\"nodes\":0,\"edges\":0}"
+--echo "{\"workflow\":\"workflow.reactflow.json\",\"nodes\":0,\"edges\":0}"

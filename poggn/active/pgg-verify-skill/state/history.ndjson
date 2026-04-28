@@ -1,0 +1,17 @@
+{"ts":"2026-04-28T03:47:40Z","stage":"proposal","event":"topic-created","source":"pgg-add"}
+{"ts":"2026-04-28T03:47:40Z","stage":"proposal","event":"stage-started","source":"pgg-add"}
+{"ts":"2026-04-28T03:47:40Z","stage":"proposal","event":"stage-completed","source":"verified"}
+{"ts":"2026-04-28T03:47:40Z","stage":"plan","event":"stage-started","source":"pgg-plan"}
+{"ts":"2026-04-28T03:47:40Z","stage":"plan","event":"stage-completed","source":"verified"}
+{"ts":"2026-04-28T03:47:40Z","stage":"implementation","event":"stage-started","source":"pgg-code"}
+{"ts":"2026-04-28T03:47:40Z","stage":"implementation","event":"stage-progress","source":"pgg-code","summary":"pgg-verify skill file and tracking artifacts created"}
+{"ts":"2026-04-28T04:07:16Z","stage":"implementation","event":"stage-progress","source":"pgg-code","summary":"pgg-verify registered as a generated standalone skill"}
+{"ts":"2026-04-28T04:08:59Z","stage":"implementation","event":"stage-completed","source":"verified","summary":"core build and test passed; pgg status recommends pgg-refactor"}
+{"ts":"2026-04-28T04:12:56Z","stage":"refactor","event":"stage-started","source":"pgg-refactor"}
+{"ts":"2026-04-28T04:12:56Z","stage":"refactor","event":"stage-progress","source":"pgg-refactor","summary":"standalone skill generation test refactored to table-driven cases"}
+{"ts":"2026-04-28T04:12:56Z","stage":"refactor","event":"stage-completed","source":"verified","summary":"refactor review recorded and core tests passed"}
+{"ts":"2026-04-28T04:16:19Z","stage":"qa","event":"stage-started","source":"pgg-qa"}
+{"ts":"2026-04-28T04:16:19Z","stage":"qa","event":"stage-progress","source":"pgg-qa","summary":"core regression passed; release metadata and verification contract blockers identified"}
+{"ts":"2026-04-28T04:16:19Z","stage":"qa","event":"stage-blocked","source":"pgg-qa","summary":"manual verification required and target version conflict blocks archive"}
+{"ts":"2026-04-28T04:29:40Z","stage":"qa","event":"requirements-added","source":"user","summary":"active topic들을 모두 합쳐 push하고 완료 처리한다"}
+{"ts":"2026-04-28T04:29:40Z","stage":"qa","event":"stage-progress","source":"pgg-qa","summary":"active 통합 완료 요청으로 pending version은 archive helper 계산에 맡기고 pnpm test/build 통과 evidence를 반영했다"}

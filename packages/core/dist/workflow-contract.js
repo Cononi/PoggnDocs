@@ -7,7 +7,7 @@ export const CORE_WORKFLOW_SKILLS = [
 ];
 export const OPTIONAL_AUDIT_SKILLS = ["pgg-token", "pgg-performance"];
 export const WORKFLOW_SKILLS = [...CORE_WORKFLOW_SKILLS, ...OPTIONAL_AUDIT_SKILLS];
-export const STANDALONE_SKILLS = ["pgg-status"];
+export const STANDALONE_SKILLS = ["pgg-status", "pgg-verify"];
 export const GENERATED_SKILLS = [...WORKFLOW_SKILLS, ...STANDALONE_SKILLS];
 export const WORKFLOW_FRONTMATTER_STAGES = "proposal | plan | task | implementation | refactor | token | performance | qa";
 export const WORKFLOW_FRONTMATTER_SKILLS = WORKFLOW_SKILLS.join(" | ");

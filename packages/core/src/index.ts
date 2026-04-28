@@ -3262,10 +3262,18 @@ function sumEstimatedLlmTokenRecords(
 }
 
 function fileHasLlmTokenRecord(file: TopicFileEntry, records: TopicTokenUsageRecord[]): boolean {
+  return fileHasTokenRecordWithSource(file, records, "llm");
+}
+
+function fileHasTokenRecordWithSource(
+  file: TopicFileEntry,
+  records: TopicTokenUsageRecord[],
+  source: TopicTokenUsageRecord["source"]
+): boolean {
   const relativePath = normalizeTokenUsagePath(file.relativePath);
   const sourcePath = normalizeTokenUsagePath(file.sourcePath);
   return records.some((record) => {
-    if (record.source !== "llm") {
+    if (record.source !== source) {
       return false;
     }
     const artifactPath = normalizeTokenUsagePath(record.artifactPath);
@@ -3283,15 +3291,7 @@ function sumUnrecordedArtifactEstimateTokens(files: TopicFileEntry[], records: T
 }
 
 function fileHasLocalTokenRecord(file: TopicFileEntry, records: TopicTokenUsageRecord[]): boolean {
-  const relativePath = normalizeTokenUsagePath(file.relativePath);
-  const sourcePath = normalizeTokenUsagePath(file.sourcePath);
-  return records.some((record) => {
-    if (record.source !== "local") {
-      return false;
-    }
-    const artifactPath = normalizeTokenUsagePath(record.artifactPath);
-    return Boolean(artifactPath && (artifactPath === relativePath || artifactPath === sourcePath));
-  });
+  return fileHasTokenRecordWithSource(file, records, "local");
 }
 
 async function applyArtifactTokenEstimatesToRecords(

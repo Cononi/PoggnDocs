@@ -15,7 +15,18 @@ import {
   updateProjectTeamsMode
 } from "../dist/index.js";
 
-const STANDALONE_SKILL_PATH = ".codex/skills/pgg-status/SKILL.md";
+const STANDALONE_SKILL_CASES = [
+  {
+    path: ".codex/skills/pgg-status/SKILL.md",
+    namePattern: /name: "pgg-status"/,
+    bodyPattern: /현재 active topic 상태를 읽고/
+  },
+  {
+    path: ".codex/skills/pgg-verify/SKILL.md",
+    namePattern: /name: "pgg-verify"/,
+    bodyPattern: /구현 결과를 테스트, Acceptance Criteria/
+  }
+];
 const CODEX_CONFIG_PATH = ".codex/config.toml";
 const CODEX_AGENTS_DIR = ".codex/agents";
 const AGENT_ROUTING_PATH = ".codex/add/AGENT-ROUTING.toml";
@@ -61,7 +72,7 @@ async function withTemporaryPggHome(rootDir, run) {
   }
 }
 
-test("initializeProject and updateProject keep the standalone pgg-status skill managed", async () => {
+test("initializeProject and updateProject keep standalone skills managed", async () => {
   const rootDir = await mkdtemp(path.join(os.tmpdir(), "pgg-skill-generation-"));
 
   try {
@@ -73,18 +84,29 @@ test("initializeProject and updateProject keep the standalone pgg-status skill m
         teamsMode: "off"
       });
 
-      const initialSkill = await readFile(path.join(rootDir, STANDALONE_SKILL_PATH), "utf8");
+      const initialStandaloneSkills = new Map(
+        await Promise.all(
+          STANDALONE_SKILL_CASES.map(async (skill) => [
+            skill.path,
+            await readFile(path.join(rootDir, skill.path), "utf8")
+          ])
+        )
+      );
       const initialWorkflow = await readFile(path.join(rootDir, ".codex/add/WOKR-FLOW.md"), "utf8");
       const initialStateContract = await readFile(path.join(rootDir, ".codex/add/STATE-CONTRACT.md"), "utf8");
       const initialReadme = buildRootReadme();
       const initialManifest = await readManifest(rootDir);
 
-      assert.match(initialSkill, /name: "pgg-status"/);
-      assert.match(initialSkill, /현재 active topic 상태를 읽고/);
+      for (const skill of STANDALONE_SKILL_CASES) {
+        const content = initialStandaloneSkills.get(skill.path);
+        assert.ok(content);
+        assert.match(content, skill.namePattern);
+        assert.match(content, skill.bodyPattern);
+        assert.equal(initialManifest.managedFiles.some((entry) => entry.path === skill.path), true);
+      }
       assert.match(initialWorkflow, /\{convention\}: \{version\}\.\{commit message\}/);
       assert.match(initialStateContract, /pgg lang=ko/);
       assert.match(initialReadme, /\{convention\}: \{version\}\.\{commit message\}/);
-      assert.equal(initialManifest.managedFiles.some((entry) => entry.path === STANDALONE_SKILL_PATH), true);
 
       await writeFile(
         path.join(rootDir, "poggn", "version-history.ndjson"),
@@ -94,12 +116,21 @@ test("initializeProject and updateProject keep the standalone pgg-status skill m
 
       await updateProject(rootDir);
 
-      const updatedSkill = await readFile(path.join(rootDir, STANDALONE_SKILL_PATH), "utf8");
+      const updatedStandaloneSkills = new Map(
+        await Promise.all(
+          STANDALONE_SKILL_CASES.map(async (skill) => [
+            skill.path,
+            await readFile(path.join(rootDir, skill.path), "utf8")
+          ])
+        )
+      );
       const updatedManifest = await readManifest(rootDir);
       const ledger = await readFile(path.join(rootDir, "poggn", "version-history.ndjson"), "utf8");
 
-      assert.equal(updatedSkill, initialSkill);
-      assert.equal(updatedManifest.managedFiles.some((entry) => entry.path === STANDALONE_SKILL_PATH), true);
+      for (const skill of STANDALONE_SKILL_CASES) {
+        assert.equal(updatedStandaloneSkills.get(skill.path), initialStandaloneSkills.get(skill.path));
+        assert.equal(updatedManifest.managedFiles.some((entry) => entry.path === skill.path), true);
+      }
       assert.equal(ledger, `${JSON.stringify({ topic: "seed", changeType: "feat", version: "0.1.0" })}\n`);
     });
   } finally {

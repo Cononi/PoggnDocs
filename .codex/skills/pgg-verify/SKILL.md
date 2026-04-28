@@ -1,0 +1,131 @@
+---
+name: "pgg-verify"
+description: "구현 결과를 테스트, Acceptance Criteria, 경계값/예외, 로그, 실제 실행 흐름, 간단한 성능 체크 기준으로 검증한다."
+---
+
+# Skill: pgg-verify
+
+## Purpose
+
+구현 완료 후 실제 동작이 요구사항과 일치하는지 증거 기반으로 검증하고, 통과/실패/미실행 사유를 명확히 남긴다.
+
+## When To Use
+
+- 사용자가 `pgg-verify`를 요청한 경우
+- 구현 후 QA 전에 테스트와 동작 검증을 독립적으로 정리해야 하는 경우
+- Acceptance Criteria, 경계값, 로그, 실행 흐름, 간단 성능 smoke check를 한 번에 확인해야 하는 경우
+
+## Read First
+
+- `state/current.md`
+- `proposal.md`
+- `plan.md`
+- `task.md`
+- `spec/*/*.md`
+- 선언된 current-project verification contract
+- 변경된 코드와 관련 테스트
+
+## Verification Rules
+
+- 선언된 verification contract가 있으면 그 명령만 자동 실행한다.
+- verification contract가 없으면 framework 명령을 추론 실행하지 않고 `manual verification required`로 남긴다.
+- 통과하지 않은 항목을 통과로 기록하지 않는다.
+- 실패, 미실행, 환경 제약은 원인과 재현 방법을 함께 기록한다.
+- 구현 수정이 필요한 실패를 발견하면 최소 수정 범위와 되돌려야 할 stage를 제안한다.
+- 전체 문서 복사보다 `state/current.md`와 필요한 파일 ref, 명령 결과 요약을 우선한다.
+
+## Required Checks
+
+### 1. 테스트 실행 및 통과 확인
+
+- unit test 실행 결과를 확인한다.
+- integration test 실행 결과를 확인한다.
+- 실패 케이스 테스트가 있는지 확인하고 실행 결과를 기록한다.
+- 테스트가 없거나 contract에 없으면 미실행 사유와 필요한 테스트 범위를 기록한다.
+
+### 2. Acceptance Criteria 검증
+
+- `Given / When / Then` 기준을 추출해 검증 matrix를 만든다.
+- 각 기준마다 실제 동작 evidence를 연결한다.
+- 요구사항과 실제 동작이 다르면 mismatch로 기록하고 영향 범위를 적는다.
+
+### 3. 경계값과 예외 케이스 검증
+
+- `null` / `empty`
+- 최대값 / 최소값
+- 잘못된 입력
+- 실패 응답
+- 적용 불가 항목은 제외 근거를 기록한다.
+
+### 4. 로그 기반 검증
+
+- 에러 로그가 없는지 확인한다.
+- 예상치 못한 warning이 있는지 확인한다.
+- retry / timeout 발생 여부를 확인한다.
+- 의도된 warning이나 retry는 기대 근거를 함께 기록한다.
+
+### 5. 실제 실행 흐름 검증
+
+- API 호출 흐름이 설계와 일치하는지 확인한다.
+- 상태 변화가 기대 순서대로 발생하는지 확인한다.
+- 데이터 일관성이 유지되는지 확인한다.
+- 외부 side effect나 persistence가 있으면 전후 상태를 기록한다.
+
+### 6. 간단한 성능 체크
+
+- 응답 시간이 비정상적으로 증가하지 않았는지 확인한다.
+- 반복 호출 시 실패, 누수, 상태 오염이 없는지 확인한다.
+- 정밀 성능 검증이 필요하면 `pgg-performance` optional audit 대상으로 분리한다.
+
+## Report
+
+검증 산출물이 필요한 경우 `verify/report.md`를 생성한다.
+
+```md
+# Verify Report
+
+## Summary
+
+- result: pass | fail | blocked | manual_verification_required
+- scope: <검증 대상>
+
+## Commands
+
+| Type | Command | Result | Evidence |
+|---|---|---|---|
+
+## Acceptance Criteria
+
+| Given | When | Then | Result | Evidence |
+|---|---|---|---|---|
+
+## Edge And Failure Cases
+
+| Case | Result | Evidence |
+|---|---|---|
+
+## Logs
+
+| Check | Result | Evidence |
+|---|---|---|
+
+## Runtime Flow
+
+| Flow | Result | Evidence |
+|---|---|---|
+
+## Performance Smoke Check
+
+| Check | Result | Evidence |
+|---|---|---|
+
+## Decision
+
+pass | fail | blocked | manual_verification_required
+```
+
+## Language Contract
+
+- 이 skill이 작성하는 pgg 문서, state/history 문구, review/QA 산출물은 `.pgg/project.json`의 `language` 값을 따른다.
+- 이 skill이 생성하거나 수정하는 pgg-managed 코드 주석은 `pgg lang`을 따른다.
+- 사용자가 작성한 기존 코드 주석은 해당 task 범위에서 수정하는 경우에만 언어 계약을 적용한다.

@@ -8,5 +8,4 @@ index 1696780..4921fe5 100644
  - `state/current.md`
 -- `workflow.reactflow.json`
  - `archive_type`, `version_bump`, `target_version`, `short_name`, branch naming, `project_scope: current-project` 확정
- 
- ## Handoff
+  ## Handoff

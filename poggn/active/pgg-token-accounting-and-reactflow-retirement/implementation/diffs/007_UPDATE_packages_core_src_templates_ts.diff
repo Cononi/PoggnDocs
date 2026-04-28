@@ -74,8 +74,7 @@ index 6f1f722..92aa70b 100644
 @@ -2659,37 +2650,6 @@ function diffIndexSh(): string {
    ]);
  }
- 
--function reactflowBuildSh(): string {
+ -function reactflowBuildSh(): string {
 -  return lines([
 -    "#!/usr/bin/env bash",
 -    "set -euo pipefail",
@@ -105,8 +104,7 @@ index 6f1f722..92aa70b 100644
 -    "echo \"{\\\"workflow\\\":\\\"workflow.reactflow.json\\\",\\\"nodes\\\":0,\\\"edges\\\":0}\""
 -  ]);
 -}
--
- function statePackSh(): string {
+- function statePackSh(): string {
    return lines([
      "#!/usr/bin/env bash",
 @@ -2856,16 +2816,18 @@ function statePackSh(): string {

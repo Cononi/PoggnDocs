@@ -7,6 +7,5 @@ index 7f3cfc1..937e206 100644
    await writeTopicFile(topicDir, "proposal.md", proposalMarkdown(topic));
    await writeTopicFile(topicDir, "reviews/proposal.review.md", "# proposal.review\n");
 -  await writeTopicFile(topicDir, "workflow.reactflow.json", JSON.stringify({ topic, nodes: [], edges: [] }, null, 2));
- 
-   for (const [relativePath, content] of files) {
+    for (const [relativePath, content] of files) {
      await writeTopicFile(topicDir, relativePath, content);
