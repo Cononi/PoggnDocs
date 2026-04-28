@@ -17,10 +17,100 @@ else
   TOPIC_DIR="$ROOT_DIR/poggn/active/$TARGET"
 fi
 TOPIC="$(basename "$TOPIC_DIR")"
-WORKING_BRANCH_PREFIX="ai"
-RELEASE_BRANCH_PREFIX="release"
 OUT="$TOPIC_DIR/implementation/index.md"
+STATE_FILE="$TOPIC_DIR/state/current.md"
 TIMESTAMP="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
+
+extract_changed_files() {
+  [[ -f "$STATE_FILE" ]] || return 0
+  awk '
+    function trim(value) {
+      gsub(/^[[:space:]]+|[[:space:]]+$/, "", value)
+      return value
+    }
+    function clean(value) {
+      value = trim(value)
+      gsub(/`/, "", value)
+      return trim(value)
+    }
+    function key(value) {
+      value = tolower(clean(value))
+      gsub(/[^a-z0-9]/, "", value)
+      return value
+    }
+    $0 == "## Changed Files" { in_section = 1; next }
+    /^## / && in_section { exit }
+    !in_section || $0 !~ /^\|/ { next }
+    /^\|[[:space:]]*-[-|[:space:]]*$/ { next }
+    {
+      line = $0
+      sub(/^\|/, "", line)
+      sub(/\|$/, "", line)
+      count = split(line, cells, "|")
+      if (!header_seen) {
+        for (idx = 1; idx <= count; idx++) {
+          headers[key(cells[idx])] = idx
+        }
+        header_seen = 1
+        next
+      }
+
+      path_index = headers["path"]
+      if (!path_index) {
+        path_index = headers["file"]
+      }
+      path_value = clean(cells[path_index])
+      if (path_value == "" || path_value == "path") {
+        next
+      }
+
+      crud = clean(cells[headers["crud"]])
+      task_ref = clean(cells[headers["taskref"]])
+      diff_source = clean(cells[headers["diffsource"]])
+      git_ref = clean(cells[headers["gitref"]])
+      commit_range = clean(cells[headers["commitrange"]])
+      diff_command = clean(cells[headers["diffcommand"]])
+      status = clean(cells[headers["status"]])
+      note = clean(cells[headers["note"]])
+
+      if (crud == "") {
+        crud = "UPDATE"
+      }
+      if (task_ref == "") {
+        task_ref = "TBD"
+      }
+      if (diff_source == "") {
+        diff_source = "working-tree"
+      }
+      if (git_ref == "") {
+        git_ref = "-"
+      }
+      if (commit_range == "") {
+        commit_range = "-"
+      }
+      if (diff_command == "") {
+        diff_command = "git diff -- " path_value
+      }
+      if (status == "") {
+        status = "pending"
+      }
+
+      print crud "\t" path_value "\t" task_ref "\t" diff_source "\t" git_ref "\t" commit_range "\t" diff_command "\t" status "\t" note
+    }
+  ' "$STATE_FILE"
+}
+
+extract_legacy_diff_files() {
+  for diff_file in "$TOPIC_DIR"/implementation/diffs/*.diff; do
+    [[ -f "$diff_file" ]] || continue
+    filename="$(basename "$diff_file")"
+    rest="${filename#*_}"
+    crud="${rest%%_*}"
+    path_value="$(awk '/^\+\+\+ b\// {sub(/^\+\+\+ b\//, "", $0); print; exit}' "$diff_file")"
+    [[ -n "$path_value" ]] || path_value="$(awk '/^--- a\// {sub(/^--- a\//, "", $0); print; exit}' "$diff_file")"
+    printf '%s\t%s\tTBD\tlegacy-diff-file\t-\t-\tcat %s\tavailable\t%s\n' "$crud" "$path_value" "implementation/diffs/$filename" "implementation/diffs/$filename"
+  done
+}
 
 mkdir -p "$TOPIC_DIR/implementation"
 cat > "$OUT" <<EOF
@@ -36,20 +126,40 @@ pgg:
 
 # Implementation Index
 
-| ID | CRUD | path | diffRef | taskRef | note |
-|---|---|---|---|---|---|
+| ID | CRUD | path | taskRef | diffSource | gitRef | commitRange | diffCommand | status | note |
+|---|---|---|---|---|---|---|---|---|---|
 EOF
 
 count=0
-for diff_file in "$TOPIC_DIR"/implementation/diffs/*.diff; do
-  [[ -f "$diff_file" ]] || continue
-  filename="$(basename "$diff_file")"
-  id="${filename%%_*}"
-  rest="${filename#*_}"
-  crud="${rest%%_*}"
-  path_value="$(awk '/^\+\+\+ b\// {sub(/^\+\+\+ b\//, "", $0); print; exit}' "$diff_file")"
-  printf '| %s | %s | `%s` | `implementation/diffs/%s` | `TBD` | |\n' "$id" "$crud" "$path_value" "$filename" >> "$OUT"
+while IFS=$'\t' read -r crud path_value task_ref diff_source git_ref commit_range diff_command status note; do
+  [[ -n "$path_value" ]] || continue
   count=$((count + 1))
-done
+  printf '| %03d | %s | `%s` | `%s` | `%s` | `%s` | `%s` | `%s` | `%s` | %s |\n' \
+    "$count" "$crud" "$path_value" "$task_ref" "$diff_source" "$git_ref" "$commit_range" "$diff_command" "$status" "$note" >> "$OUT"
+done < <(extract_changed_files)
+
+if [[ "$count" -eq 0 ]]; then
+  while IFS=$'\t' read -r crud path_value task_ref diff_source git_ref commit_range diff_command status note; do
+    [[ -n "$path_value" ]] || continue
+    count=$((count + 1))
+    printf '| %03d | %s | `%s` | `%s` | `%s` | `%s` | `%s` | `%s` | `%s` | %s |\n' \
+      "$count" "$crud" "$path_value" "$task_ref" "$diff_source" "$git_ref" "$commit_range" "$diff_command" "$status" "$note" >> "$OUT"
+  done < <(extract_legacy_diff_files)
+fi
+
+if [[ "$count" -eq 0 ]]; then
+  cat >> "$OUT" <<EOF
+
+No changed files were found in \`state/current.md\` and no legacy diff files were present.
+EOF
+else
+  cat >> "$OUT" <<EOF
+
+## Notes
+
+- \`working-tree\` rows are temporary until a task or stage commit records a durable Git ref.
+- \`legacy-diff-file\` rows point to pre-existing opt-in diff body artifacts.
+EOF
+fi
 
 echo "{\"index\":\"implementation/index.md\",\"items\":$count}"
