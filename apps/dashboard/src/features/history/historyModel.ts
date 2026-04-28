@@ -938,7 +938,7 @@ function latestUnresolvedFlowIndex(entries: FlowStatusRuntimeEntry[], field: Flo
   return entries
     .filter((entry) => {
       const timestamp = entry[field];
-      return timestamp ? !laterFlowHasNewerEvidence(entries, entry, timestamp) : false;
+      return timestamp ? field === "updatingAt" || !laterFlowHasNewerEvidence(entries, entry, timestamp) : false;
     })
     .sort((left, right) => compareTimestamps(left[field], right[field]) || left.index - right.index)
     .at(-1)?.index;
@@ -1137,16 +1137,13 @@ export function buildWorkflowSteps(topic: TopicSummary, language: HistoryLanguag
 
   return entries.map(({ flow, index, activeTaskIds, timestamps }) => {
     const stageBlocked = flowHasBlockedEvidence(topic, flow);
-    const completedByProgress = index < currentIndex || index < effectiveCurrentIndex;
     const completedByEvidence =
       flow.id === "done"
         ? isDoneFlowCompleted(topic)
         : Boolean(timestamps.completedAt.value && timestamps.completedAt.confidence !== "low");
     const updating = updatingIndex === index;
     const completedArchiveFlow = topic.bucket === "archive" && flow.id !== "done";
-    const isComplete =
-      !stageBlocked &&
-      (completedArchiveFlow || (!updating && (completedByProgress || completedByEvidence)));
+    const isComplete = !stageBlocked && (completedArchiveFlow || (!updating && completedByEvidence));
     const status: WorkflowStatus = updating
       ? "updating"
       : stageBlocked

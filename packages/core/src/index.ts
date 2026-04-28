@@ -2414,7 +2414,9 @@ function parseAuditApplicability(markdown: string | null): Record<TopicAuditName
   }
 
   for (const line of section.split("\n").map((value) => value.trim())) {
-    const match = line.match(/^- `([^`]+)`: `([^`]+)` \| (.+)$/);
+    const match =
+      line.match(/^- `([^`]+)`: `([^`]+)` \| (.+)$/) ??
+      line.match(/^- \[([^\]]+)\]:\s*([^|]+?)\s*\|\s*(.+)$/);
     if (!match) {
       continue;
     }
@@ -2476,18 +2478,40 @@ function parseChangedFilePaths(markdown: string | null): string[] {
 function normalizeStageName(value: string | null): TopicStageName | null {
   const normalized = value?.trim().toLowerCase();
   switch (normalized) {
+    case "pgg-add":
+    case "add":
     case "proposal":
+      return "proposal";
+    case "pgg-plan":
+      return "plan";
     case "plan":
     case "task":
-    case "implementation":
-    case "refactor":
-    case "token":
-    case "performance":
-    case "qa":
       return normalized;
+    case "pgg-code":
+    case "code":
+    case "implementation":
+      return "implementation";
+    case "pgg-refactor":
+    case "refactor":
+      return "refactor";
+    case "pgg-token":
+    case "token":
+      return "token";
+    case "pgg-performanc":
+    case "pgg-performance":
+    case "performance":
+      return "performance";
+    case "pgg-qa":
+    case "qa":
+      return "qa";
     default:
       return null;
   }
+}
+
+function proposalStatusIsApproved(value: string | null): boolean {
+  const normalized = value?.trim().toLowerCase();
+  return normalized === "reviewed" || normalized === "approved" || normalized === "done" || normalized === "pass";
 }
 
 function isNonBlockingMarker(value: string | null): boolean {
@@ -2595,8 +2619,11 @@ function resolveTopicStage(
   proposalMarkdown: string | null,
   artifacts: TopicArtifactState
 ): TopicStageName | null {
+  const rawTopicStage = topic.stage?.trim().toLowerCase() ?? null;
+  const topicStage =
+    rawTopicStage === "pgg-plan" && artifacts.hasTask ? "task" : normalizeStageName(topic.stage);
   const proposalStage = normalizeStageName(proposalMarkdown ? parseKeyValue(proposalMarkdown, "stage") : null);
-  return normalizeStageName(topic.stage) ?? proposalStage ?? inferStageFromArtifacts(artifacts);
+  return topicStage ?? proposalStage ?? inferStageFromArtifacts(artifacts);
 }
 
 function resolveMissingArtifactRecommendation(
@@ -2606,9 +2633,10 @@ function resolveMissingArtifactRecommendation(
   proposalStatus: string | null,
   artifacts: TopicArtifactState
 ): TopicStatusSummary | null {
-  if (proposalStatus !== "reviewed" || !artifacts.hasProposalReview) {
+  const proposalApproved = proposalStatusIsApproved(proposalStatus);
+  if (!proposalApproved || !artifacts.hasProposalReview) {
     const missingProposalArtifacts = listMissingArtifacts([
-      [proposalStatus === "reviewed", "proposal frontmatter status=reviewed"],
+      [proposalApproved, "proposal approval status"],
       [artifacts.hasProposalReview, "reviews/proposal.review.md"]
     ]);
     return createWorkflowRecommendation(

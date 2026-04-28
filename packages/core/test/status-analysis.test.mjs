@@ -40,7 +40,7 @@ function proposalMarkdown(topic, options = {}) {
     "pgg:",
     `  topic: "${topic}"`,
     '  stage: "proposal"',
-    '  status: "reviewed"',
+    `  status: "${options.status ?? "reviewed"}"`,
     '  archive_type: "feat"',
     ...(options.workingBranch ? [`  working_branch: "${options.workingBranch}"`] : []),
     '  project_scope: "current-project"',
@@ -59,8 +59,20 @@ function stateMarkdown({
   tokenReason = "token audit not needed",
   performanceAudit = "not_required",
   performanceReason = "performance audit not needed",
-  changedFiles = []
+  changedFiles = [],
+  auditFormat = "backtick"
 }) {
+  const auditLines =
+    auditFormat === "bracket"
+      ? [
+          `- [pgg-token]: ${tokenAudit} | ${tokenReason}`,
+          `- [pgg-performance]: ${performanceAudit} | ${performanceReason}`
+        ]
+      : [
+          `- \`pgg-token\`: \`${tokenAudit}\` | ${tokenReason}`,
+          `- \`pgg-performance\`: \`${performanceAudit}\` | ${performanceReason}`
+        ];
+
   return [
     "# Current State",
     "",
@@ -82,8 +94,7 @@ function stateMarkdown({
     "",
     "## Audit Applicability",
     "",
-    `- \`pgg-token\`: \`${tokenAudit}\` | ${tokenReason}`,
-    `- \`pgg-performance\`: \`${performanceAudit}\` | ${performanceReason}`,
+    ...auditLines,
     "",
     "## Last Expert Score",
     "",
@@ -273,6 +284,103 @@ test("analyzeProjectStatus classifies active topics and next workflows", async (
           ["proposal-ready", "ready", "pgg-plan"]
         ]
       );
+    });
+  } finally {
+    await rm(rootDir, { recursive: true, force: true });
+  }
+});
+
+test("analyzeProjectStatus treats new pgg-add approved topics as ready for pgg-plan", async () => {
+  const rootDir = await mkdtemp(path.join(os.tmpdir(), "pgg-status-pgg-add-"));
+
+  try {
+    await withTemporaryPggHome(rootDir, async () => {
+      await initializeProject(rootDir, {
+        provider: "codex",
+        language: "ko",
+        autoMode: "on",
+        teamsMode: "off"
+      });
+
+      await createTopic(
+        rootDir,
+        "new-add-ready",
+        [
+          ["pgg-add/requirements.md", "# Requirements\n"],
+          ["pgg-add/acceptance-criteria.md", "# Acceptance Criteria\n"],
+          [
+            "state/history.ndjson",
+            JSON.stringify({
+              ts: "2026-04-28T12:00:00Z",
+              stage: "pgg-add",
+              flow: "pgg-add",
+              event: "stage-completed",
+              source: "verified gate"
+            }) + "\n"
+          ],
+          [
+            "state/current.md",
+            stateMarkdown({
+              topic: "new-add-ready",
+              stage: "pgg-add",
+              nextAction: "`pgg-plan` 실행"
+            })
+          ]
+        ],
+        { status: "approved" }
+      );
+
+      const result = await analyzeProjectStatus(rootDir);
+      const topic = result.topics.find((entry) => entry.name === "new-add-ready");
+
+      assert.equal(topic?.currentStage, "proposal");
+      assert.equal(topic?.progressStatus, "ready");
+      assert.equal(topic?.nextWorkflow, "pgg-plan");
+    });
+  } finally {
+    await rm(rootDir, { recursive: true, force: true });
+  }
+});
+
+test("analyzeProjectStatus parses bracket audit applicability for required performance audit", async () => {
+  const rootDir = await mkdtemp(path.join(os.tmpdir(), "pgg-status-audit-bracket-"));
+
+  try {
+    await withTemporaryPggHome(rootDir, async () => {
+      await initializeProject(rootDir, {
+        provider: "codex",
+        language: "ko",
+        autoMode: "on",
+        teamsMode: "off"
+      });
+
+      await createTopic(rootDir, "bracket-performance-required", [
+        ["pgg-plan/plan.md", "# Plan\n"],
+        ["pgg-plan/task.md", "# Task\n"],
+        ["pgg-plan/spec/testing/status.md", "# Spec\n"],
+        ["pgg-plan/reviews/plan.review.md", "# plan.review\n"],
+        ["pgg-plan/reviews/task.review.md", "# task.review\n"],
+        ["implementation/index.md", "# Implementation\n"],
+        ["reviews/code.review.md", "# code.review\n"],
+        ["reviews/refactor.review.md", "# refactor.review\n"],
+        [
+          "state/current.md",
+          stateMarkdown({
+            topic: "bracket-performance-required",
+            stage: "pgg-refactor",
+            nextAction: "`pgg-performance` 실행",
+            performanceAudit: "required",
+            performanceReason: "measurement needed",
+            auditFormat: "bracket"
+          })
+        ]
+      ]);
+
+      const result = await analyzeProjectStatus(rootDir);
+      const topic = result.topics.find((entry) => entry.name === "bracket-performance-required");
+
+      assert.equal(topic?.progressStatus, "ready");
+      assert.equal(topic?.nextWorkflow, "pgg-performance");
     });
   } finally {
     await rm(rootDir, { recursive: true, force: true });

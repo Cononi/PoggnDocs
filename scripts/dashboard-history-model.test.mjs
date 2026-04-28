@@ -36,7 +36,19 @@ function dictionary() {
   );
 }
 
-function workflowTopic(historyEvents) {
+function workflowFile(relativePath, content = "# Fixture") {
+  return {
+    relativePath,
+    sourcePath: `poggn/active/topic/${relativePath}`,
+    updatedAt: "2026-04-27T12:00:00Z",
+    tokenEstimate: null,
+    llmActualTokens: null,
+    localEstimatedTokens: null,
+    content
+  };
+}
+
+function workflowTopic(historyEvents, overrides = {}) {
   return {
     name: "refactor-status-regression",
     bucket: "active",
@@ -58,7 +70,8 @@ function workflowTopic(historyEvents) {
       qaDocs: { count: 0, latestUpdatedAt: null, primaryRef: null },
       implementationDocs: { count: 0, latestUpdatedAt: null, primaryRef: null },
       workflowDocs: { count: 0, latestUpdatedAt: null, primaryRef: null }
-    }
+    },
+    ...overrides
   };
 }
 
@@ -86,6 +99,83 @@ test("blocked evidence after completion keeps the flow stage-blocked", () => {
   const refactor = buildWorkflowSteps(topic, "ko", dictionary()).find((step) => step.id === "refactor");
 
   assert.equal(refactor?.status, "stage-blocked");
+});
+
+test("plan progress events alone do not complete the plan flow", () => {
+  const { buildWorkflowSteps } = loadHistoryModel();
+  const topic = workflowTopic(
+    [
+      { stage: "plan", event: "stage-started", source: "pgg-plan", ts: "2026-04-27T12:01:00Z" },
+      { stage: "plan", event: "stage-progress", source: "pgg-plan", ts: "2026-04-27T12:02:00Z" },
+      { stage: "code", event: "stage-started", source: "pgg-code", ts: "2026-04-27T12:03:00Z" }
+    ],
+    { stage: "pgg-code" }
+  );
+
+  const plan = buildWorkflowSteps(topic, "ko", dictionary()).find((step) => step.id === "plan");
+
+  assert.notEqual(plan?.status, "completed");
+});
+
+test("verified plan completion completes the plan flow", () => {
+  const { buildWorkflowSteps } = loadHistoryModel();
+  const topic = workflowTopic(
+    [
+      { stage: "plan", event: "stage-completed", source: "verified gate", ts: "2026-04-27T12:01:00Z" },
+      { stage: "code", event: "stage-started", source: "pgg-code", ts: "2026-04-27T12:02:00Z" }
+    ],
+    { stage: "pgg-code" }
+  );
+
+  const plan = buildWorkflowSteps(topic, "ko", dictionary()).find((step) => step.id === "plan");
+
+  assert.equal(plan?.status, "completed");
+});
+
+test("plan revision after verified completion marks the plan flow updating", () => {
+  const { buildWorkflowSteps } = loadHistoryModel();
+  const topic = workflowTopic(
+    [
+      { stage: "plan", event: "stage-completed", source: "verified gate", ts: "2026-04-27T12:01:00Z" },
+      { stage: "plan", event: "requirements-added", source: "pgg-add", ts: "2026-04-27T12:02:00Z" },
+      { stage: "code", event: "stage-started", source: "pgg-code", ts: "2026-04-27T12:03:00Z" }
+    ],
+    { stage: "pgg-code" }
+  );
+
+  const plan = buildWorkflowSteps(topic, "ko", dictionary()).find((step) => step.id === "plan");
+
+  assert.equal(plan?.status, "updating");
+});
+
+test("audit applicability text alone does not show optional performance flow", () => {
+  const { buildWorkflowSteps } = loadHistoryModel();
+  const topic = workflowTopic(
+    [
+      { stage: "refactor", event: "stage-completed", source: "verified gate", ts: "2026-04-27T12:01:00Z" },
+      { stage: "qa", event: "stage-started", source: "pgg-qa", ts: "2026-04-27T12:02:00Z" }
+    ],
+    {
+      stage: "pgg-qa",
+      files: [
+        workflowFile(
+          "state/current.md",
+          [
+            "# Current State",
+            "",
+            "## Audit Applicability",
+            "",
+            "- [pgg-performance]: required | measurement needed",
+            ""
+          ].join("\n")
+        )
+      ]
+    }
+  );
+
+  const steps = buildWorkflowSteps(topic, "ko", dictionary());
+
+  assert.equal(steps.some((step) => step.id === "performance"), false);
 });
 
 test("timeline rows use completed flow scoped token records", () => {

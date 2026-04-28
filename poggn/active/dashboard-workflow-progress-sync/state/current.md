@@ -6,7 +6,7 @@ dashboard-workflow-progress-sync
 
 ## Current Stage
 
-pgg-plan
+pgg-code
 
 ## Goal
 
@@ -59,13 +59,33 @@ pgg-plan
 
 ## Active Tasks
 
-- T1: Core status evaluator 신규 stage/status 계약 테스트
-- T2: Dashboard workflow model regression tests
-- T3: Core status evaluator implementation
-- T4: Dashboard workflow model implementation
-- T5: Dashboard snapshot regeneration
-- T6: Version verification task
-- T7: Full verification
+- T1: Core status evaluator 신규 stage/status 계약 테스트 - PASS
+- T2: Dashboard workflow model regression tests - PASS
+- T3: Core status evaluator implementation - PASS
+- T4: Dashboard workflow model implementation - PASS
+- T5: Dashboard snapshot regeneration - PASS
+- T6: Version verification task - PASS
+- T7: Full verification - PASS
+
+## Implementation Summary
+
+- core status evaluator가 신규 Skill Framework stage id와 `approved` proposal status를 인식한다.
+- bracket audit applicability 형식 `- [pgg-performance]: required | ...`를 파싱한다.
+- dashboard workflow progress는 stage index가 아니라 trusted completion evidence로 완료를 계산한다.
+- 완료 후 unresolved `requirements-added`는 `updating` 상태로 계산한다.
+- optional audit flow는 실제 실행 evidence가 있을 때만 표시된다.
+- dashboard snapshot은 CLI로 재생성했으며 generated JSON을 직접 수정하지 않았다.
+
+## Verification Summary
+
+- `node --test scripts/dashboard-history-model.test.mjs`: PASS, 7/7
+- `pnpm test:core`: PASS, 65/65
+- `pnpm test:dashboard`: PASS, 7/7
+- `pnpm test`: PASS
+- `pnpm build:dashboard`: PASS, Vite chunk-size warning only
+- `pnpm build`: PASS, Vite chunk-size warning only
+- `pnpm verify:version-history`: PASS
+- `pnpm build:readme`: PASS, 2회 안정성 확인
 
 ## Approval
 
@@ -100,10 +120,19 @@ pgg-plan
 | CREATE | `pgg-plan/spec/testing/progress-fixtures.md` | 회귀 fixture 계약 |
 | CREATE | `pgg-plan/reviews/plan.review.md` | plan review |
 | CREATE | `pgg-plan/reviews/task.review.md` | task review |
+| UPDATE | `packages/core/src/index.ts` | 신규 Skill Framework status/stage parser 동기화 |
+| UPDATE | `packages/core/test/status-analysis.test.mjs` | core regression fixture 추가 |
+| UPDATE | `apps/dashboard/src/features/history/historyModel.ts` | evidence-based workflow progress 계산 |
+| UPDATE | `scripts/dashboard-history-model.test.mjs` | dashboard workflow progress regression fixture 추가 |
+| UPDATE | `apps/dashboard/public/dashboard-data.json` | CLI-generated dashboard snapshot |
+| CREATE | `pgg-code/task-results.md` | pgg-code task 결과 |
+| CREATE | `pgg-code/verify.md` | 검증 결과 |
+| CREATE | `pgg-code/reviews/review-1-spec-compliance.md` | 명세 준수 review |
+| CREATE | `pgg-code/reviews/review-2-code-quality.md` | 코드 품질 review |
 
 ## Next
 
-`pgg-code`
+`pgg-refactor`
 
 ## Git Publish Message
 
