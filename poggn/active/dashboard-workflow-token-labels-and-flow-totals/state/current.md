@@ -6,7 +6,7 @@ dashboard-workflow-token-labels-and-flow-totals
 
 ## Current Stage
 
-refactor
+qa
 
 ## Goal
 
@@ -14,7 +14,7 @@ dashboard workflow token 지표의 명칭과 flow별 누적/완료 반영 기준
 
 ## Next Action
 
-`pgg-token` required audit를 수행한다.
+`qa/report.md` pass 결과를 기준으로 archive helper를 실행한다.
 
 ## Constraints
 
@@ -78,11 +78,20 @@ dashboard workflow token 지표의 명칭과 flow별 누적/완료 반영 기준
 - local records: `3`
 - note: provider usage metadata is unavailable in this session, so LLM records keep attribution while local records measure command output estimates.
 
+## Token Audit Summary
+
+- required token audit: pass
+- state-pack token_usage_llm_total: `53281`
+- state-pack token_usage_local_total: `1063`
+- unavailable records: `3`
+
 ## Verification
 
 - `pnpm test:dashboard`: pass, 3 tests.
 - `pnpm --filter @pgg/core test`: pass, 55 tests.
 - `pnpm --filter @pgg/dashboard build`: pass, Vite chunk-size warning only.
+- `.codex/sh/pgg-state-pack.sh dashboard-workflow-token-labels-and-flow-totals`: pass, token_usage_llm_total `53281`, token_usage_local_total `1063`, unavailable records `3`.
+- `.codex/sh/pgg-gate.sh pgg-qa dashboard-workflow-token-labels-and-flow-totals`: pass.
 
 ## Audit Applicability
 
@@ -102,13 +111,15 @@ dashboard workflow token 지표의 명칭과 flow별 누적/완료 반영 기준
 - task review: approved
 - code review: approved
 - refactor review: approved
+- token review: approved
+- qa review: pass
 - score: `96`
 - experts: 소프트웨어 아키텍트, 코드 리뷰어
 - blocking issues: 없음
 
 ## Next Workflow
 
-- pgg-token
+- archive
 
 ## Changed Files
 
@@ -133,6 +144,9 @@ dashboard workflow token 지표의 명칭과 flow별 누적/완료 반영 기준
 | ADD | `poggn/active/dashboard-workflow-token-labels-and-flow-totals/reviews/task.review.md` | pending |
 | ADD | `poggn/active/dashboard-workflow-token-labels-and-flow-totals/reviews/code.review.md` | pending |
 | ADD | `poggn/active/dashboard-workflow-token-labels-and-flow-totals/reviews/refactor.review.md` | pending |
+| ADD | `poggn/active/dashboard-workflow-token-labels-and-flow-totals/reviews/token.review.md` | pending |
+| ADD | `poggn/active/dashboard-workflow-token-labels-and-flow-totals/token/report.md` | pending |
+| ADD | `poggn/active/dashboard-workflow-token-labels-and-flow-totals/qa/report.md` | pending |
 | ADD | `poggn/active/dashboard-workflow-token-labels-and-flow-totals/implementation/index.md` | pending |
 | ADD | `poggn/active/dashboard-workflow-token-labels-and-flow-totals/implementation/diffs/*.diff` | pending |
 | ADD | `poggn/active/dashboard-workflow-token-labels-and-flow-totals/state/current.md` | pending |
