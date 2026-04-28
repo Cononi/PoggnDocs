@@ -6,7 +6,7 @@ pgg-framework-full-replacement
 
 ## Current Stage
 
-pgg-refactor
+qa
 
 ## Goal
 
@@ -51,10 +51,18 @@ pgg-refactor
 - `pgg-refactor/diff-inspection.md`
 - `pgg-refactor/reviews/behavior-preservation.review.md`
 - `pgg-refactor/reviews/structure-quality.review.md`
+- `pgg-qa/report.md`
+- `qa/report.md`
 - `proposal.md`
 - `state.json`
 - `metrics/token-usage.jsonl`
 
 ## Next
 
-`pgg-qa`에서 source of truth, generated docs, versioning, git lifecycle, completion message, token accounting, technical checks, archive/release readiness를 최종 검증한다.
+QA PASS 판정 후 active artifacts를 archive로 이동하고 release branch를 publish한다.
+
+## Git Publish Message
+
+- title: feat. 4.0.0 archive pgg framework replacement
+- why: QA PASS 산출물과 archive/release evidence를 최종 release branch에 남긴다.
+- footer: PGG-Topic: pgg-framework-full-replacement

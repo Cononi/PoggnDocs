@@ -3,7 +3,7 @@
   "topicName": "pgg-framework-full-replacement",
   "activePath": "poggn/active/pgg-framework-full-replacement",
   "archivePath": "poggn/archive/pgg-framework-full-replacement",
-  "currentFlow": "pgg-refactor",
+  "currentFlow": "pgg-qa",
   "flowStatus": "PASS",
   "language": "ko",
   "mode": "auto on",
@@ -31,6 +31,9 @@
   "refactorPerformanceCandidate": "not_required",
   "refactorCommitSha": "eb79669",
   "refactorCommitMessage": "refactor. 4.0.0 extract common skill labels",
+  "qaApproval": "PASS",
+  "qaDecision": "PASS",
+  "archiveReady": true,
   "projectVersionUpdated": "not_applicable_until_pgg_qa_archive",
   "projectVersionReason": "이 repository의 release version source는 package.json이 아니라 poggn/version-history.ndjson latest archived version이다. pgg-plan T7에 따라 pgg-code는 version-history를 append하지 않고 pgg-qa archive 단계에서 targetVersion 4.0.0을 기록한다.",
   "pggCodeCommitStatus": "committed",
@@ -66,5 +69,5 @@
     "dashboard UI의 구체적인 사용 흐름 변경 범위는 pgg-plan에서 분해해야 한다."
   ],
   "createdAt": "2026-04-28T12:27:32Z",
-  "updatedAt": "2026-04-28T12:49:06Z"
+  "updatedAt": "2026-04-28T12:58:46Z"
 }

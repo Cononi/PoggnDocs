@@ -8,6 +8,10 @@ pgg:
   archive_type: "feat"
   version_bump: "major"
   target_version: "4.0.0"
+  short_name: "framework-replacement"
+  project_scope: "current-project"
+  working_branch: "ai/feat/4.0.0-framework-replacement"
+  release_branch: "release/4.0.0-framework-replacement"
 ---
 
 # Proposal: PGG Framework Full Replacement
