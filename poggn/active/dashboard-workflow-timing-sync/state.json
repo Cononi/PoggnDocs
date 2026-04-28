@@ -105,6 +105,7 @@
   "pggQaReport": "poggn/active/dashboard-workflow-timing-sync/pgg-qa/report.md",
   "qaSummary": "Final QA matrix passed: source-of-truth, generated docs stability, technical checks, token accounting, workspace completeness, versioning, git lifecycle readiness, pgg-performance, and pgg-refactor evidence are all acceptable.",
   "qaNextFlow": "pgg-add",
+  "pggQaCommitSha": "9c038bf0f7014bb79e8f4c72dcd562bef5f2654d",
   "archiveReady": true,
   "pggCodeCommitSha": "ea162b180a34fee79de1675cb9429bb6119a7bbd",
   "generatedMarkdownDirectEdit": false
