@@ -162,7 +162,7 @@ const workflowFlowDefinitions: WorkflowFlowDefinition[] = [
     id: "performance",
     command: "pgg-performance",
     optional: true,
-    pathPatterns: [/^performance\//, /^reviews\/performance\.review\.md$/]
+    pathPatterns: [/^pgg-performance\//, /^performance\//, /^reviews\/performance\.review\.md$/]
   },
   {
     id: "qa",
@@ -306,7 +306,11 @@ function isOptionalAuditArtifact(flow: WorkflowFlowDefinition, relativePath: str
     return /^token\/report\.md$/.test(relativePath) || /^reviews\/token\.review\.md$/.test(relativePath);
   }
   if (flow.id === "performance") {
-    return /^performance\/report\.md$/.test(relativePath) || /^reviews\/performance\.review\.md$/.test(relativePath);
+    return (
+      /^pgg-performance\/report\.md$/.test(relativePath) ||
+      /^performance\/report\.md$/.test(relativePath) ||
+      /^reviews\/performance\.review\.md$/.test(relativePath)
+    );
   }
   return false;
 }
