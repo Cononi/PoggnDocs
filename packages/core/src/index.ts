@@ -330,6 +330,19 @@ export interface LazyDiffSource {
   note: string | null;
 }
 
+type ImplementationIndexRow = {
+  id: string;
+  crud: string;
+  targetPath: string;
+  taskRef: string | null;
+  diffSource: LazyDiffSource["diffSource"];
+  gitRef: string | null;
+  commitRange: string | null;
+  diffCommand: string | null;
+  status: string | null;
+  note: string | null;
+};
+
 export interface TopicTokenUsage {
   total: number;
   llmActualTokens: number | null;
@@ -3487,18 +3500,9 @@ function normalizeDiffSource(value: string): LazyDiffSource["diffSource"] {
   return "unavailable";
 }
 
-function parseImplementationIndexRows(raw: string | null): Array<{
-  id: string;
-  crud: string;
-  targetPath: string;
-  taskRef: string | null;
-  diffSource: LazyDiffSource["diffSource"];
-  gitRef: string | null;
-  commitRange: string | null;
-  diffCommand: string | null;
-  status: string | null;
-  note: string | null;
-}> {
+const IMPLEMENTATION_INDEX_SEPARATOR_PATTERN = /^\|\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/;
+
+function parseImplementationIndexRows(raw: string | null): ImplementationIndexRow[] {
   if (!raw) {
     return [];
   }
@@ -3506,7 +3510,7 @@ function parseImplementationIndexRows(raw: string | null): Array<{
   const rows: Array<ReturnType<typeof splitMarkdownTableRow>> = [];
   for (const line of raw.split(/\n+/)) {
     const trimmed = line.trim();
-    if (!trimmed.startsWith("|") || /^\|\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/.test(trimmed)) {
+    if (!trimmed.startsWith("|") || IMPLEMENTATION_INDEX_SEPARATOR_PATTERN.test(trimmed)) {
       continue;
     }
     rows.push(splitMarkdownTableRow(trimmed));
@@ -3523,7 +3527,7 @@ function parseImplementationIndexRows(raw: string | null): Array<{
   }
 
   const cell = (row: string[], key: string): string => cleanMarkdownTableCell(row[headerIndex.get(key) ?? -1]);
-  return rows.slice(1).flatMap((row) => {
+  return rows.slice(1).flatMap((row, rowIndex) => {
     const targetPath = cell(row, "path");
     if (!targetPath) {
       return [];
@@ -3534,7 +3538,7 @@ function parseImplementationIndexRows(raw: string | null): Array<{
     }
     const valueOrNull = (value: string): string | null => (value && value !== "-" ? value : null);
     return [{
-      id: cell(row, "id") || String(rows.indexOf(row) + 1).padStart(3, "0"),
+      id: cell(row, "id") || String(rowIndex + 1).padStart(3, "0"),
       crud: cell(row, "crud") || "UPDATE",
       targetPath,
       taskRef: valueOrNull(cell(row, "taskref")),

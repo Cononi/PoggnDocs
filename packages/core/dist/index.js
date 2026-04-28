@@ -2343,6 +2343,7 @@ function normalizeDiffSource(value) {
     }
     return "unavailable";
 }
+const IMPLEMENTATION_INDEX_SEPARATOR_PATTERN = /^\|\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/;
 function parseImplementationIndexRows(raw) {
     if (!raw) {
         return [];
@@ -2350,7 +2351,7 @@ function parseImplementationIndexRows(raw) {
     const rows = [];
     for (const line of raw.split(/\n+/)) {
         const trimmed = line.trim();
-        if (!trimmed.startsWith("|") || /^\|\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/.test(trimmed)) {
+        if (!trimmed.startsWith("|") || IMPLEMENTATION_INDEX_SEPARATOR_PATTERN.test(trimmed)) {
             continue;
         }
         rows.push(splitMarkdownTableRow(trimmed));
@@ -2364,7 +2365,7 @@ function parseImplementationIndexRows(raw) {
         return [];
     }
     const cell = (row, key) => cleanMarkdownTableCell(row[headerIndex.get(key) ?? -1]);
-    return rows.slice(1).flatMap((row) => {
+    return rows.slice(1).flatMap((row, rowIndex) => {
         const targetPath = cell(row, "path");
         if (!targetPath) {
             return [];
@@ -2375,7 +2376,7 @@ function parseImplementationIndexRows(raw) {
         }
         const valueOrNull = (value) => (value && value !== "-" ? value : null);
         return [{
-                id: cell(row, "id") || String(rows.indexOf(row) + 1).padStart(3, "0"),
+                id: cell(row, "id") || String(rowIndex + 1).padStart(3, "0"),
                 crud: cell(row, "crud") || "UPDATE",
                 targetPath,
                 taskRef: valueOrNull(cell(row, "taskref")),
