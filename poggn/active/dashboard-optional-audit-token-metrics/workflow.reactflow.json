@@ -152,9 +152,9 @@
       "position": { "x": 2240, "y": 0 },
       "data": {
         "label": "state/current.md",
-        "stage": "refactor",
+        "stage": "qa",
         "status": "ready",
-        "next": "pgg-token"
+        "next": "archive"
       }
     },
     {
@@ -219,6 +219,56 @@
           "summary": "optional audit artifact matching and token usage aggregation predicates were deduplicated without behavior changes."
         }
       }
+    },
+    {
+      "id": "token-report",
+      "type": "audit",
+      "position": { "x": 2520, "y": -120 },
+      "data": {
+        "label": "token/report.md",
+        "stage": "token",
+        "status": "done",
+        "score": 94,
+        "path": "poggn/active/dashboard-optional-audit-token-metrics/token/report.md",
+        "detail": {
+          "summary": "Token ledger coverage, local estimates, and workflow token-cost contributors audited.",
+          "updatedAt": "2026-04-28T00:31:00Z",
+          "completedAt": "2026-04-28T00:31:00Z"
+        }
+      }
+    },
+    {
+      "id": "token-review",
+      "type": "review",
+      "position": { "x": 2800, "y": -120 },
+      "data": {
+        "label": "token.review.md",
+        "stage": "token",
+        "status": "approved",
+        "score": 94,
+        "path": "poggn/active/dashboard-optional-audit-token-metrics/reviews/token.review.md",
+        "detail": {
+          "experts": ["테크 리드", "코드 리뷰어"],
+          "blocking": "없음"
+        }
+      }
+    },
+    {
+      "id": "qa-report",
+      "type": "qa",
+      "position": { "x": 3080, "y": -120 },
+      "data": {
+        "label": "qa/report.md",
+        "stage": "qa",
+        "status": "done",
+        "score": 96,
+        "path": "poggn/active/dashboard-optional-audit-token-metrics/qa/report.md",
+        "detail": {
+          "summary": "Core tests, dashboard build, token audit, ledger parse, workflow graph, state-pack, and QA gate passed.",
+          "updatedAt": "2026-04-28T00:44:00Z",
+          "completedAt": "2026-04-28T00:44:00Z"
+        }
+      }
     }
   ],
   "edges": [
@@ -243,6 +293,11 @@
     { "id": "implementation-to-refactor-review", "source": "implementation-index", "target": "refactor-review" },
     { "id": "code-review-to-state", "source": "code-review", "target": "handoff-state" },
     { "id": "token-ledger-to-state", "source": "token-usage-ledger", "target": "handoff-state" },
-    { "id": "refactor-review-to-state", "source": "refactor-review", "target": "handoff-state" }
+    { "id": "refactor-review-to-state", "source": "refactor-review", "target": "handoff-state" },
+    { "id": "refactor-review-to-token-report", "source": "refactor-review", "target": "token-report" },
+    { "id": "token-report-to-token-review", "source": "token-report", "target": "token-review" },
+    { "id": "token-review-to-state", "source": "token-review", "target": "handoff-state" },
+    { "id": "token-review-to-qa-report", "source": "token-review", "target": "qa-report" },
+    { "id": "qa-report-to-state", "source": "qa-report", "target": "handoff-state" }
   ]
 }

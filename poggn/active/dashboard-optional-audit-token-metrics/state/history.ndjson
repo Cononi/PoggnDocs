@@ -11,3 +11,9 @@
 {"ts":"2026-04-28T00:11:02Z","stage":"refactor","event":"stage-started","source":"pgg-refactor"}
 {"ts":"2026-04-28T00:18:00Z","stage":"refactor","event":"stage-progress","source":"pgg-refactor","summary":"optional audit artifact matching and token usage aggregation predicates refactored into shared helpers; verification passed"}
 {"ts":"2026-04-28T00:15:32Z","stage":"refactor","event":"stage-commit","archiveType":"feat","targetVersion":"2.9.0","projectLanguage":"ko","commitTitle":"feat: 2.9.0.token 조건 정리","summary":"token 조건 정리","why":"optional audit artifact 판정과 token usage 합산 조건이 중복되어 후속 변경 시 같은 기준이 어긋날 수 있어 작은 helper로 분리했다","footer":"Refs: dashboard-optional-audit-token-metrics"}
+{"ts":"2026-04-28T00:25:00Z","stage":"token","event":"stage-started","source":"pgg-token"}
+{"ts":"2026-04-28T00:31:00Z","stage":"token","event":"stage-progress","source":"pgg-token","summary":"ledger coverage, local estimated handoff size, generated template token-cost contributor, and dashboard summary readiness audited"}
+{"ts":"2026-04-28T00:34:00Z","stage":"token","event":"stage-completed","source":"verified","summary":"token report, token review, ledger NDJSON parse, workflow JSON parse, and pgg-qa gate verified"}
+{"ts":"2026-04-28T00:36:00Z","stage":"qa","event":"stage-started","source":"pgg-qa"}
+{"ts":"2026-04-28T00:44:00Z","stage":"qa","event":"stage-progress","source":"pgg-qa","summary":"core tests, dashboard build, token audit evidence, workflow JSON, token ledger, state-pack, and pgg-qa gate verified"}
+{"ts":"2026-04-28T00:32:05Z","stage":"qa","event":"stage-commit","archiveType":"feat","targetVersion":"2.9.0","projectLanguage":"ko","commitTitle":"feat: 2.9.0.qa 완료 기록","summary":"qa 완료 기록","why":"QA 산출물과 최종 검증 변경은 archive publish 전에 별도 완료 commit으로 남아야 한다.","footer":"Refs: dashboard-optional-audit-token-metrics"}

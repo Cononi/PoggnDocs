@@ -26,7 +26,7 @@ description: "필요한 topic에서만 현재 pgg 워크플로우의 token optio
 - workflow 자산, handoff 구조, helper, template, generated 문서가 token 비용에 직접 영향을 줄 때만 `required`로 올린다
 - 측정 범위는 pgg workflow와 generated asset 내부로 제한한다
 - 어떤 stage, helper, 문서, handoff가 token 비용에 기여하는지 식별한다
-- `state/token-usage.ndjson` 또는 동등 ledger가 있으면 coverage, `llm`/`local` source 분리, actual/estimated 표시, dashboard summary 사용 가능성을 확인한다
+- token audit는 `state/token-usage.ndjson` 또는 동등 ledger의 coverage, `llm`/`local` source 분리, actual/estimated 표시, dashboard summary 사용 가능성을 확인한다.
 - 모든 최적화 제안은 측정값 또는 근거 있는 추정과 연결한다
 - audit를 실제로 실행한 경우에만 `token/report.md`를 만든다
 - 측정값, 최적화 액션, 개선 후 결과를 `token/report.md`에 함께 남긴다
