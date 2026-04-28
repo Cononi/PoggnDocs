@@ -6,7 +6,7 @@
   "language": "ko",
   "autoMode": "on",
   "installedVersion": "0.1.0",
-  "updatedAt": "2026-04-28T04:20:50.166Z",
+  "updatedAt": "2026-04-28T05:01:38.153Z",
   "dashboard": {
     "title": "POGGN",
     "titleIconSvg": "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"0 0 48 48\"><defs><linearGradient id=\"pgg-dashboard-icon\" x1=\"10%\" y1=\"10%\" x2=\"90%\" y2=\"90%\"><stop offset=\"0%\" stop-color=\"#2467d6\" /><stop offset=\"55%\" stop-color=\"#4f92ff\" /><stop offset=\"100%\" stop-color=\"#f59e0b\" /></linearGradient></defs><rect x=\"6\" y=\"6\" width=\"36\" height=\"36\" rx=\"14\" fill=\"#0f172a\" /><path d=\"M24 11l5.2 7.9 9.3 2.7-5.9 7.3.2 9.9-8.8-3.4-8.8 3.4.2-9.9-5.9-7.3 9.3-2.7L24 11z\" fill=\"url(#pgg-dashboard-icon)\" /><circle cx=\"24\" cy=\"24\" r=\"4.8\" fill=\"#f8fafc\" fill-opacity=\"0.9\" /></svg>",
@@ -26,12 +26,12 @@
     },
     {
       "path": ".codex/add/WOKR-FLOW.md",
-      "checksum": "6e3658d23fdd4e0768464976fbf376c3dec4d3053709d0b95eac1bbb63d34c8e",
+      "checksum": "a310b56de6363db62add2e3a3def4d4f6e4ed21630bafdcb903125579f3e5335",
       "executable": false
     },
     {
       "path": ".codex/add/STATE-CONTRACT.md",
-      "checksum": "52a34211a016565ab34aa22d6a425d0200b8920b0adae5e6dd6d7b3e3070db49",
+      "checksum": "26548605d2b9e79dc76fd73befe75f7ef5485a7e6f2e26c3dbb1211507185bfd",
       "executable": false
     },
     {
@@ -126,17 +126,17 @@
     },
     {
       "path": ".codex/skills/pgg-code/SKILL.md",
-      "checksum": "118360587e640469f657d51f88008ca1a7398edb140c8d3f319ad79fab2917d3",
+      "checksum": "8dd544d70a306f7437f066ae4b2439f0479a7385073e3e081210b6f915097a2d",
       "executable": false
     },
     {
       "path": ".codex/skills/pgg-refactor/SKILL.md",
-      "checksum": "c974eeae2bc2244454f5aecbc745dd597fbf465326a4a4cb38160c9e979771e5",
+      "checksum": "70fb575e989bb3afd9afefdc792c33d2383336e4b0663fb519b91a8accccdd5e",
       "executable": false
     },
     {
       "path": ".codex/skills/pgg-qa/SKILL.md",
-      "checksum": "7035b802c01011a1a8a5337a149e4530595674ccc04a090505d3ee9cfe3835bb",
+      "checksum": "13591f85de83d85906b3a15f6ff31df2cadfdebad8c382d8cce489886f950730",
       "executable": false
     },
     {

@@ -23,3 +23,22 @@
 - diff: `implementation/diffs/002_UPDATE_dashboard_project_add_stepper.diff`
 - verification:
   - `pnpm --filter @pgg/dashboard build` pass
+
+## T3
+
+- task: WOKR-FLOW, STATE-CONTRACT, pgg-* skill, helper/template의 git mode별 evidence contract를 정렬한다.
+- status: done
+- changed files:
+  - UPDATE `.codex/add/WOKR-FLOW.md`
+  - UPDATE `.codex/add/STATE-CONTRACT.md`
+  - UPDATE `.codex/skills/pgg-code/SKILL.md`
+  - UPDATE `.codex/skills/pgg-refactor/SKILL.md`
+  - UPDATE `.codex/skills/pgg-qa/SKILL.md`
+  - UPDATE `.pgg/project.json`
+  - UPDATE `packages/core/src/templates.ts`
+  - UPDATE `packages/core/dist/templates.js`
+  - UPDATE `packages/core/dist/templates.js.map`
+- diff: `implementation/diffs/003_UPDATE_git_mode_evidence_contract.diff`
+- verification:
+  - `pnpm --filter @pgg/core build` pass
+  - `node packages/cli/dist/index.js update` pass, generated docs synchronized

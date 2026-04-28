@@ -82,12 +82,21 @@ pgg-code가 core/CLI git-off 정상 경로, dashboard Linear Stepper, git mode�
 | UPDATE | `packages/core/test/git-onboarding.test.mjs` | `implementation/diffs/001_UPDATE_core_git_optional_init.diff` |
 | UPDATE | `apps/dashboard/src/app/DashboardApp.tsx` | `implementation/diffs/002_UPDATE_dashboard_project_add_stepper.diff` |
 | UPDATE | `apps/dashboard/src/shared/locale/dashboardLocale.ts` | `implementation/diffs/002_UPDATE_dashboard_project_add_stepper.diff` |
+| UPDATE | `.codex/add/WOKR-FLOW.md` | `implementation/diffs/003_UPDATE_git_mode_evidence_contract.diff` |
+| UPDATE | `.codex/add/STATE-CONTRACT.md` | `implementation/diffs/003_UPDATE_git_mode_evidence_contract.diff` |
+| UPDATE | `.codex/skills/pgg-code/SKILL.md` | `implementation/diffs/003_UPDATE_git_mode_evidence_contract.diff` |
+| UPDATE | `.codex/skills/pgg-refactor/SKILL.md` | `implementation/diffs/003_UPDATE_git_mode_evidence_contract.diff` |
+| UPDATE | `.codex/skills/pgg-qa/SKILL.md` | `implementation/diffs/003_UPDATE_git_mode_evidence_contract.diff` |
+| UPDATE | `.pgg/project.json` | `implementation/diffs/003_UPDATE_git_mode_evidence_contract.diff` |
+| UPDATE | `packages/core/src/templates.ts` | `implementation/diffs/003_UPDATE_git_mode_evidence_contract.diff` |
+| UPDATE | `packages/core/dist/templates.js` | `implementation/diffs/003_UPDATE_git_mode_evidence_contract.diff` |
+| UPDATE | `packages/core/dist/templates.js.map` | `implementation/diffs/003_UPDATE_git_mode_evidence_contract.diff` |
 
 ## Implementation Status
 
 - T1: done | `pnpm --filter @pgg/core test` pass, 58 tests passed
 - T2: done | `pnpm --filter @pgg/dashboard build` pass
-- T3: pending
+- T3: done | `pnpm --filter @pgg/core build` pass, `node packages/cli/dist/index.js update` pass
 - T4: pending
 
 ## Expert Summary
