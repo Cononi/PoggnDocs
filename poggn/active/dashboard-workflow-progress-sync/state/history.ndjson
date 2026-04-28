@@ -1,0 +1,4 @@
+{"ts":"2026-04-28T13:20:58Z","stage":"proposal","event":"topic-created"}
+{"ts":"2026-04-28T13:20:58Z","stage":"proposal","event":"stage-started","source":"pgg-add"}
+{"ts":"2026-04-28T13:21:25Z","stage":"proposal","event":"stage-progress","source":"pgg-add","summary":"requirements, acceptance criteria, version, git branch, and review drafted from user report"}
+{"ts":"2026-04-28T13:21:25Z","stage":"proposal","event":"stage-completed","source":"verified:pgg-add","summary":"pgg-add artifacts approved and ready for pgg-plan"}

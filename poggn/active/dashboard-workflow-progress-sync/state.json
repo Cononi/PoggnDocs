@@ -1,0 +1,43 @@
+{
+  "runId": "pgg-add-20260428T132058Z",
+  "topicName": "dashboard-workflow-progress-sync",
+  "activePath": "poggn/active/dashboard-workflow-progress-sync",
+  "archivePath": "poggn/archive/dashboard-workflow-progress-sync",
+  "currentFlow": "pgg-add",
+  "flowStatus": "PASS",
+  "language": "ko",
+  "mode": "auto on",
+  "teamsMode": "teams off",
+  "pggGit": "on",
+  "isGitRepository": true,
+  "baseBranch": "release/4.0.0-framework-replacement",
+  "workingBranch": "ai/fix/4.0.1-dashboard-progress-sync",
+  "releaseBranch": "release/4.0.1-dashboard-progress-sync",
+  "currentVersion": "4.0.0",
+  "targetVersion": "4.0.1",
+  "bumpType": "patch",
+  "convention": "fix",
+  "versionReason": "history.ndjson flow event와 dashboard project overview workflow progress 계산이 서로 맞지 않고, 신규 PGG Skill Framework 의도와 dashboard 표현이 어긋나는 사용자-facing 버그 수정이다.",
+  "versionSource": "poggn/version-history.ndjson latest archived version",
+  "packageJsonVersionObserved": "0.1.0",
+  "shortName": "dashboard-progress-sync",
+  "requirementsApproval": "approved-by-auto-on-inference",
+  "acceptanceCriteriaApproval": "approved-by-auto-on-inference",
+  "performanceCandidate": "not_required",
+  "performanceReason": "상태 계산과 표시 동기화 버그 수정이며 성능, 처리량, 메모리, 응답 시간 요구가 없다.",
+  "projectScope": "current-project",
+  "createdAt": "2026-04-28T13:20:58Z",
+  "updatedAt": "2026-04-28T13:21:25Z",
+  "baseCommitSha": "eac7a1df424963087e4e9d7e43646ac72dd04a7c",
+  "pggAddCommitSha": "f9edcee10850d88c9842cc964edb113ebdcbb360",
+  "assumptions": [
+    "사용자가 말한 history.ndjson은 topic별 state/history.ndjson 또는 dashboard snapshot으로 소비되는 history event stream을 의미한다.",
+    "문제의 주요 표면은 apps/dashboard의 project overview workflow progress 상태 계산과 표시다.",
+    "신규 시스템 의도는 STATE-CONTRACT의 flow 상태 evidence 규칙을 dashboard가 그대로 반영하는 것이다."
+  ],
+  "uncertainties": [
+    "어떤 archive topic 또는 active topic에서 불일치가 가장 잘 재현되는지는 아직 지정되지 않았다.",
+    "dashboard overview가 참조하는 data source가 live core snapshot인지 apps/dashboard/public/dashboard-data.json snapshot인지 pgg-plan에서 확정해야 한다.",
+    "신규 시스템 의도와 다른 dashboard 문구 또는 UI 위치의 전체 목록은 pgg-plan에서 코드/모델을 읽어 확정해야 한다."
+  ]
+}
