@@ -105,6 +105,14 @@ test("timeline rows use completed flow scoped token records", () => {
         content: "# Implementation"
       },
       {
+        relativePath: "implementation/diffs/001_UPDATE_example.diff",
+        sourcePath: "poggn/active/topic/implementation/diffs/001_UPDATE_example.diff",
+        tokenEstimate: 15,
+        llmActualTokens: null,
+        localEstimatedTokens: 15,
+        content: "diff --git a/example.ts b/example.ts"
+      },
+      {
         relativePath: "qa/report.md",
         sourcePath: "poggn/active/topic/qa/report.md",
         tokenEstimate: 20,
@@ -167,7 +175,7 @@ test("timeline rows use completed flow scoped token records", () => {
   const qa = rows.find((row) => row.id === "qa");
 
   assert.equal(code?.llmActualTokens, 41);
-  assert.equal(code?.localEstimatedTokens, 5);
+  assert.equal(code?.localEstimatedTokens, 20);
   assert.equal(qa?.llmActualTokens, 44);
   assert.equal(qa?.localEstimatedTokens, 7);
 });

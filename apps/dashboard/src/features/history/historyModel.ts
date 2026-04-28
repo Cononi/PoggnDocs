@@ -598,6 +598,11 @@ function normalizeTokenArtifactPath(value: string | null): string | null {
   return value.replace(/^\.\//, "").replace(/^poggn\/(?:active|archive)\/[^/]+\//, "");
 }
 
+function isLocalTokenArtifactPath(value: string | null): boolean {
+  const normalized = normalizeTokenArtifactPath(value);
+  return Boolean(normalized && (/\.diff$/i.test(normalized) || normalized.startsWith("implementation/diffs/")));
+}
+
 function directLlmTimelineTokenTotal(record: TopicTokenUsageRecordEntry): number | null {
   if (record.source !== "llm" || record.totalTokens <= 0 || record.measurement === "unavailable") {
     return null;
@@ -629,6 +634,9 @@ function sumFlowLlmTokens(records: TopicTokenUsageRecordEntry[], files: TopicFil
     }
 
     const artifactPath = normalizeTokenArtifactPath(record.artifactPath) ?? "";
+    if (isLocalTokenArtifactPath(artifactPath)) {
+      continue;
+    }
     const directTotal = directLlmTimelineTokenTotal(record);
     if (directTotal !== null) {
       total += directTotal;
@@ -652,7 +660,7 @@ function sumFlowLlmTokens(records: TopicTokenUsageRecordEntry[], files: TopicFil
   }
 
   for (const file of files) {
-    if (typeof file.tokenEstimate === "number" && !fileHasFlowLlmRecord(file, records)) {
+    if (typeof file.tokenEstimate === "number" && !isLocalTokenArtifactPath(file.relativePath) && !fileHasFlowLlmRecord(file, records)) {
       total += file.tokenEstimate;
       seen = true;
     }
@@ -661,10 +669,29 @@ function sumFlowLlmTokens(records: TopicTokenUsageRecordEntry[], files: TopicFil
   return seen ? total : null;
 }
 
-function sumFlowLocalTokens(records: TopicTokenUsageRecordEntry[]): number {
-  return records
+function fileHasFlowLocalRecord(file: TopicFileEntry, records: TopicTokenUsageRecordEntry[]): boolean {
+  const relativePath = normalizeTokenArtifactPath(file.relativePath);
+  const sourcePath = normalizeTokenArtifactPath(file.sourcePath);
+  return records.some((record) => {
+    if (record.source !== "local") {
+      return false;
+    }
+    const artifactPath = normalizeTokenArtifactPath(record.artifactPath);
+    return Boolean(artifactPath && (artifactPath === relativePath || artifactPath === sourcePath));
+  });
+}
+
+function sumFlowLocalTokens(records: TopicTokenUsageRecordEntry[], files: TopicFileEntry[]): number {
+  const recordTotal = records
     .filter((record) => record.source === "local")
     .reduce((sum, record) => sum + record.totalTokens, 0);
+  const diffArtifactTotal = files.reduce((sum, file) => {
+    if (typeof file.tokenEstimate === "number" && isLocalTokenArtifactPath(file.relativePath) && !fileHasFlowLocalRecord(file, records)) {
+      return sum + file.tokenEstimate;
+    }
+    return sum;
+  }, 0);
+  return recordTotal + diffArtifactTotal;
 }
 
 function eventNameMatches(event: TopicHistoryEventEntry, patterns: RegExp[]): boolean {
@@ -1207,7 +1234,7 @@ export function buildTimelineRows(
         id: flow.id,
         step: workflowFlowLabel(flow.id, dictionary),
         llmActualTokens: sumFlowLlmTokens(tokenUsageRecords, flowFileEntries),
-        localEstimatedTokens: sumFlowLocalTokens(tokenUsageRecords),
+        localEstimatedTokens: sumFlowLocalTokens(tokenUsageRecords, flowFileEntries),
         tone: flow.id === "qa" || flow.id === "done" ? "success" : flow.optional ? "warning" : "primary",
         completedBy: username,
         time: formatDateValue(completedAt.value, language, fallbackTime),

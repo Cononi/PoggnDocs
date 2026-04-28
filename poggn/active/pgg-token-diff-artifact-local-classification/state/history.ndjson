@@ -1,0 +1,7 @@
+{"ts":"2026-04-28T03:06:16Z","stage":"proposal","event":"topic-created"}
+{"ts":"2026-04-28T03:06:16Z","stage":"proposal","event":"stage-started","source":"pgg-add"}
+{"ts":"2026-04-28T03:06:19Z","stage":"proposal","event":"stage-completed","source":"verified","summary":"diff artifact token classification proposal reviewed"}
+{"ts":"2026-04-28T03:08:20Z","stage":"plan","event":"stage-started","source":"pgg-plan"}
+{"ts":"2026-04-28T03:08:20Z","stage":"plan","event":"stage-completed","source":"verified","summary":"diff artifact local token classification plan reviewed"}
+{"ts":"2026-04-28T03:11:00Z","stage":"implementation","event":"stage-started","source":"pgg-code"}
+{"ts":"2026-04-28T03:14:36Z","stage":"implementation","event":"stage-commit","archiveType":"fix","targetVersion":"3.0.4","projectLanguage":"ko","commitTitle":"fix: 3.0.4.diff token 분류","summary":"diff token 분류","why":"git diff 산출물은 LLM이 작성한 코드가 아니므로 LLM token에서 제외하고 local token으로 계산하도록 구현했다","footer":"Refs: pgg-token-diff-artifact-local-classification","taskId":"T1,T2,T3,T4","dependencies":"proposal, plan","completionCriteria":"diff artifact LLM 제외와 local token 분류 구현 및 검증"}
