@@ -5,7 +5,7 @@ pgg:
   status: "draft"
   skill: "pgg-code"
   score: 0
-  updated_at: "2026-04-28T01:02:00Z"
+  updated_at: "2026-04-28T01:19:24Z"
 ---
 
 # Implementation Index
@@ -24,6 +24,10 @@ pgg:
 | 010 | UPDATE | `packages/core/test/git-publish.test.mjs` | `implementation/diffs/010_UPDATE_packages_core_test_git-publish_test_mjs.diff` | `T4` | task-row commit body/footer/evidence 구조를 검증하는 stage commit 회귀 테스트를 추가했다. |
 | 011 | UPDATE | `.codex/skills/pgg-code/SKILL.md`, `.codex/add/WOKR-FLOW.md` | `implementation/diffs/011_UPDATE_pgg_code_commit_contract_docs.diff` | `T4` | 현재 workspace pgg-code와 WOKR 문서에 T1...N 행 단위 commit cadence와 helper env 계약을 반영했다. |
 | 012 | UPDATE | `packages/core/dist/templates.js`, `packages/core/dist/templates.js.map` | `implementation/diffs/012_UPDATE_packages_core_dist_templates.diff` | `T4` | core build 산출물을 T4 template 변경과 동기화했다. |
+| 013 | UPDATE | `packages/core/src/templates.ts`, `packages/core/src/readme.ts` | `implementation/diffs/013_UPDATE_packages_core_src_pgg_lang_contract.diff` | `T5` | generated pgg 문서, state/history, commit message, pgg 생성/수정 코드 주석이 `pgg lang`을 따르도록 source template와 README 계약을 갱신했다. |
+| 014 | UPDATE | `packages/core/test/skill-generation.test.mjs` | `implementation/diffs/014_UPDATE_packages_core_test_skill_generation_pgg_lang.diff` | `T5` | ko/en fixture에서 generated workflow 문서와 pgg comment rule이 project language를 따르는지 검증했다. |
+| 015 | UPDATE | `AGENTS.md`, `README.md`, `.codex/add/*`, `.codex/skills/pgg-*` | `implementation/diffs/015_UPDATE_current_workspace_pgg_lang_docs.diff` | `T5` | 현재 workspace pgg 문서와 pgg-* skill에 한국어 Language Contract를 반영했다. |
+| 016 | UPDATE | `packages/core/dist/templates.js`, `packages/core/dist/templates.js.map`, `packages/core/dist/readme.js`, `packages/core/dist/readme.js.map` | `implementation/diffs/016_UPDATE_packages_core_dist_pgg_lang_contract.diff` | `T5` | core build 산출물을 T5 source 변경과 동기화했다. |
 
 ## Verification
 
@@ -31,3 +35,4 @@ pgg:
 - `pnpm --filter @pgg/dashboard build`: pass, Vite chunk-size warning only.
 - `rg` mobile stack/vertical connector pattern check: pass, workflow process track의 xs `1fr` stack과 vertical connector 패턴 없음.
 - `pnpm --filter @pgg/core test`: first run failed because shared publish helper builder referenced unset task env; after template default-value fix, pass, 54 tests.
+- `pnpm --filter @pgg/core test`: first T5 run failed because the new Korean assertion was stricter than the actual localized sentence; after regex adjustment, pass, 55 tests.

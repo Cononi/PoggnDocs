@@ -52,3 +52,9 @@ description: "레거시 코드를 제거하고 기능 구조를 개선한다."
 - 의존성 관리
 - 확장성
 - 네이밍
+
+## Language Contract
+
+- 이 skill이 작성하는 pgg 문서, state/history 문구, review/QA 산출물은 `.pgg/project.json`의 `language` 값을 따른다.
+- 이 skill이 생성하거나 수정하는 pgg-managed 코드 주석은 `pgg lang`을 따른다.
+- 사용자가 작성한 기존 코드 주석은 해당 task 범위에서 수정하는 경우에만 언어 계약을 적용한다.

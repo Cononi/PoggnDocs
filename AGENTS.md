@@ -15,6 +15,7 @@
 - proposal 단계에서 `archive_type`, `version_bump`, `target_version`, branch naming, `project_scope`를 확정하고, `archive_type`는 change category/commit convention, `version_bump`는 semver impact로 구분한다.
 - pgg가 생성·관리하는 `.codex/sh/*.sh` helper만 workflow 내부 trusted script로 보고 추가 허락 없이 실행한다.
 - `pgg git`이 `on`이면 `.codex/sh/pgg-stage-commit.sh`로 task 완료와 QA final completion commit을 남기고, publish commit은 `state/current.md` 또는 `qa/report.md`의 `Git Publish Message` 섹션으로 제목/상세 body/footer를 관리하며 `{convention}: {version}.{commit message}` 형식, `pgg lang` 기반 메시지 언어, 제목 50자 이하, 명령형 금지, 마침표 금지, 로그가 곧 문서 원칙을 지킨다.
+- 모든 pgg-* flow 문서, state/history 문구, commit message, pgg가 생성하거나 수정하는 코드 주석은 `pgg lang`을 따르며, 사용자가 작성한 기존 주석은 범위 밖에서 일괄 번역하지 않는다.
 - 모든 flow 상태는 `시작 전`, `진행 중`, `추가 진행`, `완료` 4상태로 기록하고 dashboard가 같은 기준으로 표시할 수 있게 stage event evidence를 유지하며, stage 필수 산출물/review/verification/commit 또는 release evidence가 완전히 끝나기 전에는 `완료`로 처리하지 않는다.
 - optional audit flow는 실제 실행 evidence가 있을 때만 dashboard에 표시되며, `Audit Applicability`의 `required` 값은 표시 evidence가 아니다.
 - dashboard timeline은 workflow progress가 `완료`로 계산된 flow만 표시하며, `stage-started`, `stage-progress`, partial artifact, updatedAt fallback을 완료 이력으로 취급하지 않는다.

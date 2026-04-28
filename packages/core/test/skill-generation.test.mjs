@@ -241,6 +241,45 @@ test("project language changes update generated agent and routing text", async (
   }
 });
 
+test("generated workflow docs and pgg comment rules follow project language", async () => {
+  const rootDir = await mkdtemp(path.join(os.tmpdir(), "pgg-language-contract-"));
+
+  try {
+    await withTemporaryPggHome(rootDir, async () => {
+      await initializeProject(rootDir, {
+        provider: "codex",
+        language: "ko",
+        autoMode: "on",
+        teamsMode: "off"
+      });
+
+      const koreanWorkflow = await readFile(path.join(rootDir, ".codex/add/WOKR-FLOW.md"), "utf8");
+      const koreanRubric = await readFile(path.join(rootDir, ".codex/add/REVIEW-RUBRIC.md"), "utf8");
+      const koreanCodeSkill = await readFile(path.join(rootDir, ".codex/skills/pgg-code/SKILL.md"), "utf8");
+
+      assert.match(koreanWorkflow, /pgg가 생성하거나 수정하는 코드 주석은 `pgg lang`을 따르/);
+      assert.match(koreanRubric, /코드 주석이 `pgg lang`을 따르는지 확인한다/);
+      assert.match(koreanCodeSkill, /## Language Contract/);
+      assert.match(koreanCodeSkill, /pgg-managed 코드 주석은 `pgg lang`을 따른다/);
+      assert.doesNotMatch(koreanCodeSkill, /pgg-managed code comments created or modified/);
+
+      await updateProjectLanguage(rootDir, "en");
+
+      const englishWorkflow = await readFile(path.join(rootDir, ".codex/add/WOKR-FLOW.md"), "utf8");
+      const englishRubric = await readFile(path.join(rootDir, ".codex/add/REVIEW-RUBRIC.md"), "utf8");
+      const englishCodeSkill = await readFile(path.join(rootDir, ".codex/skills/pgg-code/SKILL.md"), "utf8");
+
+      assert.match(englishWorkflow, /pgg-generated or pgg-modified code comments must follow `pgg lang`/);
+      assert.match(englishRubric, /code comments follow `pgg lang`/);
+      assert.match(englishCodeSkill, /## Language Contract/);
+      assert.match(englishCodeSkill, /pgg-managed code comments created or modified by this skill follow `pgg lang`/);
+      assert.doesNotMatch(englishCodeSkill, /pgg-managed 코드 주석은 `pgg lang`을 따른다/);
+    });
+  } finally {
+    await rm(rootDir, { recursive: true, force: true });
+  }
+});
+
 test("new topic helper localizes generated workflow document skeletons", async () => {
   const rootDir = await mkdtemp(path.join(os.tmpdir(), "pgg-topic-language-"));
 
