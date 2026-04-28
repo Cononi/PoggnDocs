@@ -6,7 +6,7 @@ pgg-llm-local-token-usage-accounting
 
 ## Current Stage
 
-implementation
+refactor
 
 ## Goal
 
@@ -14,7 +14,7 @@ LLM 생성 산출물 토큰과 local 처리 토큰의 집계 차이를 dashboard
 
 ## Next Action
 
-`pgg-refactor`에서 구현 중복과 명명 정합성을 확인한다.
+`pgg-qa`에서 gate와 검증 결과를 최종 확인한다.
 
 ## Constraints
 
@@ -66,6 +66,12 @@ LLM 생성 산출물 토큰과 local 처리 토큰의 집계 차이를 dashboard
 - `.codex/sh/pgg-state-pack.sh`와 generated template의 token usage summary도 같은 fallback 기준을 사용하게 했다.
 - `packages/core/test/dashboard-token-usage.test.mjs`가 provider actual, metadata 없는 LLM actual, unavailable zero artifact fallback, local-only 합산을 검증한다.
 
+## Refactor Summary
+
+- no-op refactor로 결정했다.
+- LLM direct total, artifact fallback, local-only 합산이 이미 helper 단위로 분리되어 추가 구조 변경이 필요하지 않다.
+- unavailable fallback 중복 방지는 artifact Set으로 처리되어 유지보수 위험이 낮다.
+
 ## Token Usage
 
 - ledger: `state/token-usage.ndjson`
@@ -97,13 +103,14 @@ LLM 생성 산출물 토큰과 local 처리 토큰의 집계 차이를 dashboard
 - plan review: approved
 - task review: approved
 - code review: approved
+- refactor review: approved
 - score: `96`
-- experts: 시니어 백엔드 엔지니어, 테크 리드
+- experts: 소프트웨어 아키텍트, 코드 리뷰어
 - blocking issues: 없음
 
 ## Next Workflow
 
-- pgg-refactor
+- pgg-qa
 
 ## Changed Files
 
@@ -127,6 +134,7 @@ LLM 생성 산출물 토큰과 local 처리 토큰의 집계 차이를 dashboard
 | ADD | `poggn/active/pgg-llm-local-token-usage-accounting/reviews/plan.review.md` | pending |
 | ADD | `poggn/active/pgg-llm-local-token-usage-accounting/reviews/task.review.md` | pending |
 | ADD | `poggn/active/pgg-llm-local-token-usage-accounting/reviews/code.review.md` | pending |
+| ADD | `poggn/active/pgg-llm-local-token-usage-accounting/reviews/refactor.review.md` | pending |
 | ADD | `poggn/active/pgg-llm-local-token-usage-accounting/implementation/index.md` | pending |
 | ADD | `poggn/active/pgg-llm-local-token-usage-accounting/implementation/diffs/*.diff` | pending |
 | ADD | `poggn/active/pgg-llm-local-token-usage-accounting/state/current.md` | pending |
