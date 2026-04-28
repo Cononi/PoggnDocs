@@ -87,6 +87,7 @@ workflow evidence와 dashboard의 상태, 시간 측정, current/next flow 표�
 ## Performance Summary
 
 - pgg-performance status: `PASS`
+- pgg-performance commit: `cb1816496875182ca690265c6003986acae5966c`
 - dashboard model test: median `1.625s`, p95 `1.663s`, target `<=5s`
 - dashboard test script: median `1.894s`, p95 `2.050s`, target `<=5s`
 - dashboard build Vite internal: median `1.02s`, p95 `1.08s`, baseline `1.35s`, max allowed `1.62s`
