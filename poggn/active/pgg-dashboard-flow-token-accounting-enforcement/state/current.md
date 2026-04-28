@@ -6,7 +6,7 @@ pgg-dashboard-flow-token-accounting-enforcement
 
 ## Current Stage
 
-refactor
+qa
 
 ## Goal
 
@@ -14,7 +14,7 @@ dashboard가 모든 flow의 LLM token과 local token을 계산해 Overview와 Ti
 
 ## Next Action
 
-`pgg-token` required audit를 수행한다.
+`qa/report.md` pass 결과를 기준으로 archive helper를 실행한다.
 
 ## Constraints
 
@@ -83,11 +83,20 @@ dashboard가 모든 flow의 LLM token과 local token을 계산해 Overview와 Ti
 - local records: `3`
 - note: provider usage metadata is unavailable in this session, so LLM records preserve attribution while local records measure command output estimates.
 
+## Token Audit Summary
+
+- required token audit: pass
+- state-pack token_usage_llm_total: `47214`
+- state-pack token_usage_local_total: `1063`
+- unavailable records: `3`
+
 ## Verification
 
 - `pnpm --filter @pgg/core test`: pass, 56 tests.
 - `pnpm test:dashboard`: pass, 3 tests.
 - `pnpm --filter @pgg/dashboard build`: pass, Vite chunk-size warning only.
+- `.codex/sh/pgg-state-pack.sh pgg-dashboard-flow-token-accounting-enforcement`: pass, token_usage_llm_total `47214`, token_usage_local_total `1063`, unavailable records `3`.
+- `.codex/sh/pgg-gate.sh pgg-qa pgg-dashboard-flow-token-accounting-enforcement`: pass.
 
 ## Audit Applicability
 
@@ -107,13 +116,15 @@ dashboard가 모든 flow의 LLM token과 local token을 계산해 Overview와 Ti
 - task review: approved
 - code review: approved
 - refactor review: approved
+- token review: approved
+- qa review: pass
 - score: `96`
 - experts: 소프트웨어 아키텍트, 코드 리뷰어
 - blocking issues: 없음
 
 ## Next Workflow
 
-- pgg-token
+- archive
 
 ## Changed Files
 
@@ -137,6 +148,9 @@ dashboard가 모든 flow의 LLM token과 local token을 계산해 Overview와 Ti
 | ADD | `poggn/active/pgg-dashboard-flow-token-accounting-enforcement/reviews/task.review.md` | pending |
 | ADD | `poggn/active/pgg-dashboard-flow-token-accounting-enforcement/reviews/code.review.md` | pending |
 | ADD | `poggn/active/pgg-dashboard-flow-token-accounting-enforcement/reviews/refactor.review.md` | pending |
+| ADD | `poggn/active/pgg-dashboard-flow-token-accounting-enforcement/reviews/token.review.md` | pending |
+| ADD | `poggn/active/pgg-dashboard-flow-token-accounting-enforcement/token/report.md` | pending |
+| ADD | `poggn/active/pgg-dashboard-flow-token-accounting-enforcement/qa/report.md` | pending |
 | ADD | `poggn/active/pgg-dashboard-flow-token-accounting-enforcement/implementation/index.md` | pending |
 | ADD | `poggn/active/pgg-dashboard-flow-token-accounting-enforcement/implementation/diffs/*.diff` | pending |
 | ADD | `poggn/active/pgg-dashboard-flow-token-accounting-enforcement/state/current.md` | pending |
