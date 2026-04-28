@@ -493,6 +493,42 @@ function formatDateTimeLines(value: string | null, language: HistoryLanguage, fa
   return [`${year}.${month}.${day}`, `${hours}:${minutes}:${seconds}`];
 }
 
+function formatWorkflowDuration(
+  startedAt: string | null,
+  endedAt: string | null,
+  language: HistoryLanguage,
+  unavailable: string
+): string {
+  const startedMillis = timestampMillis(startedAt);
+  const endedMillis = timestampMillis(endedAt);
+  if (startedMillis === null || endedMillis === null || endedMillis < startedMillis) {
+    return unavailable;
+  }
+
+  const minuteCount = Math.max(1, Math.ceil((endedMillis - startedMillis) / 60000));
+  const dayCount = Math.floor(minuteCount / 1440);
+  const hourCount = Math.floor((minuteCount % 1440) / 60);
+  const remainingMinutes = minuteCount % 60;
+
+  if (language === "ko") {
+    if (dayCount > 0) {
+      return `${dayCount}일 ${hourCount}시간`;
+    }
+    if (hourCount > 0) {
+      return `${hourCount}시간 ${remainingMinutes}분`;
+    }
+    return `${minuteCount}분`;
+  }
+
+  if (dayCount > 0) {
+    return `${dayCount}d ${hourCount}h`;
+  }
+  if (hourCount > 0) {
+    return `${hourCount}h ${remainingMinutes}m`;
+  }
+  return `${minuteCount}m`;
+}
+
 function latestEvidence(evidence: TimestampEvidence[]): TimestampEvidence {
   const withValues = evidence.filter((entry) => Boolean(entry.value));
   return withValues.sort((left, right) => new Date(right.value ?? "").getTime() - new Date(left.value ?? "").getTime())[0] ?? {
@@ -1244,6 +1280,7 @@ export function buildTimelineRows(
   dictionary: DashboardLocale
 ): TimelineRow[] {
   const fallbackTime = formatTopicDate(topic, language, "Pending");
+  const unavailableDuration = dictionary.workflowDurationUnavailable ?? dictionary.workflowRecordUnavailable;
   return workflowFlowDefinitions
     .filter((flow) => topicHasFlowEvidence(topic, flow) && flowHasFullCompletionEvidence(topic, flow))
     .map((flow) => {
@@ -1279,7 +1316,7 @@ export function buildTimelineRows(
         time: formatDateValue(completedAt.value, language, fallbackTime),
         dateLabel: formatTimelineDateLine(completedAt.value, language, fallbackTime),
         timeLabel: formatTimelineTimeLine(completedAt.value, language),
-        duration: completedAt.source ?? "recorded",
+        duration: formatWorkflowDuration(timestamps.startedAt.value, completedAt.value, language, unavailableDuration),
         files,
         commits
       };

@@ -342,6 +342,137 @@ test("analyzeProjectStatus treats new pgg-add approved topics as ready for pgg-p
   }
 });
 
+test("analyzeProjectStatus treats pgg-plan started topics with complete plan artifacts as ready for pgg-code", async () => {
+  const rootDir = await mkdtemp(path.join(os.tmpdir(), "pgg-status-pgg-plan-complete-"));
+
+  try {
+    await withTemporaryPggHome(rootDir, async () => {
+      await initializeProject(rootDir, {
+        provider: "codex",
+        language: "ko",
+        autoMode: "on",
+        teamsMode: "off"
+      });
+
+      await createTopic(
+        rootDir,
+        "plan-started-complete",
+        [
+          ["pgg-plan/plan.md", "# Plan\n"],
+          ["pgg-plan/task.md", "# Task\n"],
+          ["pgg-plan/spec/dashboard/timing.md", "# Spec\n"],
+          ["pgg-plan/reviews/plan.review.md", "# plan.review\n"],
+          ["pgg-plan/reviews/task.review.md", "# task.review\n"],
+          [
+            "state/history.ndjson",
+            [
+              {
+                ts: "2026-04-28T12:00:00Z",
+                stage: "proposal",
+                flow: "pgg-add",
+                event: "stage-completed",
+                source: "verified gate"
+              },
+              {
+                ts: "2026-04-28T12:01:00Z",
+                stage: "plan",
+                flow: "pgg-plan",
+                event: "stage-started",
+                source: "pgg-plan"
+              },
+              {
+                ts: "2026-04-28T12:02:00Z",
+                stage: "plan",
+                flow: "pgg-plan",
+                event: "stage-progress",
+                source: "pgg-plan"
+              }
+            ].map((event) => JSON.stringify(event)).join("\n") + "\n"
+          ],
+          [
+            "state/current.md",
+            stateMarkdown({
+              topic: "plan-started-complete",
+              stage: "pgg-plan",
+              nextAction: "`pgg-code` 실행"
+            })
+          ]
+        ],
+        { status: "approved" }
+      );
+
+      const result = await analyzeProjectStatus(rootDir);
+      const topic = result.topics.find((entry) => entry.name === "plan-started-complete");
+
+      assert.equal(topic?.currentStage, "task");
+      assert.equal(topic?.progressStatus, "ready");
+      assert.equal(topic?.nextWorkflow, "pgg-code");
+    });
+  } finally {
+    await rm(rootDir, { recursive: true, force: true });
+  }
+});
+
+test("analyzeProjectStatus keeps pgg-plan started topics on pgg-plan when required plan artifacts are missing", async () => {
+  const rootDir = await mkdtemp(path.join(os.tmpdir(), "pgg-status-pgg-plan-incomplete-"));
+
+  try {
+    await withTemporaryPggHome(rootDir, async () => {
+      await initializeProject(rootDir, {
+        provider: "codex",
+        language: "ko",
+        autoMode: "on",
+        teamsMode: "off"
+      });
+
+      await createTopic(
+        rootDir,
+        "plan-started-incomplete",
+        [
+          ["pgg-plan/plan.md", "# Plan\n"],
+          [
+            "state/history.ndjson",
+            [
+              {
+                ts: "2026-04-28T12:00:00Z",
+                stage: "proposal",
+                flow: "pgg-add",
+                event: "stage-completed",
+                source: "verified gate"
+              },
+              {
+                ts: "2026-04-28T12:01:00Z",
+                stage: "plan",
+                flow: "pgg-plan",
+                event: "stage-started",
+                source: "pgg-plan"
+              }
+            ].map((event) => JSON.stringify(event)).join("\n") + "\n"
+          ],
+          [
+            "state/current.md",
+            stateMarkdown({
+              topic: "plan-started-incomplete",
+              stage: "pgg-plan",
+              nextAction: "`pgg-plan` 실행"
+            })
+          ]
+        ],
+        { status: "approved" }
+      );
+
+      const result = await analyzeProjectStatus(rootDir);
+      const topic = result.topics.find((entry) => entry.name === "plan-started-incomplete");
+
+      assert.equal(topic?.currentStage, "plan");
+      assert.equal(topic?.progressStatus, "in_progress");
+      assert.equal(topic?.nextWorkflow, "pgg-plan");
+    });
+  } finally {
+    await rm(rootDir, { recursive: true, force: true });
+  }
+});
+
 test("analyzeProjectStatus parses bracket audit applicability for required performance audit", async () => {
   const rootDir = await mkdtemp(path.join(os.tmpdir(), "pgg-status-audit-bracket-"));
 

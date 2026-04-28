@@ -178,6 +178,73 @@ test("audit applicability text alone does not show optional performance flow", (
   assert.equal(steps.some((step) => step.id === "performance"), false);
 });
 
+test("started plan evidence marks plan current instead of pending", () => {
+  const { buildWorkflowSteps } = loadHistoryModel();
+  const topic = workflowTopic(
+    [
+      { stage: "proposal", event: "stage-completed", source: "verified:pgg-add", ts: "2026-04-27T12:00:00Z" },
+      { stage: "plan", event: "stage-started", source: "pgg-plan", ts: "2026-04-27T12:01:00Z" }
+    ],
+    { stage: "pgg-plan" }
+  );
+
+  const steps = buildWorkflowSteps(topic, "ko", dictionary());
+  const add = steps.find((step) => step.id === "add");
+  const plan = steps.find((step) => step.id === "plan");
+
+  assert.equal(add?.status, "completed");
+  assert.equal(plan?.status, "current");
+  assert.notEqual(plan?.status, "pending");
+});
+
+test("completed add and started plan route visible current step to plan", () => {
+  const { buildWorkflowSteps } = loadHistoryModel();
+  const topic = workflowTopic(
+    [
+      { stage: "proposal", event: "stage-completed", source: "verified:pgg-add", ts: "2026-04-27T12:00:00Z" },
+      { stage: "plan", event: "stage-started", source: "pgg-plan", ts: "2026-04-27T12:01:00Z" },
+      { stage: "plan", event: "stage-progress", source: "pgg-plan", ts: "2026-04-27T12:02:00Z" }
+    ],
+    { stage: "pgg-plan" }
+  );
+
+  const currentSteps = buildWorkflowSteps(topic, "ko", dictionary()).filter((step) => step.status === "current");
+
+  assert.equal(currentSteps.map((step) => step.id).join(","), "plan");
+});
+
+test("timeline rows render elapsed duration from flow start and completion evidence", () => {
+  const { buildTimelineRows } = loadHistoryModel();
+  const topic = workflowTopic(
+    [
+      { stage: "plan", event: "stage-started", source: "pgg-plan", ts: "2026-04-27T12:00:00Z" },
+      { stage: "plan", event: "stage-completed", source: "verified gate", ts: "2026-04-27T12:07:00Z" }
+    ],
+    { stage: "pgg-plan" }
+  );
+
+  const plan = buildTimelineRows(topic, "en", "tester", dictionary()).find((row) => row.id === "plan");
+
+  assert.equal(plan?.duration, "7m");
+  assert.doesNotMatch(plan?.duration ?? "", /state\/history\.ndjson|recorded|release/);
+});
+
+test("timeline duration uses unavailable fallback for invalid flow intervals", () => {
+  const { buildTimelineRows } = loadHistoryModel();
+  const topic = workflowTopic(
+    [
+      { stage: "plan", event: "stage-started", source: "pgg-plan", ts: "2026-04-27T12:07:00Z" },
+      { stage: "plan", event: "stage-completed", source: "verified gate", ts: "2026-04-27T12:00:00Z" }
+    ],
+    { stage: "pgg-plan" }
+  );
+
+  const plan = buildTimelineRows(topic, "en", "tester", dictionary()).find((row) => row.id === "plan");
+
+  assert.equal(plan?.duration, "workflowDurationUnavailable");
+  assert.doesNotMatch(plan?.duration ?? "", /state\/history\.ndjson|recorded|release/);
+});
+
 test("timeline rows use completed flow scoped token records", () => {
   const { buildTimelineRows } = loadHistoryModel();
   const topic = {
