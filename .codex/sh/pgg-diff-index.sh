@@ -19,11 +19,13 @@ fi
 TOPIC="$(basename "$TOPIC_DIR")"
 OUT="$TOPIC_DIR/implementation/index.md"
 STATE_FILE="$TOPIC_DIR/state/current.md"
+DEFAULT_COMMIT_RANGE="${PGG_DIFF_COMMIT_RANGE:-}"
+DEFAULT_GIT_REF="${PGG_DIFF_GIT_REF:-}"
 TIMESTAMP="$(date -u +"%Y-%m-%dT%H:%M:%SZ")"
 
 extract_changed_files() {
   [[ -f "$STATE_FILE" ]] || return 0
-  awk '
+  DEFAULT_COMMIT_RANGE="$DEFAULT_COMMIT_RANGE" DEFAULT_GIT_REF="$DEFAULT_GIT_REF" awk '
     function trim(value) {
       gsub(/^[[:space:]]+|[[:space:]]+$/, "", value)
       return value
@@ -79,6 +81,16 @@ extract_changed_files() {
       if (task_ref == "") {
         task_ref = "TBD"
       }
+      default_commit_range = ENVIRON["DEFAULT_COMMIT_RANGE"]
+      default_git_ref = ENVIRON["DEFAULT_GIT_REF"]
+      if (diff_source == "" && default_commit_range != "") {
+        diff_source = "commit-range"
+        commit_range = default_commit_range
+      }
+      if (diff_source == "" && default_git_ref != "") {
+        diff_source = "commit"
+        git_ref = default_git_ref
+      }
       if (diff_source == "") {
         diff_source = "working-tree"
       }
@@ -88,11 +100,17 @@ extract_changed_files() {
       if (commit_range == "") {
         commit_range = "-"
       }
+      if (diff_command == "" && diff_source == "commit-range") {
+        diff_command = "git diff " commit_range " -- " path_value
+      }
+      if (diff_command == "" && diff_source == "commit") {
+        diff_command = "git show " git_ref " -- " path_value
+      }
       if (diff_command == "") {
         diff_command = "git diff -- " path_value
       }
       if (status == "") {
-        status = "pending"
+        status = diff_source == "working-tree" ? "pending" : "available"
       }
 
       print crud "\t" path_value "\t" task_ref "\t" diff_source "\t" git_ref "\t" commit_range "\t" diff_command "\t" status "\t" note
