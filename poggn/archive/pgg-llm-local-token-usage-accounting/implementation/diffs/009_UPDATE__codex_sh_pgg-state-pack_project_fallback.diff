@@ -1,0 +1,39 @@
+diff --git a/.codex/sh/pgg-state-pack.sh b/.codex/sh/pgg-state-pack.sh
+index 72e1987..82d6ddd 100755
+--- a/.codex/sh/pgg-state-pack.sh
++++ b/.codex/sh/pgg-state-pack.sh
+@@ -162,6 +162,7 @@ if [[ -f "$TOKEN_USAGE_FILE" ]]; then
+     const path = require("path");
+     const fs = require("fs");
+     const topicDir = process.argv[2];
++    const rootDir = process.argv[3];
+     const normalize = (value) => {
+       if (!value || typeof value !== "string") return null;
+       return value.replace(/^\.\//, "").replace(/^poggn\/(?:active|archive)\/[^/]+\//, "");
+@@ -169,13 +170,13 @@ if [[ -f "$TOKEN_USAGE_FILE" ]]; then
+     const estimateArtifact = (artifactPath) => {
+       const normalized = normalize(artifactPath);
+       if (!normalized) return null;
+-      const absolutePath = path.join(topicDir, normalized);
+-      try {
+-        const content = fs.readFileSync(absolutePath, "utf8");
+-        return Math.ceil(Array.from(content).length / 4);
+-      } catch {
+-        return null;
++      for (const baseDir of [topicDir, rootDir]) {
++        try {
++          const content = fs.readFileSync(path.join(baseDir, normalized), "utf8");
++          return Math.ceil(Array.from(content).length / 4);
++        } catch {}
+       }
++      return null;
+     };
+     const lines = fs.readFileSync(process.argv[1], "utf8").split(/\n+/).map((line) => line.trim()).filter(Boolean);
+     let llm = 0;
+@@ -208,5 +209,5 @@ if [[ -f "$TOKEN_USAGE_FILE" ]]; then
+     console.log(`token_usage_llm_total: ${llm}`);
+     console.log(`token_usage_local_total: ${local}`);
+     console.log(`token_usage_unavailable_records: ${unavailable}`);
+-  ' "$TOKEN_USAGE_FILE" "$TOPIC_DIR"
++  ' "$TOKEN_USAGE_FILE" "$TOPIC_DIR" "$ROOT_DIR"
+ fi

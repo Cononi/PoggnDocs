@@ -128,6 +128,7 @@ export default function DashboardApp() {
   const [projectInitTeamsMode, setProjectInitTeamsMode] = useState<"on" | "off">("off");
   const [projectInitGitMode, setProjectInitGitMode] = useState<"on" | "off">("off");
   const [projectInitGitSetupPath, setProjectInitGitSetupPath] = useState<"local" | "defer">("defer");
+  const [projectAddStep, setProjectAddStep] = useState(0);
   const [projectInspection, setProjectInspection] = useState<ProjectFolderInspection | null>(null);
   const [usernameDraft, setUsernameDraft] = useState("");
   const [pendingDeleteProjectId, setPendingDeleteProjectId] = useState<string | null>(null);
@@ -605,8 +606,9 @@ export default function DashboardApp() {
     onSuccess: (inspection) => {
       setProjectInspection(inspection);
       setFeedback(null);
-      setProjectInitGitMode(inspection.hasGitRepository ? "on" : "off");
+      setProjectInitGitMode("off");
       setProjectInitGitSetupPath(inspection.hasGitRepository ? "defer" : "local");
+      setProjectAddStep(1);
     },
     onError: (error) => {
       setFeedback(error instanceof Error ? error.message : dictionary.dashboardError);
@@ -930,6 +932,7 @@ export default function DashboardApp() {
     setProjectRootDirDraft("");
     setProjectCategoryDraft("");
     setProjectInspection(null);
+    setProjectAddStep(0);
     setUsernameDraft("");
     setProjectInitLanguage("ko");
     setProjectInitAutoMode("on");
@@ -973,6 +976,30 @@ export default function DashboardApp() {
       return;
     }
     projectInspectMutation.mutate(projectRootDirDraft);
+  };
+
+  const projectAddSteps = [
+    dictionary.projectAddStepInspect,
+    dictionary.projectAddStepUsername,
+    dictionary.projectAddStepInit,
+    dictionary.projectAddStepGit,
+    dictionary.projectAddStepConfirm
+  ];
+  const canAdvanceProjectStep =
+    projectAddStep === 0
+      ? Boolean(projectInspection)
+      : projectAddStep === 1
+        ? globalUser.configured
+        : projectAddStep === 4
+          ? false
+          : true;
+  const handleProjectStepNext = () => {
+    if (canAdvanceProjectStep) {
+      setProjectAddStep((current) => Math.min(current + 1, projectAddSteps.length - 1));
+    }
+  };
+  const handleProjectStepBack = () => {
+    setProjectAddStep((current) => Math.max(current - 1, 0));
   };
 
   const handleSaveGlobalUsername = () => {
@@ -1211,55 +1238,76 @@ export default function DashboardApp() {
             <Typography variant="body2" color="text.secondary">
               {dictionary.addProjectHint}
             </Typography>
-            <Stepper activeStep={projectInspection ? (globalUser.configured ? 2 : 1) : 0} orientation="vertical">
-              <Step>
-                <StepLabel>{dictionary.projectAddStepInspect}</StepLabel>
-              </Step>
-              <Step>
-                <StepLabel>{dictionary.projectAddStepUsername}</StepLabel>
-              </Step>
-              <Step>
-                <StepLabel>{dictionary.projectAddStepInit}</StepLabel>
-              </Step>
-              <Step>
-                <StepLabel>{dictionary.projectAddStepRegister}</StepLabel>
-              </Step>
+            <Stepper
+              activeStep={projectAddStep}
+              alternativeLabel
+              sx={{
+                width: "100%",
+                px: { xs: 0, sm: 1 },
+                "& .MuiStepLabel-label": {
+                  mt: { xs: 0.5, sm: 0.75 },
+                  fontSize: { xs: "0.68rem", sm: "0.78rem", md: "0.84rem" },
+                  lineHeight: 1.2,
+                  overflowWrap: "anywhere"
+                },
+                "& .MuiStepIcon-root": {
+                  fontSize: { xs: "1.12rem", sm: "1.32rem", md: "1.5rem" }
+                },
+                "& .MuiStepConnector-line": {
+                  minHeight: 1
+                }
+              }}
+            >
+              {projectAddSteps.map((step) => (
+                <Step key={step}>
+                  <StepLabel>{step}</StepLabel>
+                </Step>
+              ))}
             </Stepper>
             <Paper
               variant="outlined"
               sx={{
                 p: 2,
-                borderRadius: 2,
+                borderRadius: 1,
                 background: (theme) =>
                   `linear-gradient(135deg, ${alpha(theme.palette.background.paper, 0.96)}, ${alpha(theme.palette.primary.main, 0.05)})`
               }}
             >
               <Stack spacing={1.5}>
-                <TextField
-                  autoFocus
-                  fullWidth
-                  size="small"
-                  label={dictionary.projectRootDir}
-                  value={projectRootDirDraft}
-                  onChange={(event) => {
-                    setProjectRootDirDraft(event.target.value);
-                    setProjectInspection(null);
-                  }}
-                />
-                <Button
-                  variant="outlined"
-                  disabled={!isLiveMode || !projectRootDirDraft.trim() || projectInspectMutation.isPending}
-                  onClick={handleInspectProjectRoot}
-                >
-                  {dictionary.inspectProject}
-                </Button>
-                {projectInspection ? (
-                  <Alert severity={projectInspection.hasPggProject ? "info" : "warning"}>
-                    {projectInspection.hasPggProject ? dictionary.projectAlreadyInitialized : dictionary.projectNeedsInit}
-                  </Alert>
+                {projectAddStep === 0 ? (
+                  <>
+                    <TextField
+                      autoFocus
+                      fullWidth
+                      size="small"
+                      label={dictionary.projectRootDir}
+                      value={projectRootDirDraft}
+                      onChange={(event) => {
+                        setProjectRootDirDraft(event.target.value);
+                        setProjectInspection(null);
+                        setProjectAddStep(0);
+                      }}
+                    />
+                    <Button
+                      variant="outlined"
+                      disabled={!isLiveMode || !projectRootDirDraft.trim() || projectInspectMutation.isPending}
+                      onClick={handleInspectProjectRoot}
+                    >
+                      {dictionary.inspectProject}
+                    </Button>
+                    {projectInspection ? (
+                      <Alert severity={projectInspection.hasPggProject ? "info" : "warning"}>
+                        {projectInspection.hasPggProject ? dictionary.projectAlreadyInitialized : dictionary.projectNeedsInit}
+                      </Alert>
+                    ) : null}
+                  </>
                 ) : null}
-                {!globalUser.configured ? (
-                  <Paper variant="outlined" sx={{ p: 1.25, borderRadius: 1 }}>
+                {projectAddStep === 1 ? (
+                  globalUser.configured ? (
+                    <Alert severity="success">
+                      {dictionary.username}: {globalUser.username}
+                    </Alert>
+                  ) : (
                     <Stack spacing={1}>
                       <Alert severity="warning">{dictionary.usernameRequiredForInit}</Alert>
                       <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
@@ -1275,70 +1323,110 @@ export default function DashboardApp() {
                         </Button>
                       </Stack>
                     </Stack>
-                  </Paper>
+                  )
                 ) : null}
-                <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-                  <TextField
-                    select
-                    fullWidth
-                    size="small"
-                    label={dictionary.language}
-                    value={projectInitLanguage}
-                    onChange={(event) => setProjectInitLanguage(event.target.value === "en" ? "en" : "ko")}
-                  >
-                    <MenuItem value="ko">Korean / 한국어</MenuItem>
-                    <MenuItem value="en">English</MenuItem>
-                  </TextField>
-                  <TextField
-                    select
-                    fullWidth
-                    size="small"
-                    label={dictionary.gitSetupPath}
-                    value={projectInitGitSetupPath}
-                    disabled={projectInitGitMode === "off"}
-                    onChange={(event) => setProjectInitGitSetupPath(event.target.value === "local" ? "local" : "defer")}
-                  >
-                    <MenuItem value="local">{dictionary.gitSetupLocal}</MenuItem>
-                    <MenuItem value="defer">{dictionary.deferGitSetup}</MenuItem>
-                  </TextField>
-                </Stack>
-                <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
-                  <FormControlLabel
-                    control={<Switch checked={projectInitAutoMode === "on"} onChange={(event) => setProjectInitAutoMode(event.target.checked ? "on" : "off")} />}
-                    label={dictionary.autoMode}
-                  />
-                  <FormControlLabel
-                    control={<Switch checked={projectInitTeamsMode === "on"} onChange={(event) => setProjectInitTeamsMode(event.target.checked ? "on" : "off")} />}
-                    label={dictionary.teamsMode}
-                  />
-                  <FormControlLabel
-                    control={<Switch checked={projectInitGitMode === "on"} onChange={(event) => setProjectInitGitMode(event.target.checked ? "on" : "off")} />}
-                    label={dictionary.gitMode}
-                  />
-                </Stack>
-                <TextField
-                  select
-                  fullWidth
-                  size="small"
-                  label={dictionary.targetCategory}
-                  value={projectCategoryDraft}
-                  onChange={(event) => setProjectCategoryDraft(event.target.value)}
-                >
-                  {categories.map((category) => (
-                    <MenuItem key={category.id} value={category.id}>
-                      {category.name}
-                    </MenuItem>
-                  ))}
-                </TextField>
+                {projectAddStep === 2 ? (
+                  <>
+                    <TextField
+                      select
+                      fullWidth
+                      size="small"
+                      label={dictionary.language}
+                      value={projectInitLanguage}
+                      onChange={(event) => setProjectInitLanguage(event.target.value === "en" ? "en" : "ko")}
+                    >
+                      <MenuItem value="ko">Korean / 한국어</MenuItem>
+                      <MenuItem value="en">English</MenuItem>
+                    </TextField>
+                    <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                      <FormControlLabel
+                        control={<Switch checked={projectInitAutoMode === "on"} onChange={(event) => setProjectInitAutoMode(event.target.checked ? "on" : "off")} />}
+                        label={dictionary.autoMode}
+                      />
+                      <FormControlLabel
+                        control={<Switch checked={projectInitTeamsMode === "on"} onChange={(event) => setProjectInitTeamsMode(event.target.checked ? "on" : "off")} />}
+                        label={dictionary.teamsMode}
+                      />
+                    </Stack>
+                  </>
+                ) : null}
+                {projectAddStep === 3 ? (
+                  <>
+                    <Stack direction={{ xs: "column", sm: "row" }} spacing={1}>
+                      <Button
+                        fullWidth
+                        variant={projectInitGitMode === "off" ? "contained" : "outlined"}
+                        onClick={() => setProjectInitGitMode("off")}
+                      >
+                        {dictionary.projectAddGitOff}
+                      </Button>
+                      <Button
+                        fullWidth
+                        variant={projectInitGitMode === "on" ? "contained" : "outlined"}
+                        onClick={() => setProjectInitGitMode("on")}
+                      >
+                        {dictionary.projectAddGitOn}
+                      </Button>
+                    </Stack>
+                    <Alert severity={projectInitGitMode === "off" ? "info" : "warning"}>
+                      {projectInitGitMode === "off" ? dictionary.projectAddGitOffHint : dictionary.projectAddGitOnHint}
+                    </Alert>
+                    {projectInitGitMode === "on" ? (
+                      <TextField
+                        select
+                        fullWidth
+                        size="small"
+                        label={dictionary.gitSetupPath}
+                        value={projectInitGitSetupPath}
+                        onChange={(event) => setProjectInitGitSetupPath(event.target.value === "local" ? "local" : "defer")}
+                      >
+                        <MenuItem value="local">{dictionary.gitSetupLocal}</MenuItem>
+                        <MenuItem value="defer">{dictionary.deferGitSetup}</MenuItem>
+                      </TextField>
+                    ) : null}
+                  </>
+                ) : null}
+                {projectAddStep === 4 ? (
+                  <>
+                    <TextField
+                      select
+                      fullWidth
+                      size="small"
+                      label={dictionary.targetCategory}
+                      value={projectCategoryDraft}
+                      onChange={(event) => setProjectCategoryDraft(event.target.value)}
+                    >
+                      {categories.map((category) => (
+                        <MenuItem key={category.id} value={category.id}>
+                          {category.name}
+                        </MenuItem>
+                      ))}
+                    </TextField>
+                    <Alert severity="info">
+                      {projectInitGitMode === "off"
+                        ? dictionary.projectAddConfirmGitOff
+                        : projectInitGitSetupPath === "local"
+                          ? dictionary.projectAddConfirmGitLocal
+                          : dictionary.projectAddConfirmGitDefer}
+                    </Alert>
+                  </>
+                ) : null}
               </Stack>
             </Paper>
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={closeProjectDialog}>{dictionary.cancel}</Button>
-          <Button variant="contained" disabled={!isLiveMode || !globalUser.configured || !projectRootDirDraft.trim()} onClick={handleCreateProject}>
-            {dictionary.save}
-          </Button>
+          {projectAddStep > 0 ? <Button onClick={handleProjectStepBack}>{dictionary.projectAddBack}</Button> : null}
+          {projectAddStep < projectAddSteps.length - 1 ? (
+            <Button variant="contained" disabled={!canAdvanceProjectStep} onClick={handleProjectStepNext}>
+              {dictionary.projectAddNext}
+            </Button>
+          ) : (
+            <Button variant="contained" disabled={!isLiveMode || !globalUser.configured || !projectRootDirDraft.trim() || !projectInspection} onClick={handleCreateProject}>
+              {dictionary.save}
+            </Button>
+          )}
         </DialogActions>
       </Dialog>
 

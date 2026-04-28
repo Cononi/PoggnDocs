@@ -1,0 +1,11 @@
+diff --git a/.codex/skills/pgg-add/SKILL.md b/.codex/skills/pgg-add/SKILL.md
+index 1696780..4921fe5 100644
+--- a/.codex/skills/pgg-add/SKILL.md
++++ b/.codex/skills/pgg-add/SKILL.md
+@@ -40,7 +40,6 @@ description: "사용자 요구사항을 검토하고 proposal 단계 문서를 
+ - `proposal.md` 안의 사용자 입력 질문 기록 섹션
+ - `reviews/proposal.review.md`
+ - `state/current.md`
+-- `workflow.reactflow.json`
+ - `archive_type`, `version_bump`, `target_version`, `short_name`, branch naming, `project_scope: current-project` 확정
+  ## Handoff

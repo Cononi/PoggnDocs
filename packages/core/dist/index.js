@@ -502,8 +502,11 @@ function commandAvailable(command) {
         return false;
     }
 }
-function detectProjectGitConfig(rootDir, manifestGit) {
+function detectProjectGitConfig(rootDir, manifestGit, options = {}) {
     const normalized = normalizeProjectGitConfig(manifestGit);
+    if (normalized.mode === "off" && options.respectDisabledMode !== false) {
+        return normalized;
+    }
     const remoteUrl = gitOutput(rootDir, ["remote", "get-url", normalized.defaultRemote]);
     if (!remoteUrl) {
         if (existsSync(path.join(rootDir, ".git"))) {
@@ -540,7 +543,7 @@ function detectProjectGitConfig(rootDir, manifestGit) {
 export async function inspectProjectGitSetup(rootDir) {
     const manifest = await loadProjectManifest(rootDir);
     const manifestGit = normalizeProjectGitConfig(manifest?.git);
-    const git = detectProjectGitConfig(rootDir, manifestGit);
+    const git = detectProjectGitConfig(rootDir, manifestGit, { respectDisabledMode: false });
     const parsedRemote = git.remoteUrl ? parseGitRemoteUrl(git.remoteUrl) : null;
     const hasGitRepository = existsSync(path.join(rootDir, ".git"));
     const pathKind = parsedRemote ? "fast" : "setup";
@@ -1535,6 +1538,39 @@ function parseAuditApplicability(markdown) {
     }
     return defaults;
 }
+function parseChangedFilePaths(markdown) {
+    if (!markdown) {
+        return [];
+    }
+    const section = parseMarkdownSection(markdown, "Changed Files");
+    if (!section) {
+        return [];
+    }
+    const paths = new Set();
+    for (const line of section.split("\n")) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith("|---") || /^-\s*(create|update|delete):/i.test(trimmed)) {
+            const bulletMatch = trimmed.match(/^-\s*(?:create|update|delete):\s*`([^`]+)`/i);
+            if (bulletMatch?.[1]) {
+                paths.add(bulletMatch[1].trim());
+            }
+            continue;
+        }
+        if (trimmed.startsWith("|")) {
+            const columns = trimmed
+                .split("|")
+                .map((value) => value.trim())
+                .filter(Boolean);
+            if (columns.length >= 2 && columns[1] !== "path") {
+                const value = columns[1]?.replace(/^`|`$/g, "").trim();
+                if (value) {
+                    paths.add(value);
+                }
+            }
+        }
+    }
+    return Array.from(paths).sort();
+}
 function normalizeStageName(value) {
     const normalized = value?.trim().toLowerCase();
     switch (normalized) {
@@ -1923,7 +1959,7 @@ async function readTopicArtifactSummary(topicDir) {
             "state/history.ndjson",
             "git/publish.json"
         ]),
-        workflowDocs: await summarizeArtifactGroup(topicDir, ["workflow.reactflow.json"], { required: true })
+        workflowDocs: await summarizeArtifactGroup(topicDir, ["workflow.reactflow.json"])
     };
 }
 function resolveTopicFileKind(absolutePath) {
@@ -1968,6 +2004,267 @@ function isProjectTextFile(absolutePath) {
 }
 function estimateTokensFromText(value) {
     return Math.ceil(Array.from(value).length / 4);
+}
+function parseOptionalNumber(value) {
+    if (typeof value !== "number" || !Number.isFinite(value)) {
+        return null;
+    }
+    return Math.max(0, Math.trunc(value));
+}
+function parseRequiredNumber(value) {
+    return parseOptionalNumber(value) ?? 0;
+}
+function normalizeTokenUsagePath(value) {
+    if (!value) {
+        return null;
+    }
+    return value.replace(/^\.\//, "").replace(/^poggn\/(?:active|archive)\/[^/]+\//, "");
+}
+function isLocalTokenArtifactPath(value) {
+    const normalized = normalizeTokenUsagePath(value);
+    return Boolean(normalized && (/\.diff$/i.test(normalized) || normalized.startsWith("implementation/diffs/")));
+}
+function parseTokenUsageOperation(value) {
+    return value === "create" ||
+        value === "update" ||
+        value === "delete" ||
+        value === "read" ||
+        value === "generate" ||
+        value === "verify" ||
+        value === "commit" ||
+        value === "other"
+        ? value
+        : "other";
+}
+function parseTokenUsageSource(value) {
+    return value === "llm" || value === "local" ? value : "local";
+}
+function parseTokenUsageMeasurement(value) {
+    return value === "actual" || value === "estimated" || value === "unavailable" ? value : "estimated";
+}
+function parseTopicTokenUsageRecords(raw) {
+    if (!raw) {
+        return [];
+    }
+    return raw
+        .split(/\n+/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .flatMap((line) => {
+        try {
+            const parsed = JSON.parse(line);
+            const artifactPath = typeof parsed.artifact_path === "string"
+                ? parsed.artifact_path
+                : typeof parsed.artifactPath === "string"
+                    ? parsed.artifactPath
+                    : null;
+            const measurement = parseTokenUsageMeasurement(parsed.measurement);
+            return [
+                {
+                    ts: typeof parsed.ts === "string" ? parsed.ts : null,
+                    stage: typeof parsed.stage === "string" ? parsed.stage : null,
+                    flow: typeof parsed.flow === "string" ? parsed.flow : null,
+                    event: typeof parsed.event === "string" ? parsed.event : null,
+                    task: typeof parsed.task === "string" ? parsed.task : null,
+                    artifactPath,
+                    operation: parseTokenUsageOperation(parsed.operation),
+                    source: parseTokenUsageSource(parsed.source),
+                    provider: typeof parsed.provider === "string" ? parsed.provider : null,
+                    model: typeof parsed.model === "string" ? parsed.model : null,
+                    usageMetadataAvailable: typeof parsed.usage_metadata_available === "boolean"
+                        ? parsed.usage_metadata_available
+                        : typeof parsed.usageMetadataAvailable === "boolean"
+                            ? parsed.usageMetadataAvailable
+                            : measurement === "actual" && parseTokenUsageSource(parsed.source) === "llm",
+                    inputTokens: parseOptionalNumber(parsed.input_tokens ?? parsed.inputTokens),
+                    outputTokens: parseOptionalNumber(parsed.output_tokens ?? parsed.outputTokens),
+                    cachedTokens: parseOptionalNumber(parsed.cached_tokens ?? parsed.cachedTokens),
+                    reasoningTokens: parseOptionalNumber(parsed.reasoning_tokens ?? parsed.reasoningTokens),
+                    totalTokens: parseRequiredNumber(parsed.total_tokens ?? parsed.totalTokens),
+                    artifactTokenEstimate: parseOptionalNumber(parsed.artifact_token_estimate ?? parsed.artifactTokenEstimate),
+                    estimated: typeof parsed.estimated === "boolean" ? parsed.estimated : measurement !== "actual",
+                    measurement,
+                    bytes: parseOptionalNumber(parsed.bytes),
+                    lineCount: parseOptionalNumber(parsed.line_count ?? parsed.lineCount),
+                    notes: typeof parsed.notes === "string" ? parsed.notes : null
+                }
+            ];
+        }
+        catch {
+            return [];
+        }
+    });
+}
+function tokenUsageRecordsForArtifact(records, relativePath, sourcePath) {
+    const relative = normalizeTokenUsagePath(relativePath);
+    const source = normalizeTokenUsagePath(sourcePath);
+    return records.filter((record) => {
+        const artifactPath = normalizeTokenUsagePath(record.artifactPath);
+        return Boolean(artifactPath && (artifactPath === relative || artifactPath === source));
+    });
+}
+function sumTokenRecords(records, predicate) {
+    let total = 0;
+    let seen = false;
+    for (const record of records) {
+        if (predicate(record)) {
+            total += record.totalTokens;
+            seen = true;
+        }
+    }
+    return seen ? total : null;
+}
+function isActualLlmTokenRecord(record) {
+    return record.source === "llm" && record.measurement === "actual" && !record.estimated && record.usageMetadataAvailable;
+}
+function directLlmTokenRecordTotal(record) {
+    return isActualLlmTokenRecord(record) && record.totalTokens > 0 ? record.totalTokens : null;
+}
+function sumLocalTokenRecords(records) {
+    return sumTokenRecords(records, (record) => record.source === "local") ?? 0;
+}
+async function buildTokenEstimateLookup(rootDir, files, tokenUsageRecords) {
+    const estimates = new Map();
+    for (const file of files) {
+        if (file.tokenEstimate === null) {
+            continue;
+        }
+        const relativePath = normalizeTokenUsagePath(file.relativePath);
+        const sourcePath = normalizeTokenUsagePath(file.sourcePath);
+        if (relativePath) {
+            estimates.set(relativePath, file.tokenEstimate);
+        }
+        if (sourcePath) {
+            estimates.set(sourcePath, file.tokenEstimate);
+        }
+    }
+    await Promise.all(tokenUsageRecords.map(async (record) => {
+        if (record.source !== "llm") {
+            return;
+        }
+        const artifactPath = normalizeTokenUsagePath(record.artifactPath);
+        if (!artifactPath || estimates.has(artifactPath)) {
+            return;
+        }
+        const absolutePath = path.join(rootDir, artifactPath);
+        const content = await readProjectFileContentForSnapshot(absolutePath);
+        if (content !== null) {
+            estimates.set(artifactPath, estimateTokensFromText(content));
+        }
+    }));
+    return (artifactPath) => {
+        const normalized = normalizeTokenUsagePath(artifactPath);
+        return normalized ? estimates.get(normalized) ?? null : null;
+    };
+}
+function sumLlmTokenRecords(records) {
+    let total = 0;
+    let seen = false;
+    for (const record of records) {
+        if (record.source !== "llm") {
+            continue;
+        }
+        const artifactPath = normalizeTokenUsagePath(record.artifactPath);
+        if (isLocalTokenArtifactPath(artifactPath)) {
+            continue;
+        }
+        const directTotal = directLlmTokenRecordTotal(record);
+        if (directTotal !== null) {
+            total += directTotal;
+            seen = true;
+        }
+    }
+    return seen ? total : null;
+}
+function sumEstimatedLlmTokenRecords(records, estimateForArtifact) {
+    let total = 0;
+    const actualArtifacts = new Set();
+    const estimatedArtifacts = new Set();
+    for (const record of records) {
+        if (record.source !== "llm") {
+            continue;
+        }
+        const artifactPath = normalizeTokenUsagePath(record.artifactPath);
+        if (artifactPath && isActualLlmTokenRecord(record)) {
+            actualArtifacts.add(artifactPath);
+        }
+    }
+    for (const record of records) {
+        if (record.source !== "llm" || isActualLlmTokenRecord(record)) {
+            continue;
+        }
+        const artifactPath = normalizeTokenUsagePath(record.artifactPath);
+        if (isLocalTokenArtifactPath(artifactPath) || (artifactPath && actualArtifacts.has(artifactPath))) {
+            continue;
+        }
+        if (!artifactPath) {
+            if (record.measurement === "estimated" && record.totalTokens > 0) {
+                total += record.totalTokens;
+            }
+            continue;
+        }
+        if (estimatedArtifacts.has(artifactPath)) {
+            continue;
+        }
+        const estimate = record.measurement === "estimated" && record.totalTokens > 0
+            ? record.totalTokens
+            : record.artifactTokenEstimate ?? estimateForArtifact(artifactPath);
+        if (estimate !== null) {
+            total += estimate;
+            estimatedArtifacts.add(artifactPath);
+        }
+    }
+    return total;
+}
+function fileHasLlmTokenRecord(file, records) {
+    return fileHasTokenRecordWithSource(file, records, "llm");
+}
+function fileHasTokenRecordWithSource(file, records, source) {
+    const relativePath = normalizeTokenUsagePath(file.relativePath);
+    const sourcePath = normalizeTokenUsagePath(file.sourcePath);
+    return records.some((record) => {
+        if (record.source !== source) {
+            return false;
+        }
+        const artifactPath = normalizeTokenUsagePath(record.artifactPath);
+        return Boolean(artifactPath && (artifactPath === relativePath || artifactPath === sourcePath));
+    });
+}
+function sumUnrecordedArtifactEstimateTokens(files, records) {
+    return files.reduce((sum, file) => {
+        if (file.tokenEstimate === null || fileHasLlmTokenRecord(file, records) || fileHasLocalTokenRecord(file, records)) {
+            return sum;
+        }
+        return sum + file.tokenEstimate;
+    }, 0);
+}
+function fileHasLocalTokenRecord(file, records) {
+    return fileHasTokenRecordWithSource(file, records, "local");
+}
+async function applyArtifactTokenEstimatesToRecords(rootDir, files, records) {
+    const estimateForArtifact = await buildTokenEstimateLookup(rootDir, files, records);
+    return records.map((record) => ({
+        ...record,
+        artifactTokenEstimate: record.source === "llm" ? estimateForArtifact(record.artifactPath) : record.artifactTokenEstimate
+    }));
+}
+function applyTokenUsageRecordsToFile(file, records) {
+    const artifactRecords = tokenUsageRecordsForArtifact(records, file.relativePath, file.sourcePath);
+    if (artifactRecords.length === 0) {
+        return file;
+    }
+    const localEstimatedTokens = sumLocalTokenRecords(artifactRecords);
+    const isLocalArtifact = isLocalTokenArtifactPath(file.relativePath);
+    const llmActualTokens = isLocalArtifact ? null : sumLlmTokenRecords(artifactRecords);
+    const estimatedLlmTokens = isLocalArtifact ? 0 : sumEstimatedLlmTokenRecords(artifactRecords, () => file.tokenEstimate);
+    return {
+        ...file,
+        localEstimatedTokens: localEstimatedTokens +
+            estimatedLlmTokens +
+            (isLocalArtifact && !fileHasLocalTokenRecord(file, artifactRecords) ? file.tokenEstimate ?? 0 : 0),
+        llmActualTokens,
+        tokenSource: "ledger"
+    };
 }
 async function collectProjectFiles(rootDir, currentDir = rootDir) {
     const entries = await readdir(currentDir, { withFileTypes: true }).catch(() => []);
@@ -2023,7 +2320,117 @@ async function listProjectFiles(rootDir) {
     }));
     return entries.sort((left, right) => left.relativePath.localeCompare(right.relativePath));
 }
-async function listTopicFiles(rootDir, topicDir, bucket, topic) {
+function cleanMarkdownTableCell(value) {
+    return (value ?? "").trim().replace(/^`|`$/g, "").trim();
+}
+function normalizeMarkdownTableKey(value) {
+    return cleanMarkdownTableCell(value).toLowerCase().replace(/[^a-z0-9]/g, "");
+}
+function splitMarkdownTableRow(line) {
+    const trimmed = line.trim();
+    const withoutStart = trimmed.startsWith("|") ? trimmed.slice(1) : trimmed;
+    const withoutEnd = withoutStart.endsWith("|") ? withoutStart.slice(0, -1) : withoutStart;
+    return withoutEnd.split("|").map((cell) => cell.trim());
+}
+function sanitizeVirtualDiffPath(value) {
+    const normalized = value.replace(/\\/g, "/").replace(/^\.?\//, "");
+    const safe = normalized.replace(/[^a-zA-Z0-9._-]+/g, "_").replace(/^_+|_+$/g, "");
+    return safe || "changed-file";
+}
+function normalizeDiffSource(value) {
+    if (value === "commit" || value === "commit-range" || value === "working-tree" || value === "legacy-diff-file") {
+        return value;
+    }
+    return "unavailable";
+}
+const IMPLEMENTATION_INDEX_SEPARATOR_PATTERN = /^\|\s*:?-{3,}:?\s*(\|\s*:?-{3,}:?\s*)+\|?$/;
+function parseImplementationIndexRows(raw) {
+    if (!raw) {
+        return [];
+    }
+    const rows = [];
+    for (const line of raw.split(/\n+/)) {
+        const trimmed = line.trim();
+        if (!trimmed.startsWith("|") || IMPLEMENTATION_INDEX_SEPARATOR_PATTERN.test(trimmed)) {
+            continue;
+        }
+        rows.push(splitMarkdownTableRow(trimmed));
+    }
+    if (rows.length < 2) {
+        return [];
+    }
+    const header = rows[0] ?? [];
+    const headerIndex = new Map(header.map((cell, index) => [normalizeMarkdownTableKey(cell), index]));
+    if (!headerIndex.has("path") || !headerIndex.has("diffsource")) {
+        return [];
+    }
+    const cell = (row, key) => cleanMarkdownTableCell(row[headerIndex.get(key) ?? -1]);
+    return rows.slice(1).flatMap((row, rowIndex) => {
+        const targetPath = cell(row, "path");
+        if (!targetPath) {
+            return [];
+        }
+        const diffSource = normalizeDiffSource(cell(row, "diffsource"));
+        if (diffSource === "legacy-diff-file") {
+            return [];
+        }
+        const valueOrNull = (value) => (value && value !== "-" ? value : null);
+        return [{
+                id: cell(row, "id") || String(rowIndex + 1).padStart(3, "0"),
+                crud: cell(row, "crud") || "UPDATE",
+                targetPath,
+                taskRef: valueOrNull(cell(row, "taskref")),
+                diffSource,
+                gitRef: valueOrNull(cell(row, "gitref")),
+                commitRange: valueOrNull(cell(row, "commitrange")),
+                diffCommand: valueOrNull(cell(row, "diffcommand")),
+                status: valueOrNull(cell(row, "status")),
+                note: valueOrNull(cell(row, "note"))
+            }];
+    });
+}
+async function listLazyDiffTopicFiles(topicDir, bucket, topic, existingEntries) {
+    const indexPath = path.join(topicDir, "implementation", "index.md");
+    const indexContent = await readTextIfExists(indexPath);
+    const rows = parseImplementationIndexRows(indexContent);
+    if (rows.length === 0) {
+        return [];
+    }
+    const existingPaths = new Set(existingEntries.map((entry) => entry.relativePath));
+    const indexStat = await stat(indexPath).catch(() => null);
+    return rows.flatMap((row) => {
+        const relativePath = `implementation/diffs/${row.id}_${row.crud}_${sanitizeVirtualDiffPath(row.targetPath)}.diff`;
+        if (existingPaths.has(relativePath)) {
+            return [];
+        }
+        return [{
+                relativePath,
+                sourcePath: `poggn/${bucket}/${topic}/implementation/index.md#${row.id}`,
+                kind: "diff",
+                updatedAt: indexStat?.mtime.toISOString() ?? null,
+                size: null,
+                tokenEstimate: null,
+                localEstimatedTokens: null,
+                llmActualTokens: null,
+                tokenSource: "none",
+                content: null,
+                editable: false,
+                lazyDiff: {
+                    topic,
+                    bucket,
+                    targetPath: row.targetPath,
+                    diffSource: row.diffSource,
+                    gitRef: row.gitRef,
+                    commitRange: row.commitRange,
+                    diffCommand: row.diffCommand,
+                    status: row.status,
+                    taskRef: row.taskRef,
+                    note: row.note
+                }
+            }];
+    });
+}
+async function listTopicFiles(rootDir, topicDir, bucket, topic, tokenUsageRecords) {
     const files = await collectMatchingFiles(topicDir, () => true);
     const entries = await Promise.all(files.map(async (absolutePath) => {
         const fileStat = await stat(absolutePath).catch(() => null);
@@ -2037,22 +2444,40 @@ async function listTopicFiles(rootDir, topicDir, bucket, topic) {
             updatedAt: fileStat?.mtime.toISOString() ?? null,
             size: fileStat?.size ?? null,
             tokenEstimate,
-            localEstimatedTokens: tokenEstimate,
+            localEstimatedTokens: tokenEstimate ?? 0,
             llmActualTokens: null,
             tokenSource: tokenEstimate === null ? "none" : "estimated",
             content,
             editable: true
         };
     }));
-    return entries.sort((left, right) => left.relativePath.localeCompare(right.relativePath));
+    const lazyDiffEntries = await listLazyDiffTopicFiles(topicDir, bucket, topic, entries);
+    return [...entries, ...lazyDiffEntries]
+        .map((entry) => applyTokenUsageRecordsToFile(entry, tokenUsageRecords))
+        .sort((left, right) => left.relativePath.localeCompare(right.relativePath));
 }
-function summarizeTopicTokenUsage(files) {
-    const total = files.reduce((sum, file) => sum + (file.tokenEstimate ?? 0), 0);
+async function summarizeTopicTokenUsage(rootDir, files, tokenUsageRecords) {
+    const artifactEstimateBaselineTokens = sumUnrecordedArtifactEstimateTokens(files, tokenUsageRecords);
+    if (tokenUsageRecords.length > 0) {
+        const tokenEstimateLookup = await buildTokenEstimateLookup(rootDir, files, tokenUsageRecords);
+        const llmActualTokensFromRecords = sumLlmTokenRecords(tokenUsageRecords) ?? 0;
+        const estimatedLlmTokens = sumEstimatedLlmTokenRecords(tokenUsageRecords, tokenEstimateLookup);
+        const localEstimatedTokens = sumLocalTokenRecords(tokenUsageRecords) + estimatedLlmTokens + artifactEstimateBaselineTokens;
+        return {
+            total: llmActualTokensFromRecords + localEstimatedTokens,
+            llmActualTokens: llmActualTokensFromRecords > 0 ? llmActualTokensFromRecords : null,
+            localEstimatedTokens,
+            source: "ledger",
+            ledgerRecordCount: tokenUsageRecords.length
+        };
+    }
+    const localTotal = sumUnrecordedArtifactEstimateTokens(files, []);
     return {
-        total,
+        total: localTotal,
         llmActualTokens: null,
-        localEstimatedTokens: total,
-        source: total > 0 ? "estimated" : "none"
+        localEstimatedTokens: localTotal,
+        source: localTotal > 0 ? "estimated" : "none",
+        ledgerRecordCount: 0
     };
 }
 function deriveTopicUpdatedAt(artifactSummary, archivedAt) {
@@ -2086,8 +2511,10 @@ async function listTopicSummaries(rootDir, bucket) {
         const publish = await readTopicPublishMetadata(topicDir);
         const artifactSummary = await readTopicArtifactSummary(topicDir);
         const userQuestionRecord = parseUserQuestionRecord(proposalMarkdown);
-        const files = await listTopicFiles(rootDir, topicDir, bucket, entry.name);
-        const tokenUsage = summarizeTopicTokenUsage(files);
+        let tokenUsageRecords = parseTopicTokenUsageRecords(await readTextIfExists(path.join(topicDir, "state", "token-usage.ndjson")));
+        const files = await listTopicFiles(rootDir, topicDir, bucket, entry.name, tokenUsageRecords);
+        tokenUsageRecords = await applyArtifactTokenEstimatesToRecords(rootDir, files, tokenUsageRecords);
+        const tokenUsage = await summarizeTopicTokenUsage(rootDir, files, tokenUsageRecords);
         const updatedAt = deriveTopicUpdatedAt(artifactSummary, release.archivedAt);
         const stage = stateMarkdown ? parseMarkdownSection(stateMarkdown, "Current Stage") : parseKeyValue(proposalMarkdown ?? "", "stage");
         const goal = stateMarkdown ? parseMarkdownSection(stateMarkdown, "Goal") : null;
@@ -2095,6 +2522,8 @@ async function listTopicSummaries(rootDir, bucket) {
         const score = stateMarkdown ? parseScore(stateMarkdown) : null;
         const blockingIssues = stateMarkdown ? parseBlockingIssues(stateMarkdown) : null;
         const status = proposalMarkdown ? parseKeyValue(proposalMarkdown, "status") : null;
+        const proposalWorkingBranch = proposalMarkdown ? parseKeyValue(proposalMarkdown, "working_branch") : null;
+        const proposalReleaseBranch = proposalMarkdown ? parseKeyValue(proposalMarkdown, "release_branch") : null;
         result.push({
             name: entry.name,
             bucket,
@@ -2109,8 +2538,8 @@ async function listTopicSummaries(rootDir, bucket) {
             archiveType: release.changeType,
             versionBump: release.versionBump,
             targetVersion: release.targetVersion,
-            workingBranch: publish.workingBranch ?? release.workingBranch,
-            releaseBranch: publish.releaseBranch ?? release.releaseBranch,
+            workingBranch: publish.workingBranch ?? release.workingBranch ?? proposalWorkingBranch,
+            releaseBranch: publish.releaseBranch ?? release.releaseBranch ?? proposalReleaseBranch,
             publishResultType: publish.publishResultType,
             publishPushStatus: publish.publishPushStatus,
             publishMode: publish.publishMode,
@@ -2123,15 +2552,15 @@ async function listTopicSummaries(rootDir, bucket) {
             workflow,
             artifactSummary,
             artifactCompleteness: artifactSummary.lifecycleDocs.missingRequired ||
-                artifactSummary.reviewDocs.missingRequired ||
-                artifactSummary.workflowDocs.missingRequired
+                artifactSummary.reviewDocs.missingRequired
                 ? "partial"
                 : "complete",
-            health: stateMarkdown && workflow ? "ok" : "partial",
+            health: stateMarkdown ? "ok" : "partial",
             userQuestionRecord,
             historyEvents,
             files,
-            tokenUsage
+            tokenUsage,
+            tokenUsageRecords
         });
     }
     return result;
@@ -2174,7 +2603,69 @@ function buildTopicStatusSummary(topic, currentStage, nextWorkflow, reason, prog
         blockingIssues: topic.blockingIssues
     };
 }
-async function evaluateTopicStatus(rootDir, topic) {
+async function buildTopicIsolationIssues(rootDir, manifest, topics) {
+    if (topics.length < 2) {
+        return new Map();
+    }
+    const gitMode = normalizeProjectGitConfig(manifest.git).mode;
+    return gitMode === "on"
+        ? buildGitOnTopicIsolationIssues(rootDir, topics)
+        : await buildGitOffTopicIsolationIssues(rootDir, topics);
+}
+function buildGitOnTopicIsolationIssues(rootDir, topics) {
+    const issues = new Map();
+    const currentBranch = gitOutput(rootDir, ["branch", "--show-current"]);
+    for (const topic of topics) {
+        if (!topic.workingBranch) {
+            issues.set(topic.name, {
+                reason: "Multiple active topics are present, but this topic has no working_branch metadata for git isolation."
+            });
+        }
+        else if (!currentBranch) {
+            issues.set(topic.name, {
+                reason: "Multiple active topics are present with git mode on, but the current git branch could not be resolved."
+            });
+        }
+        else if (currentBranch !== topic.workingBranch) {
+            issues.set(topic.name, {
+                reason: `Multiple active topics require branch isolation. Current branch '${currentBranch}' does not match '${topic.workingBranch}'.`
+            });
+        }
+    }
+    return issues;
+}
+async function buildGitOffTopicIsolationIssues(rootDir, topics) {
+    const issues = new Map();
+    const ownership = new Map();
+    await Promise.all(topics.map(async (topic) => {
+        const stateMarkdown = await readTextIfExists(path.join(rootDir, "poggn", "active", topic.name, "state", "current.md"));
+        ownership.set(topic.name, parseChangedFilePaths(stateMarkdown));
+    }));
+    const ownersByPath = invertChangedFileOwnership(ownership);
+    for (const [changedPath, owners] of ownersByPath.entries()) {
+        if (owners.length < 2) {
+            continue;
+        }
+        for (const topicName of owners) {
+            issues.set(topicName, {
+                reason: `Multiple active topics are present with git mode off, and '${changedPath}' is owned by: ${owners.join(", ")}.`
+            });
+        }
+    }
+    return issues;
+}
+function invertChangedFileOwnership(ownership) {
+    const ownersByPath = new Map();
+    for (const [topicName, paths] of ownership.entries()) {
+        for (const changedPath of paths) {
+            const owners = ownersByPath.get(changedPath) ?? [];
+            owners.push(topicName);
+            ownersByPath.set(changedPath, owners);
+        }
+    }
+    return ownersByPath;
+}
+async function evaluateTopicStatus(rootDir, topic, isolationIssue = null) {
     const { stateMarkdown, proposalMarkdown, artifacts } = await readTopicArtifacts(rootDir, topic);
     const currentStage = resolveTopicStage(topic, proposalMarkdown, artifacts);
     if (!artifacts.hasProposal) {
@@ -2188,6 +2679,9 @@ async function evaluateTopicStatus(rootDir, topic) {
     const openItemStatus = parseOpenItemStatus(stateMarkdown);
     const audits = parseAuditApplicability(stateMarkdown);
     const qaArtifactsPresent = artifacts.hasQaReport || artifacts.hasQaReview || artifacts.hasQaReviewSummary;
+    if (isolationIssue) {
+        return createBlockedTopicStatus(topic, currentStage, currentWorkflow, isolationIssue.reason);
+    }
     if (!isNonBlockingMarker(topic.blockingIssues)) {
         return createBlockedTopicStatus(topic, currentStage, currentWorkflow, `Blocking issues remain: ${topic.blockingIssues}.`);
     }
@@ -2318,11 +2812,13 @@ export async function analyzeProject(rootDir, registered = false) {
 export async function analyzeProjectStatus(rootDir) {
     const manifest = await requireManifest(rootDir);
     const topics = await listTopicSummaries(rootDir, "active");
-    const evaluatedTopics = await Promise.all(topics.map((topic) => evaluateTopicStatus(rootDir, topic)));
+    const isolationIssues = await buildTopicIsolationIssues(rootDir, manifest, topics);
+    const evaluatedTopics = await Promise.all(topics.map((topic) => evaluateTopicStatus(rootDir, topic, isolationIssues.get(topic.name) ?? null)));
     return {
         rootDir,
         autoMode: manifest.autoMode,
         teamsMode: manifest.teamsMode,
+        gitMode: manifest.git.mode,
         generatedAt: nowIso(),
         summary: {
             activeTopicCount: evaluatedTopics.length,
@@ -2482,6 +2978,71 @@ export async function readTopicFileDetail(rootDir, bucket, topic, relativePath) 
         content,
         contentType,
         updatedAt: fileStat?.mtime.toISOString() ?? null
+    };
+}
+function normalizeGitDiffSource(value) {
+    if (value === "commit" || value === "commit-range" || value === "working-tree" || value === "legacy-diff-file") {
+        return value;
+    }
+    return "unavailable";
+}
+function validateGitRevisionArg(value, label) {
+    const trimmed = value.trim();
+    if (!trimmed || trimmed.startsWith("-") || /\s/.test(trimmed)) {
+        throw new Error(`${label} is not a valid Git revision.`);
+    }
+    return trimmed;
+}
+function runGitText(rootDir, args) {
+    return execFileSync("git", ["-C", rootDir, ...args], { encoding: "utf8" });
+}
+export async function readTopicGitDiffDetail(rootDir, bucket, topic, input) {
+    const normalizedTargetPath = normalizeProjectRelativeFilePath(input.targetPath);
+    const diffSource = normalizeGitDiffSource(input.diffSource ?? null);
+    let content = "";
+    if (diffSource === "commit") {
+        const gitRef = validateGitRevisionArg(input.gitRef ?? "", "gitRef");
+        content = runGitText(rootDir, ["show", "--format=", "--no-ext-diff", gitRef, "--", normalizedTargetPath]);
+    }
+    else if (diffSource === "commit-range") {
+        const commitRange = validateGitRevisionArg(input.commitRange ?? "", "commitRange");
+        content = runGitText(rootDir, ["diff", "--no-ext-diff", commitRange, "--", normalizedTargetPath]);
+    }
+    else if (diffSource === "working-tree") {
+        if (bucket !== "active") {
+            throw new Error("Working-tree diff lookup is only available for active topics.");
+        }
+        content = runGitText(rootDir, ["diff", "--no-ext-diff", "--", normalizedTargetPath]);
+        if (!content.trim()) {
+            content = runGitText(rootDir, ["diff", "--cached", "--no-ext-diff", "--", normalizedTargetPath]);
+        }
+    }
+    else {
+        throw new Error("Git diff metadata is unavailable for this file.");
+    }
+    if (!content.trim()) {
+        content = `No Git diff is available for ${normalizedTargetPath}.`;
+    }
+    const lazyDiff = {
+        topic,
+        bucket,
+        targetPath: normalizedTargetPath,
+        diffSource,
+        gitRef: input.gitRef ?? null,
+        commitRange: input.commitRange ?? null,
+        diffCommand: null,
+        status: content.startsWith("No Git diff") ? "empty" : "available",
+        taskRef: null,
+        note: null
+    };
+    return {
+        kind: "diff",
+        title: path.basename(normalizedTargetPath),
+        sourcePath: normalizedTargetPath,
+        content,
+        contentType: "text/x-diff",
+        lazyDiff,
+        updatedAt: nowIso()
     };
 }
 export async function updateTopicFile(rootDir, bucket, topic, relativePath, content) {

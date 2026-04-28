@@ -1,0 +1,14 @@
+{
+  "topic": "pgg-token-diff-artifact-local-classification",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "version": "3.0.4",
+  "targetVersion": "3.0.4",
+  "previousVersion": "3.0.3",
+  "shortName": "token-classification",
+  "workingBranch": "ai/fix/3.0.4-token-classification",
+  "releaseBranch": "release/3.0.4-token-classification",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-28T03:17:45Z",
+  "history": "poggn/version-history.ndjson"
+}

@@ -1,0 +1,38 @@
+diff --git a/.codex/sh/pgg-state-pack.sh b/.codex/sh/pgg-state-pack.sh
+index 82d6ddd..e6a68e3 100755
+--- a/.codex/sh/pgg-state-pack.sh
++++ b/.codex/sh/pgg-state-pack.sh
+@@ -182,16 +182,18 @@ if [[ -f "$TOKEN_USAGE_FILE" ]]; then
+     let llm = 0;
+     let local = 0;
+     let unavailable = 0;
+-    const directArtifacts = new Set();
++    const actualArtifacts = new Set();
+     const fallbackArtifacts = new Set();
+     for (const line of lines) {
+       try {
+         const entry = JSON.parse(line);
+         const total = Number.isFinite(entry.total_tokens) ? entry.total_tokens : Number.isFinite(entry.totalTokens) ? entry.totalTokens : 0;
+         const artifactPath = normalize(entry.artifact_path ?? entry.artifactPath);
+-        if (entry.source === "llm" && total > 0 && entry.measurement !== "unavailable") {
++        const usageMetadataAvailable = entry.usage_metadata_available === true || entry.usageMetadataAvailable === true;
++        const isActualLlm = entry.source === "llm" && entry.measurement === "actual" && entry.estimated === false && usageMetadataAvailable;
++        if (isActualLlm && total > 0) {
+           llm += total;
+-          if (artifactPath) directArtifacts.add(artifactPath);
++          if (artifactPath) actualArtifacts.add(artifactPath);
+         } else if (entry.source === "llm" && artifactPath) {
+           fallbackArtifacts.add(artifactPath);
+         } else if (entry.source === "local") {
+@@ -201,9 +203,9 @@ if [[ -f "$TOKEN_USAGE_FILE" ]]; then
+       } catch {}
+     }
+     for (const artifactPath of fallbackArtifacts) {
+-      if (directArtifacts.has(artifactPath)) continue;
++      if (actualArtifacts.has(artifactPath)) continue;
+       const estimate = estimateArtifact(artifactPath);
+-      if (estimate !== null) llm += estimate;
++      if (estimate !== null) local += estimate;
+     }
+     console.log(`token_usage_records: ${lines.length}`);
+     console.log(`token_usage_llm_total: ${llm}`);

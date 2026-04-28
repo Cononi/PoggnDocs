@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
 import { mkdtemp, mkdir, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
@@ -27,7 +28,13 @@ async function withTemporaryPggHome(rootDir, run) {
   }
 }
 
-function proposalMarkdown(topic) {
+function git(rootDir, args) {
+  return execFileSync("git", ["-C", rootDir, ...args], {
+    encoding: "utf8"
+  }).trim();
+}
+
+function proposalMarkdown(topic, options = {}) {
   return [
     "---",
     "pgg:",
@@ -35,6 +42,7 @@ function proposalMarkdown(topic) {
     '  stage: "proposal"',
     '  status: "reviewed"',
     '  archive_type: "feat"',
+    ...(options.workingBranch ? [`  working_branch: "${options.workingBranch}"`] : []),
     '  project_scope: "current-project"',
     "---",
     ""
@@ -50,7 +58,8 @@ function stateMarkdown({
   tokenAudit = "not_required",
   tokenReason = "token audit not needed",
   performanceAudit = "not_required",
-  performanceReason = "performance audit not needed"
+  performanceReason = "performance audit not needed",
+  changedFiles = []
 }) {
   return [
     "# Current State",
@@ -85,16 +94,26 @@ function stateMarkdown({
     "## Next Action",
     "",
     nextAction,
+    "",
+    ...(changedFiles.length
+      ? [
+          "## Changed Files",
+          "",
+          "| CRUD | path | diff |",
+          "|---|---|---|",
+          ...changedFiles.map((changedPath) => `| UPDATE | \`${changedPath}\` | test.diff |`),
+          ""
+        ]
+      : []),
     ""
   ].join("\n");
 }
 
-async function createTopic(rootDir, topic, files) {
+async function createTopic(rootDir, topic, files, options = {}) {
   const topicDir = path.join(rootDir, "poggn", "active", topic);
   await mkdir(topicDir, { recursive: true });
-  await writeTopicFile(topicDir, "proposal.md", proposalMarkdown(topic));
+  await writeTopicFile(topicDir, "proposal.md", proposalMarkdown(topic, options));
   await writeTopicFile(topicDir, "reviews/proposal.review.md", "# proposal.review\n");
-  await writeTopicFile(topicDir, "workflow.reactflow.json", JSON.stringify({ topic, nodes: [], edges: [] }, null, 2));
 
   for (const [relativePath, content] of files) {
     await writeTopicFile(topicDir, relativePath, content);
@@ -254,6 +273,97 @@ test("analyzeProjectStatus classifies active topics and next workflows", async (
           ["proposal-ready", "ready", "pgg-plan"]
         ]
       );
+    });
+  } finally {
+    await rm(rootDir, { recursive: true, force: true });
+  }
+});
+
+test("analyzeProjectStatus blocks git-on active topics on branch mismatch", async () => {
+  const rootDir = await mkdtemp(path.join(os.tmpdir(), "pgg-status-branch-isolation-"));
+
+  try {
+    await withTemporaryPggHome(rootDir, async () => {
+      await initializeProject(rootDir, {
+        provider: "codex",
+        language: "ko",
+        autoMode: "on",
+        teamsMode: "off",
+        gitMode: "on"
+      });
+      git(rootDir, ["init", "--initial-branch=main"]);
+
+      const files = [
+        ["plan.md", "# Plan\n"],
+        ["task.md", "# Task\n"],
+        ["spec/runtime/isolation.md", "# Spec\n"],
+        ["reviews/plan.review.md", "# plan.review\n"],
+        ["reviews/task.review.md", "# task.review\n"],
+        ["implementation/index.md", "# Implementation\n"],
+        ["reviews/code.review.md", "# code.review\n"],
+        ["state/current.md", stateMarkdown({ topic: "branch-topic-a", stage: "implementation" })]
+      ];
+      await createTopic(rootDir, "branch-topic-a", files, { workingBranch: "ai/feat/1.0.0-branch-topic-a" });
+      await createTopic(
+        rootDir,
+        "branch-topic-b",
+        files.map(([relativePath, content]) => [
+          relativePath,
+          relativePath === "state/current.md" ? stateMarkdown({ topic: "branch-topic-b", stage: "implementation" }) : content
+        ]),
+        { workingBranch: "ai/feat/1.0.0-branch-topic-b" }
+      );
+
+      const result = await analyzeProjectStatus(rootDir);
+
+      assert.equal(result.gitMode, "on");
+      assert.equal(result.summary.blockedCount, 2);
+      assert.equal(result.topics.every((topic) => topic.progressStatus === "blocked"), true);
+      assert.match(result.topics[0].reason, /branch isolation/);
+    });
+  } finally {
+    await rm(rootDir, { recursive: true, force: true });
+  }
+});
+
+test("analyzeProjectStatus blocks git-off active topics with changed-path collisions", async () => {
+  const rootDir = await mkdtemp(path.join(os.tmpdir(), "pgg-status-path-isolation-"));
+
+  try {
+    await withTemporaryPggHome(rootDir, async () => {
+      await initializeProject(rootDir, {
+        provider: "codex",
+        language: "ko",
+        autoMode: "on",
+        teamsMode: "off",
+        gitMode: "off"
+      });
+
+      async function createImplementationTopic(topic, changedFiles) {
+        await createTopic(rootDir, topic, [
+          ["plan.md", "# Plan\n"],
+          ["task.md", "# Task\n"],
+          ["spec/runtime/isolation.md", "# Spec\n"],
+          ["reviews/plan.review.md", "# plan.review\n"],
+          ["reviews/task.review.md", "# task.review\n"],
+          ["implementation/index.md", "# Implementation\n"],
+          ["reviews/code.review.md", "# code.review\n"],
+          ["state/current.md", stateMarkdown({ topic, stage: "implementation", changedFiles })]
+        ]);
+      }
+
+      await createImplementationTopic("path-topic-a", ["src/shared.ts"]);
+      await createImplementationTopic("path-topic-b", ["src/shared.ts"]);
+      await createImplementationTopic("path-topic-c", ["src/isolated.ts"]);
+
+      const result = await analyzeProjectStatus(rootDir);
+      const byName = new Map(result.topics.map((topic) => [topic.name, topic]));
+
+      assert.equal(result.gitMode, "off");
+      assert.equal(byName.get("path-topic-a")?.progressStatus, "blocked");
+      assert.equal(byName.get("path-topic-b")?.progressStatus, "blocked");
+      assert.match(byName.get("path-topic-a")?.reason ?? "", /src\/shared\.ts/);
+      assert.notEqual(byName.get("path-topic-c")?.progressStatus, "blocked");
     });
   } finally {
     await rm(rootDir, { recursive: true, force: true });

@@ -49,6 +49,7 @@ type WorkflowFlowDefinition = {
   pathPatterns: RegExp[];
 };
 type WorkflowNodeEntry = NonNullable<TopicSummary["workflow"]>["nodes"][number];
+type TopicTokenUsageRecordEntry = TopicSummary["tokenUsageRecords"][number];
 type TopicFileEntry = TopicSummary["files"][number];
 type TopicHistoryEventEntry = NonNullable<TopicSummary["historyEvents"]>[number];
 type TimestampEvidence = {
@@ -267,7 +268,57 @@ function topicHasFlowArtifactEvidence(topic: TopicSummary, flow: WorkflowFlowDef
 }
 
 function topicHasFlowEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition): boolean {
+  if (flow.optional) {
+    return topicHasOptionalAuditExecutionEvidence(topic, flow);
+  }
+
   return normalizeFlowId(topic.stage) === flow.id || topicHasFlowArtifactEvidence(topic, flow) || flowHistoryEvents(topic, flow).length > 0;
+}
+
+function fileHasMeaningfulAuditContent(file: TopicFileEntry): boolean {
+  const content = file.content?.trim();
+  if (!content) {
+    return false;
+  }
+  return !/placeholder|not started|not run|사용자 입력 질문을 원문 의미 그대로/i.test(content);
+}
+
+function nodeHasOptionalAuditExecutionEvidence(node: WorkflowNodeEntry): boolean {
+  const detail = node.data.detail;
+  const status = `${node.data.status ?? ""} ${detail?.status ?? ""} ${detail?.summary ?? ""}`;
+  return Boolean(
+    detail?.startedAt ||
+      detail?.updatedAt ||
+      detail?.completedAt ||
+      /started|progress|running|complete|completed|verified|pass|실행|진행|완료|검증/i.test(status)
+  );
+}
+
+function isOptionalAuditExecutionEvent(event: TopicHistoryEventEntry): boolean {
+  if (!event.ts) {
+    return false;
+  }
+  return eventNameMatches(event, [/stage-started/i, /stage-progress/i, /stage-completed/i, /stage-commit/i]);
+}
+
+function isOptionalAuditArtifact(flow: WorkflowFlowDefinition, relativePath: string): boolean {
+  if (flow.id === "token") {
+    return /^token\/report\.md$/.test(relativePath) || /^reviews\/token\.review\.md$/.test(relativePath);
+  }
+  if (flow.id === "performance") {
+    return /^performance\/report\.md$/.test(relativePath) || /^reviews\/performance\.review\.md$/.test(relativePath);
+  }
+  return false;
+}
+
+function topicHasOptionalAuditExecutionEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition): boolean {
+  const hasEventEvidence = flowHistoryEvents(topic, flow).some(isOptionalAuditExecutionEvent);
+  const hasFileEvidence = flowFiles(topic, flow).some(
+    (file) => isOptionalAuditArtifact(flow, file.relativePath) && fileHasMeaningfulAuditContent(file)
+  );
+  const hasNodeEvidence = flowNodes(topic, flow).some(nodeHasOptionalAuditExecutionEvidence);
+
+  return hasEventEvidence || hasFileEvidence || hasNodeEvidence;
 }
 
 function visibleWorkflowFlows(topic: TopicSummary): WorkflowFlowDefinition[] {
@@ -530,6 +581,144 @@ function eventFlowId(event: TopicHistoryEventEntry): WorkflowFlowId {
 
 function flowHistoryEvents(topic: TopicSummary, flow: WorkflowFlowDefinition): TopicHistoryEventEntry[] {
   return (topic.historyEvents ?? []).filter((event) => eventFlowId(event) === flow.id);
+}
+
+function tokenRecordFlowId(record: TopicTokenUsageRecordEntry): WorkflowFlowId {
+  return normalizeFlowId(record.flow ?? record.stage ?? null);
+}
+
+function flowTokenUsageRecords(topic: TopicSummary, flow: WorkflowFlowDefinition): TopicTokenUsageRecordEntry[] {
+  return (topic.tokenUsageRecords ?? []).filter((record) => tokenRecordFlowId(record) === flow.id);
+}
+
+function normalizeTokenArtifactPath(value: string | null): string | null {
+  if (!value) {
+    return null;
+  }
+  return value.replace(/^\.\//, "").replace(/^poggn\/(?:active|archive)\/[^/]+\//, "");
+}
+
+function isLocalTokenArtifactPath(value: string | null): boolean {
+  const normalized = normalizeTokenArtifactPath(value);
+  return Boolean(normalized && (/\.diff$/i.test(normalized) || normalized.startsWith("implementation/diffs/")));
+}
+
+function directLlmTimelineTokenTotal(record: TopicTokenUsageRecordEntry): number | null {
+  return record.source === "llm" &&
+    record.measurement === "actual" &&
+    record.estimated === false &&
+    record.usageMetadataAvailable === true &&
+    record.totalTokens > 0
+    ? record.totalTokens
+    : null;
+}
+
+function fileHasFlowLlmRecord(file: TopicFileEntry, records: TopicTokenUsageRecordEntry[]): boolean {
+  return fileHasFlowRecordWithSource(file, records, "llm");
+}
+
+function fileHasFlowRecordWithSource(
+  file: TopicFileEntry,
+  records: TopicTokenUsageRecordEntry[],
+  source: TopicTokenUsageRecordEntry["source"]
+): boolean {
+  const relativePath = normalizeTokenArtifactPath(file.relativePath);
+  const sourcePath = normalizeTokenArtifactPath(file.sourcePath);
+  return records.some((record) => {
+    if (record.source !== source) {
+      return false;
+    }
+    const artifactPath = normalizeTokenArtifactPath(record.artifactPath);
+    return Boolean(artifactPath && (artifactPath === relativePath || artifactPath === sourcePath));
+  });
+}
+
+function sumFlowLlmTokens(records: TopicTokenUsageRecordEntry[], files: TopicFileEntry[]): number | null {
+  let total = 0;
+  let seen = false;
+
+  for (const record of records) {
+    if (record.source !== "llm") {
+      continue;
+    }
+
+    const artifactPath = normalizeTokenArtifactPath(record.artifactPath) ?? "";
+    if (isLocalTokenArtifactPath(artifactPath)) {
+      continue;
+    }
+    const directTotal = directLlmTimelineTokenTotal(record);
+    if (directTotal !== null) {
+      total += directTotal;
+      seen = true;
+    }
+  }
+
+  return seen ? total : null;
+}
+
+function sumFlowEstimatedLlmTokens(records: TopicTokenUsageRecordEntry[]): number {
+  let total = 0;
+  const actualArtifacts = new Set<string>();
+  const estimatedArtifacts = new Set<string>();
+
+  for (const record of records) {
+    const artifactPath = normalizeTokenArtifactPath(record.artifactPath);
+    if (artifactPath && directLlmTimelineTokenTotal(record) !== null) {
+      actualArtifacts.add(artifactPath);
+    }
+  }
+
+  for (const record of records) {
+    if (record.source !== "llm" || directLlmTimelineTokenTotal(record) !== null) {
+      continue;
+    }
+
+    const artifactPath = normalizeTokenArtifactPath(record.artifactPath);
+    if (isLocalTokenArtifactPath(artifactPath) || (artifactPath && actualArtifacts.has(artifactPath))) {
+      continue;
+    }
+
+    if (!artifactPath) {
+      if (record.measurement === "estimated" && record.totalTokens > 0) {
+        total += record.totalTokens;
+      }
+      continue;
+    }
+
+    if (estimatedArtifacts.has(artifactPath)) {
+      continue;
+    }
+
+    const estimate =
+      record.measurement === "estimated" && record.totalTokens > 0 ? record.totalTokens : record.artifactTokenEstimate;
+    if (typeof estimate === "number") {
+      total += estimate;
+      estimatedArtifacts.add(artifactPath);
+    }
+  }
+
+  return total;
+}
+
+function fileHasFlowLocalRecord(file: TopicFileEntry, records: TopicTokenUsageRecordEntry[]): boolean {
+  return fileHasFlowRecordWithSource(file, records, "local");
+}
+
+function sumFlowLocalTokens(records: TopicTokenUsageRecordEntry[], files: TopicFileEntry[]): number {
+  const recordTotal = records
+    .filter((record) => record.source === "local")
+    .reduce((sum, record) => sum + record.totalTokens, 0);
+  const artifactTotal = files.reduce((sum, file) => {
+    if (
+      typeof file.tokenEstimate === "number" &&
+      !fileHasFlowLocalRecord(file, records) &&
+      !fileHasFlowLlmRecord(file, records)
+    ) {
+      return sum + file.tokenEstimate;
+    }
+    return sum;
+  }, 0);
+  return recordTotal + sumFlowEstimatedLlmTokens(records) + artifactTotal;
 }
 
 function eventNameMatches(event: TopicHistoryEventEntry, patterns: RegExp[]): boolean {
@@ -1045,15 +1234,18 @@ export function buildTimelineRows(
 ): TimelineRow[] {
   const fallbackTime = formatTopicDate(topic, language, "Pending");
   return workflowFlowDefinitions
-    .filter((flow) => topicHasFlowEvidence(topic, flow))
+    .filter((flow) => topicHasFlowEvidence(topic, flow) && flowHasFullCompletionEvidence(topic, flow))
     .map((flow) => {
-      const files = flowFiles(topic, flow).map((file) => ({
+      const flowFileEntries = flowFiles(topic, flow);
+      const files = flowFileEntries.map((file) => ({
         path: file.relativePath,
         kind: inferFileChangeKind(file.relativePath),
         llmActualTokens: file.llmActualTokens ?? null,
         localEstimatedTokens: fileEstimatedLocalTokens(file),
-        content: file.content ?? null
+        content: file.content ?? null,
+        lazyDiff: file.lazyDiff ?? null
       }));
+      const tokenUsageRecords = flowTokenUsageRecords(topic, flow);
       const events = flowHistoryEvents(topic, flow);
       const timestamps = flowTimestampBundle(topic, flow);
       const completedAt = timestamps.completedAt.value ? timestamps.completedAt : timestamps.updatedAt;
@@ -1069,8 +1261,8 @@ export function buildTimelineRows(
       return {
         id: flow.id,
         step: workflowFlowLabel(flow.id, dictionary),
-        llmActualTokens: sumNullableTokens(files.map((file) => file.llmActualTokens)),
-        localEstimatedTokens: files.reduce((sum, file) => sum + file.localEstimatedTokens, 0),
+        llmActualTokens: sumFlowLlmTokens(tokenUsageRecords, flowFileEntries),
+        localEstimatedTokens: sumFlowLocalTokens(tokenUsageRecords, flowFileEntries),
         tone: flow.id === "qa" || flow.id === "done" ? "success" : flow.optional ? "warning" : "primary",
         completedBy: username,
         time: formatDateValue(completedAt.value, language, fallbackTime),
@@ -1090,7 +1282,7 @@ export function buildTimelineBounds(
   dictionary: DashboardLocale
 ): TimelineBounds {
   const timestampValues = workflowFlowDefinitions
-    .filter((flow) => topicHasFlowEvidence(topic, flow))
+    .filter((flow) => topicHasFlowEvidence(topic, flow) && flowHasFullCompletionEvidence(topic, flow))
     .flatMap((flow) => {
       const timestamps = flowTimestampBundle(topic, flow);
       return [timestamps.startedAt.value, timestamps.completedAt.value].filter((value): value is string => Boolean(value));
@@ -1135,11 +1327,6 @@ function formatTimelineDateLine(value: string | null, language: HistoryLanguage,
 function formatTimelineTimeLine(value: string | null, language: HistoryLanguage): string {
   const lines = formatDateTimeLines(value, language, "");
   return lines[1] ?? "";
-}
-
-function sumNullableTokens(values: Array<number | null>): number | null {
-  const numeric = values.filter((value): value is number => typeof value === "number");
-  return numeric.length ? numeric.reduce((sum, value) => sum + value, 0) : null;
 }
 
 export function buildRelationGroups(topic: TopicSummary, topics: TopicSummary[]): RelationGroup[] {

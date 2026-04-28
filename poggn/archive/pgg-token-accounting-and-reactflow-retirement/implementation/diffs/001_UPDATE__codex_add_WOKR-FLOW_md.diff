@@ -1,0 +1,12 @@
+diff --git a/.codex/add/WOKR-FLOW.md b/.codex/add/WOKR-FLOW.md
+index 1765fea..ae6bc5e 100644
+--- a/.codex/add/WOKR-FLOW.md
++++ b/.codex/add/WOKR-FLOW.md
+@@ -45,7 +45,7 @@ pgg는 core workflow와 필요할 때만 여는 optional audit로 delivery를 
+  1. `pgg-add`
+    - topic 생성
+-   - `proposal.md`, `reviews/proposal.review.md`, `state/current.md`, `workflow.reactflow.json` 생성
++   - `proposal.md`, `reviews/proposal.review.md`, `state/current.md` 생성
+    - topic 생성 시점의 dirty worktree path가 있으면 `state/dirty-worktree-baseline.txt`로 baseline을 기록
+    - 사용자 입력 질문 기록과 current-project 범위 내부 확인/기록 절차, `archive_type`, `version_bump`, `target_version`, branch naming 확정
+ 2. `pgg-plan`

@@ -1,0 +1,26 @@
+diff --git a/.codex/add/WOKR-FLOW.md b/.codex/add/WOKR-FLOW.md
+index 79d1fdd..2ebc5dc 100644
+--- a/.codex/add/WOKR-FLOW.md
++++ b/.codex/add/WOKR-FLOW.md
+@@ -18,6 +18,9 @@ pgg는 core workflow와 필요할 때만 여는 optional audit로 delivery를 
+ - active topic 진행 중 사용자가 새 요구사항 또는 수정사항을 추가하면, 해당 stage 작업을 시작하기 전에 `state/history.ndjson`에 `requirements-added` event를 append해 dashboard workflow가 즉시 `추가 진행` 상태를 계산할 수 있게 한다.
+ - 작업 중간 산출물 정리나 검증 전 상태는 `stage-progress`로만 기록하고, `stage-completed`는 검증이 끝난 최종 완료 시점에만 `source:"verified"` 계열 evidence로 남긴다.
+ - `pgg git=on`인 stage는 `.codex/sh/pgg-stage-commit.sh`가 남기는 `stage-commit` evidence를 완료 기준으로 삼아 `추가 진행` 상태를 해소한다.
++- dashboard Overview에서 `pgg-token`, `pgg-performance` optional audit flow는 실제 실행 evidence가 있을 때만 표시하고, `required` applicability나 static flow definition만으로는 표시하지 않는다.
++- dashboard timeline은 workflow progress가 `완료`로 계산된 flow만 표시하며, `stage-started`, `stage-progress`, partial artifact, updatedAt fallback을 완료 이력으로 취급하지 않는다.
++- 각 flow 작업과 파일 생성/수정/삭제 token usage는 필요 시 `state/token-usage.ndjson`에 append-only로 기록하고, `llm`과 `local`, actual과 estimated를 구분한다.
+ - proposal 단계에서 `archive_type`, `version_bump`, `target_version`, branch naming, `project_scope`를 확정하고, `archive_type`는 change category, `version_bump`는 semver impact로 구분해 다음 stage와 archive helper가 같은 값을 사용하게 한다.
+ - 대상 프로젝트 검증은 선언된 current-project verification command contract만 사용하고, framework 명령을 추론 실행하지 않는다.
+ - QA를 통과한 topic만 archive로 이동한다.
+@@ -66,9 +69,11 @@ pgg는 core workflow와 필요할 때만 여는 optional audit로 delivery를 
+ - `pgg-token`
+   - workflow 자산, state handoff, helper, generated 문서 구조를 점검할 때만 연다
+   - 실행된 경우에만 `token/report.md`를 남기고, `required` applicability일 때만 gate에서 강제한다
++  - dashboard에는 실제 token audit 실행 evidence가 있을 때만 flow로 표시한다
+ - `pgg-performance`
+   - 성능 민감 변경 또는 선언된 verification contract가 있을 때만 연다
+   - 실행된 경우에만 `performance/report.md`를 남기고, `required` applicability일 때만 gate에서 강제한다
++  - dashboard에는 실제 performance audit 실행 evidence가 있을 때만 flow로 표시한다
+ 
+ ### Audit Applicability Contract
+ 

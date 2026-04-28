@@ -1,0 +1,14 @@
+{
+  "topic": "pgg-token-accounting-and-reactflow-retirement",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "version": "3.0.5",
+  "targetVersion": "3.0.5",
+  "previousVersion": "3.0.4",
+  "shortName": "token-retirement",
+  "workingBranch": "ai/fix/3.0.5-token-retirement",
+  "releaseBranch": "release/3.0.5-token-retirement",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-28T04:36:07Z",
+  "history": "poggn/version-history.ndjson"
+}

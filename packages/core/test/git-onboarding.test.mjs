@@ -6,13 +6,16 @@ import path from "node:path";
 import test from "node:test";
 
 import {
+  analyzeProject,
   buildDashboardSnapshot,
   deferProjectGitSetup,
+  initializeDashboardProject,
   initializeProject,
   inspectProjectGitSetup,
   loadProjectManifest,
   parseGitRemoteUrl,
   runProjectGitOnboarding,
+  updateGlobalUsername,
   updateProjectGitMode
 } from "../dist/index.js";
 
@@ -111,6 +114,51 @@ test("git defaults are preserved while setup can be deferred", async () => {
       assert.equal(project?.defaultRemote, "origin");
       assert.equal(project?.workingBranchPrefix, "ai");
       assert.equal(project?.releaseBranchPrefix, "release");
+    });
+  });
+});
+
+test("git-off initialization works without repository setup and preserves explicit off mode", async () => {
+  await withTemporaryRoot("pgg-git-off-init-", async (rootDir) => {
+    await withTemporaryPggHome(rootDir, async () => {
+      await initializeProject(rootDir, {
+        provider: "codex",
+        language: "en",
+        autoMode: "on",
+        teamsMode: "off",
+        gitMode: "off"
+      });
+      const initialManifest = await loadProjectManifest(rootDir);
+      assert.equal(initialManifest?.git.mode, "off");
+      assert.equal(initialManifest?.git.setupStatus, "none");
+
+      git(rootDir, ["init"]);
+      git(rootDir, ["remote", "add", "origin", "git@github.com:acme/widget.git"]);
+
+      const project = await analyzeProject(rootDir);
+      assert.equal(project.gitMode, "off");
+      assert.equal(project.gitSetupStatus, "none");
+      assert.equal(project.gitRemoteUrl, null);
+    });
+  });
+});
+
+test("dashboard project init can register git-off without onboarding", async () => {
+  await withTemporaryRoot("pgg-dashboard-git-off-init-", async (rootDir) => {
+    await withTemporaryPggHome(rootDir, async () => {
+      await updateGlobalUsername("Jane Doe");
+      const registry = await initializeDashboardProject(rootDir, {
+        provider: "codex",
+        language: "en",
+        autoMode: "on",
+        teamsMode: "off",
+        gitMode: "off"
+      });
+      const manifest = await loadProjectManifest(rootDir);
+
+      assert.equal(manifest?.git.mode, "off");
+      assert.equal(manifest?.git.setupStatus, "none");
+      assert.equal(registry.projects.find((entry) => entry.rootDir === rootDir)?.gitMode, "off");
     });
   });
 });

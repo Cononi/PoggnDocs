@@ -1,0 +1,32 @@
+{
+  "topic": "dashboard-git-diff-lazy-view",
+  "version": "3.2.0",
+  "targetVersion": "3.2.0",
+  "changeType": "feat",
+  "versionBump": "minor",
+  "commitTitle": "feat: 3.2.0.Git 기반 diff 지연 조회",
+  "commitSha": "49935b5ff9f5df583abcc444f86ed8c8236e40cc",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/3.2.0-dashboard-view",
+  "workingBranch": "ai/feat/3.2.0-dashboard-view",
+  "releaseBranch": "release/3.2.0-dashboard-view",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-28T06:28:29Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/3.2.0-dashboard-view'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/dashboard-git-diff-lazy-view",
+    "versionFile": "poggn/archive/dashboard-git-diff-lazy-view/version.json"
+  }
+}

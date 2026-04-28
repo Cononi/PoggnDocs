@@ -1,0 +1,14 @@
+{
+  "topic": "pgg-workflow-token-commit-contract",
+  "changeType": "feat",
+  "versionBump": "major",
+  "version": "3.0.0",
+  "targetVersion": "3.0.0",
+  "previousVersion": "2.9.0",
+  "shortName": "token-commit-contract",
+  "workingBranch": "ai/feat/3.0.0-token-commit-contract",
+  "releaseBranch": "release/3.0.0-token-commit-contract",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-28T01:50:33Z",
+  "history": "poggn/version-history.ndjson"
+}

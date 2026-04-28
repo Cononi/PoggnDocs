@@ -1,0 +1,14 @@
+{
+  "topic": "dashboard-workflow-token-labels-and-flow-totals",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "version": "3.0.2",
+  "targetVersion": "3.0.2",
+  "previousVersion": "3.0.1",
+  "shortName": "dashboard-totals",
+  "workingBranch": "ai/fix/3.0.2-dashboard-totals",
+  "releaseBranch": "release/3.0.2-dashboard-totals",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-28T02:34:39Z",
+  "history": "poggn/version-history.ndjson"
+}

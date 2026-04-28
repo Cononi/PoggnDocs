@@ -1,0 +1,32 @@
+{
+  "topic": "dashboard-optional-audit-token-metrics",
+  "version": "2.9.0",
+  "targetVersion": "2.9.0",
+  "changeType": "feat",
+  "versionBump": "minor",
+  "commitTitle": "feat: 2.9.0.audit token 지표",
+  "commitSha": "f91b3e08d46e5fbbdb674b0a894f506b1b32904f",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/2.9.0-dashboard-metrics",
+  "workingBranch": "ai/feat/2.9.0-dashboard-metrics",
+  "releaseBranch": "release/2.9.0-dashboard-metrics",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-28T00:32:11Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/2.9.0-dashboard-metrics'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/dashboard-optional-audit-token-metrics",
+    "versionFile": "poggn/archive/dashboard-optional-audit-token-metrics/version.json"
+  }
+}

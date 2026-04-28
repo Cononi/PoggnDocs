@@ -1,0 +1,32 @@
+{
+  "topic": "pgg-dashboard-flow-token-accounting-enforcement",
+  "version": "3.0.3",
+  "targetVersion": "3.0.3",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "commitTitle": "fix: 3.0.3.flow token 계산",
+  "commitSha": "a1f1a589f6b447f6831aad71671b6d0c152df41c",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/3.0.3-dashboard-enforcement",
+  "workingBranch": "ai/fix/3.0.3-dashboard-enforcement",
+  "releaseBranch": "release/3.0.3-dashboard-enforcement",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-28T03:04:55Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/3.0.3-dashboard-enforcement'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/pgg-dashboard-flow-token-accounting-enforcement",
+    "versionFile": "poggn/archive/pgg-dashboard-flow-token-accounting-enforcement/version.json"
+  }
+}

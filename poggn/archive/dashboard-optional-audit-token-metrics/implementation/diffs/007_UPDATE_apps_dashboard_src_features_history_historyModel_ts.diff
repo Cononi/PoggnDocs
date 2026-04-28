@@ -1,0 +1,75 @@
+diff --git a/apps/dashboard/src/features/history/historyModel.ts b/apps/dashboard/src/features/history/historyModel.ts
+index 5c6f9c0..f3a7633 100644
+--- a/apps/dashboard/src/features/history/historyModel.ts
++++ b/apps/dashboard/src/features/history/historyModel.ts
+@@ -267,9 +267,52 @@ function topicHasFlowArtifactEvidence(topic: TopicSummary, flow: WorkflowFlowDef
+ }
+ 
+ function topicHasFlowEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition): boolean {
++  if (flow.optional) {
++    return topicHasOptionalAuditExecutionEvidence(topic, flow);
++  }
++
+   return normalizeFlowId(topic.stage) === flow.id || topicHasFlowArtifactEvidence(topic, flow) || flowHistoryEvents(topic, flow).length > 0;
+ }
+ 
++function fileHasMeaningfulAuditContent(file: TopicFileEntry): boolean {
++  const content = file.content?.trim();
++  if (!content) {
++    return false;
++  }
++  return !/placeholder|not started|not run|사용자 입력 질문을 원문 의미 그대로/i.test(content);
++}
++
++function nodeHasOptionalAuditExecutionEvidence(node: WorkflowNodeEntry): boolean {
++  const detail = node.data.detail;
++  const status = `${node.data.status ?? ""} ${detail?.status ?? ""} ${detail?.summary ?? ""}`;
++  return Boolean(
++    detail?.startedAt ||
++      detail?.updatedAt ||
++      detail?.completedAt ||
++      /started|progress|running|complete|completed|verified|pass|실행|진행|완료|검증/i.test(status)
++  );
++}
++
++function isOptionalAuditExecutionEvent(event: TopicHistoryEventEntry): boolean {
++  if (!event.ts) {
++    return false;
++  }
++  return eventNameMatches(event, [/stage-started/i, /stage-progress/i, /stage-completed/i, /stage-commit/i]);
++}
++
++function topicHasOptionalAuditExecutionEvidence(topic: TopicSummary, flow: WorkflowFlowDefinition): boolean {
++  const hasEventEvidence = flowHistoryEvents(topic, flow).some(isOptionalAuditExecutionEvent);
++  const hasFileEvidence = flowFiles(topic, flow).some((file) => {
++    const path = file.relativePath;
++    const expectedReport = flow.id === "token" ? /^token\/report\.md$/ : /^performance\/report\.md$/;
++    const expectedReview = flow.id === "token" ? /^reviews\/token\.review\.md$/ : /^reviews\/performance\.review\.md$/;
++    return (expectedReport.test(path) || expectedReview.test(path)) && fileHasMeaningfulAuditContent(file);
++  });
++  const hasNodeEvidence = flowNodes(topic, flow).some(nodeHasOptionalAuditExecutionEvidence);
++
++  return hasEventEvidence || hasFileEvidence || hasNodeEvidence;
++}
++
+ function visibleWorkflowFlows(topic: TopicSummary): WorkflowFlowDefinition[] {
+   const flows = workflowFlowDefinitions.filter((flow) => !flow.optional || topicHasFlowEvidence(topic, flow));
+   if (topic.bucket === "archive") {
+@@ -1045,7 +1088,7 @@ export function buildTimelineRows(
+ ): TimelineRow[] {
+   const fallbackTime = formatTopicDate(topic, language, "Pending");
+   return workflowFlowDefinitions
+-    .filter((flow) => topicHasFlowEvidence(topic, flow))
++    .filter((flow) => topicHasFlowEvidence(topic, flow) && flowHasFullCompletionEvidence(topic, flow))
+     .map((flow) => {
+       const files = flowFiles(topic, flow).map((file) => ({
+         path: file.relativePath,
+@@ -1090,7 +1133,7 @@ export function buildTimelineBounds(
+   dictionary: DashboardLocale
+ ): TimelineBounds {
+   const timestampValues = workflowFlowDefinitions
+-    .filter((flow) => topicHasFlowEvidence(topic, flow))
++    .filter((flow) => topicHasFlowEvidence(topic, flow) && flowHasFullCompletionEvidence(topic, flow))
+     .flatMap((flow) => {
+       const timestamps = flowTimestampBundle(topic, flow);
+       return [timestamps.startedAt.value, timestamps.completedAt.value].filter((value): value is string => Boolean(value));

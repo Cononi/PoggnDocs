@@ -1,0 +1,102 @@
+diff --git a/packages/core/dist/index.js b/packages/core/dist/index.js
+index 653edf5..52c7c18 100644
+--- a/packages/core/dist/index.js
++++ b/packages/core/dist/index.js
+@@ -2076,11 +2076,72 @@ function sumTokenRecords(records, predicate) {
+ function isActualLlmTokenRecord(record) {
+     return record.source === "llm" && record.measurement === "actual" && !record.estimated && record.usageMetadataAvailable;
+ }
++function directLlmTokenRecordTotal(record) {
++    if (record.source !== "llm" || record.totalTokens <= 0 || record.measurement === "unavailable") {
++        return null;
++    }
++    if (isActualLlmTokenRecord(record) || record.measurement === "actual" || record.measurement === "estimated") {
++        return record.totalTokens;
++    }
++    return null;
++}
+ function sumLocalTokenRecords(records) {
+     return sumTokenRecords(records, (record) => record.source === "local") ?? 0;
+ }
+-function sumActualLlmTokenRecords(records) {
+-    return sumTokenRecords(records, isActualLlmTokenRecord);
++function buildTokenEstimateLookup(files) {
++    const estimates = new Map();
++    for (const file of files) {
++        if (file.tokenEstimate === null) {
++            continue;
++        }
++        const relativePath = normalizeTokenUsagePath(file.relativePath);
++        const sourcePath = normalizeTokenUsagePath(file.sourcePath);
++        if (relativePath) {
++            estimates.set(relativePath, file.tokenEstimate);
++        }
++        if (sourcePath) {
++            estimates.set(sourcePath, file.tokenEstimate);
++        }
++    }
++    return (artifactPath) => {
++        const normalized = normalizeTokenUsagePath(artifactPath);
++        return normalized ? estimates.get(normalized) ?? null : null;
++    };
++}
++function sumLlmTokenRecords(records, estimateForArtifact) {
++    let total = 0;
++    let seen = false;
++    const directArtifacts = new Set();
++    const fallbackArtifacts = new Set();
++    for (const record of records) {
++        if (record.source !== "llm") {
++            continue;
++        }
++        const artifactPath = normalizeTokenUsagePath(record.artifactPath);
++        const directTotal = directLlmTokenRecordTotal(record);
++        if (directTotal !== null) {
++            total += directTotal;
++            seen = true;
++            if (artifactPath) {
++                directArtifacts.add(artifactPath);
++            }
++            continue;
++        }
++        if (artifactPath) {
++            fallbackArtifacts.add(artifactPath);
++        }
++    }
++    for (const artifactPath of fallbackArtifacts) {
++        if (directArtifacts.has(artifactPath)) {
++            continue;
++        }
++        const estimate = estimateForArtifact(artifactPath);
++        if (estimate !== null) {
++            total += estimate;
++            seen = true;
++        }
++    }
++    return seen ? total : null;
+ }
+ function applyTokenUsageRecordsToFile(file, records) {
+     const artifactRecords = tokenUsageRecordsForArtifact(records, file.relativePath, file.sourcePath);
+@@ -2088,7 +2149,7 @@ function applyTokenUsageRecordsToFile(file, records) {
+         return file;
+     }
+     const localEstimatedTokens = sumLocalTokenRecords(artifactRecords);
+-    const llmActualTokens = sumActualLlmTokenRecords(artifactRecords);
++    const llmActualTokens = sumLlmTokenRecords(artifactRecords, () => file.tokenEstimate);
+     return {
+         ...file,
+         localEstimatedTokens,
+@@ -2177,11 +2238,10 @@ async function listTopicFiles(rootDir, topicDir, bucket, topic, tokenUsageRecord
+ }
+ function summarizeTopicTokenUsage(files, tokenUsageRecords) {
+     if (tokenUsageRecords.length > 0) {
+-        const total = tokenUsageRecords.reduce((sum, record) => sum + record.totalTokens, 0);
+-        const llmActualTokens = sumActualLlmTokenRecords(tokenUsageRecords);
++        const llmActualTokens = sumLlmTokenRecords(tokenUsageRecords, buildTokenEstimateLookup(files));
+         const localEstimatedTokens = sumLocalTokenRecords(tokenUsageRecords);
+         return {
+-            total,
++            total: (llmActualTokens ?? 0) + localEstimatedTokens,
+             llmActualTokens,
+             localEstimatedTokens,
+             source: "ledger",

@@ -142,6 +142,7 @@ ACTIVE_SPECS="$(extract_section "Active Specs")"
 ACTIVE_TASKS="$(extract_section "Active Tasks")"
 AUDIT_APPLICABILITY="$(extract_section "Audit Applicability")"
 GIT_PUBLISH_MESSAGE="$(extract_section "Git Publish Message")"
+TOKEN_USAGE_FILE="$TOPIC_DIR/state/token-usage.ndjson"
 if [[ -n "$ACTIVE_SPECS" ]]; then
   printf 'active_specs:\n%s\n' "$ACTIVE_SPECS"
 fi
@@ -154,4 +155,61 @@ fi
 if [[ -n "$GIT_PUBLISH_MESSAGE" ]]; then
   printf 'git_publish_message_ref: %s#Git Publish Message\n' "$(to_rel "$STATE_FILE")"
   printf 'git_publish_message:\n%s\n' "$GIT_PUBLISH_MESSAGE"
+fi
+if [[ -f "$TOKEN_USAGE_FILE" ]]; then
+  printf 'token_usage_ref: %s\n' "$(to_rel "$TOKEN_USAGE_FILE")"
+  node -e '
+    const path = require("path");
+    const fs = require("fs");
+    const topicDir = process.argv[2];
+    const rootDir = process.argv[3];
+    const normalize = (value) => {
+      if (!value || typeof value !== "string") return null;
+      return value.replace(/^\.\//, "").replace(/^poggn\/(?:active|archive)\/[^/]+\//, "");
+    };
+    const estimateArtifact = (artifactPath) => {
+      const normalized = normalize(artifactPath);
+      if (!normalized) return null;
+      for (const baseDir of [topicDir, rootDir]) {
+        try {
+          const content = fs.readFileSync(path.join(baseDir, normalized), "utf8");
+          return Math.ceil(Array.from(content).length / 4);
+        } catch {}
+      }
+      return null;
+    };
+    const lines = fs.readFileSync(process.argv[1], "utf8").split(/\n+/).map((line) => line.trim()).filter(Boolean);
+    let llm = 0;
+    let local = 0;
+    let unavailable = 0;
+    const actualArtifacts = new Set();
+    const fallbackArtifacts = new Set();
+    for (const line of lines) {
+      try {
+        const entry = JSON.parse(line);
+        const total = Number.isFinite(entry.total_tokens) ? entry.total_tokens : Number.isFinite(entry.totalTokens) ? entry.totalTokens : 0;
+        const artifactPath = normalize(entry.artifact_path ?? entry.artifactPath);
+        const usageMetadataAvailable = entry.usage_metadata_available === true || entry.usageMetadataAvailable === true;
+        const isActualLlm = entry.source === "llm" && entry.measurement === "actual" && entry.estimated === false && usageMetadataAvailable;
+        if (isActualLlm && total > 0) {
+          llm += total;
+          if (artifactPath) actualArtifacts.add(artifactPath);
+        } else if (entry.source === "llm" && artifactPath) {
+          fallbackArtifacts.add(artifactPath);
+        } else if (entry.source === "local") {
+          local += total;
+        }
+        if (entry.measurement === "unavailable") unavailable += 1;
+      } catch {}
+    }
+    for (const artifactPath of fallbackArtifacts) {
+      if (actualArtifacts.has(artifactPath)) continue;
+      const estimate = estimateArtifact(artifactPath);
+      if (estimate !== null) local += estimate;
+    }
+    console.log(`token_usage_records: ${lines.length}`);
+    console.log(`token_usage_llm_total: ${llm}`);
+    console.log(`token_usage_local_total: ${local}`);
+    console.log(`token_usage_unavailable_records: ${unavailable}`);
+  ' "$TOKEN_USAGE_FILE" "$TOPIC_DIR" "$ROOT_DIR"
 fi

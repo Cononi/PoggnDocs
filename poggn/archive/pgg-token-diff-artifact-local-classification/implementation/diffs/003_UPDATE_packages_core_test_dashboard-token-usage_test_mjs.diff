@@ -1,0 +1,36 @@
+diff --git a/packages/core/test/dashboard-token-usage.test.mjs b/packages/core/test/dashboard-token-usage.test.mjs
+index c73d5c7..91f01fd 100644
+--- a/packages/core/test/dashboard-token-usage.test.mjs
++++ b/packages/core/test/dashboard-token-usage.test.mjs
+@@ -205,6 +205,7 @@ test("dashboard snapshots count topic artifacts as llm tokens without a ledger",
+ 
+       await writeTopicFile(topicDir, "proposal.md", "# Proposal\n\nLLM generated proposal artifact.\n");
+       await writeTopicFile(topicDir, "plan.md", "# Plan\n\nLLM generated plan artifact.\n");
++      await writeTopicFile(topicDir, "implementation/diffs/001_UPDATE_example.diff", "diff --git a/example.ts b/example.ts\n+const value = 1;\n");
+       await writeTopicFile(
+         topicDir,
+         "state/current.md",
+@@ -215,13 +216,19 @@ test("dashboard snapshots count topic artifacts as llm tokens without a ledger",
+       const snapshot = await buildDashboardSnapshot(rootDir);
+       const project = snapshot.projects.find((entry) => entry.rootDir === rootDir);
+       const topicSummary = project?.activeTopics.find((entry) => entry.name === topic);
+-      const fileLlmTokens = topicSummary?.files.reduce((sum, file) => sum + (file.tokenEstimate ?? 0), 0) ?? 0;
++      const diffFile = topicSummary?.files.find((file) => file.relativePath === "implementation/diffs/001_UPDATE_example.diff");
++      const fileLlmTokens =
++        topicSummary?.files
++          .filter((file) => file.relativePath !== "implementation/diffs/001_UPDATE_example.diff")
++          .reduce((sum, file) => sum + (file.tokenEstimate ?? 0), 0) ?? 0;
++      const fileLocalTokens = diffFile?.tokenEstimate ?? 0;
+ 
+       assert.equal(topicSummary?.tokenUsage.source, "estimated");
+       assert.equal(topicSummary?.tokenUsage.llmActualTokens, fileLlmTokens);
+-      assert.equal(topicSummary?.tokenUsage.localEstimatedTokens, 0);
+-      assert.equal(topicSummary?.tokenUsage.total, fileLlmTokens);
+-      assert.equal(topicSummary?.files.every((file) => file.localEstimatedTokens === 0), true);
++      assert.equal(topicSummary?.tokenUsage.localEstimatedTokens, fileLocalTokens);
++      assert.equal(topicSummary?.tokenUsage.total, fileLlmTokens + fileLocalTokens);
++      assert.equal(diffFile?.llmActualTokens, null);
++      assert.equal(diffFile?.localEstimatedTokens, fileLocalTokens);
+     });
+   } finally {
+     await rm(rootDir, { recursive: true, force: true });

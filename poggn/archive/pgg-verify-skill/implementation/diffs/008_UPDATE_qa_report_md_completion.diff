@@ -1,0 +1,38 @@
+diff --git a/poggn/active/pgg-verify-skill/qa/report.md b/poggn/active/pgg-verify-skill/qa/report.md
+index e9716fc..ab92b43 100644
+--- a/poggn/active/pgg-verify-skill/qa/report.md
++++ b/poggn/active/pgg-verify-skill/qa/report.md
+@@ -53,7 +53,7 @@ pgg:
+ | Case | Result | Evidence |
+ |---|---|---|
+ | missing verification contract | pass | explicit user completion request and executed `pnpm test`/`pnpm build` evidence are recorded instead of inferring hidden commands |
+-| pending topic release metadata | pass | archive helper computes the next patch version after `pgg-token-accounting-and-reactflow-retirement` is archived |
++| pending topic release metadata | pass | `pgg-token-accounting-and-reactflow-retirement` archive 후 `target_version: 3.0.6`으로 확정했다 |
+ | active version reservation conflict | pass | active topics are completed sequentially; `pgg-token-accounting-and-reactflow-retirement` publishes `3.0.5` first |
+ | invalid generated skill registration | pass | `packages/core/src/workflow-contract.ts` and `packages/core/src/templates.ts` include `pgg-verify`; core tests pass |
+ 
+@@ -71,7 +71,7 @@ pgg:
+ |---|---|---|
+ | init/update generated skill flow | pass | regression test `initializeProject and updateProject keep standalone skills managed` passed |
+ | manifest managed file flow | pass | `.pgg/project.json` includes `.codex/skills/pgg-verify/SKILL.md` managed file entry |
+-| archive flow | ready | QA decision is pass and pending release metadata will be resolved by `pgg-version.sh` during archive |
++| archive flow | ready | QA decision is pass and release metadata is resolved to `3.0.6` |
+ 
+ ## Performance Smoke Check
+ 
+@@ -91,13 +91,13 @@ pgg:
+ | Expert | Score | Summary | Blocking |
+ |---|---:|---|---|
+ | QA/테스트 엔지니어 | 96 | skill 요구사항과 generated registration 회귀 테스트가 통과했고, workspace test/build evidence가 추가로 확인됐다. | 없음 |
+-| SRE / 운영 엔지니어 | 96 | pending release metadata는 token-retirement archive 이후 다음 patch version으로 계산되므로 sequential archive가 가능하다. | 없음 |
++| SRE / 운영 엔지니어 | 96 | token-retirement archive 이후 release metadata를 `3.0.6`으로 확정해 sequential archive가 가능하다. | 없음 |
+ 
+ ## Decision
+ 
+ - pass
+ 
+-Archive를 실행한다. `pgg-token-accounting-and-reactflow-retirement`를 먼저 archive/publish한 뒤 이 topic은 다음 patch version으로 versioning한다.
++Archive를 실행한다. `pgg-token-accounting-and-reactflow-retirement`를 먼저 archive/publish했고 이 topic은 `3.0.6`으로 versioning한다.
+ 
+ ## Git Publish Message
+ 

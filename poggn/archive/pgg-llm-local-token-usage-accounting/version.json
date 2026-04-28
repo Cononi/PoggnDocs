@@ -1,0 +1,14 @@
+{
+  "topic": "pgg-llm-local-token-usage-accounting",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "version": "3.0.1",
+  "targetVersion": "3.0.1",
+  "previousVersion": "3.0.0",
+  "shortName": "llm-accounting",
+  "workingBranch": "ai/fix/3.0.1-llm-accounting",
+  "releaseBranch": "release/3.0.1-llm-accounting",
+  "projectScope": "current-project",
+  "archivedAt": "2026-04-28T02:15:51Z",
+  "history": "poggn/version-history.ndjson"
+}

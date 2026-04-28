@@ -1,0 +1,178 @@
+{
+  "topic": "pgg-workflow-token-commit-contract",
+  "nodes": [
+    {
+      "id": "proposal",
+      "type": "doc",
+      "position": { "x": 0, "y": 0 },
+      "data": {
+        "label": "proposal.md",
+        "stage": "proposal",
+        "status": "reviewed",
+        "score": 96,
+        "summary": "workflow process 모바일 형태 유지, token 측정 정확도, task 행 단위 commit, pgg lang 문서/주석 계약을 확정한다."
+      }
+    },
+    {
+      "id": "proposal-review",
+      "type": "review",
+      "position": { "x": 280, "y": 0 },
+      "data": {
+        "label": "reviews/proposal.review.md",
+        "stage": "proposal",
+        "status": "approved",
+        "score": 96,
+        "experts": ["프로덕트 매니저", "UX/UI 전문가"]
+      }
+    },
+    {
+      "id": "plan",
+      "type": "doc",
+      "position": { "x": 560, "y": 0 },
+      "data": {
+        "label": "plan.md",
+        "stage": "plan",
+        "status": "reviewed",
+        "score": 97,
+        "summary": "workflow process scaling, token measurement, token clips, task-row commit, pgg lang, init/update 전파를 spec으로 분해한다."
+      }
+    },
+    {
+      "id": "task",
+      "type": "doc",
+      "position": { "x": 840, "y": 0 },
+      "data": {
+        "label": "task.md",
+        "stage": "task",
+        "status": "reviewed",
+        "score": 97,
+        "summary": "T1부터 T6까지 pgg-code 구현 task를 정의한다."
+      }
+    },
+    {
+      "id": "spec-dashboard-mobile-workflow-process-scaling",
+      "type": "spec",
+      "position": { "x": 1120, "y": -210 },
+      "data": {
+        "label": "spec/dashboard/mobile-workflow-process-scaling.md",
+        "stage": "plan",
+        "status": "reviewed",
+        "score": 97,
+        "summary": "모바일 workflow process 형태 유지와 scale down 계약"
+      }
+    },
+    {
+      "id": "spec-token-accurate-token-measurement-ledger",
+      "type": "spec",
+      "position": { "x": 1120, "y": -105 },
+      "data": {
+        "label": "spec/token/accurate-token-measurement-ledger.md",
+        "stage": "plan",
+        "status": "reviewed",
+        "score": 97,
+        "summary": "LLM actual과 Local token source 분리 ledger 계약"
+      }
+    },
+    {
+      "id": "spec-dashboard-token-source-clips",
+      "type": "spec",
+      "position": { "x": 1120, "y": 0 },
+      "data": {
+        "label": "spec/dashboard/token-source-clips.md",
+        "stage": "plan",
+        "status": "reviewed",
+        "score": 97,
+        "summary": "LLM clip과 Local clip 분리 표시 계약"
+      }
+    },
+    {
+      "id": "spec-git-task-row-commit-governance",
+      "type": "spec",
+      "position": { "x": 1120, "y": 105 },
+      "data": {
+        "label": "spec/git/task-row-commit-governance.md",
+        "stage": "plan",
+        "status": "reviewed",
+        "score": 97,
+        "summary": "task.md T1...N 행 단위 commit 계약"
+      }
+    },
+    {
+      "id": "spec-i18n-pgg-lang-documentation-and-comments",
+      "type": "spec",
+      "position": { "x": 1120, "y": 210 },
+      "data": {
+        "label": "spec/i18n/pgg-lang-documentation-and-comments.md",
+        "stage": "plan",
+        "status": "reviewed",
+        "score": 97,
+        "summary": "pgg lang 기반 문서와 pgg 생성/수정 주석 계약"
+      }
+    },
+    {
+      "id": "spec-pgg-init-update-propagation",
+      "type": "spec",
+      "position": { "x": 1120, "y": 315 },
+      "data": {
+        "label": "spec/pgg/init-update-propagation.md",
+        "stage": "plan",
+        "status": "reviewed",
+        "score": 97,
+        "summary": "init/update generated asset 전파 계약"
+      }
+    },
+    {
+      "id": "plan-review",
+      "type": "review",
+      "position": { "x": 1400, "y": -60 },
+      "data": {
+        "label": "reviews/plan.review.md",
+        "stage": "plan",
+        "status": "approved",
+        "score": 97,
+        "experts": ["소프트웨어 아키텍트", "도메인 전문가"]
+      }
+    },
+    {
+      "id": "task-review",
+      "type": "review",
+      "position": { "x": 1400, "y": 80 },
+      "data": {
+        "label": "reviews/task.review.md",
+        "stage": "task",
+        "status": "approved",
+        "score": 97,
+        "experts": ["소프트웨어 아키텍트", "도메인 전문가"]
+      }
+    },
+    {
+      "id": "next-code",
+      "type": "handoff",
+      "position": { "x": 1680, "y": 0 },
+      "data": {
+        "label": "pgg-code",
+        "stage": "implementation",
+        "status": "ready",
+        "summary": "T1...T6를 task 행 단위로 구현하고 commit/defer evidence를 남긴다."
+      }
+    }
+  ],
+  "edges": [
+    { "id": "proposal-to-review", "source": "proposal", "target": "proposal-review" },
+    { "id": "review-to-plan", "source": "proposal-review", "target": "plan" },
+    { "id": "plan-to-task", "source": "plan", "target": "task" },
+    { "id": "task-to-s1", "source": "task", "target": "spec-dashboard-mobile-workflow-process-scaling" },
+    { "id": "task-to-s2", "source": "task", "target": "spec-token-accurate-token-measurement-ledger" },
+    { "id": "task-to-s3", "source": "task", "target": "spec-dashboard-token-source-clips" },
+    { "id": "task-to-s4", "source": "task", "target": "spec-git-task-row-commit-governance" },
+    { "id": "task-to-s5", "source": "task", "target": "spec-i18n-pgg-lang-documentation-and-comments" },
+    { "id": "task-to-s6", "source": "task", "target": "spec-pgg-init-update-propagation" },
+    { "id": "s2-to-s3", "source": "spec-token-accurate-token-measurement-ledger", "target": "spec-dashboard-token-source-clips" },
+    { "id": "s3-to-s1", "source": "spec-dashboard-token-source-clips", "target": "spec-dashboard-mobile-workflow-process-scaling" },
+    { "id": "s4-to-s5", "source": "spec-git-task-row-commit-governance", "target": "spec-i18n-pgg-lang-documentation-and-comments" },
+    { "id": "specs-to-plan-review", "source": "spec-pgg-init-update-propagation", "target": "plan-review" },
+    { "id": "task-to-task-review", "source": "task", "target": "task-review" },
+    { "id": "plan-review-to-code", "source": "plan-review", "target": "next-code" },
+    { "id": "task-review-to-code", "source": "task-review", "target": "next-code" }
+  ]
+}

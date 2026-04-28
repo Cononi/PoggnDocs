@@ -87,3 +87,120 @@ test("blocked evidence after completion keeps the flow stage-blocked", () => {
 
   assert.equal(refactor?.status, "stage-blocked");
 });
+
+test("timeline rows use completed flow scoped token records", () => {
+  const { buildTimelineRows } = loadHistoryModel();
+  const topic = {
+    ...workflowTopic([
+      { stage: "implementation", event: "stage-completed", source: "verified", ts: "2026-04-27T12:01:00Z" },
+      { stage: "qa", event: "stage-completed", source: "verified", ts: "2026-04-27T12:02:00Z" }
+    ]),
+    files: [
+      {
+        relativePath: "implementation/index.md",
+        sourcePath: "poggn/active/topic/implementation/index.md",
+        tokenEstimate: 10,
+        llmActualTokens: 10,
+        localEstimatedTokens: 0,
+        content: "# Implementation"
+      },
+      {
+        relativePath: "implementation/diffs/001_UPDATE_example.diff",
+        sourcePath: "poggn/active/topic/implementation/diffs/001_UPDATE_example.diff",
+        tokenEstimate: 15,
+        llmActualTokens: null,
+        localEstimatedTokens: 15,
+        content: "diff --git a/example.ts b/example.ts"
+      },
+      {
+        relativePath: "implementation/diffs/002_UPDATE_lazy.diff",
+        sourcePath: "poggn/active/topic/implementation/index.md#002",
+        tokenEstimate: null,
+        llmActualTokens: null,
+        localEstimatedTokens: null,
+        content: null,
+        lazyDiff: {
+          topic: "topic",
+          bucket: "active",
+          targetPath: "packages/core/src/index.ts",
+          diffSource: "working-tree",
+          gitRef: null,
+          commitRange: null,
+          diffCommand: "git diff -- packages/core/src/index.ts",
+          status: "pending",
+          taskRef: "T1",
+          note: null
+        }
+      },
+      {
+        relativePath: "qa/report.md",
+        sourcePath: "poggn/active/topic/qa/report.md",
+        tokenEstimate: 20,
+        llmActualTokens: 20,
+        localEstimatedTokens: 0,
+        content: "# QA"
+      }
+    ],
+    tokenUsageRecords: [
+      {
+        stage: "implementation",
+        flow: "pgg-code",
+        source: "llm",
+        totalTokens: 31,
+        measurement: "actual",
+        estimated: false,
+        usageMetadataAvailable: true,
+        artifactPath: "packages/core/src/index.ts",
+        artifactTokenEstimate: null
+      },
+      {
+        stage: "implementation",
+        flow: "pgg-code",
+        source: "local",
+        totalTokens: 5,
+        measurement: "estimated",
+        artifactPath: "pnpm test",
+        artifactTokenEstimate: null
+      },
+      {
+        stage: "qa",
+        flow: "pgg-qa",
+        source: "llm",
+        totalTokens: 0,
+        measurement: "unavailable",
+        estimated: true,
+        usageMetadataAvailable: false,
+        artifactPath: "qa/report.md",
+        artifactTokenEstimate: 44
+      },
+      {
+        stage: "qa",
+        flow: "pgg-qa",
+        source: "local",
+        totalTokens: 7,
+        measurement: "estimated",
+        artifactPath: "pgg-gate",
+        artifactTokenEstimate: null
+      },
+      {
+        stage: "plan",
+        flow: "pgg-plan",
+        source: "local",
+        totalTokens: 99,
+        measurement: "estimated",
+        artifactPath: "plan.md",
+        artifactTokenEstimate: null
+      }
+    ]
+  };
+
+  const rows = buildTimelineRows(topic, "ko", "tester", dictionary());
+  const code = rows.find((row) => row.id === "code");
+  const qa = rows.find((row) => row.id === "qa");
+
+  assert.equal(code?.llmActualTokens, 31);
+  assert.equal(code?.localEstimatedTokens, 30);
+  assert.equal(code?.files.some((file) => file.lazyDiff?.targetPath === "packages/core/src/index.ts" && file.content === null), true);
+  assert.equal(qa?.llmActualTokens, null);
+  assert.equal(qa?.localEstimatedTokens, 51);
+});

@@ -1,0 +1,136 @@
+diff --git a/packages/core/src/readme.ts b/packages/core/src/readme.ts
+index efcc63a..3666cae 100644
+--- a/packages/core/src/readme.ts
++++ b/packages/core/src/readme.ts
+@@ -90,6 +90,7 @@ export function buildRootReadme(): string {
+     "",
+     "`pgg teams`가 `on`이면 각 단계는 정의된 전문가 roster를 기준으로 자동 orchestration을 사용하고, handoff는 `state/current.md`와 `pgg-state-pack.sh` 중심으로 최소화합니다.",
+     "현재 프로젝트 내부 문서 생성, 확인, 기록 절차는 core workflow 전반과 필요한 optional audit 안에서 자동 처리하며, proposal 단계에서 사용자 질문 기록과 `archive_type`, `version_bump`, `target_version`, branch naming을 확정합니다. 이때 `archive_type`는 change category, `version_bump`는 semver impact를 뜻합니다.",
++    "모든 pgg-* flow 문서와 state/history 문구, commit message, pgg가 생성하거나 수정하는 코드 주석은 `pgg lang`을 따르며, 사용자가 작성한 기존 주석은 범위 밖에서 일괄 번역하지 않습니다.",
+     "`pgg-code`와 `pgg-refactor`는 공통 필수 구현 기준을 따르며, `pgg git=on`이면 task 완료마다 `.codex/sh/pgg-stage-commit.sh`로 `{convention}: {version}.{commit message}` 형식의 stage commit을 남깁니다. commit message는 `pgg lang=ko`면 한글, `pgg lang=en`이면 영어를 사용합니다. `pgg-token`과 `pgg-performance`는 plan/state/qa의 audit applicability가 `required`일 때만 후속 gate에서 강제됩니다.",
+     "pgg가 생성·관리하는 executable `.codex/sh/*.sh` helper만 workflow 내부 trusted script로 보고 추가 허락 없이 실행합니다.",
+     "대상 프로젝트 검증은 선언된 current-project verification contract로만 다루며, contract가 없으면 QA는 추론 실행 대신 `manual verification required`를 기록합니다.",
+@@ -113,6 +114,7 @@ export function buildRootReadme(): string {
+     "",
+     "When `pgg teams` is `on`, each stage can use expert-roster-based automatic orchestration and minimized handoff via `state/current.md` plus `pgg-state-pack.sh`.",
+     "Stage-local confirmations, records, and generated documents are handled automatically only when the work stays inside the current project across the core workflow and any required optional audits, and the proposal stage records the user questions plus resolves `archive_type`, `version_bump`, `target_version`, and branch naming. `archive_type` is the change category while `version_bump` is the semver impact.",
++    "All pgg-* flow documents, state/history text, commit messages, and pgg-generated or pgg-modified code comments follow `pgg lang`; existing user-authored comments are not bulk-translated outside the task scope.",
+     "`pgg-code` and `pgg-refactor` share the mandatory implementation criteria and, when `pgg git=on`, record task completion commits through `.codex/sh/pgg-stage-commit.sh` in the `{convention}: {version}.{commit message}` form. Commit message text is Korean for `pgg lang=ko` and English for `pgg lang=en`. `pgg-token` and `pgg-performance` become gate-enforced only when the plan/state/QA audit applicability marks them as `required`.",
+     "Only pgg-generated and managed executable `.codex/sh/*.sh` helpers are trusted workflow scripts that can run without extra approval.",
+     "Project verification uses declared current-project verification contracts only; when no contract exists, QA records `manual verification required` instead of guessing framework commands.",
+diff --git a/packages/core/src/templates.ts b/packages/core/src/templates.ts
+index 611461b..c83d4aa 100644
+--- a/packages/core/src/templates.ts
++++ b/packages/core/src/templates.ts
+@@ -540,6 +540,36 @@ function tokenUsageReviewRule(language: TemplateLanguage): string {
+     : "- Token audits check coverage of `state/token-usage.ndjson` or an equivalent ledger, separation of `llm` and `local` sources, actual/estimated labeling, and dashboard summary usability.";
+ }
+ 
++function pggLangDocumentationRule(language: TemplateLanguage): string {
++  return language === "ko"
++    ? "- 모든 pgg-* flow 문서, state/history 문구, commit message, pgg가 생성하거나 수정하는 코드 주석은 `pgg lang`을 따르며, 사용자가 작성한 기존 주석은 범위 밖에서 일괄 번역하지 않는다."
++    : "- All pgg-* flow documents, state/history text, commit messages, and pgg-generated or pgg-modified code comments must follow `pgg lang`; do not bulk-translate existing user-authored comments outside the task scope.";
++}
++
++function pggLangReviewRule(language: TemplateLanguage): string {
++  return language === "ko"
++    ? "- code review와 QA는 pgg 생성/수정 문서와 코드 주석이 `pgg lang`을 따르는지 확인한다."
++    : "- Code review and QA verify that pgg-generated or pgg-modified documents and code comments follow `pgg lang`.";
++}
++
++function pggLangSkillContractSection(language: TemplateLanguage): string[] {
++  return language === "ko"
++    ? [
++        "## Language Contract",
++        "",
++        "- 이 skill이 작성하는 pgg 문서, state/history 문구, review/QA 산출물은 `.pgg/project.json`의 `language` 값을 따른다.",
++        "- 이 skill이 생성하거나 수정하는 pgg-managed 코드 주석은 `pgg lang`을 따른다.",
++        "- 사용자가 작성한 기존 코드 주석은 해당 task 범위에서 수정하는 경우에만 언어 계약을 적용한다."
++      ]
++    : [
++        "## Language Contract",
++        "",
++        "- pgg documents, state/history text, and review/QA outputs written by this skill follow the `.pgg/project.json` `language` value.",
++        "- pgg-managed code comments created or modified by this skill follow `pgg lang`.",
++        "- Existing user-authored code comments are checked only when this task modifies them."
++      ];
++}
++
+ function flowStatusAgentRule(language: TemplateLanguage): string {
+   return language === "ko"
+     ? "- 모든 flow 상태는 `시작 전`, `진행 중`, `추가 진행`, `완료` 4상태로 기록하고 dashboard가 같은 기준으로 표시할 수 있게 stage event evidence를 유지하며, stage 필수 산출물/review/verification/commit 또는 release evidence가 완전히 끝나기 전에는 `완료`로 처리하지 않는다."
+@@ -888,6 +918,7 @@ function agentsMd(input: TemplateInput): string {
+       "- proposal 단계에서 `archive_type`, `version_bump`, `target_version`, branch naming, `project_scope`를 확정하고, `archive_type`는 change category/commit convention, `version_bump`는 semver impact로 구분한다.",
+       "- pgg가 생성·관리하는 `.codex/sh/*.sh` helper만 workflow 내부 trusted script로 보고 추가 허락 없이 실행한다.",
+       "- `pgg git`이 `on`이면 `.codex/sh/pgg-stage-commit.sh`로 task 완료와 QA final completion commit을 남기고, publish commit은 `state/current.md` 또는 `qa/report.md`의 `Git Publish Message` 섹션으로 제목/상세 body/footer를 관리하며 `{convention}: {version}.{commit message}` 형식, `pgg lang` 기반 메시지 언어, 제목 50자 이하, 명령형 금지, 마침표 금지, 로그가 곧 문서 원칙을 지킨다.",
++      pggLangDocumentationRule(input.language),
+       flowStatusAgentRule(input.language),
+       optionalAuditVisibilityRule(input.language),
+       timelineCompletionRule(input.language),
+@@ -935,6 +966,7 @@ function agentsMd(input: TemplateInput): string {
+     "- Resolve `archive_type`, `version_bump`, `target_version`, branch naming, and `project_scope` during the proposal stage, keeping `archive_type` as the change category/commit convention and `version_bump` as the semver impact.",
+     "- Treat only pgg-generated and managed `.codex/sh/*.sh` helpers as trusted workflow scripts that can run without extra approval.",
+     "- When `pgg git` is `on`, use `.codex/sh/pgg-stage-commit.sh` for task completion and final QA completion commits, then manage publish commit title, detailed body, and footer through the `Git Publish Message` section in `state/current.md` or `qa/report.md` with the `{convention}: {version}.{commit message}` subject format, `pgg lang` localized message text, 50-character limit, non-imperative phrasing, no period, and logs-as-documentation rules.",
++    pggLangDocumentationRule(input.language),
+     flowStatusAgentRule(input.language),
+     optionalAuditVisibilityRule(input.language),
+     timelineCompletionRule(input.language),
+@@ -983,6 +1015,7 @@ function workFlowMd(input: TemplateInput): string {
+       "- interactive 변경 명령은 변경 경로 또는 no-op/cancel 상태를 출력한 뒤 종료한다.",
+       "- 구현 전에는 `proposal.md`, `plan.md`, `task.md`를 기준으로 범위와 완료 조건을 확인한다.",
+       "- 모든 작업은 `poggn/active/<topic>` 문서를 따라 진행한다.",
++      pggLangDocumentationRule(input.language),
+       flowStatusWorkflowRule(input.language),
+       "- active topic 진행 중 사용자가 새 요구사항 또는 수정사항을 추가하면, 해당 stage 작업을 시작하기 전에 `state/history.ndjson`에 `requirements-added` event를 append해 dashboard workflow가 즉시 `추가 진행` 상태를 계산할 수 있게 한다.",
+       "- 작업 중간 산출물 정리나 검증 전 상태는 `stage-progress`로만 기록하고, `stage-completed`는 검증이 끝난 최종 완료 시점에만 `source:\"verified\"` 계열 evidence로 남긴다.",
+@@ -1075,6 +1108,7 @@ function workFlowMd(input: TemplateInput): string {
+     "- Interactive change commands print changed paths or a no-op/cancel status before exit.",
+     "- Confirm scope and exit criteria from `proposal.md`, `plan.md`, and `task.md` before implementation.",
+     "- Execute work through `poggn/active/<topic>` documents.",
++    pggLangDocumentationRule(input.language),
+     flowStatusWorkflowRule(input.language),
+     "- When a user adds a new requirement or correction while an active topic is in progress, append a `requirements-added` event to `state/history.ndjson` before starting that stage work so the dashboard workflow can immediately calculate the `updating` state.",
+     "- Record in-progress artifact cleanup or pre-verification work only as `stage-progress`; reserve `stage-completed` for final verified completion with `source:\"verified\"` evidence.",
+@@ -1153,6 +1187,7 @@ function stateContractMd(input: TemplateInput): string {
+       "- pgg가 생성·관리하는 `.codex/sh/*.sh` helper만 trusted handoff/automation script로 본다.",
+       "- `archive_type`, `version_bump`, `target_version`, branch naming, `project_scope`, archive 후의 version 정보는 최소 컨텍스트에 유지한다.",
+       "- proposal 단계에서는 사용자 입력 질문 기록 섹션의 위치 또는 ref와 `version_bump`, `target_version` 선택 결과를 최소 컨텍스트에 유지한다.",
++      pggLangDocumentationRule(input.language),
+       auditApplicabilityStateRule(input.language),
+       flowStatusStateRule(input.language),
+       optionalAuditVisibilityRule(input.language),
+@@ -1199,6 +1234,7 @@ function stateContractMd(input: TemplateInput): string {
+     "- Treat only pgg-generated and managed `.codex/sh/*.sh` helpers as trusted handoff and automation scripts.",
+     "- Preserve `archive_type`, `version_bump`, `target_version`, branch naming, `project_scope`, and archive version data in the minimum handoff.",
+     "- Preserve the user-question record section or reference plus the `version_bump` and `target_version` decision outcome from the proposal stage in the minimum handoff.",
++    pggLangDocumentationRule(input.language),
+     auditApplicabilityStateRule(input.language),
+     flowStatusStateRule(input.language),
+     optionalAuditVisibilityRule(input.language),
+@@ -1341,6 +1377,7 @@ function reviewRubricMd(input: TemplateInput): string {
+       "- `token/report.md`는 optional audit가 실제로 열렸을 때만 만들고, 측정값, 최적화 액션, 개선 결과를 함께 기록한다.",
+       tokenUsageReviewRule(input.language),
+       "- `performance/report.md`는 optional audit가 실제로 열렸을 때만 만들고, applicability, baseline, target, actual result 또는 제외 근거를 함께 기록한다.",
++      pggLangReviewRule(input.language),
+       "- QA는 `Audit Applicability` 섹션을 기준으로 `required` audit만 blocking으로 판단한다.",
+       "- archive가 포함되는 QA는 `archive_type`, version 기록 여부, ledger 경로를 검증 근거에 남긴다.",
+       "- verification contract가 선언되지 않은 프로젝트는 framework 명령을 추론하지 않고 `manual verification required`를 QA 근거에 남긴다.",
+@@ -1367,6 +1404,7 @@ function reviewRubricMd(input: TemplateInput): string {
+     "- Create `token/report.md` only when the optional audit runs, and keep measurements, optimization actions, and post-change results together.",
+     tokenUsageReviewRule(input.language),
+     "- Create `performance/report.md` only when the optional audit runs, and keep applicability, baseline, target, actual result, or exclusion evidence together.",
++    pggLangReviewRule(input.language),
+     "- In QA, treat only `required` entries from the `Audit Applicability` section as blocking audit obligations.",
+     "- When QA leads to archive, keep the `archive_type`, recorded version, and ledger reference in the evidence.",
+     "- When no verification contract is declared, record `manual verification required` in QA evidence instead of guessing framework commands.",
+@@ -2102,7 +2140,9 @@ function skillMd(input: TemplateInput, name: GeneratedSkillName): string {
+     `description: "${entry.description}"`,
+     "---",
+     "",
+-    ...entry.body
++    ...entry.body,
++    "",
++    ...pggLangSkillContractSection(input.language)
+   ]);
+ }
+ 

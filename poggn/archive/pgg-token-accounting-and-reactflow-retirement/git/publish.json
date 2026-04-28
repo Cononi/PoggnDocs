@@ -1,0 +1,32 @@
+{
+  "topic": "pgg-token-accounting-and-reactflow-retirement",
+  "version": "3.0.5",
+  "targetVersion": "3.0.5",
+  "changeType": "fix",
+  "versionBump": "patch",
+  "commitTitle": "fix: 3.0.5.token accounting trim",
+  "commitSha": "a7fafe089f3a8c3f6e7fb04661d94c2f8c8dc947",
+  "pushStatus": "success",
+  "remote": "origin",
+  "branch": "release/3.0.5-token-retirement",
+  "workingBranch": "ai/fix/3.0.5-token-retirement",
+  "releaseBranch": "release/3.0.5-token-retirement",
+  "resultType": "published",
+  "reason": "Release branch push completed successfully.",
+  "publishedAt": "2026-04-28T04:36:14Z",
+  "retryable": true,
+  "rollbackEligible": true,
+  "publishMode": "first_publish",
+  "upstreamStatus": "configured",
+  "cleanupStatus": "completed",
+  "cleanupReason": "Removed the ai branch after promoting 'release/3.0.5-token-retirement'. No remote ai branch existed.",
+  "cleanupTiming": "after_release_promotion",
+  "branchRecovery": "not_attempted",
+  "branchRecoveryReason": null,
+  "branchRecoveryFrom": null,
+  "notesRef": "refs/notes/pgg-publish",
+  "commitLookupHint": {
+    "archivePath": "poggn/archive/pgg-token-accounting-and-reactflow-retirement",
+    "versionFile": "poggn/archive/pgg-token-accounting-and-reactflow-retirement/version.json"
+  }
+}

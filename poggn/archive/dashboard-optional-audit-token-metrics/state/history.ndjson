@@ -1,0 +1,22 @@
+{"ts":"2026-04-27T23:23:39Z","stage":"proposal","event":"topic-created"}
+{"ts":"2026-04-27T23:23:39Z","stage":"proposal","event":"stage-started","source":"pgg-add"}
+{"ts":"2026-04-27T23:24:03Z","stage":"proposal","event":"stage-progress","source":"pgg-add","summary":"proposal, review, state, workflow metadata drafted"}
+{"ts":"2026-04-27T23:24:03Z","stage":"proposal","event":"stage-completed","source":"verified","summary":"proposal reviewed and handoff state verified"}
+{"ts":"2026-04-27T23:32:03Z","stage":"plan","event":"stage-started","source":"pgg-plan"}
+{"ts":"2026-04-27T23:32:03Z","stage":"plan","event":"stage-progress","source":"pgg-plan","summary":"plan, task, five specs, and plan/task reviews drafted"}
+{"ts":"2026-04-27T23:35:26Z","stage":"plan","event":"stage-completed","source":"verified","summary":"pgg-code gate, workflow json parse, and state-pack handoff verified"}
+{"ts":"2026-04-27T23:41:57Z","stage":"implementation","event":"stage-started","source":"pgg-code"}
+{"ts":"2026-04-27T23:54:55Z","stage":"implementation","event":"stage-progress","source":"pgg-code","summary":"dashboard optional audit gating, completed-only timeline rows, token ledger parser, generated docs, state-pack, and regression test implemented"}
+{"ts":"2026-04-27T23:57:12Z","stage":"implementation","event":"stage-commit","archiveType":"feat","targetVersion":"2.9.0","projectLanguage":"ko","commitTitle":"feat: 2.9.0.audit token 지표","summary":"audit token 지표","why":"optional audit flow는 실제 실행 evidence로만 표시되고 timeline은 완료된 workflow progress만 보여야 하며 flow와 file artifact의 token usage ledger가 dashboard 지표로 쓰일 수 있어야 한다","footer":"Refs: dashboard-optional-audit-token-metrics"}
+{"ts":"2026-04-28T00:11:02Z","stage":"refactor","event":"stage-started","source":"pgg-refactor"}
+{"ts":"2026-04-28T00:18:00Z","stage":"refactor","event":"stage-progress","source":"pgg-refactor","summary":"optional audit artifact matching and token usage aggregation predicates refactored into shared helpers; verification passed"}
+{"ts":"2026-04-28T00:15:32Z","stage":"refactor","event":"stage-commit","archiveType":"feat","targetVersion":"2.9.0","projectLanguage":"ko","commitTitle":"feat: 2.9.0.token 조건 정리","summary":"token 조건 정리","why":"optional audit artifact 판정과 token usage 합산 조건이 중복되어 후속 변경 시 같은 기준이 어긋날 수 있어 작은 helper로 분리했다","footer":"Refs: dashboard-optional-audit-token-metrics"}
+{"ts":"2026-04-28T00:25:00Z","stage":"token","event":"stage-started","source":"pgg-token"}
+{"ts":"2026-04-28T00:31:00Z","stage":"token","event":"stage-progress","source":"pgg-token","summary":"ledger coverage, local estimated handoff size, generated template token-cost contributor, and dashboard summary readiness audited"}
+{"ts":"2026-04-28T00:34:00Z","stage":"token","event":"stage-completed","source":"verified","summary":"token report, token review, ledger NDJSON parse, workflow JSON parse, and pgg-qa gate verified"}
+{"ts":"2026-04-28T00:36:00Z","stage":"qa","event":"stage-started","source":"pgg-qa"}
+{"ts":"2026-04-28T00:44:00Z","stage":"qa","event":"stage-progress","source":"pgg-qa","summary":"core tests, dashboard build, token audit evidence, workflow JSON, token ledger, state-pack, and pgg-qa gate verified"}
+{"ts":"2026-04-28T00:32:05Z","stage":"qa","event":"stage-commit","archiveType":"feat","targetVersion":"2.9.0","projectLanguage":"ko","commitTitle":"feat: 2.9.0.qa 완료 기록","summary":"qa 완료 기록","why":"QA 산출물과 최종 검증 변경은 archive publish 전에 별도 완료 commit으로 남아야 한다.","footer":"Refs: dashboard-optional-audit-token-metrics"}
+{"ts":"2026-04-28T00:32:05Z","stage":"archive","event":"version-recorded","version":"2.9.0","changeType":"feat","versionBump":"minor","targetVersion":"2.9.0","workingBranch":"ai/feat/2.9.0-dashboard-metrics","releaseBranch":"release/2.9.0-dashboard-metrics"}
+{"ts":"2026-04-28T00:32:05Z","stage":"archive","event":"archived"}
+{"ts":"2026-04-28T00:32:14Z","stage":"archive","event":"git-publish-complete","resultType":"published","pushStatus":"success","reason":"Release branch push completed successfully.","remote":"origin","workingBranch":"ai/feat/2.9.0-dashboard-metrics","releaseBranch":"release/2.9.0-dashboard-metrics","publishMode":"first_publish","upstreamStatus":"configured","cleanupStatus":"completed","cleanupReason":"Removed the ai branch after promoting 'release/2.9.0-dashboard-metrics'. No remote ai branch existed.","cleanupTiming":"after_release_promotion","notesRef":"refs/notes/pgg-publish","commitSha":"f91b3e08d46e5fbbdb674b0a894f506b1b32904f"}

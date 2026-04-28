@@ -1,0 +1,19 @@
+diff --git a/poggn/active/pgg-verify-skill b/poggn/active/pgg-verify-skill
+new file mode 100644
+--- /dev/null
++++ b/poggn/active/pgg-verify-skill
+@@ -0,0 +1,15 @@
++Created pgg topic tracking artifacts for pgg-verify-skill:
+++- proposal.md
++- plan.md
++- task.md
++- spec/verification/pgg-verify-skill-contract.md
++- reviews/proposal.review.md
++- reviews/plan.review.md
++- reviews/task.review.md
++- reviews/code.review.md
++- state/current.md
++- state/history.ndjson
++- implementation/index.md
++- implementation/diffs/001_CREATE__codex_skills_pgg-verify_SKILL_md.diff
++- implementation/diffs/002_CREATE_poggn_active_pgg-verify-skill.diff

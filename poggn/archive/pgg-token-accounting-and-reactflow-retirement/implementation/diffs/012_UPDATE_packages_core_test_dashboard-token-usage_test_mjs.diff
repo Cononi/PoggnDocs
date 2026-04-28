@@ -1,0 +1,82 @@
+diff --git a/packages/core/test/dashboard-token-usage.test.mjs b/packages/core/test/dashboard-token-usage.test.mjs
+index 91f01fd..1489850 100644
+--- a/packages/core/test/dashboard-token-usage.test.mjs
++++ b/packages/core/test/dashboard-token-usage.test.mjs
+@@ -61,7 +61,6 @@ test("dashboard snapshots prefer topic token usage ledger attribution", async ()
+         "state/current.md",
+         ["# Current State", "", "## Topic", "", topic, "", "## Current Stage", "", "implementation", ""].join("\n")
+       );
+-      await writeTopicFile(topicDir, "workflow.reactflow.json", JSON.stringify({ topic, nodes: [], edges: [] }, null, 2));
+       await writeTopicFile(topicDir, "implementation/index.md", "# Implementation\n\nshort file content\n");
+       const generatedReviewContent = "# Code Review\n\nLLM generated review content without provider usage metadata.\n";
+       const generatedReviewEstimate = Math.ceil(Array.from(generatedReviewContent).length / 4);
+@@ -162,15 +161,16 @@ test("dashboard snapshots prefer topic token usage ledger attribution", async ()
+       const topicSummary = project?.activeTopics.find((entry) => entry.name === topic);
+       const implementationFile = topicSummary?.files.find((file) => file.relativePath === "implementation/index.md");
+       const reviewFile = topicSummary?.files.find((file) => file.relativePath === "reviews/code.review.md");
+-      const topicFileLlmTokens =
+-        topicSummary?.files.reduce((sum, file) => sum + (file.llmActualTokens ?? 0), 0) ?? 0;
+-      const expectedLlmTokens = topicFileLlmTokens + generatedSourceEstimate;
++      const topicFileLocalTokens =
++        topicSummary?.files.reduce((sum, file) => sum + (file.localEstimatedTokens ?? 0), 0) ?? 0;
++      const expectedLlmTokens = 31;
++      const expectedLocalTokens = topicFileLocalTokens + generatedSourceEstimate;
+        assert.equal(topicSummary?.tokenUsage.source, "ledger");
+       assert.equal(topicSummary?.tokenUsage.ledgerRecordCount, 6);
+-      assert.equal(topicSummary?.tokenUsage.total, expectedLlmTokens + 11);
++      assert.equal(topicSummary?.tokenUsage.total, expectedLlmTokens + expectedLocalTokens);
+       assert.equal(topicSummary?.tokenUsage.llmActualTokens, expectedLlmTokens);
+-      assert.equal(topicSummary?.tokenUsage.localEstimatedTokens, 11);
++      assert.equal(topicSummary?.tokenUsage.localEstimatedTokens, expectedLocalTokens);
+       assert.equal(topicSummary?.tokenUsageRecords.length, 6);
+       assert.equal(topicSummary?.tokenUsageRecords[0]?.usageMetadataAvailable, true);
+       assert.equal(topicSummary?.tokenUsageRecords[1]?.measurement, "unavailable");
+@@ -178,18 +178,18 @@ test("dashboard snapshots prefer topic token usage ledger attribution", async ()
+       assert.equal(topicSummary?.tokenUsageRecords[2]?.measurement, "actual");
+       assert.equal(topicSummary?.tokenUsageRecords[2]?.usageMetadataAvailable, false);
+       assert.equal(implementationFile?.tokenSource, "ledger");
+-      assert.equal(implementationFile?.llmActualTokens, 108);
++      assert.equal(implementationFile?.llmActualTokens, 31);
+       assert.equal(implementationFile?.localEstimatedTokens, 11);
+       assert.equal(reviewFile?.tokenSource, "ledger");
+-      assert.equal(reviewFile?.llmActualTokens, generatedReviewEstimate);
+-      assert.equal(reviewFile?.localEstimatedTokens, 0);
++      assert.equal(reviewFile?.llmActualTokens, null);
++      assert.equal(reviewFile?.localEstimatedTokens, generatedReviewEstimate);
+     });
+   } finally {
+     await rm(rootDir, { recursive: true, force: true });
+   }
+ });
+ -test("dashboard snapshots count topic artifacts as llm tokens without a ledger", async () => {
++test("dashboard snapshots count topic artifacts as local estimates without a ledger", async () => {
+   const rootDir = await mkdtemp(path.join(os.tmpdir(), "pgg-token-artifact-baseline-"));
+   const topic = "token-artifact-baseline-topic";
+   const topicDir = path.join(rootDir, "poggn", "active", topic);
+@@ -211,24 +211,19 @@ test("dashboard snapshots count topic artifacts as llm tokens without a ledger",
+         "state/current.md",
+         ["# Current State", "", "## Topic", "", topic, "", "## Current Stage", "", "plan", ""].join("\n")
+       );
+-      await writeTopicFile(topicDir, "workflow.reactflow.json", JSON.stringify({ topic, nodes: [], edges: [] }, null, 2));
+        const snapshot = await buildDashboardSnapshot(rootDir);
+       const project = snapshot.projects.find((entry) => entry.rootDir === rootDir);
+       const topicSummary = project?.activeTopics.find((entry) => entry.name === topic);
+       const diffFile = topicSummary?.files.find((file) => file.relativePath === "implementation/diffs/001_UPDATE_example.diff");
+-      const fileLlmTokens =
+-        topicSummary?.files
+-          .filter((file) => file.relativePath !== "implementation/diffs/001_UPDATE_example.diff")
+-          .reduce((sum, file) => sum + (file.tokenEstimate ?? 0), 0) ?? 0;
+-      const fileLocalTokens = diffFile?.tokenEstimate ?? 0;
++      const fileLocalTokens = topicSummary?.files.reduce((sum, file) => sum + (file.tokenEstimate ?? 0), 0) ?? 0;
+        assert.equal(topicSummary?.tokenUsage.source, "estimated");
+-      assert.equal(topicSummary?.tokenUsage.llmActualTokens, fileLlmTokens);
++      assert.equal(topicSummary?.tokenUsage.llmActualTokens, null);
+       assert.equal(topicSummary?.tokenUsage.localEstimatedTokens, fileLocalTokens);
+-      assert.equal(topicSummary?.tokenUsage.total, fileLlmTokens + fileLocalTokens);
++      assert.equal(topicSummary?.tokenUsage.total, fileLocalTokens);
+       assert.equal(diffFile?.llmActualTokens, null);
+-      assert.equal(diffFile?.localEstimatedTokens, fileLocalTokens);
++      assert.equal(diffFile?.localEstimatedTokens, diffFile?.tokenEstimate);
+     });
+   } finally {
+     await rm(rootDir, { recursive: true, force: true });

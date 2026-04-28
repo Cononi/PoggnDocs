@@ -1,0 +1,209 @@
+diff --git a/packages/core/src/index.ts b/packages/core/src/index.ts
+index bf484b9..211103b 100644
+--- a/packages/core/src/index.ts
++++ b/packages/core/src/index.ts
+@@ -2950,7 +2950,7 @@ async function readTopicArtifactSummary(topicDir: string): Promise<TopicArtifact
+       "state/history.ndjson",
+       "git/publish.json"
+     ]),
+-    workflowDocs: await summarizeArtifactGroup(topicDir, ["workflow.reactflow.json"], { required: true })
++    workflowDocs: await summarizeArtifactGroup(topicDir, ["workflow.reactflow.json"])
+   };
+ }
+ @@ -3135,13 +3135,7 @@ function isActualLlmTokenRecord(record: TopicTokenUsageRecord): boolean {
+ }
+  function directLlmTokenRecordTotal(record: TopicTokenUsageRecord): number | null {
+-  if (record.source !== "llm" || record.totalTokens <= 0 || record.measurement === "unavailable") {
+-    return null;
+-  }
+-  if (isActualLlmTokenRecord(record) || record.measurement === "actual" || record.measurement === "estimated") {
+-    return record.totalTokens;
+-  }
+-  return null;
++  return isActualLlmTokenRecord(record) && record.totalTokens > 0 ? record.totalTokens : null;
+ }
+  function sumLocalTokenRecords(records: TopicTokenUsageRecord[]): number {
+@@ -3191,14 +3185,9 @@ async function buildTokenEstimateLookup(
+   };
+ }
+ -function sumLlmTokenRecords(
+-  records: TopicTokenUsageRecord[],
+-  estimateForArtifact: (artifactPath: string | null) => number | null
+-): number | null {
++function sumLlmTokenRecords(records: TopicTokenUsageRecord[]): number | null {
+   let total = 0;
+   let seen = false;
+-  const directArtifacts = new Set<string>();
+-  const fallbackArtifacts = new Set<string>();
+    for (const record of records) {
+     if (record.source !== "llm") {
+@@ -3213,30 +3202,63 @@ function sumLlmTokenRecords(
+     if (directTotal !== null) {
+       total += directTotal;
+       seen = true;
+-      if (artifactPath) {
+-        directArtifacts.add(artifactPath);
+-      }
++    }
++  }
+++  return seen ? total : null;
++}
+++function sumEstimatedLlmTokenRecords(
++  records: TopicTokenUsageRecord[],
++  estimateForArtifact: (artifactPath: string | null) => number | null
++): number {
++  let total = 0;
++  const actualArtifacts = new Set<string>();
++  const estimatedArtifacts = new Set<string>();
+++  for (const record of records) {
++    if (record.source !== "llm") {
+       continue;
+     }
+ -    if (artifactPath) {
+-      fallbackArtifacts.add(artifactPath);
++    const artifactPath = normalizeTokenUsagePath(record.artifactPath);
++    if (artifactPath && isActualLlmTokenRecord(record)) {
++      actualArtifacts.add(artifactPath);
+     }
+   }
+ -  for (const artifactPath of fallbackArtifacts) {
+-    if (directArtifacts.has(artifactPath)) {
++  for (const record of records) {
++    if (record.source !== "llm" || isActualLlmTokenRecord(record)) {
++      continue;
++    }
+++    const artifactPath = normalizeTokenUsagePath(record.artifactPath);
++    if (isLocalTokenArtifactPath(artifactPath) || (artifactPath && actualArtifacts.has(artifactPath))) {
++      continue;
++    }
+++    if (!artifactPath) {
++      if (record.measurement === "estimated" && record.totalTokens > 0) {
++        total += record.totalTokens;
++      }
++      continue;
++    }
+++    if (estimatedArtifacts.has(artifactPath)) {
+       continue;
+     }
+-    const recordEstimate = records.find((record) => normalizeTokenUsagePath(record.artifactPath) === artifactPath)?.artifactTokenEstimate ?? null;
+-    const estimate = recordEstimate ?? estimateForArtifact(artifactPath);
+++    const estimate =
++      record.measurement === "estimated" && record.totalTokens > 0
++        ? record.totalTokens
++        : record.artifactTokenEstimate ?? estimateForArtifact(artifactPath);
+     if (estimate !== null) {
+       total += estimate;
+-      seen = true;
++      estimatedArtifacts.add(artifactPath);
+     }
+   }
+ -  return seen ? total : null;
++  return total;
+ }
+  function fileHasLlmTokenRecord(file: TopicFileEntry, records: TopicTokenUsageRecord[]): boolean {
+@@ -3251,9 +3273,9 @@ function fileHasLlmTokenRecord(file: TopicFileEntry, records: TopicTokenUsageRec
+   });
+ }
+ -function sumLlmArtifactBaselineTokens(files: TopicFileEntry[], records: TopicTokenUsageRecord[]): number {
++function sumUnrecordedArtifactEstimateTokens(files: TopicFileEntry[], records: TopicTokenUsageRecord[]): number {
+   return files.reduce((sum, file) => {
+-    if (file.tokenEstimate === null || isLocalTokenArtifactPath(file.relativePath) || fileHasLlmTokenRecord(file, records)) {
++    if (file.tokenEstimate === null || fileHasLlmTokenRecord(file, records) || fileHasLocalTokenRecord(file, records)) {
+       return sum;
+     }
+     return sum + file.tokenEstimate;
+@@ -3272,15 +3294,6 @@ function fileHasLocalTokenRecord(file: TopicFileEntry, records: TopicTokenUsageR
+   });
+ }
+ -function sumLocalArtifactBaselineTokens(files: TopicFileEntry[], records: TopicTokenUsageRecord[]): number {
+-  return files.reduce((sum, file) => {
+-    if (file.tokenEstimate === null || !isLocalTokenArtifactPath(file.relativePath) || fileHasLocalTokenRecord(file, records)) {
+-      return sum;
+-    }
+-    return sum + file.tokenEstimate;
+-  }, 0);
+-}
+- async function applyArtifactTokenEstimatesToRecords(
+   rootDir: string,
+   files: TopicFileEntry[],
+@@ -3301,11 +3314,15 @@ function applyTokenUsageRecordsToFile(file: TopicFileEntry, records: TopicTokenU
+    const localEstimatedTokens = sumLocalTokenRecords(artifactRecords);
+   const isLocalArtifact = isLocalTokenArtifactPath(file.relativePath);
+-  const llmActualTokens = isLocalArtifact ? null : sumLlmTokenRecords(artifactRecords, () => file.tokenEstimate) ?? file.tokenEstimate;
++  const llmActualTokens = isLocalArtifact ? null : sumLlmTokenRecords(artifactRecords);
++  const estimatedLlmTokens = isLocalArtifact ? 0 : sumEstimatedLlmTokenRecords(artifactRecords, () => file.tokenEstimate);
+    return {
+     ...file,
+-    localEstimatedTokens: localEstimatedTokens + (isLocalArtifact && !fileHasLocalTokenRecord(file, artifactRecords) ? file.tokenEstimate ?? 0 : 0),
++    localEstimatedTokens:
++      localEstimatedTokens +
++      estimatedLlmTokens +
++      (isLocalArtifact && !fileHasLocalTokenRecord(file, artifactRecords) ? file.tokenEstimate ?? 0 : 0),
+     llmActualTokens,
+     tokenSource: "ledger"
+   };
+@@ -3399,8 +3416,8 @@ async function listTopicFiles(
+         updatedAt: fileStat?.mtime.toISOString() ?? null,
+         size: fileStat?.size ?? null,
+         tokenEstimate,
+-        localEstimatedTokens: isLocalTokenArtifactPath(relativePath) ? tokenEstimate ?? 0 : 0,
+-        llmActualTokens: isLocalTokenArtifactPath(relativePath) ? null : tokenEstimate,
++        localEstimatedTokens: tokenEstimate ?? 0,
++        llmActualTokens: null,
+         tokenSource: tokenEstimate === null ? "none" : "estimated",
+         content,
+         editable: true
+@@ -3418,29 +3435,27 @@ async function summarizeTopicTokenUsage(
+   files: TopicFileEntry[],
+   tokenUsageRecords: TopicTokenUsageRecord[]
+ ): Promise<TopicTokenUsage> {
+-  const llmArtifactBaselineTokens = sumLlmArtifactBaselineTokens(files, tokenUsageRecords);
+-  const localArtifactBaselineTokens = sumLocalArtifactBaselineTokens(files, tokenUsageRecords);
++  const artifactEstimateBaselineTokens = sumUnrecordedArtifactEstimateTokens(files, tokenUsageRecords);
+   if (tokenUsageRecords.length > 0) {
+-    const llmActualTokensFromRecords = sumLlmTokenRecords(tokenUsageRecords, await buildTokenEstimateLookup(rootDir, files, tokenUsageRecords)) ?? 0;
+-    const llmActualTokens = llmActualTokensFromRecords + llmArtifactBaselineTokens;
+-    const localEstimatedTokens = sumLocalTokenRecords(tokenUsageRecords) + localArtifactBaselineTokens;
++    const tokenEstimateLookup = await buildTokenEstimateLookup(rootDir, files, tokenUsageRecords);
++    const llmActualTokensFromRecords = sumLlmTokenRecords(tokenUsageRecords) ?? 0;
++    const estimatedLlmTokens = sumEstimatedLlmTokenRecords(tokenUsageRecords, tokenEstimateLookup);
++    const localEstimatedTokens = sumLocalTokenRecords(tokenUsageRecords) + estimatedLlmTokens + artifactEstimateBaselineTokens;
+     return {
+-      total: llmActualTokens + localEstimatedTokens,
+-      llmActualTokens,
++      total: llmActualTokensFromRecords + localEstimatedTokens,
++      llmActualTokens: llmActualTokensFromRecords > 0 ? llmActualTokensFromRecords : null,
+       localEstimatedTokens,
+       source: "ledger",
+       ledgerRecordCount: tokenUsageRecords.length
+     };
+   }
+ -  const llmTotal = sumLlmArtifactBaselineTokens(files, []);
+-  const localTotal = sumLocalArtifactBaselineTokens(files, []);
+-  const total = llmTotal + localTotal;
++  const localTotal = sumUnrecordedArtifactEstimateTokens(files, []);
+   return {
+-    total,
+-    llmActualTokens: llmTotal > 0 ? llmTotal : null,
++    total: localTotal,
++    llmActualTokens: null,
+     localEstimatedTokens: localTotal,
+-    source: total > 0 ? "estimated" : "none",
++    source: localTotal > 0 ? "estimated" : "none",
+     ledgerRecordCount: 0
+   };
+ }
+@@ -3521,11 +3536,10 @@ async function listTopicSummaries(rootDir: string, bucket: "active" | "archive")
+       artifactSummary,
+       artifactCompleteness:
+         artifactSummary.lifecycleDocs.missingRequired ||
+-        artifactSummary.reviewDocs.missingRequired ||
+-        artifactSummary.workflowDocs.missingRequired
++        artifactSummary.reviewDocs.missingRequired
+           ? "partial"
+           : "complete",
+-      health: stateMarkdown && workflow ? "ok" : "partial",
++      health: stateMarkdown ? "ok" : "partial",
+       userQuestionRecord,
+       historyEvents,
+       files,
